@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<%
+/* A private, token-addressed URL has no business in an index. This is NOT
+   how anything is hidden from Google: the product page that links here is
+   fully crawlable and carries the same price, availability and terms this
+   page shows. Nothing on this page varies by who is asking. */
+%>
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="theme-color" content="#0B0F14">
+<title><%= pageTitle %></title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%230B0F14'/><g fill='%23A78BFA'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/checkout.css">
+<%/* This page renders with `layout: false`, so it does not inherit the
+     layout's analytics — which meant the most important step in the funnel
+     was the one step Google and Meta could not see. Same partial, same
+     consent gate, same behaviour as every other page.
+
+     No cookie banner is included here on purpose. A consent prompt on a
+     checkout costs conversions, and by this point the visitor has come
+     through the product page where the banner already appeared. Someone
+     who never saw it simply stays untracked, which is the safe direction
+     to fail in. */%>
+<%- include('../partials/analytics') %>
+<%- include('../partials/fx-approx') %>
+</head>
+<body>
+
+<%- include('../partials/checkout-header') %>
+
+<%
+  const p = priced.product;
+  const v = values || {};
+  const e = errors || {};
+  const err = (field) => e[field]
+    ? '<p class="ck-error-msg"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' + e[field] + '</p>'
+    : '';
+  const bad = (field) => e[field] ? ' has-error' : '';
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+%>
+
+<main class="ck-main">
+
+  <div class="ck-summary-col"><aside class="ck-summary" aria-label="Order summary">
+    <button type="button" class="ck-summary-toggle" aria-expanded="false" id="ck-summary-toggle">
+      <span class="ck-summary-toggle-label">Show order summary <span class="ck-summary-toggle-caret">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+      </span></span>
+      <span class="ck-summary-total-compact"><%= money(priced.total) %></span>
+    </button>
+
+    <div class="ck-summary-body">
+      <h2 class="ck-summary-h">Your order</h2>
+
+      <div class="ck-line-item">
+        <div class="ck-thumb">
+          <% if (p.imageUrl) { %>
+            <img src="<%= p.imageUrl %>" alt="<%= esc(p.title) %>">
+          <% } else { %>
+            <svg viewBox="0 0 64 48" role="img" aria-label="Product image">
+              <rect x="20" y="10" width="24" height="28" rx="2" fill="none" stroke="#3A4867" stroke-width="1.2"/>
+              <path d="M20 31l6-6 4.5 4.5L36 23l8 8" fill="none" stroke="#3A4867" stroke-width="1.2" stroke-linejoin="round"/>
+              <circle cx="28" cy="18" r="2.4" fill="none" stroke="#3A4867" stroke-width="1.2"/>
+            </svg>
+          <% } %>
+          <% if (priced.quantity > 1) { %>
+            <span class="ck-thumb-qty" style="display:grid" aria-label="Quantity <%= priced.quantity %>"><%= priced.quantity %></span>
+          <% } %>
+        </div>
+
+        <div class="ck-item-main">
+          <p class="ck-item-name"><%= p.title %></p>
+          <p class="ck-item-meta">
+            <span class="ck-item-badge"><%= priced.isPreorder ? 'Preorder' : 'In stock' %></span>
+            <span class="ck-item-badge ck-item-qty">Qty: <%= priced.quantity %></span>
+          </p>
+          <p class="ck-item-pricing">
+            <span class="ck-item-price"><%= money(priced.total) %></span>
+            <%
+              /* The unit price is shown only when the total divides into
+                 exact cents. A bundle plan is usually discounted, so
+                 dividing it would state a per-unit figure nobody is
+                 charged. */
+              const showsEach = priced.quantity > 1 && priced.total % priced.quantity === 0;
+            %>
+            <% if (showsEach) { %>
+              <span class="ck-item-unit"><%= money(priced.total / priced.quantity) %> each</span>
+            <% } else if (priced.quantity > 1) { %>
+              <span class="ck-item-unit">total for <%= priced.quantity %> units</span>
+            <% } %>
+          </p>
+        </div>
+      </div>
+
+      <div class="ck-totals">
+        <div class="ck-total-row"><span>Subtotal</span><span><%= money(priced.total) %></span></div>
+        <div class="ck-total-row"><span>Shipping</span><span class="ck-free">Free</span></div>
+        <div class="ck-total-row"><span>Taxes</span><span class="ck-muted">Included</span></div>
+        <%/* The approximate local amount hangs under the grand total, not
+             under the subtotal or the line item. This is the last number the
+             buyer reads before handing off to the payment step, and it is
+             the one their bank will convert — repeating an estimate on every
+             row would just add noise around it.
+
+             The hook sits on the inner line rather than the outer span
+             because fx-approx appends its chip to the hooked element's
+             PARENT. On .ck-grand-line that parent is .ck-grand-value, which
+             stacks; on the outer span it would be .ck-total-row-grand, and
+             the chip would become a third item in a space-between row,
+             landing beside "Total" instead of under the amount. */%>
+        <div class="ck-total-row ck-total-row-grand">
+          <span>Total</span>
+          <span class="ck-grand-value"><span class="ck-grand-line" data-usd-cents="<%= priced.total %>" data-usd-label="<%= priced.currency %> <%= money(priced.total) %>"><span class="ck-grand-currency"><%= priced.currency %></span><span class="ck-grand-amount"><%= money(priced.total) %></span></span></span>
+        </div>
+      </div>
+
+      <dl class="ck-facts">
+        <dt class="ck-facts-h"><%= priced.isPreorder ? 'Preorder details' : 'Order details' %></dt>
+        <% if (priced.isPreorder && priced.release.hasDate) { %>
+          <div class="ck-fact"><dt>Release</dt><dd><span class="ck-fact-em"><%= priced.release.display %></span></dd></div>
+        <% } %>
+        <div class="ck-fact">
+          <dt>Fulfillment</dt>
+          <dd><%= priced.isPreorder ? 'Ships after release' : 'Ships in 1 business day' %></dd>
+        </div>
+        <div class="ck-fact"><dt>Shipping</dt><dd>Free tracked</dd></div>
+        <div class="ck-fact"><dt>Cancellation</dt><dd>Full refund before dispatch</dd></div>
+      </dl>
+
+      <div class="ck-summary-assurance">
+        <span class="ck-assurance-title">What happens next</span>
+        <% if (priced.isPreorder) { %>
+          <span class="ck-assurance-item"><strong>Secure your preorder</strong><span>Payment is collected today.</span></span>
+          <span class="ck-assurance-item"><strong>Order confirmation</strong><span>Emailed after payment.</span></span>
+          <span class="ck-assurance-item"><strong>Tracking</strong><span>Emailed when your order ships.</span></span>
+        <% } else { %>
+          <span class="ck-assurance-item"><strong>Payment</strong><span>Charged today.</span></span>
+          <span class="ck-assurance-item"><strong>Order confirmation</strong><span>Emailed after payment.</span></span>
+          <span class="ck-assurance-item"><strong>Tracking</strong><span>Emailed when your order ships.</span></span>
+        <% } %>
+        <% if (priced.total > 50000) { %>
+          <span class="ck-assurance-note">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Orders over $500 are sent signature-required, so someone will need to sign for it.
+          </span>
+        <% } %>
+      </div>
+    </div>
+  </aside></div>
+
+  <div class="ck-form-col">
+    <form method="POST" action="<%= marketPath('/checkout/' + (token)) %>" novalidate autocomplete="on" id="ck-form">
+
+      <h1 class="ck-title">Complete your order</h1>
+      <p class="ck-title-sub">You'll confirm payment on the next step.</p>
+
+      <% if (notice) { %>
+        <p class="ck-notice">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span><%= notice %></span>
+        </p>
+      <% } %>
+
+      <%
+        /* Shown only to somebody already signed into /admin, so it reveals
+           nothing to anyone else. Without it there is no way to tell whether
+           a test checkout took until the payment step has already loaded —
+           which is exactly the wrong moment to find out it did not. */
+      %>
+      <% if (typeof testMode !== 'undefined' && testMode) { %>
+        <p class="ck-notice ck-notice-test">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/></svg>
+          <span><strong>Test checkout.</strong> No card will be charged. The payment step will show a test panel instead of the card form, and the order, the confirmation email and the notification that follow are the real ones.</span>
+        </p>
+      <% } %>
+
+      <nav class="ck-steps" aria-label="Checkout progress"><span class="ck-step is-active" aria-current="step"><span class="ck-step-dot">01</span><span class="ck-step-name">Information</span></span><span class="ck-step-sep" aria-hidden="true"></span><span class="ck-step"><span class="ck-step-dot">02</span><span class="ck-step-name">Payment</span></span></nav>
+
+      <section class="ck-section">
+        <h2 class="ck-section-title">Contact information</h2>
+        <div class="ck-field<%= bad('email') %>">
+          <label for="ck-email">Email</label>
+          <input id="ck-email" name="email" class="ck-input" type="email" value="<%= esc(v.email) %>" placeholder="you@example.com" autocomplete="email" inputmode="email" required>
+          <%- err('email') %>
+        </div>
+      </section>
+
+      <section class="ck-section">
+        <h2 class="ck-section-title">Shipping address</h2>
+
+        <div class="ck-field<%= bad('country') %>">
+          <label for="ck-country">Country / region</label>
+          <select id="ck-country" name="country" class="ck-select" required>
+            <option value="">Select your country</option>
+            <% const COUNTRIES = [['US','United States'],['CA','Canada'],['GB','United Kingdom'],['AU','Australia'],['NZ','New Zealand'],['IE','Ireland'],['DE','Germany'],['FR','France'],['ES','Spain'],['IT','Italy'],['NL','Netherlands'],['BE','Belgium'],['AT','Austria'],['CH','Switzerland'],['SE','Sweden'],['NO','Norway'],['DK','Denmark'],['FI','Finland'],['PL','Poland'],['PT','Portugal'],['CZ','Czechia'],['JP','Japan'],['SG','Singapore'],['HK','Hong Kong'],['KR','South Korea'],['MX','Mexico'],['BR','Brazil'],['AE','United Arab Emirates'],['ZA','South Africa'],['MA','Morocco']]; %>
+            <% COUNTRIES.forEach(function (c) { %>
+              <option value="<%= c[0] %>"<%= v.country === c[0] ? ' selected' : '' %>><%= c[1] %></option>
+            <% }); %>
+          </select>
+          <span class="ck-select-caret"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></span>
+          <%- err('country') %>
+        </div>
+
+        <div class="ck-row ck-row-2">
+          <div class="ck-field<%= bad('firstName') %>">
+            <label for="ck-firstName">First name</label>
+            <input id="ck-firstName" name="firstName" class="ck-input" type="text" value="<%= esc(v.firstName) %>" autocomplete="given-name" required>
+            <%- err('firstName') %>
+          </div>
+          <div class="ck-field<%= bad('lastName') %>">
+            <label for="ck-lastName">Last name</label>
+            <input id="ck-lastName" name="lastName" class="ck-input" type="text" value="<%= esc(v.lastName) %>" autocomplete="family-name" required>
+            <%- err('lastName') %>
+          </div>
+        </div>
+
+        <div class="ck-field<%= bad('address1') %>">
+          <label for="ck-address">Address</label>
+          <input id="ck-address" name="address1" class="ck-input" type="text" value="<%= esc(v.address1) %>" placeholder="Street and number" autocomplete="address-line1" required>
+          <%- err('address1') %>
+        </div>
+
+        <div class="ck-field">
+          <label for="ck-apartment">Apartment, suite, etc. <span class="opt">(optional)</span></label>
+          <input id="ck-apartment" name="address2" class="ck-input" type="text" value="<%= esc(v.address2) %>" autocomplete="address-line2">
+        </div>
+
+        <%
+          /* Countries where the state or province is a fixed list rather
+             than free text. "Cali", "N.Y." and "california" are all things
+             a customer types into a box, and all three are how an address
+             reaches a courier wrong. Where a canonical list exists they
+             pick from it; everywhere else keeps a text field, because most
+             countries have no such list to pick from. */
+          const SUBDIVISIONS = {
+            US: [['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],['CA','California'],['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],['DC','District of Columbia'],['FL','Florida'],['GA','Georgia'],['HI','Hawaii'],['ID','Idaho'],['IL','Illinois'],['IN','Indiana'],['IA','Iowa'],['KS','Kansas'],['KY','Kentucky'],['LA','Louisiana'],['ME','Maine'],['MD','Maryland'],['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],['MS','Mississippi'],['MO','Missouri'],['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],['NH','New Hampshire'],['NJ','New Jersey'],['NM','New Mexico'],['NY','New York'],['NC','North Carolina'],['ND','North Dakota'],['OH','Ohio'],['OK','Oklahoma'],['OR','Oregon'],['PA','Pennsylvania'],['PR','Puerto Rico'],['RI','Rhode Island'],['SC','South Carolina'],['SD','South Dakota'],['TN','Tennessee'],['TX','Texas'],['UT','Utah'],['VT','Vermont'],['VA','Virginia'],['WA','Washington'],['WV','West Virginia'],['WI','Wisconsin'],['WY','Wyoming']],
+            CA: [['AB','Alberta'],['BC','British Columbia'],['MB','Manitoba'],['NB','New Brunswick'],['NL','Newfoundland and Labrador'],['NT','Northwest Territories'],['NS','Nova Scotia'],['NU','Nunavut'],['ON','Ontario'],['PE','Prince Edward Island'],['QC','Quebec'],['SK','Saskatchewan'],['YT','Yukon']],
+            AU: [['ACT','Australian Capital Territory'],['NSW','New South Wales'],['NT','Northern Territory'],['QLD','Queensland'],['SA','South Australia'],['TAS','Tasmania'],['VIC','Victoria'],['WA','Western Australia']],
+          };
+          const subList = SUBDIVISIONS[v.country] || null;
+          const stateLabels = { US: 'State', CA: 'Province', AU: 'State / territory' };
+          const zipLabels = { US: 'ZIP code' };
+        %>
+        <div class="ck-row ck-row-3">
+          <div class="ck-field<%= bad('city') %>">
+            <label for="ck-city">City</label>
+            <input id="ck-city" name="city" class="ck-input" type="text" value="<%= esc(v.city) %>" autocomplete="address-level2" required>
+            <%- err('city') %>
+          </div>
+          <%
+            /* Both controls exist, and the one not in use is DISABLED — a
+               disabled control does not submit, so `state` is posted exactly
+               once whichever is showing. That is also what makes this work
+               with JavaScript off: the server chooses from the country it
+               already holds, and the script below only re-chooses when the
+               customer changes country. */
+          %>
+          <div class="ck-field<%= bad('state') %>" id="ck-state-field">
+            <label for="<%= subList ? 'ck-state' : 'ck-state-text' %>" id="ck-state-label"><%= stateLabels[v.country] || 'State / region' %></label>
+            <select id="ck-state" name="state" class="ck-select" data-cc="<%= esc(v.country) %>"<%= subList ? '' : ' disabled style="display:none"' %>>
+              <option value="">Select</option>
+              <% (subList || []).forEach(function (s) { %>
+                <option value="<%= s[0] %>"<%= v.state === s[0] ? ' selected' : '' %>><%= s[1] %></option>
+              <% }); %>
+            </select>
+            <span class="ck-select-caret" id="ck-state-caret"<%= subList ? '' : ' style="display:none"' %>><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></span>
+            <input id="ck-state-text" name="state" class="ck-input" type="text" value="<%= esc(subList ? '' : v.state) %>" autocomplete="address-level1"<%= subList ? ' disabled style="display:none"' : '' %>>
+            <%- err('state') %>
+          </div>
+          <div class="ck-field<%= bad('postalCode') %>">
+            <label for="ck-zip" id="ck-zip-label"><%= zipLabels[v.country] || 'Postal code' %></label>
+            <input id="ck-zip" name="postalCode" class="ck-input" type="text" value="<%= esc(v.postalCode) %>" autocomplete="postal-code">
+            <%- err('postalCode') %>
+          </div>
+        </div>
+        <script id="ck-subdivisions" type="application/json"><%- jsonForScript(SUBDIVISIONS) %></script>
+
+        <div class="ck-field">
+          <label for="ck-phone">Phone <span class="opt">(optional)</span></label>
+          <input id="ck-phone" name="phone" class="ck-input" type="tel" value="<%= esc(v.phone) %>" autocomplete="tel" inputmode="tel">
+        </div>
+      </section>
+
+      <button type="submit" class="ck-cta" id="ck-continue">
+        <span class="ck-cta-main"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Continue to secure payment</span>
+        <%= money(priced.total) %>
+      </button>
+
+      <div class="ck-pay-icons">
+        <h2 class="ck-pay-h">Secure payment</h2>
+        <div class="ck-pay-marks" id="ck-pay-marks" data-marks="" aria-label="Accepted payment methods"></div>
+        <p class="ck-pay-note">Secure payment processing by <strong>Whop</strong>.</p>
+        <p class="ck-pay-note ck-pay-fallback">Available methods are shown on the payment step.</p>
+      </div>
+
+      <div class="ck-trust-row">
+        <span class="ck-trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Factory sealed</strong>Authorized distribution</span></span>
+        <span class="ck-trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Free tracked shipping</strong>Every order</span></span>
+        <span class="ck-trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Cancellation</strong>Before dispatch</span></span>
+      </div>
+
+      <p class="ck-legal">
+        By continuing, you agree to our <a href="<%= marketPath('/terms-of-service') %>">Terms</a>,
+        <a href="<%= marketPath('/privacy-policy') %>">Privacy</a>, <a href="<%= marketPath('/refund-policy') %>">Refunds</a>
+        and <a href="<%= marketPath('/preorder-policy') %>">Preorder Policy</a>.
+      </p>
+
+    </form>
+  </div>
+</main>
+
+<%- include('../partials/checkout-footer') %>
+
+<script>
+/* Progressive enhancement only. The form posts and validates server-side
+   with JavaScript off; this adds the mobile summary toggle and a
+   double-submit guard, and nothing else. */
+(function () {
+  var toggle = document.getElementById('ck-summary-toggle');
+  var summary = toggle && toggle.closest('.ck-summary');
+  if (toggle && summary) {
+    toggle.addEventListener('click', function () {
+      var open = summary.classList.toggle('is-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      toggle.querySelector('.ck-summary-toggle-label').firstChild.textContent =
+        (open ? 'Hide' : 'Show') + ' order summary ';
+    });
+  }
+
+  /* State/province control follows the country.
+     The server already rendered the right one for the country it had; this
+     only re-picks when the customer changes it, so the page is correct
+     before this script runs and stays correct after. */
+  (function () {
+    var data = document.getElementById('ck-subdivisions');
+    var country = document.getElementById('ck-country');
+    var sel = document.getElementById('ck-state');
+    var txt = document.getElementById('ck-state-text');
+    var caret = document.getElementById('ck-state-caret');
+    var label = document.getElementById('ck-state-label');
+    var zipLabel = document.getElementById('ck-zip-label');
+    if (!data || !country || !sel || !txt) return;
+
+    var SUBDIVISIONS;
+    try { SUBDIVISIONS = JSON.parse(data.textContent); } catch (e) { return; }
+    var NAMES = { US: 'State', CA: 'Province', AU: 'State / territory' };
+
+    function show(el, on) { el.style.display = on ? '' : 'none'; el.disabled = !on; }
+
+    function sync() {
+      var cc = country.value;
+      var list = SUBDIVISIONS[cc];
+      if (label) {
+        label.textContent = NAMES[cc] || 'State / region';
+        label.setAttribute('for', list ? 'ck-state' : 'ck-state-text');
+      }
+      if (zipLabel) zipLabel.textContent = cc === 'US' ? 'ZIP code' : 'Postal code';
+
+      if (list) {
+        /* Rebuilt only when the country actually changed, so re-running
+           this never discards a selection the customer already made. */
+        if (sel.getAttribute('data-cc') !== cc) {
+          var keep = sel.value;
+          sel.innerHTML = '';
+          var blank = document.createElement('option');
+          blank.value = '';
+          blank.textContent = 'Select';
+          sel.appendChild(blank);
+          for (var i = 0; i < list.length; i++) {
+            var o = document.createElement('option');
+            o.value = list[i][0];
+            o.textContent = list[i][1];
+            sel.appendChild(o);
+          }
+          sel.setAttribute('data-cc', cc);
+          /* Carry a code the new country also uses (rare, but "WA" is both
+             Washington and Western Australia); otherwise start blank. */
+          sel.value = keep;
+          if (sel.selectedIndex < 0) sel.value = '';
+        }
+        show(sel, true);
+        if (caret) caret.style.display = '';
+        show(txt, false);
+      } else {
+        show(sel, false);
+        if (caret) caret.style.display = 'none';
+        show(txt, true);
+      }
+    }
+
+    country.addEventListener('change', sync);
+    sync();
+  })();
+
+  var form = document.getElementById('ck-form');
+  var cta = document.getElementById('ck-continue');
+  if (form && cta) {
+    form.addEventListener('submit', function () {
+      /* Disabled AFTER submit starts, so the button's own value still
+         posts and the guard cannot swallow the submission itself. */
+      setTimeout(function () {
+        cta.disabled = true;
+        cta.querySelector('.ck-cta-main').textContent = 'Saving your details…';
+      }, 0);
+    });
+  }
+})();
+</script>
+</body>
+</html>

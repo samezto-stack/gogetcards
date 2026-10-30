@@ -1,0 +1,57 @@
+<div class="cd__header">
+  <h2 class="cd__title">
+    Your Cart
+    <% if (cart && cart.totalItems > 0) { %>
+      <span class="badge badge--new" style="margin-left:0.625rem"><%= cart.totalItems %></span>
+    <% } %>
+  </h2>
+  <button class="cd__close" id="cart-drawer-close" aria-label="Close cart">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+</div>
+
+<div class="cd__body">
+  <% if (!cart || cart.items.length === 0) { %>
+    <div class="cd__empty">
+      <div class="cd__empty-icon" aria-hidden="true" style="font-size:3rem">🛒</div>
+      <p class="cd__empty-title">Your cart is empty</p>
+      <a href="<%= marketPath('/collection/all') %>" class="btn btn-primary" style="margin-top:1rem">Browse Products →</a>
+    </div>
+  <% } else { %>
+    <div class="cd__items">
+      <% cart.items.forEach(function(item) { %>
+        <div class="cd__item" id="cd-item-<%= item.slug %>">
+          <a href="<%= marketPath('/products/' + (item.slug)) %>" class="cd__item-img">
+            <% if (item.imageUrl) { %>
+              <img <%- productImage.attrs(item.imageUrl, 70) %> alt="<%= item.title %>" width="70" height="70" loading="lazy" decoding="async">
+            <% } else { %>
+              <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.5rem">📦</div>
+            <% } %>
+          </a>
+          <div class="cd__item-info">
+            <a href="<%= marketPath('/products/' + (item.slug)) %>" class="cd__item-title"><%= item.title %></a>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.625rem">
+              <span class="cd__item-price">$<%= (item.price * item.quantity / 100).toFixed(2) %></span>
+              <span style="font-size:0.72rem;color:var(--color-text-faint)">×<%= item.quantity %></span>
+              <button class="cd__remove-btn" data-cart-remove="<%= item.slug %>" aria-label="Remove <%= item.title %>">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  <% } %>
+</div>
+
+<% if (cart && cart.items.length > 0) { %>
+  <div class="cd__footer">
+    <div class="cd__subtotal">
+      <span>Subtotal</span>
+      <span class="cd__subtotal-amount">$<%= (cart.totalPrice / 100).toFixed(2) %></span>
+    </div>
+    <a href="<%= marketPath('/cart') %>" class="btn btn-primary btn-full btn-lg" style="margin-top:0.75rem">
+      View Cart · $<%= (cart.totalPrice / 100).toFixed(2) %>
+    </a>
+  </div>
+<% } %>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%237C3AED'/><g fill='%23ffffff'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
+  <meta name="theme-color" content="#0c0c12">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messages | Zyphera Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+</head>
+<body class="admin-body">
+  <%- include('_sidebar', { currentPath: '/admin/messages', unreadMessageCount: newCount }) %>
+
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="admin-header__title">Messages</h1>
+      <span style="font-size:0.8rem;color:var(--admin-muted)">
+        <%= newCount %> unread of <%= messages.length %>
+      </span>
+    </header>
+
+    <div class="admin-content">
+      <%/* Everything sent through the public contact form lands here. The
+           form promises a reply within the window stated in
+           config/company.js, so an unanswered message is a broken promise
+           on a page a Merchant Center reviewer reads. */%>
+
+      <% if (typeof sent !== 'undefined' && sent) { %>
+        <div style="background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.4);color:#86EFAC;border-radius:10px;padding:0.8rem 1rem;margin-bottom:1rem;font-size:0.85rem">
+          Reply sent to <strong><%= sent %></strong>. It is in <a href="/admin/email" style="color:#86EFAC;text-decoration:underline">the email log</a> with its delivery status.
+        </div>
+      <% } %>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.4);color:#FCA5A5;border-radius:10px;padding:0.8rem 1rem;margin-bottom:1rem;font-size:0.85rem">
+          <%= error %>
+        </div>
+      <% } %>
+
+      <% if (!messages.length) { %>
+        <div style="background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:10px;padding:3rem;text-align:center;color:var(--admin-muted)">
+          <p style="font-size:0.95rem">No messages yet.</p>
+          <p style="font-size:0.8rem;margin-top:0.5rem">
+            Anything sent through <a href="/contact" target="_blank" rel="noopener" style="color:var(--admin-info)">the contact form</a> appears here.
+          </p>
+        </div>
+      <% } else { %>
+        <div style="display:flex;flex-direction:column;gap:0.75rem">
+          <% messages.forEach(function (m) { %>
+            <article id="m-<%= m._id %>" style="background:var(--admin-surface);border:1px solid <%= m.status === 'new' ? 'rgba(124,58,237,0.45)' : 'var(--admin-border)' %>;border-radius:10px;padding:1.1rem 1.25rem">
+              <div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:baseline">
+                <div>
+                  <strong style="font-size:0.95rem"><%= m.name %></strong>
+                  <a href="mailto:<%= m.email %>?subject=<%= encodeURIComponent('Re: your message to Zyphera TCG') %>" style="color:var(--admin-info);font-size:0.85rem;margin-left:0.5rem"><%= m.email %></a>
+                </div>
+                <div style="display:flex;gap:0.5rem;align-items:center">
+                  <span style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--admin-muted)"><%= m.topic %></span>
+                  <% if (m.status === 'new') { %>
+                    <span style="font-size:0.65rem;font-weight:700;background:rgba(124,58,237,0.2);color:#C4B5FD;padding:2px 8px;border-radius:99px">NEW</span>
+                  <% } %>
+                  <time datetime="<%= new Date(m.createdAt).toISOString() %>" style="font-size:0.72rem;color:var(--admin-muted)">
+                    <%= new Date(m.createdAt).toLocaleString('en-US') %>
+                  </time>
+                </div>
+              </div>
+
+              <% if (m.orderNumber) { %>
+                <p style="font-size:0.78rem;color:var(--admin-muted);margin-top:0.4rem">Order: <code><%= m.orderNumber %></code></p>
+              <% } %>
+
+              <%/* white-space:pre-wrap, and escaped output. The message is
+                   untrusted text typed by a stranger; rendering it as HTML
+                   would put a stored-XSS hole straight into the admin. */%>
+              <p style="font-size:0.87rem;line-height:1.7;margin-top:0.7rem;white-space:pre-wrap"><%= m.message %></p>
+
+              <%/* Replies already sent, oldest first. Shown before the box
+                   rather than after it, because the point of them is to be
+                   read BEFORE writing the next one — an operator who cannot
+                   see what was already promised will repeat it or
+                   contradict it. Escaped and pre-wrap, same as the customer's
+                   own text. */%>
+              <% (m.replies || []).forEach(function (r) { %>
+                <div style="margin-top:0.8rem;padding:0.7rem 0.9rem;border-left:2px solid rgba(34,197,94,0.5);background:rgba(34,197,94,0.06);border-radius:0 8px 8px 0">
+                  <div style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--admin-muted);margin-bottom:0.35rem">
+                    You replied &middot; <%= new Date(r.sentAt).toLocaleString('en-US') %>
+                  </div>
+                  <p style="font-size:0.85rem;line-height:1.65;white-space:pre-wrap;margin:0"><%= r.body %></p>
+                </div>
+              <% }); %>
+
+              <%/* The reply box. Sends through services/mail, logs in
+                   /admin/email, records itself above and marks the message
+                   answered — but only if the send actually succeeded. */%>
+              <form method="POST" action="/admin/messages/<%= m._id %>/reply" style="margin:0.9rem 0 0">
+                <label for="reply-<%= m._id %>" style="display:block;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--admin-muted);margin-bottom:0.35rem">
+                  <%= (m.replies || []).length ? 'Reply again' : 'Reply' %> to <%= m.email %>
+                </label>
+                <textarea id="reply-<%= m._id %>" name="reply" rows="3" maxlength="5000" required
+                  placeholder="Write your answer. It is sent from <%= supportEmail %> and quotes their original message underneath."
+                  style="width:100%;background:var(--admin-bg);color:var(--admin-text);border:1px solid var(--admin-border);border-radius:8px;padding:0.6rem 0.75rem;font:inherit;font-size:0.85rem;line-height:1.6;resize:vertical"></textarea>
+                <div style="display:flex;gap:0.5rem;margin-top:0.6rem;align-items:center;flex-wrap:wrap">
+                  <button class="admin-btn admin-btn--primary" style="font-size:0.75rem;padding:0.35rem 0.9rem">Send reply</button>
+                  <span style="font-size:0.72rem;color:var(--admin-muted)">Sending marks this answered.</span>
+                </div>
+              </form>
+
+              <div style="display:flex;gap:0.5rem;margin-top:0.9rem">
+                <% if (m.status !== 'answered') { %>
+                  <form method="POST" action="/admin/messages/<%= m._id %>/status" style="margin:0">
+                    <input type="hidden" name="status" value="answered">
+                    <button class="admin-btn admin-btn--outline" style="font-size:0.75rem;padding:0.3rem 0.75rem">Mark answered</button>
+                  </form>
+                <% } %>
+                <% if (m.status === 'new') { %>
+                  <form method="POST" action="/admin/messages/<%= m._id %>/status" style="margin:0">
+                    <input type="hidden" name="status" value="read">
+                    <button class="admin-btn admin-btn--outline" style="font-size:0.75rem;padding:0.3rem 0.75rem">Mark read</button>
+                  </form>
+                <% } %>
+              </div>
+            </article>
+          <% }); %>
+        </div>
+      <% } %>
+    </div>
+  </main>
+</body>
+</html>

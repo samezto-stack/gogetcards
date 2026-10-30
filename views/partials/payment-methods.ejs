@@ -1,0 +1,15 @@
+<%/* The accepted-payment badge row, rendered from config/payments.js so the
+     footer, the cart and any future surface cannot advertise different
+     sets. Never hardcode a badge into a template: an advertised method the
+     buyer cannot use at checkout is a Merchant Center misrepresentation
+     violation, and the whole point of the config is that one edit changes
+     every place at once.
+
+     The group carries a real accessible name and each badge its own label,
+     so a screen reader announces "Accepted payment methods: Visa,
+     Mastercard, American Express" rather than three unlabelled images. */%>
+<div class="footer__payments" role="list" aria-label="Accepted payment methods">
+  <% payments.METHODS.forEach(function (m) { %>
+    <span class="footer__payment-icon" role="listitem" title="<%= m.label %>"><%- m.svg %></span>
+  <% }); %>
+</div>

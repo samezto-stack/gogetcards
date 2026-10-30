@@ -1,0 +1,63 @@
+<%
+  /* ── Sign in ────────────────────────────────────────────────────────
+     Standalone: no account chrome, because there is no account resolved
+     yet and a nav offering "Profile" to somebody who is not signed in is
+     just four links to this same page.
+
+     NO PASSWORD FIELD, and that is the design rather than a stage of it.
+     Accounts here are created by buying something, so the email address is
+     already proven; a password would be a second, weaker secret protecting
+     something the address already protects, and the commonest way a small
+     store leaks customer data.
+
+     THE FORM ANSWERS IDENTICALLY whichever address is typed. `sent` is
+     true for an unknown address too — see routes/account.js. Nothing on
+     this page can be used to test whether somebody shops here. */
+%>
+<div class="ac ac--solo">
+  <div class="ac__solo">
+    <p class="ac__eyebrow">Zyphera TCG</p>
+    <h1 class="ac__name">Sign in</h1>
+
+    <% if (sent) { %>
+      <div class="ac__notice ac__notice--good">
+        <strong>Check your inbox.</strong>
+        If <%= email %> has an account with us, a sign-in link is on its way.
+        It expires in 15&nbsp;minutes and works once.
+      </div>
+      <p class="ac__solo-note">
+        Nothing arrived? Check spam, then
+        <a href="<%= marketPath('/account/sign-in') %>">try a different address</a>.
+        Still stuck &mdash; <a href="<%= marketPath('/contact') %>">contact support</a>.
+      </p>
+    <% } else { %>
+      <p class="ac__solo-lede">
+        No password to remember. Enter the email address you used at checkout
+        and we&rsquo;ll send you a one-time link.
+      </p>
+
+      <% if (formError) { %>
+        <div class="ac__notice ac__notice--err"><%= formError %></div>
+      <% } %>
+
+      <form method="POST" action="<%= marketPath('/account/sign-in') %>" class="ac__solo-form" novalidate>
+        <input type="hidden" name="next" value="<%= redirectTo %>">
+        <div class="ac__field">
+          <label for="ac-email">Email address</label>
+          <input id="ac-email" type="email" name="email" value="<%= email %>"
+                 autocomplete="email" inputmode="email" spellcheck="false"
+                 placeholder="you@example.com" required>
+        </div>
+        <button type="submit" class="ac__btn ac__btn--primary ac__btn--block">
+          Email me a sign-in link
+        </button>
+      </form>
+
+      <p class="ac__solo-note">
+        Bought from us already? Your account was created at checkout &mdash;
+        there is nothing to register.
+      </p>
+    <% } %>
+  </div>
+</div>
+<%- include('../partials/account-styles') %>

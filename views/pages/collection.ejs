@@ -1,0 +1,202 @@
+<!-- Collection Header -->
+<div class="col-page__header">
+  <div class="col-page__header-orb" aria-hidden="true" style="position:absolute;width:500px;height:300px;top:50%;right:-100px;transform:translateY(-50%);background:radial-gradient(ellipse,rgba(124,58,237,0.1) 0%,transparent 70%);pointer-events:none"></div>
+  <div class="container" style="position:relative;z-index:2">
+    <nav class="col-page__breadcrumb" aria-label="Breadcrumb">
+      <a href="<%= marketPath('/') %>">Home</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page"><%= collectionTitle %></span>
+    </nav>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+      <div>
+        <% if (collectionHandle === 'preorders') { %>
+          <div class="label-overline" style="margin-bottom:0.5rem">🔔 Lock In Now</div>
+        <% } %>
+        <h1 class="heading-section"><%= collectionTitle %></h1>
+        <% if (typeof collectionDescription !== 'undefined' && collectionDescription) { %>
+          <p style="color:var(--color-text-muted);margin-top:0.625rem;max-width:540px;font-size:0.9rem;line-height:1.7">
+            <%= collectionDescription %>
+          </p>
+        <% } %>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+        <span style="font-family:var(--font-heading);font-size:2rem;font-weight:900;color:var(--color-white);line-height:1"><%= typeof totalProducts !== 'undefined' ? totalProducts : products.length %></span>
+        <span style="font-size:0.72rem;color:var(--color-text-faint);text-transform:uppercase;letter-spacing:0.06em;font-weight:600">products</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="col-page__layout">
+
+    <!-- Sidebar -->
+    <aside class="col-page__sidebar" aria-label="Filters">
+      <div class="col-page__filter-group">
+        <h2 class="col-page__filter-title">Sort</h2>
+        <form method="get">
+          <select
+            class="form-select"
+            id="sort-select"
+            name="sort"
+            onchange="this.form.submit()"
+            aria-label="Sort products"
+          >
+            <option value="featured" <%= typeof sort !== 'undefined' && sort === 'featured' ? 'selected' : '' %>>Featured</option>
+            <option value="price-asc" <%= typeof sort !== 'undefined' && sort === 'price-asc' ? 'selected' : '' %>>Price: Low → High</option>
+            <option value="price-desc" <%= typeof sort !== 'undefined' && sort === 'price-desc' ? 'selected' : '' %>>Price: High → Low</option>
+            <option value="title-asc" <%= typeof sort !== 'undefined' && sort === 'title-asc' ? 'selected' : '' %>>Name: A → Z</option>
+            <option value="newest" <%= typeof sort !== 'undefined' && sort === 'newest' ? 'selected' : '' %>>Newest First</option>
+          </select>
+        </form>
+      </div>
+
+      <div class="col-page__filter-group">
+        <h2 class="col-page__filter-title">Quick Links</h2>
+        <a href="<%= marketPath('/collection/preorders') %>" style="display:block;padding:0.5rem 0.875rem;background:var(--color-bg-card);border:1px solid var(--color-border-light);border-radius:var(--radius-sm);font-size:0.82rem;color:var(--color-text-muted);font-weight:600;margin-bottom:4px;transition:all var(--transition-fast)" id="filter-preorders-link">🔔 Preorders Only</a>
+        <a href="<%= marketPath('/collection/all') %>" style="display:block;padding:0.5rem 0.875rem;background:var(--color-bg-card);border:1px solid var(--color-border-light);border-radius:var(--radius-sm);font-size:0.82rem;color:var(--color-text-muted);font-weight:600;transition:all var(--transition-fast)" id="filter-all-link">🏪 All Products</a>
+      </div>
+    </aside>
+
+    <!-- Main grid -->
+    <div class="col-page__main">
+
+      <!-- Collection intro -->
+      <%
+        /* Unique, per-collection copy from config/collectionContent.js.
+           Collections with no entry render nothing here rather than a
+           generic paragraph repeated across every page. */
+        var cc = (typeof content !== 'undefined') ? content : null;
+        var isFirstPage = (typeof page === 'undefined') || page === 1;
+      %>
+      <% if (cc && cc.intro && isFirstPage) { %>
+        <p class="col-page__intro"><%= cc.intro %></p>
+      <% } %>
+
+      <!-- Preorders notice -->
+      <% if (collectionHandle === 'preorders') { %>
+        <div class="col-page__notice" role="note">
+          <span aria-hidden="true">🔔</span>
+          <div>
+            <strong style="color:var(--color-cyan)">Preorder Guarantee:</strong>
+            Price is locked at today's rate. Ships release day. Cancel anytime before dispatch.
+          </div>
+        </div>
+      <% } %>
+
+      <!-- Sort bar -->
+      <div class="col-page__sort-bar">
+        <p class="col-page__results">
+          <%
+            /* The old line printed products.length, which was the whole
+               catalogue. Now that the query is paginated it would read
+               "24 products" on a 90-product collection, so it states the
+               range being shown out of the real total. */
+            var total = (typeof totalProducts !== 'undefined') ? totalProducts : products.length;
+            var pg = (typeof page !== 'undefined') ? page : 1;
+            var per = (typeof perPage !== 'undefined') ? perPage : products.length;
+            var from = total === 0 ? 0 : (pg - 1) * per + 1;
+            var to = Math.min(pg * per, total);
+          %>
+          <% if (total > per) { %>
+            Showing <%= from %>&ndash;<%= to %> of <%= total %> products
+          <% } else { %>
+            <%= total %> product<%= total !== 1 ? 's' : '' %>
+          <% } %>
+        </p>
+      </div>
+
+      <!-- Products -->
+      <% if (products.length === 0) { %>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5rem 2rem;text-align:center;gap:1rem">
+          <div style="font-size:3rem" aria-hidden="true">🔍</div>
+          <h3 style="font-family:var(--font-heading);font-size:1.25rem;color:var(--color-white)">No products found</h3>
+          <a href="<%= marketPath('/collection/all') %>" class="btn btn-outline">Browse All →</a>
+        </div>
+      <% } else { %>
+        <div class="grid-4">
+          <% products.forEach(function(product) { %>
+            <%- include('../partials/product-card', { product: product }) %>
+          <% }); %>
+        </div>
+
+        <%
+          /* Real anchor links, not a JS-driven control: a crawler has to
+             be able to reach page 2 by following an href, and a visitor
+             with JS off has to be able to as well. The sort parameter is
+             carried through so paging does not silently reset the order. */
+          var tp = (typeof totalPages !== 'undefined') ? totalPages : 1;
+          var cp = (typeof page !== 'undefined') ? page : 1;
+          function pageHref(n) {
+            var qs = [];
+            if (typeof sort !== 'undefined' && sort && sort !== 'featured') qs.push('sort=' + encodeURIComponent(sort));
+            if (n > 1) qs.push('page=' + n);
+            return '/collection/' + collectionHandle + (qs.length ? '?' + qs.join('&') : '');
+          }
+          // Window of page numbers around the current page, so a 40-page
+          // collection does not render 40 links.
+          var windowStart = Math.max(1, Math.min(cp - 2, tp - 4));
+          var windowEnd = Math.min(tp, Math.max(cp + 2, 5));
+        %>
+        <% if (tp > 1) { %>
+          <nav class="col-pagination" aria-label="Collection pages">
+            <% if (cp > 1) { %>
+              <a class="col-pagination__step" href="<%= marketPath((pageHref(cp - 1))) %>" rel="prev">Previous</a>
+            <% } else { %>
+              <span class="col-pagination__step is-disabled" aria-hidden="true">Previous</span>
+            <% } %>
+
+            <ol class="col-pagination__list">
+              <% for (var n = windowStart; n <= windowEnd; n++) { %>
+                <li>
+                  <% if (n === cp) { %>
+                    <span class="col-pagination__page is-current" aria-current="page"><%= n %></span>
+                  <% } else { %>
+                    <a class="col-pagination__page" href="<%= marketPath((pageHref(n))) %>" aria-label="Page <%= n %>"><%= n %></a>
+                  <% } %>
+                </li>
+              <% } %>
+            </ol>
+
+            <% if (cp < tp) { %>
+              <a class="col-pagination__step" href="<%= marketPath((pageHref(cp + 1))) %>" rel="next">Next</a>
+            <% } else { %>
+              <span class="col-pagination__step is-disabled" aria-hidden="true">Next</span>
+            <% } %>
+          </nav>
+        <% } %>
+      <% } %>
+
+      <% if (cc && isFirstPage) { %>
+        <div class="col-page__editorial">
+          <% if (cc.guide) { %>
+            <section class="col-guide" aria-labelledby="col-guide-heading">
+              <h2 class="col-guide__title" id="col-guide-heading"><%= cc.guide.title %></h2>
+              <% cc.guide.body.forEach(function (para) { %>
+                <p class="col-guide__p"><%= para %></p>
+              <% }); %>
+            </section>
+          <% } %>
+
+          <% if (cc.faqs && cc.faqs.length) { %>
+            <section class="col-faq" aria-labelledby="col-faq-heading">
+              <h2 class="col-guide__title" id="col-faq-heading">Common questions</h2>
+              <%
+                /* <details>/<summary> rather than a JS accordion: it is
+                   keyboard operable, exposes the right role to a screen
+                   reader, and the answers are present in the HTML for a
+                   crawler whether or not they are expanded. */
+              %>
+              <% cc.faqs.forEach(function (f, i) { %>
+                <details class="col-faq__item"<%= i === 0 ? ' open' : '' %>>
+                  <summary class="col-faq__q"><%= f.q %></summary>
+                  <p class="col-faq__a"><%= f.a %></p>
+                </details>
+              <% }); %>
+            </section>
+          <% } %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>

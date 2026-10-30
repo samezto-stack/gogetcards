@@ -1,0 +1,552 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%237C3AED'/><g fill='%23ffffff'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
+  <meta name="theme-color" content="#0c0c12">
+  <meta name="robots" content="noindex, nofollow">
+  <title><%= pageTitle %> — Analytics & Orders | Zyphera Admin</title>
+  <style>
+    .filters { display: flex; gap: 0.5rem; background: rgba(255,255,255,0.03); padding: 5px; border-radius: 8px; border: 1px solid var(--admin-border); }
+    .filter-btn { padding: 6px 14px; font-size: 0.82rem; font-weight: 600; color: var(--admin-muted); background: transparent; border: none; border-radius: 4px; cursor: pointer; transition: 0.2s; text-decoration: none; display: inline-flex; }
+    .filter-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .filter-btn.active { color: #fff; background: var(--admin-primary); box-shadow: 0 0 10px rgba(124,58,237,0.3); }
+
+    .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2.5rem; }
+    .metric-card { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+    .metric-label { font-size: 0.8rem; font-weight: 600; color: var(--admin-muted); text-transform: uppercase; letter-spacing: 0.05em; font-family: 'Outfit', sans-serif; }
+    .metric-value { font-size: 2rem; font-weight: 800; color: #fff; font-family: 'Outfit', sans-serif; }
+    
+    .orders-panel { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+    .orders-panel-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: 'Outfit', sans-serif; font-weight: 700; color: #fff; font-size: 1.1rem; }
+    
+    /* Still used by the unconfirmed-payments table above. */
+    .order-id { font-family: var(--admin-font-mono); color: var(--admin-cyan); background: rgba(6,182,212,0.1); padding: 3px 6px; border-radius: 4px; font-size: 0.75rem; }
+    .order-price { font-weight: 700; color: var(--admin-accent); font-family: 'Outfit', sans-serif; }
+    .empty-state { padding: 3rem; text-align: center; color: var(--admin-muted); font-size: 0.9rem; }
+
+    /* Payments confirmed by Whop on a partner host whose customer never
+       reached our /thank-you, so no order was created. Money that exists
+       but is not in the table below, which is exactly why it needs to be
+       loud rather than a subtle row. */
+    .unconfirmed-panel { background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.35); border-radius: 12px; margin-bottom: 2rem; overflow: hidden; }
+    .unconfirmed-header { padding: 1.1rem 1.5rem; border-bottom: 1px solid rgba(239,68,68,0.22); display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+    .unconfirmed-title { font-family: 'Outfit', sans-serif; font-weight: 700; color: #FCA5A5; font-size: 1rem; margin: 0; }
+    .unconfirmed-sub { font-size: 0.82rem; color: var(--admin-muted); margin: 0; flex-basis: 100%; }
+    .unconfirmed-table { width: 100%; border-collapse: collapse; }
+    .unconfirmed-table th { text-align: left; padding: 0.7rem 1.5rem; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--admin-muted); font-weight: 700; }
+    .unconfirmed-table td { padding: 0.8rem 1.5rem; font-size: 0.85rem; border-top: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
+    .unconfirmed-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* The recover action is the affirmative one in that row — it creates an
+       order and mails a customer — so it reads as a button and "Dismiss"
+       stays a plain control beside it. */
+    .filter-btn--primary { background: var(--admin-accent, #A78BFA); border-color: transparent; color: #0B0F14; font-weight: 700; }
+    .filter-btn--primary:hover { filter: brightness(1.08); }
+
+    .recover-flash { padding: 0.9rem 1.2rem; border-radius: 10px; margin-bottom: 1.25rem; font-size: 0.86rem; line-height: 1.55; }
+    .recover-flash--ok { background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.35); color: #BBF7D0; }
+    .recover-flash--err { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.35); color: #FCA5A5; }
+
+    /* ── Orders table ────────────────────────────────────────────
+       Eight columns, sized so the two that carry long free text — the
+       product name and the shipping address — get real width instead of
+       being squeezed to nothing by a row of badges. The old version had
+       ten columns and a 1500px min-width, which meant horizontal
+       scrolling on every screen; this fits a laptop. */
+    /* FIXED LAYOUT WITH DECLARED WIDTHS. With `auto`, the browser sizes
+       columns from content, so one 90-character product name starved the
+       address column down to about sixty pixels and every row in the
+       table grew to eight lines tall to match. Declaring the widths makes
+       every row the same height and puts the space where the long text
+       actually is. */
+    .orders-table { width: 100%; min-width: 980px; table-layout: fixed; }
+    .orders-table th, .orders-table td { vertical-align: top; padding: 0.8rem 0.85rem; }
+    .orders-table th { position: sticky; top: 0; z-index: 2; }
+    .orders-table tbody tr { border-top: 1px solid var(--admin-border); }
+    .orders-table tbody tr:hover { background: var(--admin-panel-2); }
+    .orders-table tbody tr.is-test { background: rgba(245,158,11,0.045); }
+    .orders-table tbody tr.is-test:hover { background: rgba(245,158,11,0.08); }
+
+    .ot-head { display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; align-items: center;
+      padding: 1.1rem 1.25rem; border-bottom: 1px solid var(--admin-border); }
+    .ot-title { font-family: 'Outfit', sans-serif; font-weight: 700; color: #fff;
+      font-size: 1.05rem; margin: 0; }
+    .ot-count { font-size: 0.76rem; color: var(--admin-faint); font-variant-numeric: tabular-nums; }
+    .ot-tools { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin-left: auto; }
+    .ot-search { width: 300px; max-width: 100%; background: var(--admin-bg);
+      border: 1px solid var(--admin-border-2); border-radius: var(--admin-r-sm);
+      padding: 0.45rem 0.75rem; color: var(--admin-text); font-size: 0.8rem;
+      font-family: var(--admin-font-ui); outline: none; transition: border-color 0.2s; }
+    .ot-search:focus { border-color: var(--admin-primary); }
+    .ot-search::placeholder { color: var(--admin-faint); }
+    .ot-select { background: var(--admin-bg); border: 1px solid var(--admin-border-2);
+      border-radius: var(--admin-r-sm); padding: 0.45rem 0.6rem; color: var(--admin-text);
+      font-size: 0.8rem; cursor: pointer; }
+    .ot-btn { display: inline-flex; align-items: center; padding: 0.45rem 0.85rem;
+      border-radius: var(--admin-r-sm); font-size: 0.78rem; font-weight: 500;
+      border: 1px solid var(--admin-border-2); background: transparent;
+      color: var(--admin-text); text-decoration: none; cursor: pointer; transition: all 0.15s; }
+    .ot-btn:hover { background: var(--admin-panel-2); border-color: var(--admin-faint); }
+    .ot-btn--go { background: var(--admin-primary); border-color: var(--admin-primary);
+      color: var(--admin-primary-ink); font-weight: 600; }
+    .ot-btn--tiny { padding: 0.25rem 0.55rem; font-size: 0.7rem; }
+    .ot-btn--warn { border-color: rgba(196,72,92,0.3); color: #d98a97; }
+    .ot-btn--warn:hover { background: rgba(196,72,92,0.12); border-color: rgba(196,72,92,0.55); color: #fff; }
+    .ot-rowacts { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; margin-top: 7px; }
+    .ot-rowacts form { margin: 0; }
+
+    /* The reference the customer quotes, first. The provider's own id is
+       kept underneath because it is what you paste into Whop, but it is
+       no longer the thing your eye lands on. */
+    .ot-ref { font-family: var(--admin-font-mono); font-size: 0.84rem; color: var(--admin-primary);
+      font-weight: 600; letter-spacing: 0.02em; }
+    .ot-rawid { font-family: var(--admin-font-mono); font-size: 0.66rem; color: var(--admin-faint);
+      margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ot-chip { display: inline-block; margin-top: 5px; font-family: var(--admin-font-mono);
+      font-size: 0.62rem; padding: 1px 6px; border-radius: 999px;
+      background: rgba(245,158,11,0.12); color: var(--admin-warn);
+      border: 1px solid rgba(245,158,11,0.3); white-space: nowrap; }
+
+    /* Destructive, and therefore quiet until you go looking for it.
+       Revealed on row hover so it cannot be hit while scanning. */
+    .ot-del { margin: 6px 0 0; }
+    .ot-del-btn { font-size: 0.68rem; padding: 2px 8px; border-radius: 4px; cursor: pointer;
+      background: transparent; border: 1px solid transparent; color: var(--admin-faint);
+      opacity: 0; transition: opacity 0.15s, color 0.15s, border-color 0.15s; }
+    tr:hover .ot-del-btn, .ot-del-btn:focus-visible { opacity: 1; }
+    .ot-del-btn:hover { color: #e07487; border-color: rgba(196,72,92,0.4);
+      background: rgba(196,72,92,0.1); }
+
+    .ot-cust { display: block; text-decoration: none; }
+    .ot-cust-name { display: block; font-weight: 500; color: var(--admin-text); font-size: 0.85rem; }
+    .ot-cust:hover .ot-cust-name { color: var(--admin-primary); }
+    .ot-cust:hover .ot-sub { color: var(--admin-muted); }
+    .ot-sub { display: block; font-size: 0.72rem; color: var(--admin-faint); margin-top: 2px;
+      line-height: 1.5; overflow: hidden; text-overflow: ellipsis; }
+    .ot-cust .ot-sub, .ot-cust-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ot-mono { font-family: var(--admin-font-mono); }
+    .ot-nowrap { white-space: nowrap; }
+    /* Two lines, then an ellipsis, with the whole title on hover. A
+       product name here is for recognition, not for reading — the full
+       one is on the order page a click away. */
+    .ot-product { font-size: 0.84rem; color: var(--admin-text); line-height: 1.45;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden; }
+    .ot-pre { color: var(--admin-primary); }
+    .ot-total { font-family: var(--admin-font-mono); font-size: 0.88rem; color: #fff;
+      white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+    /* ── Pagination ── */
+    .ot-pager { display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center;
+      justify-content: center; padding: 1rem 1.25rem; border-top: 1px solid var(--admin-border); }
+    .ot-page { min-width: 34px; padding: 0.4rem 0.7rem; border-radius: var(--admin-r-sm);
+      font-size: 0.8rem; text-align: center; text-decoration: none; color: var(--admin-muted);
+      border: 1px solid var(--admin-border); transition: all 0.15s; font-variant-numeric: tabular-nums; }
+    .ot-page:hover { color: #fff; border-color: var(--admin-faint); background: var(--admin-panel-2); }
+    .ot-page.is-on { background: var(--admin-primary); border-color: var(--admin-primary);
+      color: var(--admin-primary-ink); font-weight: 600; }
+    .ot-page.is-off { opacity: 0.35; pointer-events: none; }
+    .ot-gap { color: var(--admin-faint); padding: 0 0.15rem; }
+
+    .products-list { display: flex; flex-direction: column; gap: 3px; font-size: 0.8rem; color: var(--admin-text); max-width: 220px; }
+
+    /* One line. Packing needs the address on the CLIPBOARD, not on the
+       screen — the Copy button carries the full thing, and the visible
+       line is only there to tell one order from another at a glance. */
+    .shipping-cell { font-size: 0.78rem; color: var(--admin-muted); line-height: 1.4;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .copy-addr-btn { font-size: 0.68rem; padding: 3px 7px; background: rgba(6,182,212,0.08); color: var(--admin-cyan); border: 1px solid rgba(6,182,212,0.25); border-radius: 4px; cursor: pointer; margin-top: 5px; display: inline-block; transition: 0.2s; white-space: nowrap; }
+    .copy-addr-btn:hover { background: rgba(6,182,212,0.2); border-color: rgba(6,182,212,0.5); }
+    .copy-addr-btn.copied { color: var(--admin-accent); border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.1); }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+</head>
+<body class="admin-body">
+  <%- include('_sidebar', { currentPath: '/admin/orders' }) %>
+
+  <main class="admin-main">
+    <header class="admin-header" style="justify-content: space-between;">
+      <h1 class="admin-header__title">Sales & Orders Dashboard</h1>
+      <div class="filters">
+        <% [['daily','Today'],['weekly','This week'],['monthly','This month'],['all','All time']].forEach(function (r) { %>
+          <a href="/admin/orders?range=<%= r[0] %>&status=<%= statusFilter %><%= q ? '&q=' + encodeURIComponent(q) : '' %>"
+             class="filter-btn <%= range === r[0] ? 'active' : '' %>"><%= r[1] %></a>
+        <% }); %>
+      </div>
+    </header>
+
+    <div class="admin-content">
+
+
+    <!-- Analytics Cards -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <span class="metric-label">Total Revenue</span>
+        <span class="metric-value">$<%= (stats.totalRevenue / 100).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Total Orders</span>
+        <span class="metric-value"><%= stats.totalOrders %></span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Average Order Value</span>
+        <span class="metric-value">$<%= (stats.aov / 100).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></span>
+      </div>
+    </div>
+
+    <!-- Orders Table -->
+    <% if (typeof query !== 'undefined' && query.recovered) { %>
+      <div class="recover-flash recover-flash--ok">
+        <strong>Order <%= query.recovered %> created.</strong>
+        <% if (query.recoveredNew === '1') { %>
+          The confirmation email has been sent, the customer can now see it at /account, and it appears in the orders below.
+        <% } else { %>
+          That order already existed, so nothing was re-sent.
+        <% } %>
+      </div>
+    <% } %>
+    <% if (typeof query !== 'undefined' && query.recoverError) { %>
+      <div class="recover-flash recover-flash--err"><strong>Could not create the order.</strong> <%= query.recoverError %></div>
+    <% } %>
+
+    <% if ((typeof unconfirmedPayments !== 'undefined') && unconfirmedPayments.length) { %>
+      <div class="unconfirmed-panel">
+        <div class="unconfirmed-header">
+          <h2 class="unconfirmed-title">Paid, but never confirmed &mdash; <%= unconfirmedPayments.length %></h2>
+          <p class="unconfirmed-sub">
+            A partner site took payment through Whop and told us server-to-server, but the customer's browser
+            never reached the confirmation page, so no order was created. The money is real. Check Whop for the
+            payment id, then either create the order manually or dismiss the notice.
+          </p>
+        </div>
+        <table class="unconfirmed-table">
+          <thead>
+            <tr>
+              <th>When</th><th>Order ID</th><th>Site</th><th>Customer</th>
+              <th>Product</th><th>Amount</th><th>Payment ID</th><th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% unconfirmedPayments.forEach(function (p) { %>
+              <tr>
+                <td style="color:var(--admin-muted);white-space:nowrap"><%= new Date(p.createdAt).toLocaleString() %></td>
+                <td><span class="order-id"><%= p.orderId %></span></td>
+                <td><%= p.store || '&mdash;' %></td>
+                <td>
+                  <div><%= p.customerName || 'Guest' %></div>
+                  <div style="color:var(--admin-muted);font-size:0.78rem"><%= p.customerEmail || '' %></div>
+                </td>
+                <td><%= p.productName || '&mdash;' %><% if (p.quantity && p.quantity !== '1') { %> <span style="color:var(--admin-muted)">&times;<%= p.quantity %></span><% } %></td>
+                <td class="order-price"><%= p.currency || 'USD' %> <%= p.price || '?' %></td>
+                <td style="font-family:monospace;font-size:0.75rem;color:var(--admin-muted)"><%= p.paymentId || '&mdash;' %></td>
+                <td style="text-align:right">
+                  <div style="display:flex;gap:8px;justify-content:flex-end">
+                    <form action="/admin/orders/pending/<%= encodeURIComponent(p.orderId) %>/create-order" method="POST" style="margin:0"
+                          onsubmit="return confirm('Create the order for <%= p.customerEmail || 'this customer' %>?\n\nThis sends their confirmation email and makes the order visible in their account. Only do this once you have checked the payment really succeeded in Whop.')">
+                      <button type="submit" class="filter-btn filter-btn--primary">Create the order</button>
+                    </form>
+                    <form action="/admin/orders/pending/<%= encodeURIComponent(p.orderId) %>/acknowledge" method="POST" style="margin:0"
+                          onsubmit="return confirm('Dismiss this notice? It does NOT create an order.')">
+                      <button type="submit" class="filter-btn">Dismiss</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+
+    <div class="orders-panel">
+      <div class="ot-head">
+        <h2 class="ot-title">Orders</h2>
+        <span class="ot-count">
+          <% if (total) { %><%= from %>&ndash;<%= to %> of <%= total %><% } else { %>None in range<% } %>
+        </span>
+
+        <%/* Search and status live WITH the table rather than floating
+             above the metric cards, because they filter the table and
+             nothing else. The date range at the top still governs both. */%>
+        <form class="ot-tools" method="GET" action="/admin/orders">
+          <input type="hidden" name="range" value="<%= range %>">
+          <input class="ot-search" type="search" name="q" value="<%= q %>"
+                 placeholder="ZTCG-46571, email, name, product or tracking" autocomplete="off">
+          <select name="status" class="ot-select">
+            <% [['all','Any status'],['unfulfilled','Needs packing'],['preparing','Preparing'],
+                ['shipped','Shipped'],['delivered','Delivered'],['cancelled','Cancelled'],
+                ['refunded','Refund open']].forEach(function (o) { %>
+              <option value="<%= o[0] %>" <%= statusFilter === o[0] ? 'selected' : '' %>><%= o[1] %></option>
+            <% }); %>
+          </select>
+          <button class="ot-btn ot-btn--go" type="submit">Search</button>
+          <% if (q || statusFilter !== 'all') { %>
+            <a class="ot-btn" href="/admin/orders?range=<%= range %>">Clear</a>
+          <% } %>
+        </form>
+      </div>
+
+      <% if (typeof notice !== 'undefined' && notice) { %>
+        <%
+          const noticeText = {
+            cancelled: ['success', 'Order cancelled. The refund is queued for you to issue by hand, and the customer has been emailed to say it is being processed.'],
+            cancel_already_cancelled: ['success', 'That order was already cancelled. Nothing changed and no second email was sent.'],
+            cancel_already_shipped: ['error', 'That order has already shipped, so it cannot be cancelled. Contact the customer about a return instead.'],
+            cancel_no_order: ['error', 'That order no longer exists.'],
+          }[notice];
+        %>
+        <% if (noticeText) { %>
+          <div class="admin-alert admin-alert--<%= noticeText[0] %>" style="margin:0 1.25rem 0;border-radius:0"><%= noticeText[1] %></div>
+        <% } %>
+      <% } %>
+
+      <% if (rows && rows.length > 0) { %>
+        <div class="admin-table-wrap">
+        <table class="admin-table orders-table">
+          <%/* Widths declared once, here, rather than guessed by the
+               browser from whatever the longest product name happens to
+               be on this page. */%>
+          <%/* Proportions, not pixels. Declared widths in px plus cell
+               padding overflowed the content area and pushed the last
+               column off the right edge on a laptop; percentages let the
+               table fill exactly what it is given and keep every column
+               visible. The min-width on .orders-table is the floor below
+               which it scrolls instead of crushing. */%>
+          <colgroup>
+            <col style="width:13%"><col style="width:8%"><col style="width:16%">
+            <col style="width:19%"><col style="width:8%"><col style="width:14%">
+            <col style="width:14%"><col style="width:8%">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Placed</th>
+              <th>Customer</th>
+              <th>Product</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Ship to</th>
+              <th>Channel</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% rows.forEach(function (r) { const order = r.order; %>
+              <%/* A test purchase is listed like any other order — seeing
+                   one is the whole point of making it — but tinted and
+                   tagged, and left out of the money above. Detected from
+                   the order itself rather than from a flag this view
+                   sets, so the table cannot disagree with the totals. */%>
+              <% const isTest = testOrder.isTestOrder(order); %>
+              <tr class="<%= isTest ? 'is-test' : '' %>">
+
+                <td>
+                  <%/* The ZTCG reference first, because it is the only
+                       identifier the customer has and the thing they
+                       quote. The provider's own id is kept underneath —
+                       it is what you paste into Whop — but it is no
+                       longer the headline. */%>
+                  <div class="ot-ref"><%= r.reference %></div>
+                  <div class="ot-rawid" title="<%= order.orderId %>"><%= order.orderId %></div>
+                  <% if (isTest) { %><span class="ot-chip">TEST &middot; not counted</span><% } %>
+
+                  <%/* Delete moved up here from the old Actions column.
+                       Pixel and email buttons are gone: both now happen
+                       automatically, and a manual button that re-fires a
+                       Purchase event is a way to double-count a sale. */%>
+                  <form action="/admin/orders/<%= order._id %>/delete" method="POST" class="ot-del"
+                        onsubmit="return confirm('Remove <%= r.reference %> permanently? This cannot be undone and does not refund anything.');">
+                    <button type="submit" class="ot-del-btn" title="Remove this order" aria-label="Remove <%= r.reference %>">Remove</button>
+                  </form>
+                </td>
+
+                <td class="ot-nowrap">
+                  <div><%= new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></div>
+                  <div class="ot-sub"><%= new Date(order.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) %></div>
+                </td>
+
+                <td>
+                  <%/* One click to the profile — every order, refund and
+                       session for this person on one page. Falls back to
+                       plain text when no account exists yet, rather than
+                       rendering a link that 404s. */%>
+                  <% if (r.customerId) { %>
+                    <a class="ot-cust" href="/admin/customers/<%= r.customerId %>">
+                      <span class="ot-cust-name"><%= order.customerName || 'Guest' %></span>
+                      <span class="ot-sub"><%= order.customerEmail %></span>
+                    </a>
+                  <% } else { %>
+                    <div class="ot-cust-name"><%= order.customerName || 'Guest' %></div>
+                    <div class="ot-sub"><%= order.customerEmail || '&mdash;' %></div>
+                  <% } %>
+                </td>
+
+                <td>
+                  <div class="ot-product" title="<%= r.title %>"><%= r.title || '&mdash;' %></div>
+                  <div class="ot-sub">
+                    <% if ((Number(order.quantity) || 1) > 1) { %>Qty <%= order.quantity %><% } %>
+                    <% if (r.isPreorder) { %>
+                      <span class="ot-pre">Preorder<% if (r.release && r.release.hasDate) { %> &middot; <%= r.release.display %><% } %></span>
+                    <% } %>
+                  </div>
+                </td>
+
+                <td class="ot-total"><%= money(order.totalPrice, order.currency) %></td>
+
+                <td>
+                  <%/* The status a CUSTOMER would be shown, derived by
+                       services/customerOrders — the same function the
+                       account portal uses. The old badge only knew
+                       "completed" or "pending", so a shipped order and a
+                       refunded one looked identical here. */%>
+                  <span class="status-pill status-pill--<%= ({ good: 'ok', accent: 'ok', warn: 'warn', neutral: 'neutral' })[r.status.tone] || 'neutral' %>">
+                    <span class="status-pill__dot"></span><%= r.status.label %>
+                  </span>
+                  <% if (order.trackingNumber) { %>
+                    <div class="ot-sub ot-mono" title="<%= order.trackingNumber %>"><%= order.trackingNumber %></div>
+                  <% } %>
+                  <%/* A cancelled order the customer has been asked to
+                       keep. Its refund is promised for AFTER the deadline
+                       and the email said so; issuing it early breaks that
+                       promise and can refund an order that is about to be
+                       reinstated. */%>
+                  <% if (order.cancelledAt && order.refundStatus === 'processing' && order.reinstateDeadline && new Date(order.reinstateDeadline) > new Date()) { %>
+                    <div class="ot-sub" style="color:#e0b470">Keep-or-refund offer open — do not refund before
+                      <%= new Date(order.reinstateDeadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Los_Angeles' }) %></div>
+                  <% } %>
+                  <% if (order.reinstatedAt && !order.cancelledAt) { %>
+                    <div class="ot-sub" style="color:#8fc79c">Reinstated by the customer — no refund owed</div>
+                  <% } %>
+                  <%/* Actions on the STATE live with the state. A customer
+                       who emailed asking to cancel, or who cannot sign in
+                       to do it themselves, is cancelled from here — the
+                       same service the customer page uses, so both queue
+                       the refund and both send the same email.
+
+                       Offered only while it is actually possible: a
+                       shipped parcel cannot be un-sent, and a button that
+                       silently does nothing is worse than no button. */%>
+                  <div class="ot-rowacts">
+                    <% if (order.status !== 'completed' && !order.cancelledAt) { %>
+                      <form action="/admin/orders/<%= order._id %>/complete" method="POST">
+                        <button type="submit" class="ot-btn ot-btn--tiny">Mark completed</button>
+                      </form>
+                    <% } %>
+                    <% if (!order.cancelledAt && order.fulfillmentStatus !== 'shipped' && order.fulfillmentStatus !== 'delivered') { %>
+                      <form action="/admin/orders/<%= order._id %>/cancel" method="POST"
+                            onsubmit="return confirm('Cancel <%= r.reference %> for <%= (order.customerName || 'this customer').replace(/'/g, "\\'") %>?\n\nThis stops the order, queues a refund of <%= money(order.totalPrice, order.currency) %> for you to issue by hand, and emails the customer to say so. It does not move any money.');">
+                        <button type="submit" class="ot-btn ot-btn--tiny ot-btn--warn">Cancel order</button>
+                      </form>
+                    <% } %>
+                  </div>
+                </td>
+
+                <td>
+                  <% if (order.shippingAddress) { %>
+                    <%/* COUNTRY FIRST, city under it. Truncating the raw
+                         string from the left leaves "2321 Rosecrans Ave
+                         Ste…", which is the part that never tells you
+                         anything. The two facts you scan a shipping
+                         column for are "is this going abroad" and
+                         "roughly where" — both fit without truncation.
+                         The Copy button still carries the whole address,
+                         which is what packing actually needs. */%>
+                    <% const parts = order.shippingAddress.split(',').map(function (x) { return x.trim(); }).filter(Boolean); %>
+                    <% const country = parts.length > 2 ? parts[parts.length - 1] : ''; %>
+                    <% const locality = parts.length > 2 ? parts[1] : ''; %>
+                    <% if (country) { %>
+                      <div class="shipping-cell" title="<%= order.shippingAddress %>"><%= country %></div>
+                      <% if (locality) { %><span class="ot-sub"><%= locality %></span><% } %>
+                    <% } else { %>
+                      <div class="shipping-cell" title="<%= order.shippingAddress %>"><%= order.shippingAddress %></div>
+                    <% } %>
+                    <button class="copy-addr-btn" onclick="copyAddr(this, '<%= order.shippingAddress.replace(/'/g, "&apos;") %>')">Copy</button>
+                  <% } else { %>
+                    <span class="ot-sub">&mdash;</span>
+                  <% } %>
+                </td>
+
+                <td>
+                  <% const ts = order.trafficSource || 'Unknown'; const tsClass = ts.replace(/[^A-Za-z0-9]+/g, '-'); %>
+                  <span class="traffic-badge traffic-badge--<%= tsClass %>"><%= ts %></span>
+                </td>
+
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+        </div>
+
+        <%/* ── Pagination ──────────────────────────────────────────
+             Numbered, with a window around the current page and the
+             first and last always reachable, so "jump to the end" does
+             not mean clicking Next forty times. Every link carries the
+             range, status and search so paging never silently drops the
+             filter you are paging through. */%>
+        <% if (pages > 1) { %>
+          <%
+            const qs = (n) => `/admin/orders?range=${encodeURIComponent(range)}`
+              + `&status=${encodeURIComponent(statusFilter)}`
+              + (q ? `&q=${encodeURIComponent(q)}` : '')
+              + `&page=${n}`;
+            const window_ = 2;
+            const nums = [];
+            for (let n = 1; n <= pages; n++) {
+              if (n === 1 || n === pages || Math.abs(n - page) <= window_) nums.push(n);
+              else if (nums[nums.length - 1] !== '…') nums.push('…');
+            }
+          %>
+          <nav class="ot-pager" aria-label="Order pages">
+            <a class="ot-page <%= page === 1 ? 'is-off' : '' %>"
+               href="<%= page === 1 ? '#' : qs(page - 1) %>" <%- page === 1 ? 'aria-disabled="true"' : '' %>>Previous</a>
+            <% nums.forEach(function (n) { %>
+              <% if (n === '…') { %><span class="ot-gap">…</span>
+              <% } else { %>
+                <a class="ot-page <%= n === page ? 'is-on' : '' %>" href="<%= qs(n) %>"
+                   <%- n === page ? 'aria-current="page"' : '' %>><%= n %></a>
+              <% } %>
+            <% }); %>
+            <a class="ot-page <%= page === pages ? 'is-off' : '' %>"
+               href="<%= page === pages ? '#' : qs(page + 1) %>" <%- page === pages ? 'aria-disabled="true"' : '' %>>Next</a>
+          </nav>
+        <% } %>
+      <% } else { %>
+        <div class="empty-state">
+          <% if (q || statusFilter !== 'all') { %>
+            Nothing matches that. <a href="/admin/orders?range=<%= range %>" style="color:var(--admin-primary)">Clear the filters</a>
+            or widen the date range above.
+          <% } else { %>
+            No orders in this date range.
+          <% } %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+  </main>
+<script>
+function copyAddr(btn, address) {
+  navigator.clipboard.writeText(address).then(() => {
+    btn.textContent = '✅ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = '📋 Copy';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+/* The pixel and email helpers that used to live here are gone.
+   Confirmations are sent automatically by services/mail the moment a
+   payment is verified, and the Meta Purchase event is pushed by the
+   pipeline for Facebook-attributed orders. A manual button that fires
+   either again is a way to double-count a sale or to send a customer a
+   second copy of a receipt they already have.
+
+   The email builder in particular was guessing: it inferred the product
+   from the order TOTAL by dividing by hardcoded prices, and carried
+   hardcoded release dates that have since moved. Deleting it removes a
+   source of confidently wrong information. */
+</script>
+</body>
+</html>

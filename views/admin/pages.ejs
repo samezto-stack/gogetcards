@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%237C3AED'/><g fill='%23ffffff'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
+  <meta name="theme-color" content="#0c0c12">
+  <meta name="robots" content="noindex, nofollow">
+  <title><%= pageTitle %> | Zyphera Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+</head>
+<body class="admin-body">
+  <%- include('_sidebar') %>
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="admin-header__title"><%= pageTitle %></h1>
+      <a href="/admin/pages/new" class="admin-btn admin-btn--primary">+ Add Page</a>
+    </header>
+    <div class="admin-content">
+      <% if (success) { %>
+        <div class="admin-alert admin-alert--success"><%= success %></div>
+      <% } %>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Title</th><th>Slug</th><th>Category</th><th>Actions</th></tr></thead>
+          <tbody>
+            <% pages.forEach(function(p) { %>
+              <tr>
+                <td><strong><%= p.title %></strong></td>
+                <td><code style="font-size:0.78rem;color:var(--admin-primary)">/page/<%= p.slug %></code></td>
+                <td><span class="admin-badge"><%= p.category %></span></td>
+                <td style="white-space:nowrap">
+                  <a href="/admin/pages/<%= p._id %>/edit" class="admin-btn admin-btn--sm">Edit</a>
+                  <form method="POST" action="/admin/pages/<%= p._id %>/delete" style="display:inline" onsubmit="return confirm('Delete?')">
+                    <button class="admin-btn admin-btn--sm admin-btn--danger">Del</button>
+                  </form>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

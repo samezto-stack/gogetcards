@@ -1,0 +1,50 @@
+<%
+  /* This partial used to contain three hardcoded reviews with invented
+     names, cities, star ratings and order values. None of them came from
+     a real customer. Publishing fabricated consumer reviews is prohibited
+     under the FTC's Rule on Consumer Reviews and Testimonials (16 CFR
+     Part 465, in force since October 2024), which carries civil penalties
+     per violation, and Google treats invented review content as spam.
+
+     The partial now renders nothing unless it is passed real reviews.
+     Include it with an array of records drawn from actual verified
+     purchases, passed as a "reviews" local. Each record takes the shape
+     { rating, body, author, location, verified }; anything not supplied
+     is omitted rather than filled in. */
+  var reviewList = (typeof reviews !== 'undefined' && Array.isArray(reviews)) ? reviews : [];
+%>
+<% if (reviewList.length) { %>
+<section class="section-padding" style="background:var(--color-bg-elevated);border-top:1px solid var(--color-border-light)">
+  <div class="container">
+    <div class="section-header text-center" style="margin-bottom:var(--space-2xl)">
+      <h2 class="heading-section">What customers say</h2>
+      <div class="divider-accent"></div>
+    </div>
+
+    <div class="grid-3">
+      <% reviewList.forEach(function (r) { %>
+        <div class="review">
+          <% if (typeof r.rating === 'number' && r.rating >= 1 && r.rating <= 5) { %>
+            <div class="review__stars" aria-label="<%= r.rating %> out of 5 stars"><%= '★'.repeat(Math.round(r.rating)) %></div>
+          <% } %>
+          <p class="review__text"><%= r.body %></p>
+          <div class="review__footer">
+            <% if (r.author) { %>
+              <div class="review__avatar" aria-hidden="true"><%= r.author.trim().charAt(0).toUpperCase() %></div>
+            <% } %>
+            <div>
+              <% if (r.author) { %><p class="review__name"><%= r.author %></p><% } %>
+              <% if (r.location) { %><p class="review__location"><%= r.location %></p><% } %>
+            </div>
+            <% if (r.verified) { %>
+              <div style="margin-left:auto">
+                <p style="font-size:0.62rem;color:var(--color-text-faint)">Verified purchase</p>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+</section>
+<% } %>

@@ -1,0 +1,122 @@
+<%
+  var lowStock = product.stock > 0 && product.stock <= 5;
+  var isPreorder = product.preorder || (product.tags && product.tags.includes('preorder'));
+
+  /* PRICED IN THE MARKET BEING RENDERED, never in the base currency.
+     This card is the related strip, the collection grid and the featured
+     row, and all three printed `product.price` behind a hardcoded US$ no
+     matter which storefront surrounded them.
+
+     A null price means the product has no row for this market, which means
+     it is not sold here: it is absent from this market's feed and its
+     market URL does not resolve. Advertising it anyway would offer a
+     purchase the checkout is built to refuse, so the card renders nothing
+     at all. The default market prices from the base field, so its grids
+     are unchanged. */
+  var pcPriced = (typeof marketPrice === 'function') ? marketPrice(product) : null;
+  var pcMoney = (typeof marketMoney === 'function')
+    ? marketMoney
+    : function (cents) { return 'US$' + formatPrice(cents); };
+  var pcHref = (typeof marketPath === 'function')
+    ? marketPath('/products/' + product.slug)
+    : '/products/' + product.slug;
+  var savingsPct = pcPriced && pcPriced.compareAmount && pcPriced.compareAmount > pcPriced.amount
+    ? Math.round(((pcPriced.compareAmount - pcPriced.amount) / pcPriced.compareAmount) * 100) : 0;
+%>
+<% if (pcPriced) { %>
+<article class="pc" id="product-card-<%= product.slug %>">
+  <a href="<%= pcHref %>" class="pc__img-wrap" aria-label="View <%= product.title %>">
+    <% if (product.imageUrl || (product.images && product.images.length > 0)) { %>
+      <%/* Slot is ~270px in the four-up grid, ~45vw at tablet and nearly
+           the full container on a phone, so `sizes` has to say so: the
+           browser trusts it and would otherwise pick from the wrong end of
+           the ladder. */%>
+      <img
+        class="pc__img"
+        <%- productImage.attrs(product.imageUrl || product.images[0], 270, '(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 270px') %>
+        alt="<%= product.title %>"
+        width="480" height="480"
+        loading="lazy"
+        decoding="async"
+      >
+    <% } else { %>
+      <div class="pc__placeholder" aria-hidden="true" style="display:flex;align-items:center;justify-content:center">
+        <%- include('icon', { name: 'package', size: 48, color: 'var(--color-text-faint)' }) %>
+      </div>
+    <% } %>
+
+    <%- include('badge', { product: product }) %>
+
+    <%/* "Only N left" is a claim about warehouse stock. A preorder has no
+         warehouse stock, it has a distributor allocation, so the same
+         badge on an unreleased product asserts inventory that does not
+         exist — the availability misrepresentation in miniature. Same
+         number, accurate noun. */%>
+    <% if (lowStock) { %>
+      <% if (isPreorder) { %>
+        <span class="pc__low-stock" aria-label="Limited allocation">Only <%= product.stock %> in allocation</span>
+      <% } else { %>
+        <span class="pc__low-stock" aria-label="Low stock">Only <%= product.stock %> left</span>
+      <% } %>
+    <% } %>
+  </a>
+
+  <div class="pc__body">
+    <%
+      /* Game, vendor and type used to be three stacked lines, the first
+         of which was a saturated coloured pill. They are one quiet
+         metadata line now: the coloured game pill was redundant (the
+         title already names the game) and it was the loudest element on
+         the card. */
+      var metaBits = [];
+      var lcType = (product.productType || '').toLowerCase();
+      var lcVendor = (product.vendor || '').toLowerCase();
+      var pcTags = product.tags || [];
+      if (lcType.includes('pokemon') || lcVendor.includes('pokemon') || pcTags.includes('pokemon')) metaBits.push('Pokémon');
+      else if (lcType.includes('yu-gi-oh') || lcType.includes('yugioh') || lcVendor.includes('konami') || pcTags.includes('yugioh')) metaBits.push('Yu-Gi-Oh!');
+      else if (lcType.includes('mtg') || lcType.includes('magic') || lcVendor.includes('wizards') || pcTags.includes('mtg')) metaBits.push('Magic');
+      else if (lcType.includes('one piece') || lcVendor.includes('bandai') || pcTags.includes('one-piece')) metaBits.push('One Piece');
+      if (product.vendor) metaBits.push(product.vendor);
+    %>
+    <p class="pc__meta"><%= metaBits.join(' · ') %></p>
+    <a href="<%= pcHref %>" class="pc__title" style="text-decoration:none"><%= product.title.length > 60 ? product.title.substring(0, 60) + '...' : product.title %></a>
+    <p class="pc__type"><%= product.productType %></p>
+
+    <%/* Every preorder card says so, even with no ship window set. The
+         old condition rendered nothing without preorderShips, so a
+         preorder with no window looked identical to in-stock product on a
+         collection grid. */%>
+    <% if (isPreorder) { %>
+      <p class="pc__ships"><%= preorder.shortLine(product) %></p>
+    <% } %>
+
+    <div class="pc__footer">
+      <div class="pc__pricing">
+        <span class="pc__price" data-usd-cents="<%= pcPriced.amount %>" data-usd-label="<%= pcMoney(pcPriced.amount, pcPriced.currency) %>"><%= pcMoney(pcPriced.amount, pcPriced.currency) %></span>
+        <% if (pcPriced.compareAmount && pcPriced.compareAmount > pcPriced.amount) { %>
+          <span class="pc__compare"><%= pcMoney(pcPriced.compareAmount, pcPriced.currency) %></span>
+          <span class="pc__save">Save <%= savingsPct %>%</span>
+        <% } %>
+      </div>
+
+      <% if (product.available) { %>
+        <form method="post" action="/api/cart/add" data-atc-form class="pc__atc">
+          <input type="hidden" name="slug" value="<%= product.slug %>">
+          <input type="hidden" name="quantity" value="1">
+          <button
+            type="submit"
+            class="btn btn-primary btn-sm"
+            data-atc-btn
+            id="atc-quick-<%= product.slug %>"
+            aria-label="Add <%= product.title %> to cart"
+          >
+            <% if (isPreorder) { %><%- include('icon', { name: 'bell', size: 14, color: '#fff' }) %><% } else { %>+<% } %>
+          </button>
+        </form>
+      <% } else { %>
+        <a href="<%= pcHref %>" class="btn btn-ghost btn-sm">View →</a>
+      <% } %>
+    </div>
+  </div>
+</article>
+<% } %>

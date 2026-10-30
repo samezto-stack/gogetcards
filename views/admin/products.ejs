@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%237C3AED'/><g fill='%23ffffff'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
+  <meta name="theme-color" content="#0c0c12">
+  <meta name="robots" content="noindex, nofollow">
+  <title><%= pageTitle %> | Zyphera Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+</head>
+<body class="admin-body">
+  <%- include('_sidebar') %>
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="admin-header__title"><%= pageTitle %> <span style="font-size:0.85rem;color:var(--admin-muted);font-weight:400">(<%= products.length %>)</span></h1>
+      <a href="/admin/products/new" class="admin-btn admin-btn--primary">+ Add Product</a>
+    </header>
+    <div class="admin-content">
+
+      <% if (success) { %>
+        <div class="admin-alert admin-alert--success"><%= success %></div>
+      <% } %>
+
+      <!-- Search & Filter Bar -->
+      <form method="GET" action="/admin/products" class="admin-filter-bar">
+        <div class="admin-filter-bar__search">
+          <input type="text" name="q" value="<%= q %>" placeholder="Search products..." class="admin-search-input">
+        </div>
+        <select name="collection" class="admin-select">
+          <option value="all" <%= collection === 'all' ? 'selected' : '' %>>All Collections</option>
+          <% collections.forEach(function(c) { %>
+            <option value="<%= c.handle %>" <%= collection === c.handle ? 'selected' : '' %>><%= c.name %></option>
+          <% }); %>
+        </select>
+        <select name="sort" class="admin-select">
+          <option value="newest" <%= sort === 'newest' ? 'selected' : '' %>>Newest</option>
+          <option value="title" <%= sort === 'title' ? 'selected' : '' %>>A-Z</option>
+          <option value="price-asc" <%= sort === 'price-asc' ? 'selected' : '' %>>Price ↑</option>
+          <option value="price-desc" <%= sort === 'price-desc' ? 'selected' : '' %>>Price ↓</option>
+          <option value="stock" <%= sort === 'stock' ? 'selected' : '' %>>Stock ↑</option>
+        </select>
+        <button type="submit" class="admin-btn admin-btn--sm">Filter</button>
+        <% if (q || collection !== 'all') { %>
+          <a href="/admin/products" class="admin-btn admin-btn--sm" style="color:var(--admin-muted)">Clear</a>
+        <% } %>
+      </form>
+
+      <!-- Products Table -->
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr><th>Product</th><th>Price</th><th>Stock</th><th>Status</th><th>Badge</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            <% if (products.length === 0) { %>
+              <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--admin-muted)">No products found.</td></tr>
+            <% } %>
+            <% products.forEach(function(p) { %>
+              <tr id="product-row-<%= p._id %>">
+                <td>
+                  <strong class="admin-product-title"><%= p.title %></strong>
+                  <%/* The version, beside the title rather than folded into
+                       it. Two boxes of one product share a base title, so
+                       without this the list shows the same row twice and
+                       the only way to tell which is which is to open both.
+                       Inline quick-edit writes `title`, so the composed
+                       title must not be what that field displays. */%>
+                  <% if (p.variantName) { %>
+                    <span style="display:inline-block;margin-left:6px;padding:1px 6px;border:1px solid var(--admin-border);border-radius:3px;font-size:0.68rem;color:var(--admin-muted);vertical-align:middle"><%= p.variantName %></span>
+                  <% } %>
+                  <div style="font-size:0.72rem;color:var(--admin-faint);margin-top:2px"><%= p.vendor %> — <%= p.productType %></div>
+                </td>
+                <td>
+                  <span class="admin-editable" data-product-id="<%= p._id %>" data-field="price" data-current="<%= (p.price / 100).toFixed(2) %>" title="Click to edit">
+                    $<%= formatPrice(p.price) %>
+                  </span>
+                </td>
+                <td>
+                  <span class="admin-editable" data-product-id="<%= p._id %>" data-field="stock" data-current="<%= p.stock %>" title="Click to edit"
+                    style="<%= p.stock <= 3 ? 'color:#FC8181' : p.stock <= 10 ? 'color:#F59E0B' : '' %>">
+                    <%= p.stock %>
+                  </span>
+                </td>
+                <td><%= p.available ? '✅' : '❌' %> <%= p.preorder ? '🔔' : '' %></td>
+                <td><%= p.badge || '—' %></td>
+                <td style="white-space:nowrap">
+                  <a href="/admin/products/<%= p._id %>/edit" class="admin-btn admin-btn--sm">Edit</a>
+                  <form method="POST" action="/admin/products/<%= p._id %>/delete" style="display:inline" onsubmit="return confirm('Delete this product?')">
+                    <button type="submit" class="admin-btn admin-btn--sm admin-btn--danger">Del</button>
+                  </form>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Quick inline edit
+    document.querySelectorAll('.admin-editable').forEach(el => {
+      el.style.cursor = 'pointer';
+      el.addEventListener('dblclick', function() {
+        const field = this.dataset.field;
+        const current = this.dataset.current;
+        const productId = this.dataset.productId;
+        const input = document.createElement('input');
+        input.type = field === 'stock' ? 'number' : 'text';
+        input.value = current;
+        input.className = 'admin-inline-input';
+        input.style.width = '80px';
+        this.textContent = '';
+        this.appendChild(input);
+        input.focus();
+        input.select();
+
+        const save = async () => {
+          const val = input.value;
+          try {
+            const res = await fetch('/admin/products/' + productId + '/quick-update', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ field, value: val })
+            });
+            const data = await res.json();
+            if (data.success) {
+              el.dataset.current = val;
+              if (field === 'price') el.textContent = '$' + parseFloat(val).toLocaleString('en-US', { minimumFractionDigits: 2 });
+              else el.textContent = val;
+            } else {
+              el.textContent = field === 'price' ? '$' + current : current;
+            }
+          } catch(e) {
+            el.textContent = field === 'price' ? '$' + current : current;
+          }
+        };
+
+        input.addEventListener('blur', save);
+        input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); input.blur(); } if (e.key === 'Escape') { el.textContent = field === 'price' ? '$' + current : current; } });
+      });
+    });
+  </script>
+</body>
+</html>

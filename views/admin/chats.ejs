@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%237C3AED'/><g fill='%23ffffff'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
+  <meta name="theme-color" content="#0c0c12">
+  <meta name="robots" content="noindex, nofollow">
+  <title><%= pageTitle %> | Zyphera Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+  <style>
+    .chat-layout { display: flex; height: calc(100vh - 100px); gap: 1rem; margin-top: 1rem; }
+    .chat-sidebar { width: 320px; background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+    .chat-sidebar__header { padding: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: 'Outfit', sans-serif; font-weight: 700; color: #fff; font-size: 1.1rem; }
+    .chat-list { flex: 1; overflow-y: auto; }
+    .chat-item { display: block; padding: 1rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.04); text-decoration: none; color: var(--admin-text); transition: background 0.2s; position: relative; }
+    .chat-item:hover { background: rgba(255,255,255,0.03); }
+    .chat-item.active { background: rgba(124,58,237,0.1); border-left: 3px solid var(--admin-primary); }
+    .chat-item__id { font-size: 0.75rem; font-family: monospace; color: var(--admin-muted); display: block; margin-bottom: 4px; }
+    .chat-item__msg { font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--admin-text); }
+    .chat-item__time { position: absolute; top: 1rem; right: 1.25rem; font-size: 0.7rem; color: var(--admin-muted); }
+    .unread-badge { display: inline-block; background: var(--admin-accent); color: #000; font-weight: 700; font-size: 0.65rem; padding: 2px 6px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    
+    .chat-main { flex: 1; background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 4px 20px rgba(0,0,0,0.2); overflow: hidden; }
+    .chat-main__header { padding: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; }
+    .chat-main__title { font-family: 'Outfit', sans-serif; font-weight: 700; color: #fff; margin: 0; }
+    .chat-main__sub { font-size: 0.75rem; font-family: monospace; color: var(--admin-muted); }
+    
+    .chat-thread { flex: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; }
+    .chat-bubble-wrap { display: flex; flex-direction: column; max-width: 75%; }
+    .chat-bubble-wrap--user { align-self: flex-start; }
+    .chat-bubble-wrap--admin { align-self: flex-end; align-items: flex-end; }
+    .chat-bubble { padding: 0.75rem 1rem; border-radius: 12px; font-size: 0.9rem; line-height: 1.4; color: #fff; }
+    .chat-bubble-wrap--user .chat-bubble { background: rgba(255,255,255,0.08); border-bottom-left-radius: 4px; }
+    .chat-bubble-wrap--admin .chat-bubble { background: linear-gradient(135deg, var(--admin-primary), #6D28D9); border-bottom-right-radius: 4px; }
+    .chat-timestamp { font-size: 0.65rem; color: var(--admin-muted); margin-top: 4px; }
+    
+    .chat-reply { padding: 1rem; border-top: 1px solid rgba(255,255,255,0.06); display: flex; gap: 0.75rem; background: rgba(0,0,0,0.2); }
+    .chat-reply input { flex: 1; background: var(--admin-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 0.75rem 1rem; color: #fff; font-size: 0.9rem; font-family: 'Inter', sans-serif; outline: none; }
+    .chat-reply input:focus { border-color: var(--admin-primary); }
+    .chat-reply button { background: var(--admin-primary); color: #fff; border: none; border-radius: 8px; padding: 0 1.5rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+    .chat-reply button:hover { background: #6D28D9; }
+    
+    .empty-chat { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--admin-muted); font-size: 0.95rem; }
+  </style>
+</head>
+<body class="admin-body">
+  <%- include('_sidebar', { currentPath: '/admin/chats' }) %>
+
+  <main class="admin-main">
+    <header class="admin-header" style="justify-content: space-between;">
+      <h1 class="admin-header__title">Live Support</h1>
+      <span style="font-size:0.78rem;color:var(--admin-muted)">Auto-refreshes every 10s</span>
+    </header>
+
+    <div class="admin-content">
+      <div class="chat-layout">
+        
+        <!-- Sidebar -->
+        <div class="chat-sidebar">
+          <div class="chat-sidebar__header">Active Sessions</div>
+          <div class="chat-list">
+            <% if (chatStats.length === 0) { %>
+              <div style="padding: 2rem; text-align: center; color: var(--admin-muted); font-size: 0.85rem;">No active chats</div>
+            <% } else { %>
+              <% chatStats.forEach(stat => { %>
+                <a href="/admin/chats?session=<%= stat._id %>" class="chat-item <%= activeSessionId === stat._id ? 'active' : '' %>">
+                  <span class="chat-item__id">Session: <%= stat._id.substring(0, 8) %>...</span>
+                  <span class="chat-item__time"><%= new Date(stat.lastDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) %></span>
+                  <div class="chat-item__msg">
+                    <% if (stat.lastSender === 'admin') { %> <span style="color:var(--admin-primary)">You:</span> <% } %>
+                    <%= stat.lastMessage %>
+                    <% if (stat.unreadCount > 0) { %>
+                      <span class="unread-badge"><%= stat.unreadCount %></span>
+                    <% } %>
+                  </div>
+                </a>
+              <% }) %>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="chat-main">
+          <% if (!activeSessionId) { %>
+            <div class="empty-chat">Select a session from the sidebar to view the conversation.</div>
+          <% } else { %>
+            <div class="chat-main__header">
+              <h2 class="chat-main__title">Customer Chat</h2>
+              <span class="chat-main__sub">ID: <%= activeSessionId %></span>
+            </div>
+            
+            <div class="chat-thread" id="chat-thread">
+              <% if (activeMessages.length === 0) { %>
+                <div class="empty-chat">No messages found.</div>
+              <% } else { %>
+                <% activeMessages.forEach(msg => { %>
+                  <div class="chat-bubble-wrap <%= msg.sender === 'user' ? 'chat-bubble-wrap--user' : 'chat-bubble-wrap--admin' %>">
+                    <div class="chat-bubble"><%= msg.message %></div>
+                    <span class="chat-timestamp">
+                      <%= msg.sender === 'user' ? 'Customer' : 'Admin' %> • 
+                      <%= new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) %>
+                    </span>
+                  </div>
+                <% }) %>
+              <% } %>
+            </div>
+            
+            <form class="chat-reply" id="admin-chat-form">
+              <input type="text" id="admin-chat-input" placeholder="Type a reply to the customer..." autocomplete="off" required>
+              <button type="submit">Send</button>
+            </form>
+          <% } %>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Scroll thread to bottom
+    const thread = document.getElementById('chat-thread');
+    if (thread) {
+      thread.scrollTop = thread.scrollHeight;
+    }
+
+    // Auto-refresh the page every 10 seconds to pull new messages
+    // (A full SPA with websockets is better, but this works fine for a simple dashboard)
+    setInterval(() => {
+      // Don't refresh if the admin is actively typing
+      const input = document.getElementById('admin-chat-input');
+      if (!input || input.value.trim() === '') {
+        window.location.reload();
+      }
+    }, 10000);
+
+    // Handle Admin Reply
+    const form = document.getElementById('admin-chat-form');
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const input = document.getElementById('admin-chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+        
+        try {
+          const res = await fetch(`/admin/api/chats/<%= activeSessionId %>/reply`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: text })
+          });
+          if (res.ok) {
+            window.location.reload();
+          } else {
+            alert('Failed to send message');
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<section class="trust-bar">
+  <div class="container">
+    <div class="trust-bar__grid">
+      <div class="trust-bar__item">
+        <span class="trust-bar__icon" aria-hidden="true" style="color:var(--color-primary)"><%- include('icon', { name: 'lock', size: 28, color: 'var(--color-primary)' }) %></span>
+        <div>
+          <p class="trust-bar__label">Authentic Sealed</p>
+          <p class="trust-bar__sub">Direct from distributor</p>
+        </div>
+      </div>
+      <div class="trust-bar__item">
+        <span class="trust-bar__icon" aria-hidden="true" style="color:var(--color-primary)"><%- include('icon', { name: 'credit-card', size: 28, color: 'var(--color-primary)' }) %></span>
+        <div>
+          <%/* Was "PayPal protected payment". PayPal is not offered at
+               this store's checkout, and a payment method advertised on
+               every page but absent from the payment step is exactly what
+               a Merchant Center reviewer clicks through to check. Copy
+               now comes from config/payments.js. */%>
+          <p class="trust-bar__label"><%= payments.copy.secureCheckout %></p>
+          <p class="trust-bar__sub"><%= payments.copy.secureCheckoutSub %></p>
+        </div>
+      </div>
+      <div class="trust-bar__item">
+        <span class="trust-bar__icon" aria-hidden="true" style="color:var(--color-primary)"><%- include('icon', { name: 'globe', size: 28, color: 'var(--color-primary)' }) %></span>
+        <div>
+          <%/* The store's strongest single trust signal now leads this
+               cell. "Global Shipping / Tracked & fully insured" buried the
+               fact that it costs nothing, and "fully insured" implied a
+               named policy the store does not hold — the shipping page
+               commits to covering loss or damage, which it does. */%>
+          <p class="trust-bar__label"><%= shippingCopy.short %></p>
+          <p class="trust-bar__sub">Worldwide, tracked, covered in transit</p>
+        </div>
+      </div>
+      <div class="trust-bar__item">
+        <span class="trust-bar__icon" aria-hidden="true" style="color:var(--color-primary)"><%- include('icon', { name: 'package', size: 28, color: 'var(--color-primary)' }) %></span>
+        <div>
+          <p class="trust-bar__label">Collector Packaging</p>
+          <p class="trust-bar__sub">Rigid outer box, every order</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

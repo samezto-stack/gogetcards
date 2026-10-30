@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%237C3AED'/><g fill='%23ffffff'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
+  <meta name="theme-color" content="#0c0c12">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preorders | Zyphera Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+  <style>
+    .po-card { background: var(--admin-surface); border: 1px solid var(--admin-border);
+      border-radius: 10px; padding: 1.15rem 1.25rem; margin-bottom: 0.85rem; }
+    /* The one state this page exists to surface: released, but people
+       are still waiting. Given a colour rather than a number to work out. */
+    .po-card.is-overdue { border-color: rgba(196,72,92,0.45); background: rgba(196,72,92,0.05); }
+    .po-card.is-imminent { border-color: rgba(198,154,69,0.35); }
+    .po-top { display: flex; flex-wrap: wrap; gap: 0.6rem 1rem; align-items: baseline; }
+    .po-title { font-size: 0.95rem; font-weight: 600; color: var(--admin-text);
+      text-decoration: none; flex: 1; min-width: 240px; }
+    .po-title:hover { color: var(--admin-primary); }
+    .po-when { font-size: 0.8rem; color: var(--admin-muted); white-space: nowrap; }
+    .po-when strong { color: var(--admin-text); font-weight: 500; }
+    .po-flag { font-family: var(--admin-font-mono); font-size: 0.64rem; padding: 2px 7px;
+      border-radius: 999px; white-space: nowrap; }
+    .po-flag--late { background: rgba(196,72,92,0.15); color: #e07487; border: 1px solid rgba(196,72,92,0.35); }
+    .po-flag--soon { background: rgba(198,154,69,0.12); color: var(--admin-primary); border: 1px solid rgba(198,154,69,0.3); }
+    .po-flag--tbc { background: rgba(255,255,255,0.05); color: var(--admin-faint); border: 1px solid var(--admin-border); }
+    .po-nums { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 0.85rem;
+      padding-top: 0.85rem; border-top: 1px solid var(--admin-border); }
+    .po-num { min-width: 78px; }
+    .po-num b { display: block; font-family: var(--admin-font-display); font-size: 1.25rem;
+      font-weight: 400; color: var(--admin-text); font-variant-numeric: tabular-nums; line-height: 1.2; }
+    .po-num span { display: block; font-family: var(--admin-font-mono); font-size: 0.6rem;
+      text-transform: uppercase; letter-spacing: 0.1em; color: var(--admin-faint); margin-top: 3px; }
+    .po-acts { margin-left: auto; display: flex; gap: 0.4rem; align-items: center; }
+    .po-empty { background: var(--admin-surface); border: 1px solid var(--admin-border);
+      border-radius: 10px; padding: 3rem; text-align: center; color: var(--admin-muted); }
+  </style>
+</head>
+<body class="admin-body">
+  <%- include('_sidebar', { currentPath: '/admin/preorders' }) %>
+
+  <main class="admin-main">
+    <%
+      const money = (c) => `$${(Number(c || 0) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      const day = (d) => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+    %>
+
+    <header class="admin-header">
+      <h1 class="admin-header__title">Preorders</h1>
+      <a class="admin-btn" href="/admin/orders?range=all&status=unfulfilled">Orders needing packing</a>
+    </header>
+
+    <div class="admin-content">
+
+      <% if (sent && sent.startsWith('release_')) { const p = sent.split('_'); %>
+        <div class="admin-alert admin-alert--success" style="margin-bottom:1.25rem">
+          Release update queued for <%= p[1] %> customer<%= p[1] === '1' ? '' : 's' %> holding <%= p[2] %> open
+          preorder<%= p[2] === '1' ? '' : 's' %>. It goes out one message at a time; open the set below to watch it drain.
+        </div>
+      <% } %>
+      <% if (failed) { %>
+        <div class="admin-alert admin-alert--error" style="margin-bottom:1.25rem">
+          Nothing was sent. Pick a product and try again.
+        </div>
+      <% } %>
+
+      <% if (overdueCount) { %>
+        <div class="admin-alert admin-alert--error" style="margin-bottom:1.25rem">
+          <strong><%= overdueCount %></strong>
+          <%= overdueCount === 1 ? 'set has' : 'sets have' %> passed their release date with orders still
+          waiting. Every day of that is a customer wondering whether they have been forgotten. Ship them,
+          or send a release update so they know where they stand.
+        </div>
+      <% } %>
+
+      <div class="admin-stats-grid" style="margin-bottom:1.5rem">
+        <div class="admin-stat-card">
+          <div class="admin-stat-card__num"><%= totals.units %></div>
+          <div class="admin-stat-card__label">Units committed</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-card__num"><%= money(totals.revenue) %></div>
+          <div class="admin-stat-card__label">Taken in advance</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-card__num"><%= totals.awaiting %></div>
+          <div class="admin-stat-card__label">Orders still waiting</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-card__num"><%= rows.length %></div>
+          <div class="admin-stat-card__label">Sets on preorder</div>
+        </div>
+      </div>
+
+      <% if (!rows.length) { %>
+        <div class="po-empty">
+          <p style="font-size:0.95rem;margin:0">Nothing is on preorder.</p>
+          <p style="font-size:0.8rem;margin:0.5rem 0 0">
+            Mark a product as a preorder and give it a release date on
+            <a href="/admin/products" style="color:var(--admin-primary)">the products page</a>,
+            and it appears here with everyone waiting on it.
+          </p>
+        </div>
+      <% } %>
+
+      <% rows.forEach(function (r) { %>
+        <article class="po-card <%= r.overdue ? 'is-overdue' : (r.imminent ? 'is-imminent' : '') %>">
+          <div class="po-top">
+            <a class="po-title" href="/admin/preorders/<%= r.product.slug %>"><%= r.product.title %></a>
+
+            <% if (r.release.hasDate) { %>
+              <span class="po-when">Releases <strong><%= r.release.display %></strong></span>
+              <% if (r.overdue) { %>
+                <span class="po-flag po-flag--late"><%= Math.abs(r.daysAway) %> day<%= Math.abs(r.daysAway) === 1 ? '' : 's' %> overdue</span>
+              <% } else if (r.daysAway === 0) { %>
+                <span class="po-flag po-flag--soon">Releases today</span>
+              <% } else if (r.daysAway > 0) { %>
+                <span class="po-flag <%= r.imminent ? 'po-flag--soon' : 'po-flag--tbc' %>">in <%= r.daysAway %> days</span>
+              <% } %>
+            <% } else if (r.release.window) { %>
+              <span class="po-when">Expected <strong><%= r.release.window %></strong></span>
+              <span class="po-flag po-flag--tbc">no confirmed date</span>
+            <% } else { %>
+              <span class="po-when">No release date set</span>
+              <span class="po-flag po-flag--tbc">unannounced</span>
+            <% } %>
+
+            <% if (!r.product.available) { %><span class="po-flag po-flag--tbc">listing closed</span><% } %>
+          </div>
+
+          <div class="po-nums">
+            <div class="po-num"><b><%= r.units %></b><span>Units</span></div>
+            <div class="po-num"><b><%= r.orders %></b><span>Orders</span></div>
+            <div class="po-num"><b><%= r.customers %></b><span>Customers</span></div>
+            <div class="po-num"><b><%= money(r.revenue) %></b><span>Taken</span></div>
+            <div class="po-num"><b><%= r.awaiting %></b><span>Still waiting</span></div>
+            <div class="po-num"><b style="font-size:0.9rem;padding-top:5px"><%= day(r.lastOrder) %></b><span>Last order</span></div>
+            <div class="po-acts">
+              <a class="admin-btn admin-btn--sm" href="/admin/preorders/<%= r.product.slug %>">Who is waiting</a>
+              <a class="admin-btn admin-btn--sm" href="/admin/products">Edit date</a>
+            </div>
+          </div>
+        </article>
+      <% }); %>
+
+      <%/* ── Release date broadcast ──────────────────────────────────
+           Moved here from the email page. It belongs where you can see
+           who it is about: the number of people it will reach is on the
+           card directly above it. */%>
+      <% if (rows.length) { %>
+      <section class="admin-section" style="margin-top:2rem">
+        <h2 class="admin-section__title">Tell everyone a date has moved</h2>
+        <div style="background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:10px;padding:1.25rem">
+          <p style="font-size:0.82rem;color:var(--admin-muted);margin:0 0 1rem;line-height:1.6;max-width:70ch">
+            Emails everyone holding an open preorder for a set. Cancelled, refunded and already-shipped
+            orders are skipped. <strong style="color:var(--admin-text)">Update the release date on the
+            product first</strong> &mdash; the email reads the new date from there, so sending before you
+            change it tells everybody the old date again.
+          </p>
+          <form method="POST" action="/admin/emails/release-update" style="display:flex;flex-direction:column;gap:0.6rem;max-width:660px">
+            <div style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center">
+              <select name="slug" class="admin-select" style="font-size:0.8rem;padding:0.45rem 0.7rem;min-width:300px" required>
+                <option value="">Choose a set&hellip;</option>
+                <% rows.filter(function (r) { return r.awaiting > 0; }).forEach(function (r) { %>
+                  <option value="<%= r.product.slug %>">
+                    <%= r.product.title %> &mdash; <%= r.awaiting %> waiting<%= r.release.hasDate ? ', now ' + r.release.display : '' %>
+                  </option>
+                <% }); %>
+              </select>
+              <input class="admin-search-input" style="width:210px" name="previousRelease" placeholder="Previous date (optional)">
+            </div>
+            <textarea name="message" class="admin-search-input" rows="3"
+              placeholder="Optional: what changed and why, in your own words. Left blank, the email explains that the allocation and price are unchanged and that they can cancel for a full refund."></textarea>
+            <div>
+              <button class="admin-btn admin-btn--sm admin-btn--danger" type="submit"
+                      onclick="return confirm('Email every open preorder holder for this set? This cannot be unsent.')">
+                Send release update
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+      <% } %>
+
+    </div>
+  </main>
+</body>
+</html>

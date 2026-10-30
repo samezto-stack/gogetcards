@@ -1,0 +1,114 @@
+<%- include('../partials/account-head', { customerDoc, section }) %>
+<%
+  /* ── Profile ────────────────────────────────────────────────────────
+     The details we use for the NEXT order. Orders already placed keep
+     their own copy of the address they shipped to, which is why editing
+     here cannot rewrite history — and why the page says so instead of
+     leaving somebody to guess.
+
+     EMAIL IS SHOWN, NOT EDITED. It is the account identity and the address
+     sign-in links go to; changing it by typing into a form would let a
+     borrowed session move an account to somebody else's inbox. The input
+     is readonly and the reason is written next to it. */
+
+  const c = customerDoc;
+  const a = c.address || {};
+  const v = (x) => x || '';
+%>
+
+<% if (saved) { %>
+  <div class="ac__notice ac__notice--good"><strong>Saved.</strong> We&rsquo;ll use these details on your next order.</div>
+<% } %>
+<% if (formError) { %>
+  <div class="ac__notice ac__notice--err"><%= formError %></div>
+<% } %>
+
+<form method="POST" action="<%= marketPath('/account/profile') %>">
+  <section class="ac__sheet">
+    <div class="ac__sheet-head"><h2 class="ac__sheet-title">Your details</h2></div>
+    <div class="ac__body">
+      <div class="ac__form">
+        <div class="ac__field">
+          <label for="p-first">First name</label>
+          <input id="p-first" name="firstName" value="<%= v(c.firstName) %>" autocomplete="given-name" maxlength="60">
+        </div>
+        <div class="ac__field">
+          <label for="p-last">Last name</label>
+          <input id="p-last" name="lastName" value="<%= v(c.lastName) %>" autocomplete="family-name" maxlength="60">
+        </div>
+        <div class="ac__field ac__field--wide">
+          <label for="p-email">Email address</label>
+          <input id="p-email" type="email" value="<%= c.displayEmail || c.email %>" readonly aria-describedby="p-email-why">
+          <span id="p-email-why" class="ac__hint">
+            This is how you sign in and where order updates go, so it can&rsquo;t be changed here.
+            <a href="<%= marketPath('/contact') %>">Ask support</a> and we&rsquo;ll move it for you.
+          </span>
+        </div>
+        <div class="ac__field">
+          <label for="p-phone">Phone</label>
+          <input id="p-phone" name="phone" value="<%= v(c.phone) %>" autocomplete="tel" inputmode="tel" maxlength="40">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ac__sheet">
+    <div class="ac__sheet-head">
+      <h2 class="ac__sheet-title">Default shipping address</h2>
+      <span class="ac__muted">Used for new orders only</span>
+    </div>
+    <div class="ac__body">
+      <div class="ac__form">
+        <div class="ac__field ac__field--wide">
+          <label for="p-line1">Address</label>
+          <input id="p-line1" name="line1" value="<%= v(a.line1) %>" autocomplete="address-line1" maxlength="120">
+        </div>
+        <div class="ac__field ac__field--wide">
+          <label for="p-line2">Apartment, suite, unit <span class="ac__muted">(optional)</span></label>
+          <input id="p-line2" name="line2" value="<%= v(a.line2) %>" autocomplete="address-line2" maxlength="120">
+        </div>
+        <div class="ac__field">
+          <label for="p-city">City</label>
+          <input id="p-city" name="city" value="<%= v(a.city) %>" autocomplete="address-level2" maxlength="80">
+        </div>
+        <div class="ac__field">
+          <label for="p-region">State / region</label>
+          <input id="p-region" name="region" value="<%= v(a.region) %>" autocomplete="address-level1" maxlength="80">
+        </div>
+        <div class="ac__field">
+          <label for="p-zip">ZIP / postal code</label>
+          <input id="p-zip" name="postalCode" value="<%= v(a.postalCode) %>" autocomplete="postal-code" maxlength="24">
+        </div>
+        <div class="ac__field">
+          <label for="p-country">Country</label>
+          <input id="p-country" name="country" value="<%= v(a.country) %>" autocomplete="country-name" maxlength="80">
+        </div>
+      </div>
+      <p class="ac__hint" style="margin-top:0.9rem">
+        Changing this does not change an order that has already been placed &mdash;
+        each order keeps the address it was shipped to. Need to redirect a parcel?
+        <a href="<%= marketPath('/contact') %>">Tell us quickly</a> and we&rsquo;ll catch it before dispatch.
+      </p>
+    </div>
+  </section>
+
+  <section class="ac__sheet">
+    <div class="ac__sheet-head"><h2 class="ac__sheet-title">Email preferences</h2></div>
+    <div class="ac__body">
+      <label class="ac__check">
+        <input type="checkbox" name="marketingOptIn" <%= c.marketingOptIn ? 'checked' : '' %>>
+        Email me about new sealed allocations and restocks.
+      </label>
+      <p class="ac__hint" style="margin-top:0.6rem">
+        Order confirmations, dispatch notices and refund updates are sent either way &mdash;
+        those aren&rsquo;t marketing.
+      </p>
+    </div>
+  </section>
+
+  <div class="ac__actions ac__actions--page">
+    <button type="submit" class="ac__btn ac__btn--primary">Save changes</button>
+    <a class="ac__btn ac__btn--ghost" href="<%= marketPath('/account') %>">Cancel</a>
+  </div>
+</form>
+<%- include('../partials/account-foot') %>

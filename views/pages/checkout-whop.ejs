@@ -1,0 +1,35 @@
+<%
+  /* header/footer includes removed: this view also renders through
+     views/layout.ejs, which already includes both, so every page here
+     shipped two <header> and two <footer> landmarks, one pair nested
+     inside <main>. The Whop embed below and its loader script are
+     deliberately untouched. */
+%>
+<style>
+  .checkout-container {
+    max-width: 800px;
+    margin: 60px auto;
+    padding: 0 20px;
+    min-height: 60vh;
+    font-family: 'Inter', sans-serif;
+  }
+  .whop-checkout-wrapper {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    min-height: 500px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+</style>
+
+<div class="checkout-container">
+  <div class="whop-checkout-wrapper">
+    <div data-whop-checkout-plan-id="<%= whopPlanId %>"></div>
+  </div>
+</div>
+
+<script async defer src="https://js.whop.com/static/checkout/loader.js"></script>
+

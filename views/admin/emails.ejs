@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%237C3AED'/><g fill='%23ffffff'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
+  <meta name="theme-color" content="#0c0c12">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email | Zyphera Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+  <style>
+    /* ── Redelivery queue ── */
+    /* ── Bulk selection ── */
+    .bulk-cell { width: 1%; white-space: nowrap; padding-right: 0 !important; }
+    .bulk-cell input { width: 15px; height: 15px; accent-color: var(--admin-accent, #7C3AED); cursor: pointer; vertical-align: middle; }
+    /* Sticks to the top of the viewport so the count and the buttons stay
+       reachable while scrolling a long log — the whole point of selecting
+       across many rows is that you cannot see them all at once. */
+    .bulk-bar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap;
+                background: var(--admin-accent, #7C3AED); color: #fff; border-radius: 10px;
+                padding: 0.7rem 1rem; margin-bottom: 0.75rem; box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
+    .bulk-bar[hidden] { display: none; }
+    .bulk-bar__count { font-size: 0.85rem; margin-right: auto; }
+    .bulk-bar__btn { background: rgba(255,255,255,0.16); color: #fff; border: 1px solid rgba(255,255,255,0.3);
+                     border-radius: 8px; padding: 0.4rem 0.85rem; font: inherit; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+    .bulk-bar__btn:hover { background: rgba(255,255,255,0.26); }
+    .bulk-bar__btn--danger { background: #DC2626; border-color: #EF4444; }
+    .bulk-bar__btn--danger:hover { background: #B91C1C; }
+    .bulk-bar__clear { background: none; border: 0; color: rgba(255,255,255,0.85); font: inherit; font-size: 0.78rem; text-decoration: underline; cursor: pointer; }
+
+    .rq-panel { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1.75rem; }
+    .rq-head { display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+    .rq-title { font-family: var(--admin-font-display, serif); font-size: 1rem; font-weight: 400; color: var(--admin-text); margin: 0; }
+    .rq-live { font-family: var(--admin-font-mono, monospace); font-size: 0.68rem; letter-spacing: 0.06em; color: var(--admin-warn); }
+    .rq-sub { font-size: 0.78rem; color: var(--admin-faint); line-height: 1.6; margin: 0.5rem 0 1rem; max-width: 62ch; }
+    .rq-sub strong { color: var(--admin-muted); }
+    .rq-flash { font-size: 0.8rem; color: #BBF7D0; background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.3); border-radius: 8px; padding: 0.6rem 0.9rem; margin-bottom: 1rem; }
+    .rq-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .rq-go { padding: 0.5rem 1rem; border-radius: 8px; font-family: var(--admin-font-mono, monospace); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; cursor: pointer; background: var(--admin-accent, #C69A45); color: #1A150F; border: 1px solid transparent; }
+    .rq-go[disabled] { opacity: 0.45; cursor: default; }
+    .rq-clear { padding: 0.5rem 1rem; border-radius: 8px; font-family: var(--admin-font-mono, monospace); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; background: transparent; color: var(--admin-muted); border: 1px solid rgba(255,255,255,0.14); }
+    .rq-clear:hover { border-color: rgba(196,72,92,0.5); color: #FCA5A5; }
+
+    /* Destructive, so it stays out of the way until the row is hovered. */
+    .el-del { font-size: 0.7rem; padding: 0.25rem 0.6rem; border-radius: 4px; cursor: pointer;
+      background: transparent; border: 1px solid transparent; color: var(--admin-faint);
+      opacity: 0; transition: opacity 0.15s, color 0.15s, border-color 0.15s; }
+    tr:hover .el-del, .el-del:focus-visible { opacity: 1; }
+    .el-del:hover { color: #e07487; border-color: rgba(196,72,92,0.4); background: rgba(196,72,92,0.1); }
+  </style>
+</head>
+<body class="admin-body">
+  <%- include('_sidebar', { currentPath: '/admin/emails' }) %>
+
+  <main class="admin-main">
+    <%
+      const stamp = (d) => d ? new Date(d).toLocaleString('en-US', {
+        month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+      }) : '—';
+      const tone = { sent: 'ok', failed: 'err', skipped: 'warn', pending: 'neutral', queued: 'neutral' };
+      const notice = {
+        test: 'Test email sent. It appears in the log below with the provider’s response.',
+        test_failed: 'The test send failed. The reason is on its row in the log below.',
+        retry: 'Sent again.',
+        retry_failed: 'The retry failed. The reason is on its new row in the log below.',
+        deleted: 'Removed from the log. The email itself was already sent — this only deletes our record of it.',
+      };
+      const problem = {
+        no_order: 'That message is not attached to an order, so there is nothing to rebuild it from. Sign-in links cannot be re-sent from here — the customer asks for a new one.',
+        order_gone: 'The order behind that message has been deleted.',
+        no_address: 'That order has no usable email address.',
+        bad_address: 'That does not look like an email address.',
+        bad_type: 'Unknown template.',
+        no_product: 'Pick a preorder product first.',
+        error: 'Something went wrong. The server log has the details.',
+      };
+    %>
+
+    <header class="admin-header">
+      <h1 class="admin-header__title">Email</h1>
+      <a class="admin-btn" href="/admin/emails/preview">Preview templates</a>
+    </header>
+
+    <div class="admin-content">
+
+      <% if (sent && (notice[sent] || sent.startsWith('release_') || sent.startsWith('purged_'))) { %>
+        <div class="admin-alert admin-alert--success" style="margin-bottom:1.25rem">
+          <% if (sent.startsWith('release_')) { const p = sent.split('_'); %>
+            Release update queued for <%= p[1] %> customer<%= p[1] === '1' ? '' : 's' %> holding <%= p[2] %> open preorder<%= p[2] === '1' ? '' : 's' %>. It goes out one message at a time.
+          <% } else if (sent.startsWith('purged_')) { const n = sent.split('_')[1]; %>
+            Removed <%= n %> test send<%= n === '1' ? '' : 's' %> from the log. Real emails were not touched.
+          <% } else { %><%= notice[sent] %><% } %>
+        </div>
+      <% } %>
+      <% if (failed && problem[failed]) { %>
+        <div class="admin-alert admin-alert--error" style="margin-bottom:1.25rem"><%= problem[failed] %></div>
+      <% } %>
+
+      <%/* The sending account, stated first. The reason somebody opens
+           this page is usually that email is not arriving, and "there
+           are no credentials on this server" is the answer often enough
+           that it belongs at the top rather than buried in a log. */%>
+      <div style="background:var(--admin-surface);border:1px solid <%= transport.ok ? 'var(--admin-border)' : 'rgba(196,72,92,0.4)' %>;border-radius:10px;padding:1.1rem 1.25rem;margin-bottom:1.5rem">
+        <div style="display:flex;flex-wrap:wrap;gap:1.5rem;align-items:center">
+          <span class="status-pill status-pill--<%= transport.ok ? 'ok' : 'err' %>">
+            <span class="status-pill__dot"></span><%= transport.ok ? 'Sending is live' : 'Not sending' %>
+          </span>
+          <span style="font-size:0.78rem;color:var(--admin-muted)">
+            From <strong style="color:var(--admin-text)"><%= from %></strong>
+            &nbsp;·&nbsp; Replies go to <strong style="color:var(--admin-text)"><%= replyTo %></strong>
+          </span>
+          <% if (transport.ok) { %>
+            <span style="font-size:0.75rem;color:var(--admin-faint);font-family:var(--admin-font-mono)"><%= transport.host %>:<%= transport.port %></span>
+          <% } %>
+        </div>
+        <% if (!transport.ok) { %>
+          <p style="margin:0.75rem 0 0;font-size:0.8rem;color:var(--admin-muted);line-height:1.6">
+            <%= transport.error %><br>
+            Nothing is being delivered. Every message below with status <strong>skipped</strong> was
+            rendered and logged but never sent. See <code style="font-family:var(--admin-font-mono)">docs/email-setup.md</code>
+            for the ZeptoMail credentials and DNS records.
+          </p>
+        <% } %>
+      </div>
+
+      <div class="admin-stats-grid" style="margin-bottom:1.5rem">
+        <div class="admin-stat-card">
+          <div class="admin-stat-card__num"><%= byStatus.sent %></div>
+          <div class="admin-stat-card__label">Delivered to provider</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-card__num" style="color:<%= byStatus.failed ? '#e07487' : 'inherit' %>"><%= byStatus.failed %></div>
+          <div class="admin-stat-card__label">Failed</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-card__num" style="color:<%= byStatus.skipped ? 'var(--admin-warn)' : 'inherit' %>"><%= byStatus.skipped %></div>
+          <div class="admin-stat-card__label">Skipped</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-card__num"><%= opened %></div>
+          <div class="admin-stat-card__label">Links opened</div>
+        </div>
+      </div>
+
+      <%/* ── Redelivery queue ──────────────────────────────────────────
+           Shown whenever there is something to retry or something already
+           waiting. The queue is deliberately slow: see
+           services/mail/retryQueue.js for why a burst is the wrong way to
+           recover from a provider outage. */%>
+      <% if (byStatus.failed || (retryQueue && retryQueue.pending)) { %>
+        <div class="rq-panel">
+          <div class="rq-head">
+            <h2 class="rq-title">Redelivery</h2>
+            <% if (retryQueue && retryQueue.pending) { %>
+              <span class="rq-live"><%= retryQueue.pending %> waiting<% if (retryQueue.nextAt) { %> &middot; next <%= new Date(retryQueue.nextAt).toLocaleTimeString() %><% if (retryQueue.nextTo) { %> to <%= retryQueue.nextTo %><% } %><% } %></span>
+            <% } %>
+          </div>
+
+          <p class="rq-sub">
+            Queues every failure that still has an order behind it and sends them
+            <strong>one at a time, minutes apart</strong>, so a recovered backlog does not
+            leave as a burst. Sign-in links are never queued &mdash; re-issuing one unasked
+            would mail somebody a session key they did not ask for.
+          </p>
+
+          <% if (typeof query !== 'undefined' && query.queued) { %>
+            <div class="rq-flash">
+              <% if (query.queued === '0') { %>
+                <strong>Nothing to queue.</strong>
+                Every failure here has either been retried already or has no order to rebuild from.
+              <% } else { %>
+                <strong><%= query.queued %> queued.</strong>
+              <% } %>
+              <% if (query.skippedNoOrder && query.skippedNoOrder !== '0') { %>
+                <%= query.skippedNoOrder %> skipped (sign-in links, no order to rebuild from).
+              <% } %>
+              <% if (query.skippedGone && query.skippedGone !== '0') { %>
+                <%= query.skippedGone %> skipped (order no longer exists).
+              <% } %>
+            </div>
+          <% } %>
+          <% if (typeof query !== 'undefined' && query.cleared) { %>
+            <div class="rq-flash"><strong><%= query.cleared %> removed from the queue.</strong> Nothing was sent.</div>
+          <% } %>
+          <% if (typeof query !== 'undefined' && query.deduped) { %>
+            <div class="rq-flash">
+              <% if (query.deduped === '0') { %>
+                <strong>Nothing to clean up.</strong> Every message already has just one row.
+              <% } else { %>
+                <strong><%= query.deduped %> duplicate row<%= query.deduped === '1' ? '' : 's' %> removed</strong>
+                across <%= query.groups %> message<%= query.groups === '1' ? '' : 's' %>.
+                <% if (query.wasFailed && query.wasFailed !== '0') { %>
+                  <%= query.wasFailed %> of them were failures superseded by a successful send.
+                <% } %>
+              <% } %>
+            </div>
+          <% } %>
+
+          <div class="rq-actions">
+            <form method="POST" action="/admin/emails/retry-all" style="margin:0"
+                  onsubmit="return confirm('Queue every failed email that has an order behind it?\n\nThey go out one at a time, several minutes apart. Fix the provider FIRST — retrying into a block just fails them again.')">
+              <button type="submit" class="rq-go" <%= (retryQueue && retryQueue.pending) ? 'disabled' : '' %>>
+                <%= (retryQueue && retryQueue.pending) ? 'Queue running' : 'Retry all failed' %>
+              </button>
+            </form>
+            <% if (retryQueue && retryQueue.pending) { %>
+              <form method="POST" action="/admin/emails/retry-all/clear" style="margin:0"
+                    onsubmit="return confirm('Empty the queue without sending? The emails stay marked failed.')">
+                <button type="submit" class="rq-clear">Cancel queue</button>
+              </form>
+            <% } %>
+
+            <%/* Repeat attempts at one message collapsed to one row. New
+                 retries delete the row they replace, so this is for the
+                 backlog from before that and anything retried by hand. */%>
+            <% if (typeof duplicates !== 'undefined' && duplicates > 0) { %>
+              <form method="POST" action="/admin/emails/dedupe" style="margin:0"
+                    onsubmit="return confirm('Remove <%= duplicates %> duplicate row<%= duplicates === 1 ? '' : 's' %>?\n\nWhere a message was attempted more than once, the successful send is kept — or the latest attempt if none succeeded. Sign-in links are never touched. This deletes log rows permanently; no email is sent.')">
+                <button type="submit" class="rq-clear">Clean up <%= duplicates %> duplicate<%= duplicates === 1 ? '' : 's' %></button>
+              </form>
+            <% } %>
+          </div>
+        </div>
+      <% } %>
+
+      <% if (sampleCount) { %>
+        <div style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;margin-bottom:1rem">
+          <span style="font-size:0.8rem;color:var(--admin-muted)">
+            <strong style="color:var(--admin-text)"><%= sampleCount %></strong>
+            test send<%= sampleCount === 1 ? '' : 's' %> in the log.
+          </span>
+          <form method="POST" action="/admin/emails/purge-tests" style="margin:0"
+                onsubmit="return confirm('Remove all <%= sampleCount %> test sends from the log? Real emails are not touched.');">
+            <button class="admin-btn admin-btn--sm" type="submit">Clear test sends</button>
+          </form>
+        </div>
+      <% } %>
+
+      <form class="admin-filter-bar" method="GET" action="/admin/emails">
+        <div class="admin-filter-bar__search">
+          <input class="admin-search-input" type="search" name="q" value="<%= q %>"
+                 placeholder="Search address, order reference or subject" autocomplete="off">
+        </div>
+        <select name="status" class="admin-select" style="font-size:0.8rem;padding:0.45rem 0.7rem">
+          <% ['all','sent','failed','skipped','pending'].forEach(function (s) { %>
+            <option value="<%= s %>" <%= status === s ? 'selected' : '' %>><%= s === 'all' ? 'Any status' : s %></option>
+          <% }); %>
+        </select>
+        <select name="type" class="admin-select" style="font-size:0.8rem;padding:0.45rem 0.7rem">
+          <option value="all">Any type</option>
+          <% types.forEach(function (t) { %>
+            <option value="<%= t %>" <%= type === t ? 'selected' : '' %>><%= labels[t] %></option>
+          <% }); %>
+        </select>
+        <button class="admin-btn admin-btn--primary" type="submit">Filter</button>
+        <% if (q || status !== 'all' || type !== 'all') { %><a class="admin-btn" href="/admin/emails">Clear</a><% } %>
+      </form>
+
+      <% if (!rows.length) { %>
+        <div style="background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:10px;padding:3rem;text-align:center;color:var(--admin-muted)">
+          <p style="font-size:0.95rem">Nothing here yet.</p>
+          <p style="font-size:0.8rem;margin-top:0.5rem">
+            Every email this shop sends is recorded here, including the ones it could not send.
+          </p>
+        </div>
+      <% } else { %>
+        <%/* The table is inside the bulk form so a checkbox in any row is
+             part of the same submission. The per-row Retry and Delete
+             forms cannot live inside it — nested forms are invalid and the
+             inner one is dropped by the parser — so they post to their own
+             actions via formaction on the buttons instead. */%>
+        <% if (typeof query !== 'undefined' && query.bulkDeleted) { %>
+          <div class="rq-flash" style="margin-bottom:0.9rem">
+            <strong><%= query.bulkDeleted %> row<%= query.bulkDeleted === '1' ? '' : 's' %> deleted.</strong>
+            Nothing was sent.
+          </div>
+        <% } %>
+        <% if (typeof query !== 'undefined' && query.bulkDequeued) { %>
+          <div class="rq-flash" style="margin-bottom:0.9rem">
+            <strong><%= query.bulkDequeued %> removed from the send queue.</strong>
+            The rows are still here and can be retried individually.
+          </div>
+        <% } %>
+        <% if (typeof query !== 'undefined' && query.bulk === 'none') { %>
+          <div class="rq-flash" style="margin-bottom:0.9rem"><strong>Nothing was selected.</strong> No rows were changed.</div>
+        <% } %>
+
+        <form method="POST" action="/admin/emails/bulk" id="bulk-form">
+        <div class="bulk-bar" id="bulk-bar" hidden>
+          <span class="bulk-bar__count"><strong id="bulk-n">0</strong> selected</span>
+          <button type="submit" formaction="/admin/emails/bulk/dequeue" class="bulk-bar__btn">
+            Remove from queue
+          </button>
+          <button type="submit" formaction="/admin/emails/bulk/delete" class="bulk-bar__btn bulk-bar__btn--danger"
+                  onclick="return confirm('Delete the selected log rows permanently?\n\nThis removes the record that these messages were attempted. No email is sent and nothing is sent again.')">
+            Delete selected
+          </button>
+          <button type="button" class="bulk-bar__clear" onclick="bulkClear()">Clear selection</button>
+        </div>
+
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th class="bulk-cell">
+                  <input type="checkbox" id="bulk-all" onchange="bulkToggleAll(this)"
+                         aria-label="Select every row on this page">
+                </th>
+                <th>When</th><th>Type</th><th>To</th><th>Order</th>
+                <th>Status</th><th>Opened</th><th>Provider said</th><th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% rows.forEach(function (r) { %>
+                <tr>
+                  <td class="bulk-cell">
+                    <input type="checkbox" class="bulk-box" name="ids" value="<%= r._id %>"
+                           onchange="bulkCount()" aria-label="Select this message">
+                  </td>
+                  <td style="white-space:nowrap;color:var(--admin-muted)"><%= stamp(r.createdAt) %></td>
+                  <td>
+                    <%= labels[r.type] || r.type %>
+                    <% if (r.retriedFrom) { %><span class="chip" style="margin-left:5px">retry</span><% } %>
+                    <div style="font-size:0.7rem;color:var(--admin-faint);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><%= r.subject %></div>
+                  </td>
+                  <td style="font-family:var(--admin-font-mono);font-size:0.72rem"><%= r.to %></td>
+                  <td style="font-family:var(--admin-font-mono);font-size:0.72rem"><%= r.orderRef || '—' %></td>
+                  <td>
+                    <span class="status-pill status-pill--<%= tone[r.status] || 'neutral' %>">
+                      <span class="status-pill__dot"></span><%= r.status %>
+                    </span>
+                    <% if (r.attempts > 1) { %><div style="font-size:0.68rem;color:var(--admin-faint)"><%= r.attempts %> attempts</div><% } %>
+                  </td>
+                  <%/* NOT A PIXEL. There is no tracking image in these
+                       emails and there will not be — a 1x1 remote image
+                       is the classic spam signature, and with Apple's
+                       Mail Privacy Protection pre-fetching images and
+                       Gmail proxying them, most recorded "opens" are
+                       machines anyway. This fires when somebody clicked
+                       the link and signed in: fewer events, all real.
+                       Blank means "we do not know", not "unread". */%>
+                  <td style="font-size:0.72rem;white-space:nowrap">
+                    <% if (r.linkOpenedAt) { %>
+                      <span style="color:var(--admin-ok)">&#10003; <%= stamp(r.linkOpenedAt) %></span>
+                    <% } else if (r.status === 'sent') { %>
+                      <span style="color:var(--admin-faint)">not yet</span>
+                    <% } else { %>
+                      <span style="color:var(--admin-faint)">&mdash;</span>
+                    <% } %>
+                  </td>
+                  <td style="font-size:0.7rem;color:var(--admin-faint);max-width:320px">
+                    <%/* Verbatim. A 550 with the provider's own reason is
+                         worth more than any summary we could write. */%>
+                    <% if (r.error) { %><span style="color:#e07487"><%= r.error %></span>
+                    <% } else if (r.providerResponse) { %><%= r.providerResponse %>
+                    <% } else { %>—<% } %>
+                  </td>
+                  <%/* formaction rather than a nested form: this row sits
+                       inside the bulk form, and a form inside a form is
+                       dropped by the parser — the buttons would post to the
+                       bulk action instead of their own. */%>
+                  <td style="text-align:right;white-space:nowrap">
+                    <% if (r.status !== 'sent' && r.orderId) { %>
+                      <button class="admin-btn admin-btn--sm" type="submit"
+                              formaction="/admin/emails/<%= r._id %>/retry">Retry</button>
+                    <% } %>
+                    <%/* Quiet until you go looking for it. The row is the
+                         evidence a customer was told something, so it
+                         should not be one stray click from gone. */%>
+                    <button class="el-del" type="submit"
+                            formaction="/admin/emails/<%= r._id %>/delete"
+                            title="Remove from log" aria-label="Remove from log"
+                            onclick="return confirm('Remove this row from the log?\n\nThe email itself was already sent — this only deletes our record that it was.');">Delete</button>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        </form>
+
+        <script>
+          /* Selection is plain DOM state — no ids are held anywhere else, so
+             a reload genuinely clears it rather than leaving a stale set the
+             next destructive click would act on. */
+          function bulkBoxes() { return Array.prototype.slice.call(document.querySelectorAll('.bulk-box')); }
+          function bulkCount() {
+            var picked = bulkBoxes().filter(function (b) { return b.checked; });
+            document.getElementById('bulk-n').textContent = picked.length;
+            document.getElementById('bulk-bar').hidden = picked.length === 0;
+            var all = document.getElementById('bulk-all');
+            all.checked = picked.length > 0 && picked.length === bulkBoxes().length;
+            /* The third state: some but not all. Without it the header box
+               reads as "none selected" while rows below are ticked. */
+            all.indeterminate = picked.length > 0 && picked.length < bulkBoxes().length;
+          }
+          function bulkToggleAll(src) {
+            bulkBoxes().forEach(function (b) { b.checked = src.checked; });
+            bulkCount();
+          }
+          function bulkClear() {
+            bulkBoxes().forEach(function (b) { b.checked = false; });
+            document.getElementById('bulk-all').checked = false;
+            bulkCount();
+          }
+          bulkCount();
+        </script>
+      <% } %>
+
+      <%/* ── A real test send ── */%>
+      <section class="admin-section" style="margin-top:2rem">
+        <h2 class="admin-section__title">Send yourself a test</h2>
+        <div style="background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:10px;padding:1.25rem">
+          <p style="font-size:0.82rem;color:var(--admin-muted);margin:0 0 1rem;line-height:1.6">
+            Sends one template with sample data to a real inbox. The only way to see how it
+            lands in Gmail, Outlook or Apple Mail, and what it looks like on a phone in dark mode.
+            It appears in the log above like any other send.
+          </p>
+          <form method="POST" action="/admin/emails/test" style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center">
+            <select name="type" class="admin-select" style="font-size:0.8rem;padding:0.45rem 0.7rem">
+              <% types.forEach(function (t) { %><option value="<%= t %>"><%= labels[t] %></option><% }); %>
+            </select>
+            <input class="admin-search-input" style="width:260px" name="to" type="email" placeholder="you@example.com" required>
+            <button class="admin-btn admin-btn--primary admin-btn--sm" type="submit">Send test</button>
+          </form>
+        </div>
+      </section>
+
+      <p style="font-size:0.75rem;color:var(--admin-faint);margin:1rem 0 0;line-height:1.7;max-width:78ch">
+        <strong style="color:var(--admin-muted)">About the Opened column.</strong>
+        It records a click, not a read. These emails contain no tracking pixel and never will:
+        a 1&times;1 remote image is the signature spam filters look for, because it is how a
+        spammer confirms an address is live &mdash; and it would be poor data anyway, since
+        Apple&rsquo;s Mail Privacy Protection pre-fetches every remote image and Gmail proxies
+        them, so most recorded &ldquo;opens&rdquo; are machines. A blank here means we do not
+        know, not that the customer ignored it.
+      </p>
+
+      <%/* The release-date broadcast lived here and has moved to
+           /admin/preorders, where you can see who it will reach before
+           you send it. The POST route is unchanged; only the form moved,
+           so there is still one implementation. */%>
+      <section class="admin-section" style="margin-top:1.75rem">
+        <h2 class="admin-section__title">Telling preorder holders a date has moved</h2>
+        <div style="background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:10px;padding:1.25rem">
+          <p style="font-size:0.82rem;color:var(--admin-muted);margin:0 0 1rem;line-height:1.6;max-width:70ch">
+            That now lives on the Preorders page, next to the number of people it will reach and the
+            date it will quote &mdash; so you can see what you are about to send before you send it.
+          </p>
+          <a class="admin-btn admin-btn--sm" href="/admin/preorders">Go to Preorders</a>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+</body>
+</html>

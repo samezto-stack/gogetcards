@@ -1,0 +1,350 @@
+<%
+  var b = company.business;
+  var responseCopy = b.responseTimeHours
+    ? 'We reply within ' + b.responseTimeHours + ' hours'
+    : 'We reply as quickly as we can';
+  /* Topic list mirrors models/ContactMessage.js's enum on purpose: the
+     model is the authority and rejects anything else, so drift here fails
+     loudly at validation rather than silently storing a label nothing
+     filters on. */
+  var topics = [
+    { value: 'order',     label: 'An order I have placed' },
+    { value: 'preorder',  label: 'A preorder or release date' },
+    { value: 'shipping',  label: 'Shipping or tracking' },
+    { value: 'returns',   label: 'A return or refund' },
+    { value: 'wholesale', label: 'Wholesale or bulk enquiry' },
+    { value: 'general',   label: 'Something else' },
+  ];
+  var v = typeof formValues !== 'undefined' && formValues ? formValues : {};
+%>
+
+<nav class="col-page__breadcrumb container" style="padding-top:1rem" aria-label="Breadcrumb">
+  <a href="<%= marketPath('/') %>">Home</a>
+  <span aria-hidden="true">/</span>
+  <span aria-current="page">Contact</span>
+</nav>
+
+<div class="contact-page">
+  <!-- Header -->
+  <div class="contact-hero">
+    <div class="contact-hero__orb" aria-hidden="true"></div>
+    <div class="container" style="position:relative; z-index:2">
+      <div class="label-overline" style="margin-bottom:0.75rem">Get in Touch</div>
+      <h1 class="heading-section">Support &amp; Contact</h1>
+      <p class="contact-hero__sub">
+        Every message reaches a person, not a queue. <%= responseCopy %>,
+        <%= b.supportHours ? b.supportHours.charAt(0).toLowerCase() + b.supportHours.slice(1) : 'every business day' %>.
+      </p>
+    </div>
+  </div>
+
+  <div class="container" style="padding-top:3rem; padding-bottom:5rem">
+    <div class="contact-layout">
+
+      <!-- Column 1: how to reach us, and who we are -->
+      <div>
+        <h2 class="contact-section-title">Direct Contact</h2>
+        <div class="contact-info-cards">
+
+          <%/* mailto:, not plain text. The address used to be unlinked, so
+               a customer on a phone had to retype it by hand and a
+               reviewer checking that support exists had nothing to
+               click. */%>
+          <div class="contact-info-card">
+            <span class="contact-info-card__icon" aria-hidden="true"><%- include('../partials/icon', { name: 'package', size: 24, color: 'currentColor' }) %></span>
+            <div>
+              <p class="contact-info-card__label">Customer Support</p>
+              <p class="contact-info-card__value"><a href="mailto:<%= b.supportEmail %>"><%= b.supportEmail %></a></p>
+              <p class="contact-info-card__sub">Orders, stock, preorders, anything else</p>
+            </div>
+          </div>
+
+          <% if (b.returnsEmail && b.returnsEmail !== b.supportEmail) { %>
+          <div class="contact-info-card">
+            <span class="contact-info-card__icon" aria-hidden="true"><%- include('../partials/icon', { name: 'undo', size: 24, color: 'currentColor' }) %></span>
+            <div>
+              <p class="contact-info-card__label">Returns &amp; Refunds</p>
+              <p class="contact-info-card__value"><a href="mailto:<%= b.returnsEmail %>"><%= b.returnsEmail %></a></p>
+              <p class="contact-info-card__sub">Damaged items, cancellations, refunds</p>
+            </div>
+          </div>
+          <% } %>
+
+          <% if (b.phone) { %>
+          <div class="contact-info-card">
+            <span class="contact-info-card__icon" aria-hidden="true"><%- include('../partials/icon', { name: 'bell', size: 24, color: 'currentColor' }) %></span>
+            <div>
+              <p class="contact-info-card__label">Phone</p>
+              <p class="contact-info-card__value"><a href="tel:<%= b.phone.replace(/[^+0-9]/g, '') %>"><%= b.phone %></a></p>
+              <p class="contact-info-card__sub"><%= b.supportHours || 'Business hours' %></p>
+            </div>
+          </div>
+          <% } %>
+
+          <%/* Social links render ONLY when configured. This page used to
+               hardcode "discord.gg/zypheratcg" and "@zypheratcg" as
+               support channels while config/company.js recorded both as
+               unset: two advertised ways to reach us that led nowhere. */%>
+          <% if (b.pressEmail) { %>
+          <div class="contact-info-card">
+            <span class="contact-info-card__icon" aria-hidden="true"><%- include('../partials/icon', { name: 'globe', size: 24, color: 'currentColor' }) %></span>
+            <div>
+              <p class="contact-info-card__label">Business &amp; Press</p>
+              <p class="contact-info-card__value"><a href="mailto:<%= b.pressEmail %>"><%= b.pressEmail %></a></p>
+              <p class="contact-info-card__sub">Partnerships and media</p>
+            </div>
+          </div>
+          <% } %>
+        </div>
+
+        <%/* Who the customer is actually buying from. Merchant Center's
+             most common first-submission rejection is that the reviewer
+             cannot identify the seller. Every line is omitted when unset
+             rather than filled with something plausible: an invented
+             registration number is a Misrepresentation suspension, not a
+             missing-detail warning. */%>
+        <h2 class="contact-section-title" style="margin-top:2.5rem">Business Details</h2>
+        <div class="contact-business">
+          <dl class="contact-business__list">
+            <div class="contact-business__row">
+              <dt>Trading as</dt>
+              <dd><%= b.tradingName %></dd>
+            </div>
+            <% if (b.legalName) { %>
+            <div class="contact-business__row"><dt>Registered name</dt><dd><%= b.legalName %></dd></div>
+            <% } %>
+            <% if (b.registrationNumber) { %>
+            <div class="contact-business__row"><dt>Company number</dt><dd><%= b.registrationNumber %></dd></div>
+            <% } %>
+            <% if (b.vatNumber) { %>
+            <div class="contact-business__row"><dt>VAT number</dt><dd><%= b.vatNumber %></dd></div>
+            <% } %>
+            <% if (b.country) { %>
+            <div class="contact-business__row"><dt>Ships from</dt><dd><%= b.country %></dd></div>
+            <% } %>
+            <% if (b.address) { %>
+            <div class="contact-business__row">
+              <dt>Address</dt>
+              <dd>
+                <%/* Through the shared formatter so this and the footer
+                     print one identical address. Merchant Center's
+                     misrepresentation review is largely a consistency
+                     check, and an address punctuated two ways on two
+                     pages is what it is looking for. */%>
+                <address style="font-style:normal">
+                  <% company.addressLines().forEach(function (line, i) { %><%= line %><% if (i < company.addressLines().length - 1) { %><br><% } %><% }); %>
+                </address>
+              </dd>
+            </div>
+            <% } %>
+            <div class="contact-business__row">
+              <dt>Support hours</dt>
+              <%/* "Pacific Time", not "America/Los_Angeles". An IANA
+                   identifier is correct data and unreadable copy. */%>
+              <dd><%= company.supportHoursLine() || 'Business days' %></dd>
+            </div>
+            <div class="contact-business__row">
+              <dt>Prices shown in</dt>
+              <dd><%= b.currency %></dd>
+            </div>
+          </dl>
+          <p class="contact-business__note">
+            Card payments are handled entirely by our payment provider on their own
+            encrypted page. We never see or store your card details.
+            <a href="<%= marketPath('/privacy-policy') %>">Read our privacy policy</a>.
+          </p>
+        </div>
+      </div>
+
+      <!-- Column 2: the form, then the FAQs -->
+      <div>
+        <h2 class="contact-section-title" id="contact-form">Send Us a Message</h2>
+
+        <% if (typeof sent !== 'undefined' && sent) { %>
+          <%/* role=status so a screen reader announces the confirmation
+               after the redirect instead of the user having to hunt for
+               it. */%>
+          <div class="contact-alert contact-alert--ok" role="status">
+            <strong>Thanks, your message is in.</strong>
+            <span><%= responseCopy %>. If it is urgent, email <a href="mailto:<%= b.supportEmail %>"><%= b.supportEmail %></a> and mention that you used the form.</span>
+          </div>
+        <% } %>
+
+        <% if (typeof formError !== 'undefined' && formError) { %>
+          <div class="contact-alert contact-alert--err" role="alert">
+            <strong>We could not send that.</strong>
+            <span><%= formError %></span>
+          </div>
+        <% } %>
+
+        <%/* Every input has a real <label for>, an autocomplete token and
+             a described-by hint where one helps. A placeholder disappears
+             the moment you type and is not an accessible name (WCAG
+             3.3.2), so it is never the only label here. */%>
+        <form class="contact-form" method="POST" action="<%= marketPath('/contact') %>" novalidate>
+          <div class="contact-form__row">
+            <div class="contact-form__field">
+              <label class="form-label" for="cf-name">Your name</label>
+              <input class="form-input" type="text" id="cf-name" name="name" autocomplete="name"
+                     required maxlength="120" value="<%= v.name || '' %>">
+            </div>
+            <div class="contact-form__field">
+              <label class="form-label" for="cf-email">Email address</label>
+              <input class="form-input" type="email" id="cf-email" name="email" autocomplete="email"
+                     required maxlength="200" value="<%= v.email || '' %>"
+                     aria-describedby="cf-email-hint">
+              <span class="contact-form__hint" id="cf-email-hint">We reply to this address only.</span>
+            </div>
+          </div>
+
+          <div class="contact-form__row">
+            <div class="contact-form__field">
+              <label class="form-label" for="cf-topic">What is this about?</label>
+              <select class="form-input" id="cf-topic" name="topic">
+                <% topics.forEach(function (t) { %>
+                  <option value="<%= t.value %>" <%= v.topic === t.value ? 'selected' : '' %>><%= t.label %></option>
+                <% }); %>
+              </select>
+            </div>
+            <div class="contact-form__field">
+              <label class="form-label" for="cf-order">Order number <span class="contact-form__optional">(optional)</span></label>
+              <input class="form-input" type="text" id="cf-order" name="orderNumber" maxlength="60"
+                     value="<%= v.orderNumber || '' %>" aria-describedby="cf-order-hint">
+              <span class="contact-form__hint" id="cf-order-hint">On your confirmation email. Speeds things up.</span>
+            </div>
+          </div>
+
+          <div class="contact-form__field">
+            <label class="form-label" for="cf-message">Message</label>
+            <textarea class="form-input" id="cf-message" name="message" rows="6" required
+                      maxlength="5000" aria-describedby="cf-message-hint"><%= v.message || '' %></textarea>
+            <span class="contact-form__hint" id="cf-message-hint">Tell us what happened and what you would like us to do.</span>
+          </div>
+
+          <%/* Honeypot. Positioned off-screen rather than display:none —
+               some bots skip hidden inputs — and kept out of the tab order
+               and the accessibility tree so no keyboard or screen-reader
+               user can land in it. A submission with this filled is
+               silently dropped. */%>
+          <div class="contact-form__hp" aria-hidden="true">
+            <label for="cf-website">Leave this field empty</label>
+            <input type="text" id="cf-website" name="website" tabindex="-1" autocomplete="off">
+          </div>
+
+          <%/* reCAPTCHA v2. The honeypot above still runs and still catches
+               the naive bots; this is for the ones that fill it in
+               correctly. The script is loaded here rather than in the
+               layout so it is fetched on the one page that uses it.
+
+               No `defer` alongside `async`: the widget is declarative and
+               renders itself wherever it finds .g-recaptcha, so it does
+               not matter when the script arrives. */%>
+          <% if (typeof recaptchaSiteKey !== 'undefined' && recaptchaSiteKey) { %>
+            <div class="contact-form__captcha">
+              <div class="g-recaptcha" data-sitekey="<%= recaptchaSiteKey %>"></div>
+              <noscript>
+                <p class="contact-form__legal">
+                  This form needs JavaScript to verify you are human. If you cannot
+                  enable it, email us and we will reply the same way.
+                </p>
+              </noscript>
+            </div>
+            <script src="https://www.google.com/recaptcha/api.js" async></script>
+          <% } %>
+
+          <button type="submit" class="btn btn-primary btn-lg" id="contact-submit">Send Message</button>
+
+          <p class="contact-form__legal">
+            We use what you send here only to answer you. See our
+            <a href="<%= marketPath('/privacy-policy') %>">Privacy Policy</a>.
+          </p>
+        </form>
+
+        <h2 class="contact-section-title" style="margin-top:3rem">Frequently Asked Questions</h2>
+        <div class="faq-list">
+          <%/* Rendered from config/faq.js, which also builds the FAQPage
+               JSON-LD on this route. Same array, so the marked-up answer
+               and the visible one cannot disagree — Google issues manual
+               actions when they do. */%>
+          <% (typeof faqs !== 'undefined' ? faqs : []).forEach(function(faq) { %>
+            <details class="faq-item">
+              <summary class="faq-item__q">
+                <span><%= faq.q %></span>
+                <span class="faq-item__chevron" aria-hidden="true">+</span>
+              </summary>
+              <div class="faq-item__a"><%= faq.a %></div>
+            </details>
+          <% }); %>
+        </div>
+
+        <p class="contact-more-help">
+          Looking for the detail? Read the
+          <a href="<%= marketPath('/shipping') %>">Shipping &amp; Delivery</a>,
+          <a href="<%= marketPath('/refund-policy') %>">Refund Policy</a> and
+          <a href="<%= marketPath('/terms-of-service') %>">Terms of Service</a> pages.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .contact-page { padding-bottom:0; }
+  .contact-hero { position:relative; overflow:hidden; background:var(--color-bg-elevated); border-bottom:1px solid var(--color-border-light); padding:3.5rem 0 2.75rem; }
+  .contact-hero__orb { position:absolute; width:500px; height:300px; top:50%; right:-100px; transform:translateY(-50%); background:radial-gradient(ellipse,rgba(124,58,237,0.1) 0%,transparent 70%); pointer-events:none; }
+  .contact-hero__sub { color:var(--color-text-muted); margin-top:0.625rem; max-width:560px; line-height:1.7; }
+  .contact-layout { display:grid; grid-template-columns:1fr 1.4fr; gap:4rem; align-items:start; }
+  .contact-section-title { font-family:var(--font-heading); font-size:1.05rem; font-weight:800; color:var(--color-white); margin-bottom:1.5rem; text-transform:uppercase; letter-spacing:0.04em; scroll-margin-top:6rem; }
+  .contact-info-cards { display:flex; flex-direction:column; gap:0.875rem; }
+  .contact-info-card { display:flex; align-items:center; gap:1rem; background:var(--color-bg-card); border:1px solid var(--color-border-light); border-radius:var(--radius-md); padding:1rem 1.25rem; transition:border-color var(--transition-fast); }
+  .contact-info-card:hover { border-color:rgba(124,58,237,0.35); }
+  .contact-info-card__icon { display:flex; align-items:center; justify-content:center; color:var(--color-text-muted); }
+  .contact-info-card__label { font-size:0.7rem; font-weight:700; color:var(--color-primary); font-family:var(--font-heading); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:2px; }
+  .contact-info-card__value { font-family:var(--font-heading); font-size:0.9rem; font-weight:700; color:var(--color-white); word-break:break-word; }
+  .contact-info-card__value a { color:inherit; text-decoration:none; }
+  .contact-info-card__value a:hover { text-decoration:underline; }
+  .contact-info-card__sub { font-size:0.72rem; color:var(--color-text-faint); margin-top:2px; }
+
+  .contact-business { background:var(--color-bg-card); border:1px solid var(--color-border-light); border-radius:var(--radius-md); padding:1.25rem; }
+  .contact-business__list { display:flex; flex-direction:column; gap:0.625rem; margin:0; }
+  .contact-business__row { display:grid; grid-template-columns:9rem 1fr; gap:0.75rem; font-size:0.82rem; }
+  .contact-business__row dt { color:var(--color-text-faint); }
+  .contact-business__row dd { color:var(--color-text); margin:0; }
+  .contact-business__note { font-size:0.75rem; color:var(--color-text-faint); line-height:1.7; margin-top:1rem; padding-top:0.875rem; border-top:1px solid var(--color-border-light); }
+  .contact-business__note a { color:var(--color-primary); }
+
+  .contact-alert { display:flex; flex-direction:column; gap:0.25rem; border-radius:var(--radius-md); padding:0.9rem 1.1rem; margin-bottom:1.25rem; font-size:0.85rem; line-height:1.65; }
+  .contact-alert strong { font-family:var(--font-heading); }
+  .contact-alert a { color:inherit; text-decoration:underline; }
+  .contact-alert--ok { background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.35); color:#6EE7B7; }
+  .contact-alert--err { background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.35); color:#FCA5A5; }
+
+  .contact-form { display:flex; flex-direction:column; gap:1.1rem; }
+  .contact-form__row { display:grid; grid-template-columns:1fr 1fr; gap:1.1rem; }
+  .contact-form__field { display:flex; flex-direction:column; gap:0.35rem; }
+  .contact-form__hint { font-size:0.72rem; color:var(--color-text-faint); }
+  .contact-form__optional { color:var(--color-text-faint); font-weight:400; text-transform:none; letter-spacing:0; }
+  .contact-form__legal { font-size:0.75rem; color:var(--color-text-faint); line-height:1.7; }
+  .contact-form__legal a { color:var(--color-primary); }
+  .contact-form__hp { position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
+
+  .faq-list { display:flex; flex-direction:column; gap:0.5rem; }
+  .faq-item { background:var(--color-bg-card); border:1px solid var(--color-border-light); border-radius:var(--radius-md); overflow:hidden; transition:border-color var(--transition-fast); }
+  .faq-item[open] { border-color:rgba(124,58,237,0.35); }
+  .faq-item__q { width:100%; display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1rem 1.25rem; background:none; border:none; text-align:left; font-size:0.88rem; font-weight:600; color:var(--color-text); font-family:var(--font-heading); cursor:pointer; transition:color var(--transition-fast); list-style:none; }
+  .faq-item__q::-webkit-details-marker { display:none; }
+  .faq-item__q:hover { color:var(--color-white); }
+  .faq-item[open] .faq-item__q { color:var(--color-white); }
+  .faq-item__chevron { font-size:1.2rem; color:var(--color-primary); flex-shrink:0; font-weight:400; transition:transform 0.2s; }
+  .faq-item[open] .faq-item__chevron { transform:rotate(45deg); }
+  .faq-item__a { padding:0 1.25rem 1rem; font-size:0.85rem; color:var(--color-text-muted); line-height:1.75; border-top:1px solid var(--color-border-light); padding-top:0.875rem; }
+
+  .contact-more-help { font-size:0.82rem; color:var(--color-text-muted); line-height:1.8; margin-top:1.5rem; }
+  .contact-more-help a { color:var(--color-primary); }
+
+  @media (max-width:1024px) { .contact-layout { grid-template-columns:1fr; gap:3rem; } }
+  @media (max-width:640px) {
+    .contact-form__row { grid-template-columns:1fr; }
+    .contact-business__row { grid-template-columns:1fr; gap:0.15rem; }
+  }
+</style>

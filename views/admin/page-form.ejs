@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%237C3AED'/><g fill='%23ffffff'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
+  <meta name="theme-color" content="#0c0c12">
+  <meta name="robots" content="noindex, nofollow">
+  <title><%= pageTitle %> | Zyphera Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+</head>
+<body class="admin-body">
+  <%- include('_sidebar') %>
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="admin-header__title"><%= pageTitle %></h1>
+      <a href="/admin/pages" class="admin-btn">← Back</a>
+    </header>
+    <div class="admin-content">
+      <% if (error) { %><div class="admin-alert admin-alert--error"><%= error %></div><% } %>
+      <form method="POST" action="<%= page && page._id ? '/admin/pages/' + page._id : '/admin/pages' %>" class="admin-form">
+        <div class="admin-form__row">
+          <div class="form-group"><label>Title</label><input type="text" name="title" value="<%= page ? page.title : '' %>" required></div>
+          <div class="form-group"><label>Slug</label><input type="text" name="slug" value="<%= page ? page.slug : '' %>" required></div>
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select name="category">
+            <option value="legal" <%= page && page.category === 'legal' ? 'selected' : '' %>>Legal</option>
+            <option value="information" <%= page && page.category === 'information' ? 'selected' : '' %>>Information</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Meta Description</label>
+          <textarea name="metaDescription" rows="2" maxlength="300" placeholder="One sentence describing this page, as it should read in Google results. Leave blank to derive it from the content."><%= page ? (page.metaDescription || '') : '' %></textarea>
+          <span class="field-hint">Aim for 120&ndash;158 characters. Left blank, the first sentences of the content are used.</span>
+        </div>
+        <div class="form-group"><label>Content (HTML)</label><textarea name="content" rows="12"><%= page ? page.content : '' %></textarea></div>
+        <button type="submit" class="admin-btn admin-btn--primary"><%= page && page._id ? 'Update Page' : 'Create Page' %></button>
+      </form>
+    </div>
+  </main>
+</body>
+</html>

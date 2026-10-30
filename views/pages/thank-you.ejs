@@ -1,0 +1,639 @@
+<%
+  /* ── Order confirmation ────────────────────────────────────────────
+     A receipt, not a dashboard.
+
+     The previous version stacked five identically-styled rounded cards —
+     summary, customer, payment, reassurance, actions — which is the visual
+     signature of a generated admin panel and pushed the useful content
+     below the fold. This is one sheet, divided by hairline rules, sized so
+     the whole confirmation lands in a single desktop viewport.
+
+     PAYMENT INFORMATION IS GONE. Provider and transaction id are internal
+     plumbing; the only part a customer needs is that the money arrived,
+     which is now a line under the heading.
+
+     Every value is derived. Nothing here is hardcoded, and every branch
+     degrades to something true when a field is absent. */
+
+  const o = typeof pipelineOrder !== 'undefined' ? pipelineOrder : null;
+  const ful = typeof fulfilment !== 'undefined' ? fulfilment : null;
+  const ref = typeof orderRef !== 'undefined' ? orderRef : '';
+
+  /* Line items, defensively. `items` is a Mixed field whose shape varies by
+     the checkout that produced it, and `products` is a bare string array
+     from the older import path. Either can be the only one populated. */
+  function lineItems(order) {
+    if (!order) return [];
+    if (Array.isArray(order.items) && order.items.length) {
+      return order.items.map((it) => ({
+        title: it.title || it.name || 'Item',
+        quantity: Number(it.quantity) || 1,
+        price: typeof it.price === 'number' ? it.price : null,
+        image: it.image || it.imageUrl || '',
+      }));
+    }
+    if (Array.isArray(order.products) && order.products.length) {
+      return order.products.map((title, i) => ({
+        title: typeof title === 'string' ? title : (title && title.title) || 'Item',
+        quantity: i === 0 ? (Number(order.quantity) || 1) : 1,
+        price: order.products.length === 1 ? order.totalPrice : null,
+        image: i === 0 ? (order.productImage || '') : '',
+      }));
+    }
+    return [];
+  }
+
+  const items = lineItems(o);
+  /* An order is priced in the currency it was CHARGED in, which is not
+     necessarily the storefront being viewed: a UK order is £ even when the
+     customer opens their account from the US site later. So the currency is
+     always passed explicitly and never inferred from the market.
+
+     This used to be `'$' + amount + (code unless USD)`, which rendered a
+     pound order as "$119.98 GBP" — a dollar sign in front of a figure that
+     is not dollars, on the pages where a customer checks what they were
+     charged against their bank. marketMoney is config/markets.format, the
+     same function the product page and the checkout use. */
+  const money = (c, cur) => (typeof marketMoney === 'function'
+    ? marketMoney(Number(c || 0), cur || 'USD')
+    : `${cur || 'USD'} ${(Number(c || 0) / 100).toFixed(2)}`);
+
+  /* Structured address when the import captured one, the flat string when
+     it did not. Neither is guaranteed. */
+  const addrLines = o ? [
+    o.address1,
+    o.address2,
+    [o.city, [o.state, o.zip].filter(Boolean).join(' ')].filter(Boolean).join(', '),
+    o.country,
+  ].filter(Boolean) : [];
+  const address = addrLines.length ? addrLines : (o && o.shippingAddress ? [o.shippingAddress] : []);
+
+  const purchased = o && (o.purchaseDate || o.createdAt)
+    ? new Date(o.purchaseDate || o.createdAt).toLocaleDateString('en-US',
+        { year: 'numeric', month: 'long', day: 'numeric' })
+    : null;
+%>
+
+<div class="oc">
+  <div class="oc__inner">
+
+  <% if (pipelineErrors) { %>
+    <%/* ── Could not load ──────────────────────────────────────────
+         Deliberately calm. Somebody reading this may have just paid and
+         be frightened; the first job is to say the money is probably
+         fine and the second is to give them a person. */%>
+    <header class="oc__head">
+      <div class="oc__mark oc__mark--warn" aria-hidden="true">
+        <svg viewBox="0 0 48 48" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="24" cy="24" r="19"/><path d="M24 15v11" stroke-linecap="round"/><circle cx="24" cy="32" r="1.4" fill="currentColor" stroke="none"/>
+        </svg>
+      </div>
+      <h1 class="oc__title">We couldn&rsquo;t load your order details</h1>
+      <p class="oc__lede">
+        If you were charged, your payment went through and your confirmation email is on its way.
+        Nothing is lost. Our team can look the order up straight away.
+      </p>
+    </header>
+    <div class="oc__actions oc__actions--centred">
+      <a href="<%= marketPath('/contact') %>" class="oc__btn oc__btn--primary">Contact support</a>
+      <a href="<%= marketPath('/') %>" class="oc__btn oc__btn--quiet">Return to store</a>
+    </div>
+
+  <% } else if (o) { %>
+
+    <%/* ── Confirmed ───────────────────────────────────────────── */%>
+    <header class="oc__head">
+      <div class="oc__mark" aria-hidden="true">
+        <%/* The Zyphera hexagon with a check drawn inside it. One mark
+             doing two jobs, instead of a stock green tick that could
+             belong to any store on the internet. The stroke draws once on
+             load and then stops. */%>
+        <svg viewBox="0 0 56 56" width="52" height="52" fill="none" aria-hidden="true">
+          <path class="oc__mark-hex" d="M28 4 48 15v22L28 48 8 37V15z"
+                stroke="url(#ocEdge)" stroke-width="1.5" stroke-linejoin="round"/>
+          <path class="oc__mark-tick" d="M19 28.5 25.5 35 38 21.5"
+                stroke="var(--color-accent)" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="ocEdge" x1="8" y1="4" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+              <stop stop-color="var(--color-primary)"/><stop offset="1" stop-color="var(--color-cyan)"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
+      <h1 class="oc__title">Order confirmed</h1>
+      <p class="oc__lede">
+        <% if (o.firstName || o.customerName) { %>Thank you, <%= o.firstName || o.customerName %>. <% } %>
+        Payment received and your order is secured.
+      </p>
+    </header>
+
+    <%/* ── The receipt ─────────────────────────────────────────────
+         One sheet. Sections are separated by hairlines rather than by
+         nesting another rounded box inside a rounded box. */%>
+    <article class="oc__sheet">
+      <span class="oc__watermark" aria-hidden="true">Z</span>
+
+      <div class="oc__band">
+        <div class="oc__ref">
+          <span class="oc__label" id="oc-ref-label">Order</span>
+          <div class="oc__ref-row">
+            <strong class="oc__ref-no" id="oc-ref"><%= ref || o.orderId %></strong>
+            <button type="button" class="oc__copy" data-copy="<%= ref || o.orderId %>"
+                    aria-label="Copy order number">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>
+              </svg>
+              <span class="oc__copy-text">Copy</span>
+            </button>
+          </div>
+        </div>
+        <% if (purchased) { %>
+          <div class="oc__band-meta">
+            <span class="oc__label">Placed</span>
+            <span class="oc__mono"><%= purchased %></span>
+          </div>
+        <% } %>
+        <% if (ful) { %>
+          <div class="oc__band-meta">
+            <span class="oc__label">Status</span>
+            <span class="oc__status"><%= ful.isPreorder ? 'Preorder secured' : 'Confirmed' %></span>
+          </div>
+        <% } %>
+      </div>
+
+      <%/* ── What was bought ── */%>
+      <div class="oc__items">
+        <% if (!items.length) { %>
+          <p class="oc__muted">Your order details are in the confirmation email.</p>
+        <% } %>
+        <% items.forEach(function (it) { %>
+          <div class="oc__item">
+            <% if (it.image) { %>
+              <img class="oc__thumb" <%- productImage.attrs(it.image, 72) %> alt="" width="54" height="54" loading="lazy" decoding="async">
+            <% } else { %>
+              <span class="oc__thumb oc__thumb--blank" aria-hidden="true"></span>
+            <% } %>
+            <div class="oc__item-main">
+              <p class="oc__item-title"><%= it.title %></p>
+              <p class="oc__item-meta">
+                Qty <%= it.quantity %><% if (ful && ful.isPreorder) { %> &middot; <span class="oc__tag">Preorder</span><% } %>
+              </p>
+            </div>
+            <% if (it.price !== null) { %>
+              <p class="oc__item-price"><%= money(it.price, o.currency) %></p>
+            <% } %>
+          </div>
+        <% }); %>
+      </div>
+
+      <%/* ── Money ── */%>
+      <div class="oc__totals">
+        <div class="oc__total-row">
+          <span>Shipping</span>
+          <span class="oc__free">Free</span>
+        </div>
+        <div class="oc__total-row oc__total-row--grand">
+          <span>Total paid</span>
+          <span><%= money(o.totalPrice, o.currency) %> <span class="oc__cur"><%= o.currency || 'USD' %></span></span>
+        </div>
+      </div>
+
+      <%/* ── Where it goes, and how we reach them ── */%>
+      <% if (address.length || o.customerEmail || o.customerPhone) { %>
+      <div class="oc__cols">
+        <% if (address.length) { %>
+        <section class="oc__col">
+          <h2 class="oc__label">Shipping to</h2>
+          <address class="oc__addr">
+            <% if (o.customerName) { %><span class="oc__addr-name"><%= o.customerName %></span><% } %>
+            <% address.forEach(function (l) { %><span><%= l %></span><% }); %>
+          </address>
+        </section>
+        <% } %>
+        <section class="oc__col">
+          <h2 class="oc__label">Contact</h2>
+          <div class="oc__contact">
+            <% if (o.customerEmail) { %><span><%= o.customerEmail %></span><% } %>
+            <% if (o.customerPhone) { %><span><%= o.customerPhone %></span><% } %>
+            <%/* Claimed only when the send was actually recorded. A
+                 confirmation page that promises an email the system never
+                 sent is the one lie a customer always catches. */%>
+            <% if (o.confirmationEmailSent && o.customerEmail) { %>
+              <span class="oc__muted">Confirmation email sent.</span>
+            <% } else if (o.customerEmail) { %>
+              <span class="oc__muted">Order updates are sent to this address.</span>
+            <% } %>
+          </div>
+        </section>
+      </div>
+      <% } %>
+
+      <%/* ── What happens next ── */%>
+      <% if (ful) { %>
+      <div class="oc__next">
+        <h2 class="oc__label">What happens next</h2>
+        <ol class="oc__steps">
+          <% ful.steps.forEach(function (s) { %>
+            <li class="oc__step oc__step--<%= s.state %>">
+              <span class="oc__step-name"><%= s.label %></span>
+              <span class="oc__step-detail"><%= s.detail %></span>
+            </li>
+          <% }); %>
+        </ol>
+      </div>
+      <% } %>
+
+      <%/* ── The three promises, as one line rather than three cards ── */%>
+      <p class="oc__trust">
+        <span>Factory sealed</span>
+        <span>Free shipping</span>
+        <span>Tracked delivery</span>
+      </p>
+    </article>
+
+    <%/* ── Account ───────────────────────────────────────────────────
+         An account was created from this order and the buyer is already
+         signed in — see services/customerProvisioning, which runs only
+         after the pipeline has verified the payment server-side.
+
+         ONE LINE, NOT A SECOND CARD. This is a receipt; the account is
+         useful news, not the headline, and it must never push the order
+         details out of the first viewport. Rendered only when a session
+         was actually established, so it can never promise an account that
+         does not exist. */%>
+    <% var acc = (typeof account !== 'undefined' && account) ? account : null; %>
+    <% if (acc && acc.signedIn) { %>
+      <p class="oc__account">
+        <strong><%= acc.created ? 'Your account is ready.' : 'This order is in your account.' %></strong>
+        <%= acc.created
+          ? 'Track this order, follow preorder releases and reorder in a click. No password to set — we email you a link when you need to sign back in.'
+          : 'Everything you have ordered from us is in one place.' %>
+        <a href="<%= ref ? '/account/orders/' + ref : '/account' %>">View this order &rarr;</a>
+      </p>
+    <% } %>
+
+    <div class="oc__actions">
+      <a href="<%= marketPath('/') %>" class="oc__btn oc__btn--primary">Return to store</a>
+      <% if (acc && acc.signedIn) { %>
+        <a href="<%= marketPath('/account') %>" class="oc__btn oc__btn--quiet">My account</a>
+      <% } %>
+      <a href="<%= marketPath('/contact') %>" class="oc__btn oc__btn--quiet">Questions about this order?</a>
+    </div>
+
+  <% } else { %>
+
+    <%/* ── Confirmed, but without the verified order ────────────────
+         Reached when someone lands here without a signed link. Says the
+         true thing and nothing more: we cannot show details we have not
+         verified, and the email is the record. */%>
+    <header class="oc__head">
+      <div class="oc__mark" aria-hidden="true">
+        <svg viewBox="0 0 56 56" width="52" height="52" fill="none">
+          <path class="oc__mark-hex" d="M28 4 48 15v22L28 48 8 37V15z" stroke="url(#ocEdge2)" stroke-width="1.5" stroke-linejoin="round"/>
+          <path class="oc__mark-tick" d="M19 28.5 25.5 35 38 21.5" stroke="var(--color-accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs><linearGradient id="ocEdge2" x1="8" y1="4" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+            <stop stop-color="var(--color-primary)"/><stop offset="1" stop-color="var(--color-cyan)"/></linearGradient></defs>
+        </svg>
+      </div>
+      <h1 class="oc__title">Order confirmed</h1>
+      <p class="oc__lede">Thank you for your order. Your confirmation email has the full details.</p>
+    </header>
+
+    <% if (order_id) { %>
+      <article class="oc__sheet oc__sheet--slim">
+        <span class="oc__watermark" aria-hidden="true">Z</span>
+        <div class="oc__band">
+          <div class="oc__ref">
+            <span class="oc__label">Order</span>
+            <div class="oc__ref-row">
+              <strong class="oc__ref-no"><%= orderRef || order_id %></strong>
+              <button type="button" class="oc__copy" data-copy="<%= orderRef || order_id %>" aria-label="Copy order number">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>
+                </svg><span class="oc__copy-text">Copy</span>
+              </button>
+            </div>
+          </div>
+          <% if (value) { %>
+            <div class="oc__band-meta">
+              <span class="oc__label">Total paid</span>
+              <%/* Through the helper like every other figure on the page.
+                   Written inline, it printed a dollar sign in front of the
+                   amount and the real currency code after it — "$119.98 GBP"
+                   on the one screen a buyer checks against their bank.
+                   `value` arrives as a decimal string, so it is converted
+                   back to minor units the helper expects. */%>
+              <span class="oc__mono"><%= money(Math.round(parseFloat(value) * 100), currency || 'USD') %></span>
+            </div>
+          <% } %>
+        </div>
+        <p class="oc__trust">
+          <span>Factory sealed</span><span>Free shipping</span><span>Tracked delivery</span>
+        </p>
+      </article>
+    <% } %>
+
+    <div class="oc__actions">
+      <a href="<%= marketPath('/') %>" class="oc__btn oc__btn--primary">Return to store</a>
+      <a href="<%= marketPath('/contact') %>" class="oc__btn oc__btn--quiet">Questions about this order?</a>
+    </div>
+  <% } %>
+
+  </div>
+</div>
+
+<style>
+/* ── Order confirmation ─────────────────────────────────────────────
+   Built entirely on the tokens in zyphera.css. No new palette, no new
+   type family. The one flourish is the gradient hairline at the top of
+   the sheet; everything else is restraint. */
+
+.oc { padding: clamp(1rem, 2vh, 1.5rem) var(--space-md) clamp(1.75rem, 3.5vh, 2.5rem); }
+.oc__inner { max-width: 1040px; margin: 0 auto; }
+
+/* ── Head ── */
+.oc__head { text-align: center; margin-bottom: clamp(0.85rem, 1.6vh, 1.15rem); }
+.oc__mark { color: var(--color-primary-text); display: inline-flex; margin-bottom: 0.4rem; }
+.oc__mark--warn { color: var(--color-gold); }
+
+/* Drawn once, then still. A confirmation is not a celebration. */
+.oc__mark-hex { stroke-dasharray: 150; stroke-dashoffset: 150; animation: ocDraw 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.oc__mark-tick { stroke-dasharray: 32; stroke-dashoffset: 32; animation: ocDraw 420ms cubic-bezier(0.4, 0, 0.2, 1) 520ms forwards; }
+@keyframes ocDraw { to { stroke-dashoffset: 0; } }
+
+.oc__title {
+  font-family: var(--font-heading); font-size: clamp(1.55rem, 2.8vw, 2rem);
+  font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; margin: 0 0 0.4rem;
+  color: var(--color-white); text-wrap: balance;
+}
+.oc__lede { color: var(--color-text-muted); font-size: 0.92rem; margin: 0; text-wrap: balance; }
+
+/* ── The sheet ── */
+.oc__sheet {
+  position: relative; overflow: hidden;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-light);
+  border-radius: 14px;
+}
+/* The single accent. A 2px rule across the top edge, purple into cyan. */
+.oc__sheet::before {
+  content: ''; position: absolute; inset: 0 0 auto 0; height: 2px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-cyan));
+}
+.oc__watermark {
+  position: absolute; right: 0.5rem; bottom: -1.5rem; z-index: 0;
+  font-family: var(--font-heading); font-size: 7rem; font-weight: 700; line-height: 1;
+  color: var(--color-white); opacity: 0.018; pointer-events: none; user-select: none;
+}
+/* Everything EXCEPT the watermark gets lifted above it. Without the
+   :not(), this rule overrode the watermark's own `position: absolute` —
+   same specificity, later in the file — and dropped a 7rem glyph into
+   normal flow at the top of the sheet. */
+.oc__sheet > *:not(.oc__watermark) { position: relative; z-index: 1; }
+
+/* ── Reference band ── */
+.oc__band {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1rem 2rem;
+  padding: 0.95rem 1.4rem;
+  border-bottom: 1px solid var(--color-border-light);
+}
+.oc__ref { margin-right: auto; }
+.oc__label {
+  display: block; font-size: 0.66rem; font-weight: 600; letter-spacing: 0.11em;
+  text-transform: uppercase; color: var(--color-text-faint); margin-bottom: 0.3rem;
+}
+.oc__ref-row { display: flex; align-items: center; gap: 0.6rem; }
+.oc__ref-no {
+  font-family: var(--font-mono); font-size: clamp(1.1rem, 2.4vw, 1.4rem);
+  font-weight: 600; letter-spacing: 0.01em; color: var(--color-white);
+}
+.oc__copy {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  background: transparent; border: 1px solid var(--color-border-light);
+  border-radius: 6px; color: var(--color-text-muted);
+  font-family: var(--font-body); font-size: 0.72rem;
+  padding: 0.24rem 0.5rem; cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.oc__copy:hover { color: var(--color-primary-text); border-color: var(--color-primary); }
+.oc__copy:focus-visible { outline: 2px solid var(--color-primary-text); outline-offset: 2px; }
+.oc__copy.is-done { color: var(--color-accent); border-color: var(--color-accent); }
+.oc__band-meta { text-align: right; }
+.oc__mono { font-family: var(--font-mono); font-size: 0.84rem; color: var(--color-text); }
+.oc__status { font-size: 0.84rem; font-weight: 600; color: var(--color-cyan); }
+
+/* ── Items ── */
+.oc__items { padding: 0.25rem 1.4rem; }
+.oc__item { display: flex; align-items: center; gap: 0.9rem; padding: 0.7rem 0; }
+.oc__item + .oc__item { border-top: 1px solid var(--color-border-light); }
+.oc__thumb {
+  width: 54px; height: 54px; flex: none; border-radius: 8px;
+  object-fit: contain; background: var(--color-bg-card);
+  border: 1px solid var(--color-border-light); padding: 5px;
+  transition: transform 0.25s ease;
+}
+.oc__item:hover .oc__thumb { transform: scale(1.03); }
+.oc__thumb--blank { display: block; }
+.oc__item-main { min-width: 0; flex: 1; }
+.oc__item-title { font-size: 0.96rem; font-weight: 500; color: var(--color-text); margin: 0 0 0.2rem; line-height: 1.35; }
+.oc__item-meta { font-size: 0.8rem; color: var(--color-text-faint); margin: 0; }
+.oc__tag {
+  display: inline-block; font-size: 0.66rem; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--color-cyan);
+  border: 1px solid rgba(6, 182, 212, 0.35); border-radius: 4px; padding: 0.05rem 0.34rem;
+}
+.oc__item-price { font-family: var(--font-mono); font-size: 0.95rem; color: var(--color-white); margin: 0; white-space: nowrap; }
+
+/* ── Totals ── */
+.oc__totals { padding: 0.8rem 1.4rem 0.95rem; border-top: 1px solid var(--color-border-light); }
+.oc__total-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.88rem; color: var(--color-text-muted); }
+.oc__total-row + .oc__total-row { margin-top: 0.45rem; }
+.oc__free { color: var(--color-accent); font-weight: 600; }
+.oc__total-row--grand { font-size: 1.05rem; font-weight: 600; color: var(--color-white); padding-top: 0.15rem; }
+.oc__total-row--grand > span:last-child { font-family: var(--font-mono); font-size: 1.16rem; }
+.oc__cur { font-size: 0.72rem; color: var(--color-text-faint); font-weight: 400; }
+
+/* ── Two columns ── */
+.oc__cols {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem 2.5rem;
+  padding: 0.95rem 1.4rem; border-top: 1px solid var(--color-border-light);
+}
+.oc__col h2 { margin: 0; }
+.oc__addr, .oc__contact { display: flex; flex-direction: column; gap: 0.14rem; font-style: normal; font-size: 0.87rem; color: var(--color-text-muted); line-height: 1.5; }
+.oc__addr-name { color: var(--color-text); font-weight: 500; }
+.oc__contact span:first-child { color: var(--color-text); word-break: break-word; }
+.oc__muted { color: var(--color-text-faint); font-size: 0.8rem; }
+
+/* ── Next steps ── */
+.oc__next { padding: 0.85rem 1.4rem 0.95rem; border-top: 1px solid var(--color-border-light); }
+.oc__steps { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; padding: 0; margin: 0.15rem 0 0; counter-reset: none; }
+.oc__step { position: relative; padding-top: 0.9rem; }
+/* The rail: a hairline across the top of each step with a node on it, so
+   the three read as a sequence without needing arrow glyphs between them. */
+.oc__step::before { content: ''; position: absolute; top: 3px; left: 0; right: 0; height: 1px; background: var(--color-border-light); }
+.oc__step::after {
+  content: ''; position: absolute; top: 0; left: 0; width: 7px; height: 7px;
+  border-radius: 50%; background: var(--color-bg-elevated); border: 1.5px solid var(--color-text-faint);
+}
+.oc__step--done::before { background: linear-gradient(90deg, var(--color-primary), var(--color-cyan)); }
+.oc__step--done::after { background: var(--color-accent); border-color: var(--color-accent); }
+.oc__step--next::after { border-color: var(--color-cyan); }
+.oc__step-name { display: block; font-size: 0.8rem; font-weight: 600; color: var(--color-text); margin-bottom: 0.2rem; }
+.oc__step--pending .oc__step-name { color: var(--color-text-faint); }
+.oc__step-detail { display: block; font-size: 0.79rem; color: var(--color-text-faint); line-height: 1.5; }
+
+/* ── Trust line ── */
+.oc__trust {
+  display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; justify-content: center;
+  margin: 0; padding: 0.7rem 1.4rem;
+  border-top: 1px solid var(--color-border-light);
+  background: rgba(255, 255, 255, 0.012);
+  font-size: 0.72rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--color-text-faint);
+}
+.oc__trust span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.oc__trust span::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--color-primary); opacity: 0.7; }
+
+/* ── Actions ── */
+/* Account line. Reads as a footnote to the receipt, not a second card:
+   hairline top rule, no background, no border box. */
+.oc__account {
+  margin: 0.9rem 0 0; font-size: 0.85rem; line-height: 1.6;
+  color: var(--color-text-muted);
+}
+.oc__account strong { color: var(--color-text); font-weight: 500; }
+.oc__account a { color: var(--color-primary-text); white-space: nowrap; }
+
+.oc__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.5rem; margin-top: 1rem; }
+.oc__actions--centred { justify-content: center; }
+.oc__btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 8px; font-size: 0.9rem; font-weight: 500;
+  padding: 0.7rem 1.5rem; text-decoration: none; transition: all 0.18s ease;
+}
+.oc__btn--primary { background: var(--color-primary); color: var(--color-white); }
+.oc__btn--primary:hover { background: var(--color-primary-dark); transform: translateY(-1px); }
+/* Deliberately not a second filled button. Two equally loud calls to
+   action leave the customer choosing between them instead of leaving. */
+.oc__btn--quiet { color: var(--color-text-muted); padding-left: 0; padding-right: 0; }
+.oc__btn--quiet::after { content: '\2192'; margin-left: 0.4rem; transition: transform 0.18s ease; }
+.oc__btn--quiet:hover { color: var(--color-primary-text); }
+.oc__btn--quiet:hover::after { transform: translateX(3px); }
+.oc__btn:focus-visible { outline: 2px solid var(--color-primary-text); outline-offset: 3px; }
+
+/* ── Tablet ── */
+@media (max-width: 860px) {
+  .oc__steps { grid-template-columns: 1fr; gap: 0.9rem; }
+  .oc__step { padding-top: 0; padding-left: 1.15rem; }
+  .oc__step::before { top: 0; bottom: 0; left: 3px; right: auto; width: 1px; height: auto; }
+  .oc__step--done::before { background: linear-gradient(180deg, var(--color-primary), var(--color-cyan)); }
+  .oc__step::after { top: 2px; }
+}
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+  .oc { padding-top: 1.25rem; }
+  .oc__band { padding: 1rem 1.1rem; gap: 0.9rem 1.5rem; }
+  .oc__band-meta { text-align: left; }
+  .oc__items { padding: 0.25rem 1.1rem; }
+  .oc__totals, .oc__cols, .oc__next, .oc__trust { padding-left: 1.1rem; padding-right: 1.1rem; }
+  .oc__cols { grid-template-columns: 1fr; gap: 1.15rem; }
+  .oc__watermark { font-size: 5rem; bottom: -1rem; }
+  .oc__actions { flex-direction: column; align-items: stretch; text-align: center; }
+  .oc__btn--quiet { padding: 0.5rem 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oc__mark-hex, .oc__mark-tick { animation: none; stroke-dashoffset: 0; }
+  .oc__btn, .oc__thumb { transition: none; }
+  .oc__btn--primary:hover { transform: none; }
+}
+</style>
+
+<script>
+  /* Copy the order number. The reference exists to be quoted in an email,
+     so making it one tap to carry is the whole point of showing it. */
+  document.querySelectorAll('.oc__copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var text = btn.getAttribute('data-copy') || '';
+      var done = function () {
+        var label = btn.querySelector('.oc__copy-text');
+        var was = label ? label.textContent : '';
+        btn.classList.add('is-done');
+        if (label) label.textContent = 'Copied';
+        setTimeout(function () {
+          btn.classList.remove('is-done');
+          if (label) label.textContent = was;
+        }, 1800);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(function () {});
+      } else {
+        /* Older Safari and any non-secure context. Without this the button
+           silently does nothing on exactly the browsers least likely to
+           tell the user why. */
+        var el = document.createElement('textarea');
+        el.value = text; el.setAttribute('readonly', '');
+        el.style.position = 'absolute'; el.style.left = '-9999px';
+        document.body.appendChild(el); el.select();
+        try { document.execCommand('copy'); done(); } catch (e) {}
+        document.body.removeChild(el);
+      }
+    });
+  });
+</script>
+
+<%
+  /* ── Google Ads purchase conversion ──
+     Fires once per order, only when this page is showing a REAL confirmed
+     order. Three conditions, and all three matter:
+
+       - a conversion label is configured. Without one the send_to would be
+         malformed and the conversion would either vanish or land on the
+         wrong action, which is worse than none at all;
+       - the order came back from the pipeline, so the value is the price
+         the server calculated rather than anything a URL claimed;
+       - it is not a +ztest rehearsal. Those already skip Meta and revenue
+         reporting; reporting one to Google would train Smart Bidding on a
+         sale that never happened.
+
+     transaction_id is the order id, which is how Google de-duplicates: a
+     refresh, a back-button, or a customer reopening the link reports the
+     same id and is counted once.
+
+     Wherever this block renders at all, gtag() exists:
+     views/partials/analytics.ejs defines it on the shared dataLayer before
+     the library loads, under the SAME googleAdsId condition that gates the
+     `gaFire` check below. No tag id means no gtag() and no conversion
+     script either, so this can never call a function that was not defined.
+
+     If the visitor declined cookies the library is never inserted and the
+     call simply sits in an array nobody sends, which is what declining
+     means. */
+  const gaLabel = typeof googleAdsPurchaseLabel !== 'undefined' ? googleAdsPurchaseLabel : '';
+  const gaId = typeof googleAdsId !== 'undefined' ? googleAdsId : '';
+  const gaOrder = (typeof pipelineOrder !== 'undefined' && pipelineOrder) ? pipelineOrder : null;
+  const gaIsTest = gaOrder && typeof testOrder !== 'undefined' && testOrder.isTestOrder(gaOrder);
+  const gaFire = !!(gaLabel && gaId && gaOrder && gaOrder.orderId && !gaIsTest);
+  /* new_customer, which Google leaves commented out because most shops
+     cannot answer it. This one can: provisionFromOrder looks the address
+     up BEFORE creating an account and reports created:!before, so true
+     here means no customer with this email existed until this order.
+     Feeding it real values is what makes new-customer acquisition bidding
+     work; feeding it a guess would quietly skew it. Omitted entirely when
+     account provisioning did not run, rather than guessed at. */
+  const gaAcct = (typeof account !== 'undefined' && account) ? account : null;
+  const gaNewCustomer = gaAcct && gaAcct.customer ? !!gaAcct.created : null;
+%>
+<% if (gaFire) { %>
+<script>
+  gtag('event', 'conversion', {
+    send_to: '<%= gaId %>/<%= gaLabel %>',
+    value: <%= (Number(gaOrder.totalPrice) || 0) / 100 %>,
+    currency: '<%= gaOrder.currency || 'USD' %>',
+    transaction_id: '<%= gaOrder.orderId %>'<% if (gaNewCustomer !== null) { %>,
+    new_customer: <%= gaNewCustomer %><% } %>
+  });
+</script>
+<% } %>

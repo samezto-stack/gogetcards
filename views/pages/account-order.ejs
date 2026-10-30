@@ -1,0 +1,220 @@
+<%- include('../partials/account-head', { customerDoc, section }) %>
+<%
+  /* ── Order detail ───────────────────────────────────────────────────
+     Everything the store knows about one order, in the order a person
+     asks for it: what state is it in, what did I buy, where is it going,
+     what did it cost, what can I do about it.
+
+     REFUND WORDING IS LOAD-BEARING. `refundStatus` has three values and
+     each gets its own sentence. 'processing' means a human owes them money
+     and has been told; it must never read as "your money has been sent",
+     because it hasn't. Only 'refunded' says the money is on its way back.
+
+     WHAT ISN'T HERE: provider names, transaction ids, gateway status. That
+     is our plumbing, and a customer reading it can only be confused or
+     alarmed by it. */
+
+  /* An order is priced in the currency it was CHARGED in, which is not
+     necessarily the storefront being viewed: a UK order is £ even when the
+     customer opens their account from the US site later. So the currency is
+     always passed explicitly and never inferred from the market.
+
+     This used to be `'$' + amount + (code unless USD)`, which rendered a
+     pound order as "$119.98 GBP" — a dollar sign in front of a figure that
+     is not dollars, on the pages where a customer checks what they were
+     charged against their bank. marketMoney is config/markets.format, the
+     same function the product page and the checkout use. */
+  const money = (c, cur) => (typeof marketMoney === 'function'
+    ? marketMoney(Number(c || 0), cur || 'USD')
+    : `${cur || 'USD'} ${(Number(c || 0) / 100).toFixed(2)}`);
+  const day = (d) => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+  const stamp = (d) => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    + ', ' + new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '';
+
+  const order = o.order;
+  const cur = order.currency || 'USD';
+  const title = (o.product && o.product.title) || (order.products || [])[0] || 'Order';
+  const qty = Number(order.quantity) || 1;
+
+  /* The address the ORDER captured, not the one on the profile. A profile
+     edited after the fact must not rewrite where a parcel actually went. */
+  const addr = [order.address1, order.address2, [order.city, order.state, order.zip].filter(Boolean).join(', '), order.country].filter(Boolean);
+  const name = [order.firstName, order.lastName].filter(Boolean).join(' ') || order.customerName || '';
+%>
+
+<% if (justCancelled) { %>
+  <div class="ac__notice ac__notice--warn">
+    <strong>This order is cancelled.</strong>
+    A refund of <%= money(order.refundAmount || order.totalPrice, cur) %> is queued for our team to issue
+    to your original payment method. We&rsquo;ll email you the moment it&rsquo;s sent.
+  </div>
+<% } %>
+
+<section class="ac__sheet ac__sheet--accent">
+  <div class="ac__sheet-head">
+    <h2 class="ac__sheet-title">Order <span class="ac__mono"><%= o.reference %></span></h2>
+    <span class="ac__status ac__status--<%= o.status.tone %>"><%= o.status.label %></span>
+    <a class="ac__sheet-more" href="<%= marketPath('/account/orders') %>">All orders</a>
+  </div>
+
+  <div class="ac__body">
+    <p class="ac__detail"><%= o.status.detail %></p>
+    <p class="ac__muted">
+      Placed <%= day(order.purchaseDate || order.createdAt) %>
+      <% if (o.isPreorder && o.release && o.release.hasDate) { %>
+        &middot; Releases <%= o.release.display %>
+      <% } else if (o.isPreorder && o.release && o.release.window) { %>
+        &middot; Ships <%= o.release.window %>
+      <% } %>
+    </p>
+  </div>
+
+  <%/* The line item. One product per order is what this pipeline records;
+       quantity carries the rest. */%>
+  <div class="ac__order ac__order--static">
+    <% if (o.image) { %>
+      <img class="ac__thumb" <%- productImage.attrs(o.image, 90) %> alt="" width="72" height="72" loading="lazy" decoding="async">
+    <% } else { %><span class="ac__thumb ac__thumb--blank"></span><% } %>
+    <div class="ac__order-main">
+      <span class="ac__order-title"><%= title %></span>
+      <p class="ac__order-meta">
+        <span>Quantity <%= qty %></span>
+        <span>Factory sealed</span>
+        <% if (o.reorderable) { %>
+          <a class="ac__inline" href="<%= marketPath('/account/reorder/' + (order.productSlug)) %>">Buy again</a>
+        <% } %>
+      </p>
+    </div>
+    <div class="ac__order-right">
+      <p class="ac__price"><%= money(order.totalPrice, cur) %></p>
+    </div>
+  </div>
+</section>
+
+<% if (order.trackingNumber || order.trackingUrl) { %>
+<section class="ac__sheet">
+  <div class="ac__sheet-head"><h2 class="ac__sheet-title">Tracking</h2></div>
+  <div class="ac__body">
+    <div class="ac__cols">
+      <div>
+        <span class="ac__label">Carrier</span>
+        <p class="ac__stack"><strong><%= order.trackingCarrier || 'Carrier' %></strong></p>
+      </div>
+      <div>
+        <span class="ac__label">Tracking number</span>
+        <p class="ac__mono"><%= order.trackingNumber || 'Available shortly' %></p>
+      </div>
+    </div>
+    <% if (order.trackingUrl) { %>
+      <div class="ac__actions" style="margin-top:1rem">
+        <a class="ac__btn ac__btn--ghost" href="<%= order.trackingUrl %>" rel="noopener noreferrer" target="_blank">Track this parcel</a>
+      </div>
+    <% } %>
+    <% if (order.shippedAt) { %><p class="ac__muted" style="margin:0.8rem 0 0">Dispatched <%= day(order.shippedAt) %>.</p><% } %>
+    <% if (order.deliveredAt) { %><p class="ac__muted" style="margin:0.3rem 0 0">Delivered <%= day(order.deliveredAt) %>.</p><% } %>
+  </div>
+</section>
+<% } %>
+
+<% if (o.timeline) { %>
+<section class="ac__sheet">
+  <div class="ac__sheet-head"><h2 class="ac__sheet-title">Cancellation &amp; refund</h2></div>
+  <div class="ac__body">
+    <ol class="ac__timeline">
+      <% o.timeline.forEach(function (step) { %>
+        <li class="ac__tl <%= step.done ? 'is-done' : '' %>">
+          <span class="ac__tl-dot" aria-hidden="true"></span>
+          <span>
+            <span class="ac__tl-label"><%= step.label %></span>
+            <% if (step.done && step.at) { %><span class="ac__tl-when"><%= stamp(step.at) %></span><% } %>
+            <% if (!step.done) { %><span class="ac__tl-when">Pending</span><% } %>
+          </span>
+        </li>
+      <% }); %>
+    </ol>
+
+    <%/* Three states, three different truths. Nothing here claims a
+         payment has been reversed unless the record says it has. */%>
+    <% if (order.refundStatus === 'refunded') { %>
+      <p class="ac__detail" style="margin:1rem 0 0">
+        <%= money(order.refundAmount || order.totalPrice, cur) %> was refunded to your original payment method
+        <% if (order.refundedAt) { %>on <%= day(order.refundedAt) %><% } %>.
+        Banks usually post it within a few working days.
+      </p>
+    <% } else if (order.refundStatus === 'processing') { %>
+      <p class="ac__detail" style="margin:1rem 0 0">
+        <%= money(order.refundAmount || order.totalPrice, cur) %> is queued to be refunded to your original
+        payment method. Our team issues refunds by hand, normally within one business day, and
+        you&rsquo;ll get an email when it&rsquo;s sent.
+      </p>
+    <% } else if (order.cancelledAt) { %>
+      <p class="ac__detail" style="margin:1rem 0 0">
+        This order was cancelled. If you were charged and haven&rsquo;t heard from us,
+        <a href="<%= marketPath('/contact') %>">contact support</a> with the reference above.
+      </p>
+    <% } %>
+  </div>
+</section>
+<% } %>
+
+<section class="ac__sheet">
+  <div class="ac__sheet-head"><h2 class="ac__sheet-title">Delivery &amp; payment</h2></div>
+  <div class="ac__body">
+    <div class="ac__cols">
+      <div>
+        <span class="ac__label">Shipping to</span>
+        <% if (addr.length) { %>
+          <address class="ac__stack">
+            <% if (name) { %><strong><%= name %></strong><% } %>
+            <% addr.forEach(function (line) { %><span><%= line %></span><% }); %>
+          </address>
+        <% } else { %>
+          <p class="ac__stack">
+            <% if (name) { %><strong><%= name %></strong><% } %>
+            <span>We&rsquo;ll confirm your delivery address by email before dispatch.</span>
+          </p>
+        <% } %>
+      </div>
+      <div>
+        <span class="ac__label">Order total</span>
+        <div class="ac__rows">
+          <div class="ac__row"><span><%= title.length > 34 ? title.slice(0, 34) + '…' : title %> &times; <%= qty %></span><strong><%= money(order.totalPrice, cur) %></strong></div>
+          <div class="ac__row"><span>Shipping</span><span class="ac__free">Free</span></div>
+          <div class="ac__row ac__row--total"><span>Total paid</span><span class="ac__mono"><%= money(order.totalPrice, cur) %></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<% if (o.reinstatable && o.reinstatable.can) { %>
+  <%/* Only ever shown inside an open offer: the business has said it
+       still has one for this customer, and the deadline the email quoted
+       is the one checked here. */%>
+  <div class="ac__notice ac__notice--good">
+    <strong>You can still keep this order.</strong>
+    The refund has not been issued yet. Put it back at the price you already paid &mdash; nothing is
+    charged again &mdash; before the end of <%= day(order.reinstateDeadline) %>.
+    <a href="<%= marketPath('/account/reinstate/' + (order.productSlug || '')) %>">Keep my order &rarr;</a>
+  </div>
+<% } %>
+
+<div class="ac__actions ac__actions--page">
+  <% if (o.cancellable.can) { %>
+    <a class="ac__btn ac__btn--danger" href="<%= marketPath('/account/orders/' + (o.reference) + '/cancel') %>">Cancel this order</a>
+  <% } %>
+  <% if (o.reinstatable && o.reinstatable.can) { %>
+    <a class="ac__btn ac__btn--primary" href="<%= marketPath('/account/reinstate/' + (order.productSlug || '')) %>">Keep this order</a>
+  <% } %>
+  <% if (o.reorderable) { %>
+    <a class="ac__btn ac__btn--ghost" href="<%= marketPath('/account/reorder/' + (order.productSlug)) %>">Buy again</a>
+  <% } %>
+  <a class="ac__btn ac__btn--ghost" href="<%= marketPath('/contact') %>">Get help with this order</a>
+</div>
+
+<% if (!o.cancellable.can && !order.cancelledAt) { %>
+  <%/* Why the cancel button is missing, rather than leaving somebody to
+       wonder whether the page is broken. */%>
+  <p class="ac__muted" style="margin:-0.4rem 0 1.1rem"><%= o.cancellable.reason %></p>
+<% } %>
+<%- include('../partials/account-foot') %>

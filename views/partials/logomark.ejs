@@ -1,0 +1,30 @@
+<%/* The brand mark, as one partial.
+
+     The header and the footer each drew their own inline SVG: a hexagon
+     outline with a violet-to-cyan gradient and a dot in the middle. That
+     mark was replaced everywhere else — favicon, apple-touch icon, the
+     512px PWA icon, the Open Graph share card and the order push
+     notification all render the three-card Z from brand/mark.js — but the
+     two places a visitor actually looks kept the old one. So the icon in
+     the browser tab and the logo on the page were different marks.
+
+     Brand inconsistency is not only a design complaint here. A Merchant
+     Center reviewer comparing the tab icon, the page logo and the share
+     preview is checking whether this is one coherent business, and three
+     different marks is a signal in the wrong direction.
+
+     Geometry is copied from brand/mark.js rather than imported because
+     `require` is not available in EJS template scope. The viewBox and the
+     three shapes must stay identical to that file; it is the source of
+     truth and everything generated comes from it.
+
+     Locals: `size` (px, default 28), `id` (unique when more than one
+     instance appears on a page). */%>
+<%
+  var _size = typeof size !== 'undefined' ? size : 28;
+%>
+<svg width="<%= _size %>" height="<%= _size %>" viewBox="0 0 512 512" fill="none" aria-hidden="true" focusable="false">
+  <rect x="104" y="104" width="304" height="74" rx="10" fill="currentColor"/>
+  <polygon points="284,192 408,192 228,320 104,320" fill="currentColor"/>
+  <rect x="104" y="334" width="304" height="74" rx="10" fill="currentColor"/>
+</svg>

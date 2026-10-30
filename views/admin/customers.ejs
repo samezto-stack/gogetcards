@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%237C3AED'/><g fill='%23ffffff'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
+  <meta name="theme-color" content="#0c0c12">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customers | Zyphera Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+</head>
+<body class="admin-body">
+  <%- include('_sidebar', { currentPath: '/admin/customers' }) %>
+
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="admin-header__title">Customers</h1>
+      <span style="font-size:0.8rem;color:var(--admin-muted)">
+        <%= activeSessions %> live session<%= activeSessions === 1 ? '' : 's' %>
+      </span>
+    </header>
+
+    <div class="admin-content">
+      <%
+        const money = (c) => `$${(Number(c || 0) / 100).toFixed(2)}`;
+        const day = (d) => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+      %>
+
+      <% if (deleted) { %>
+        <div class="admin-alert admin-alert--success" style="margin-bottom:1.25rem">
+          <%= deleted === 'all'
+            ? 'Account deleted, along with its test orders, sessions and sign-in links.'
+            : 'Account deleted. Its orders were kept.' %>
+        </div>
+      <% } %>
+
+      <div class="admin-stats-grid" style="margin-bottom:1.5rem">
+        <div class="admin-stat-card">
+          <div class="admin-stat-card__num"><%= stats.customers %></div>
+          <div class="admin-stat-card__label">Accounts</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-card__num"><%= stats.withOrders %></div>
+          <div class="admin-stat-card__label">Have ordered</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-card__num"><%= stats.repeat %></div>
+          <div class="admin-stat-card__label">Repeat buyers</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-card__num"><%= money(stats.spend) %></div>
+          <div class="admin-stat-card__label">Lifetime value</div>
+        </div>
+      </div>
+
+      <%/* Counts on the cards cover the rows shown, which is the page you
+           are looking at. Said out loud rather than left to be assumed
+           once the list outgrows one page. */%>
+      <% if (truncated) { %>
+        <p style="font-size:0.75rem;color:var(--admin-faint);margin:-0.75rem 0 1.25rem">
+          Showing the <%= rows.length %> newest of <%= total %>. Search to narrow it down.
+        </p>
+      <% } %>
+
+      <form class="admin-filter-bar" method="GET" action="/admin/customers">
+        <div class="admin-filter-bar__search">
+          <input class="admin-search-input" type="search" name="q" value="<%= q %>"
+                 placeholder="Search name, email or phone" autocomplete="off">
+        </div>
+        <button class="admin-btn admin-btn--primary" type="submit">Search</button>
+        <% if (q) { %><a class="admin-btn" href="/admin/customers">Clear</a><% } %>
+      </form>
+
+      <% if (!rows.length) { %>
+        <div style="background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:10px;padding:3rem;text-align:center;color:var(--admin-muted)">
+          <p style="font-size:0.95rem"><%= q ? 'No customer matches that.' : 'No customer accounts yet.' %></p>
+          <p style="font-size:0.8rem;margin-top:0.5rem">
+            Accounts are created automatically when a payment is confirmed on the thank-you page.
+          </p>
+        </div>
+      <% } else { %>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Email</th>
+                <th>Orders</th>
+                <th>Spend</th>
+                <th>Last order</th>
+                <th>Joined</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% rows.forEach(function (r) { %>
+                <tr onclick="location.href='/admin/customers/<%= r.c._id %>'" style="cursor:pointer">
+                  <td>
+                    <a href="/admin/customers/<%= r.c._id %>" style="color:var(--admin-text);text-decoration:none;font-weight:500">
+                      <%= [r.c.firstName, r.c.lastName].filter(Boolean).join(' ') || '—' %>
+                    </a>
+                  </td>
+                  <td style="font-family:var(--admin-font-mono);font-size:0.75rem">
+                    <%= r.c.displayEmail || r.c.email %>
+                    <%/* Derived from the address, which is the same thing
+                         the checkout keys the bypass on — so an account
+                         cannot be tagged here and untagged there. */%>
+                    <% if (testOrder.isTestEmail(r.c.email)) { %><span class="chip" style="margin-left:6px">TEST</span><% } %>
+                  </td>
+                  <td style="font-variant-numeric:tabular-nums"><%= r.orders %></td>
+                  <td style="font-variant-numeric:tabular-nums"><%= money(r.spend) %></td>
+                  <td><%= day(r.last) %></td>
+                  <td><%= day(r.c.createdAt) %></td>
+                  <td>
+                    <span class="status-pill status-pill--<%= r.c.status === 'closed' ? 'err' : 'ok' %>">
+                      <span class="status-pill__dot"></span><%= r.c.status === 'closed' ? 'Closed' : 'Active' %>
+                    </span>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<%
+  /* ── Opening an emailed link ────────────────────────────────────────
+     One button, and the button is a POST.
+
+     This page exists because mail security scanners fetch every URL in
+     every message. If landing here spent the token, the customer would
+     open their own confirmation email and be told the link was already
+     used — by Outlook, on their behalf, before they ever saw it. A GET
+     shows this page and changes nothing; the POST behind the button is
+     what signs them in.
+
+     So the page has to justify one extra click without sounding like an
+     error. It says what will happen and gets out of the way. */
+%>
+<div class="ac ac--solo">
+  <div class="ac__solo">
+    <p class="ac__eyebrow">Zyphera TCG</p>
+    <h1 class="ac__name">Open your account</h1>
+
+    <% if (formError) { %>
+      <div class="ac__notice ac__notice--err"><%= formError %></div>
+    <% } %>
+
+    <p class="ac__solo-lede">
+      You&rsquo;re one click from your order. We ask for the click rather than
+      signing you in automatically, so that a link scanned by your mail provider
+      &mdash; or opened over your shoulder &mdash; can&rsquo;t use itself.
+    </p>
+
+    <form method="POST" action="<%= marketPath('/account/open/' + (encodeURIComponent(token))) %>" class="ac__solo-form">
+      <button type="submit" class="ac__btn ac__btn--primary ac__btn--block">
+        Continue to my account
+      </button>
+    </form>
+
+    <p class="ac__solo-note">
+      This link works once. If it has expired,
+      <a href="<%= marketPath('/account/sign-in') %>">ask for a new one</a> &mdash; it takes a few seconds
+      and there&rsquo;s no password involved.
+    </p>
+  </div>
+</div>
+<%- include('../partials/account-styles') %>

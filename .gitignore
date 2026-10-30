@@ -1,0 +1,7 @@
+node_modules/
+.env
+*.log
+*.zip
+
+# Database dumps. Real customer data — never in git.
+backups/

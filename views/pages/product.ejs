@@ -1,0 +1,605 @@
+<%
+  var isPreorder = product.preorder || (product.tags && product.tags.includes('preorder'));
+  var savingsPct = product.comparePrice && product.comparePrice > product.price
+    ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100) : 0;
+  /* Stock meter shows ONLY when a real figure was recorded. This used to
+     fall back to 15 when product.stock was unset, and the client script
+     then counted down from it, so a page with no inventory data displayed
+     "In Stock — 14 available" — a number nobody entered, presented as
+     live scarcity. Now an unset stock simply hides the meter. */
+  var hasRealStock = typeof product.stock === 'number' && product.stock > 0;
+  var stockQty = hasRealStock ? product.stock : 0;
+  var variantId = product.variantId || '';
+  /* Release information for a preorder. `releaseDate` is a real date and
+     is what schema.org availabilityDate is built from; `preorderShips` is
+     free text like "Q2 2026", fine for a shopper and meaningless to a
+     crawler, so it is only ever a fallback. */
+  var rel = preorder.releaseInfo(product);
+  /* The title with the variant name folded in ("… — Night (Umbreon ex)"),
+     composed by the route so the heading, the tab title, the meta
+     description and the structured data cannot drift apart. Falls back to
+     the plain title for any caller that renders this page without it. */
+  var shownTitle = (typeof variantTitle !== 'undefined' && variantTitle) || product.title;
+  var siblings = (typeof variantSiblings !== 'undefined' && variantSiblings) || [];
+%>
+
+<!-- Breadcrumb -->
+<nav class="col-page__breadcrumb container" style="padding-top:1rem" aria-label="Breadcrumb">
+  <a href="<%= marketPath('/') %>">Home</a>
+  <span aria-hidden="true">/</span>
+  <a href="<%= marketPath('/collection/all') %>">Shop</a>
+  <span aria-hidden="true">/</span>
+  <span aria-current="page"><%= shownTitle.length > 40 ? shownTitle.substring(0, 40) + '...' : shownTitle %></span>
+</nav>
+
+<div class="container" style="padding-bottom:4rem">
+  <div class="pp__main">
+
+    <!-- Gallery -->
+    <div class="pp__gallery">
+      <div class="pp__img-main">
+        <div class="pp__img-veil" aria-hidden="true"></div>
+        <% if (product.imageUrl || (product.images && product.images.length > 0)) { %>
+          <%/* This image is the LCP element on every product page.
+               fetchpriority="high" + eager decoding tells the browser to
+               start it ahead of the other subresources instead of leaving
+               it in default priority behind CSS and fonts. Alt names the
+               product AND its condition, which is the detail a shopper
+               searching image results for sealed product actually wants. */%>
+          <%/* The column is half of a 1280px container, so the slot tops out
+               around 570px and goes full width below 900px. The stored
+               original is typically 2048px, and asking for the size the
+               slot actually uses is the largest LCP saving available here. */%>
+          <img
+            id="product-main-img"
+            <%- productImage.attrs(product.imageUrl || product.images[0], 570, '(max-width: 900px) 92vw, 570px') %>
+            alt="<%= product.title %> — factory sealed, shown in original packaging"
+            width="900" height="900"
+            fetchpriority="high"
+            decoding="async"
+          >
+        <% } else { %>
+          <div class="pc__placeholder" style="height:100%;display:flex;align-items:center;justify-content:center" aria-hidden="true">
+            <%- include('../partials/icon', { name: 'package', size: 64, color: 'var(--color-text-faint)' }) %>
+          </div>
+        <% } %>
+        <% if (isPreorder) { %>
+          <div class="pp__preorder-ribbon">PREORDER</div>
+        <% } else { %>
+          <%- include('../partials/badge', { product: product }) %>
+        <% } %>
+      </div>
+      <% if (product.images && product.images.length > 1) { %>
+        <div class="pp__thumbs">
+          <% product.images.forEach(function(img, idx) { %>
+            <%/* Both attributes, not just src. The main image now carries a
+                 srcset, and a srcset beats a src — assigning only .src
+                 would leave the picture unchanged and make the thumbnails
+                 look broken. */%>
+            <button
+              class="pp__thumb<%= idx === 0 ? ' active' : '' %>"
+              data-thumb-src="<%= productImage.img(img, 570).src %>"
+              data-thumb-srcset="<%= productImage.img(img, 570, '(max-width: 900px) 92vw, 570px').srcset %>"
+              aria-label="View image <%= idx + 1 %>"
+            >
+              <%/* Was alt="Image 1". Numbering an image is not describing
+                   it: Google uses alt text to confirm the picture matches
+                   the listing, and a screen reader user gets nothing from
+                   "Image 1". Naming the product costs no markup. */%>
+              <img <%- productImage.attrs(img, 72) %> alt="<%= product.title %> — photo <%= idx + 1 %>" width="70" height="70" loading="lazy" decoding="async">
+            </button>
+          <% }); %>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Info -->
+    <div class="pp__info">
+      <p class="pp__vendor"><%= product.vendor %></p>
+      <h1 class="heading-section pp__title"><%= shownTitle %></h1>
+
+      <!-- Price -->
+      <div class="pp__price-wrap">
+        <%/* THE MARKET'S PRICE, from the same call the Offer schema and
+             the feed row use. `priced` is guaranteed present — the route
+             404s a product with no price in this market rather than
+             falling through to US dollars — but the guard keeps any
+             other template that renders this partial honest. */%>
+        <% var _p = (typeof priced !== 'undefined' && priced) ? priced
+             : { amount: product.price, currency: 'USD', compareAmount: product.comparePrice || 0 }; %>
+        <% var _money = (typeof marketMoney !== 'undefined') ? marketMoney
+             : function (a, c) { return 'US$' + formatPrice(a); }; %>
+        <span class="pp__price" data-usd-cents="<%= _p.amount %>" data-usd-label="<%= _money(_p.amount, _p.currency) %>"><%= _money(_p.amount, _p.currency) %></span>
+        <% if (product.comparePrice && product.comparePrice > product.price) { %>
+          <span class="pp__compare"><%= _money(_p.compareAmount || product.comparePrice, _p.currency) %></span>
+          <span class="pp__save">Save <%= savingsPct %>%</span>
+        <% } %>
+      </div>
+
+      <!-- Preorder callout -->
+      <%/* Was three sentences: "Price locked. Ships release day. Cancel
+           anytime." That leaves out every fact a preorder listing has to
+           disclose — above all that the card is charged today for an item
+           that does not exist yet. Merchant Center reads an undisclosed
+           wait between payment and delivery as inaccurate product
+           information, and it is an account-level finding. Full terms live
+           in config/preorder.js and are repeated in the FAQ and the Terms
+           of Service, so all three say the same thing. */%>
+      <% if (isPreorder) { %>
+        <div class="pp__preorder-box">
+          <div>
+            <p class="pp__preorder-head">
+              Preorder<% if (rel.hasDate) { %> — releases <%= rel.display %><% } else if (rel.window) { %> — ships <%= rel.window %><% } %>
+            </p>
+            <p class="pp__preorder-sub">
+              <strong>Your card is charged today.</strong> This item has not been released yet and
+              ships on or just after the publisher's release date.
+              <% if (rel.hasDate && rel.window) { %>Expected dispatch <%= rel.window %>.<% } %>
+              Cancel any time before dispatch for a full refund.
+            </p>
+            <button type="button" class="pp__preorder-toggle" aria-expanded="false" aria-controls="preorder-terms" data-preorder-toggle>
+              Read the full preorder terms
+            </button>
+          </div>
+        </div>
+
+        <%/* Rendered into the DOM rather than fetched on demand, so it is
+             in the HTML a crawler and a policy reviewer see even though it
+             starts collapsed. */%>
+        <div class="pp__preorder-terms" id="preorder-terms" hidden>
+          <dl>
+            <% preorder.TERMS.forEach(function (t) { %>
+              <dt><%= t.title %></dt>
+              <dd><%= t.body %></dd>
+            <% }); %>
+          </dl>
+          <p class="pp__preorder-terms-foot">
+            These terms form part of our <a href="<%= marketPath('/terms-of-service') %>">Terms of Service</a>
+            and <a href="<%= marketPath('/refund-policy') %>">Refund Policy</a>.
+          </p>
+        </div>
+      <% } %>
+
+      <!-- Stock / allocation -->
+      <%/* A preorder does not have stock, it has an allocation, and the
+           two must not be worded the same way. This block previously ran
+           for preorders too, so an unreleased product displayed a live
+           countdown reading "In Stock — 49 available" for units that were
+           in no warehouse. Advertising an unreleased item as in stock is
+           the textbook Merchant Center availability misrepresentation.
+
+           The countdown script binds to #dynamic-stock-wrapper, so
+           preorders deliberately use a different container and get a
+           static figure instead of urgency animation. */%>
+      <% if (product.available && hasRealStock && !isPreorder) { %>
+        <div class="pp__stock" id="dynamic-stock-wrapper" data-stock-total="<%= stockQty %>">
+          <div class="pp__stock-row">
+            <span class="pp__stock-dot pp__stock-dot--ok" id="dynamic-stock-dot"></span>
+            <span id="dynamic-stock-text" style="font-size:0.85rem;color:var(--color-text-muted)"></span>
+          </div>
+          <div class="progress-bar" style="margin-top:0.5rem">
+            <div class="progress-bar__fill" id="dynamic-stock-fill" style="width:100%"></div>
+          </div>
+        </div>
+      <% } else if (product.available && hasRealStock && isPreorder) { %>
+        <div class="pp__stock">
+          <div class="pp__stock-row">
+            <span class="pp__stock-dot pp__stock-dot--ok"></span>
+            <span style="font-size:0.85rem;color:var(--color-text-muted)">
+              <%= stockQty %> unit<%= stockQty === 1 ? '' : 's' %> remaining in our distributor allocation
+            </span>
+          </div>
+        </div>
+      <% } %>
+
+      <!-- Quantity & ATC -->
+
+      <%/* ── Choose the box ──────────────────────────────────────────────
+           Day or Night, an alternate cover, a regional printing: one
+           manufactured item that arrives as two or more boxes.
+
+           EACH OPTION IS A LINK TO ITS OWN PAGE, not a control that swaps
+           the picture in place. Every variant is a separate product here
+           — its own price, stock, checkout and orders — so it has a real
+           URL, and a real URL is what a shopper can bookmark or send to
+           someone, what Google can land an ad on, and what the feed's
+           `link` has to point at. Swapping images client-side would leave
+           all three pointing at whichever box happened to be first.
+
+           No JavaScript: an anchor already does this, and a chooser that
+           breaks when a script fails is worse than one that navigates.
+
+           Sold-out siblings stay in the list, marked. Removing them makes
+           the choice look like it never existed and leaves the shopper
+           unsure they are on the right listing. */%>
+      <% if (siblings.length > 1) { %>
+        <div class="pp__variants" role="group" aria-label="Choose a version">
+          <span class="form-label">Version</span>
+          <div class="pp__variant-list">
+            <% siblings.forEach(function (v) { %>
+              <% var isCurrent = v.slug === product.slug; %>
+              <% var vImg = v.imageUrl || (v.images && v.images[0]) || ''; %>
+              <a
+                class="pp__variant<%= isCurrent ? ' is-active' : '' %><%= v.available === false ? ' is-sold-out' : '' %>"
+                href="<%= marketPath('/products/' + (v.slug)) %>"
+                <%/* Unescaped on purpose. The escaping output tag turns the
+                     quotes into &quot; and the attribute never parses, so
+                     the selected option loses the marking a screen reader
+                     relies on while still looking right in the browser. */%>
+                <%- isCurrent ? 'aria-current="true"' : '' %>
+              >
+                <% if (vImg) { %>
+                  <img <%- productImage.attrs(vImg, 44) %> alt="" width="44" height="44" loading="lazy" decoding="async">
+                <% } %>
+                <span class="pp__variant-name"><%= v.variantName || v.title %></span>
+                <% if (v.available === false) { %>
+                  <span class="pp__variant-flag">Sold out</span>
+                <% } %>
+              </a>
+            <% }); %>
+          </div>
+        </div>
+      <% } %>
+
+      <%/* THE BUY BUTTON'S FORM. Kept outside the add-to-cart form so the
+           two never nest — the parser drops a nested <form> outright.
+
+           IT IS NO LONGER CONDITIONAL, and that was the bug. It used to
+           render only when partnerExperience.routes listed this slug.
+           `routes` is the pre-rotation config shape; migrating a site to
+           the rotation deletes it. So on every migrated install the flag
+           was false for every product at every price, the button fell
+           through to a checkout that no longer had anything behind it,
+           and the buyer met "Product Resolution Failed" — which is why
+           the symptom did not track price or quantity the way each guess
+           at it predicted. There is one checkout now, so there is nothing
+           left to choose between. */%>
+      <% if (product.available) { %>
+        <form method="POST" action="<%= marketPath('/checkout/start') %>" id="partner-checkout-form" style="display:none;">
+          <input type="hidden" name="slug" value="<%= product.slug %>">
+          <input type="hidden" name="quantity" value="1" id="partner-qty-mirror">
+        </form>
+        <script>
+          document.addEventListener('DOMContentLoaded', function() {
+            var mainQty = document.querySelector('[data-qty-wrap] input[name="quantity"]');
+            var mirrorQty = document.getElementById('partner-qty-mirror');
+            if (mainQty && mirrorQty) {
+              function syncQty() { mirrorQty.value = mainQty.value; }
+              syncQty();
+              mainQty.addEventListener('change', syncQty);
+              // Patch qty +/- buttons
+              setInterval(syncQty, 200);
+            }
+          });
+        </script>
+      <% } %>
+
+      <form data-atc-form>
+        <input type="hidden" name="slug" value="<%= product.slug %>">
+
+        <!-- Quantity -->
+        <div class="pp__qty-wrap">
+          <span class="form-label">Quantity</span>
+          <div class="pp__qty" data-qty-wrap>
+            <button type="button" class="pp__qty-btn" data-qty-minus aria-label="Decrease quantity">−</button>
+            <span data-qty-display class="pp__qty-val">1</span>
+            <%/* THE EFFECTIVE LIMIT, not the allocation limit alone.
+                 A partner site sells a ladder of twelve equal steps, so a
+                 product costing seven of them can only be bought one at a
+                 time — there is no plan at step fourteen. Offering two was
+                 the bug: the stepper allowed it, checkout could find no
+                 plan, and the buyer fell through to an error page. A dead
+                 end reachable from the Buy button is worse than a lower
+                 limit. Falls back to the allocation limit when no partner
+                 serves this product, so nothing else tightens. */%>
+            <input type="hidden" name="quantity" value="1" data-allocation-limit="<%= (typeof buyLimit !== 'undefined' ? buyLimit : (product.allocationLimit || 0)) %>">
+            <button type="button" class="pp__qty-btn" data-qty-plus aria-label="Increase quantity">+</button>
+          </div>
+          <% var shownLimit = (typeof buyLimit !== 'undefined' ? buyLimit : (product.allocationLimit || 0)); %>
+          <% if (shownLimit > 0) { %>
+            <span style="font-size:0.78rem;color:var(--color-text-muted);margin-left:0.5rem">Limit <%= shownLimit %> per customer</span>
+          <% } else { %>
+            <span style="font-size:0.78rem;color:var(--color-text-muted);margin-left:0.5rem">Order multiple boxes to optimize shipping</span>
+          <% } %>
+        </div>
+
+        <div class="pp__ctas">
+          <% if (product.available) { %>
+            <button
+              type="button"
+              class="btn btn-primary btn-lg btn-full"
+              id="product-express-checkout"
+              onclick="document.getElementById('partner-checkout-form').submit()"
+            >
+              <% if (isPreorder) { %>
+                <%- include('../partials/icon', { name: 'bell', size: 18, color: '#fff' }) %>
+                <span style="margin-left:0.5rem">Secure Preorder</span>
+              <% } else { %>
+                <%- include('../partials/icon', { name: 'zap', size: 18, color: '#fff' }) %>
+                <span style="margin-left:0.5rem">Express Checkout</span>
+              <% } %>
+            </button>
+            <button
+              type="submit"
+              class="btn btn-outline btn-lg btn-full"
+              data-atc-btn
+              id="product-add-to-cart"
+            >
+              <%- include('../partials/icon', { name: 'shopping-cart', size: 18, color: 'currentColor' }) %>
+              <span style="margin-left:0.5rem">Add to Cart</span>
+            </button>
+          <% } else { %>
+            <button type="button" class="btn btn-ghost btn-lg btn-full" disabled>
+              Sold Out
+            </button>
+          <% } %>
+        </div>
+      </form>
+
+      <!-- Trust signals -->
+      <div class="pp__trust-grid">
+        <div class="pp__trust-item">
+          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'factory', size: 15, color: 'var(--color-text-muted)' }) %></span>
+          <span>Factory Sealed Guarantee</span>
+        </div>
+        <div class="pp__trust-item">
+          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'lock', size: 15, color: 'var(--color-text-muted)' }) %></span>
+          <span>Original Distributor Allocation</span>
+        </div>
+        <div class="pp__trust-item">
+          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'package', size: 15, color: 'var(--color-text-muted)' }) %></span>
+          <span>Ships in Original Distributor Packaging</span>
+        </div>
+        <%/* Was "Secure PayPal Checkout" on every product page. PayPal is
+             not an option at this store's checkout, so that line named a
+             payment method the buyer would never be offered. Reads from
+             config/payments.js now. */%>
+        <div class="pp__trust-item">
+          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'credit-card', size: 15, color: 'var(--color-text-muted)' }) %></span>
+          <span><%= payments.copy.secureCheckout %></span>
+        </div>
+        <div class="pp__trust-item">
+          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'globe', size: 15, color: 'var(--color-text-muted)' }) %></span>
+          <span><%= shippingCopy.short %>, worldwide</span>
+        </div>
+        <%/* Was hardcoded "14-Day Return Window". The same figure appears
+             in the Offer schema's merchantReturnDays, on the refund policy
+             page and in the FAQ; hardcoding it in a fourth place is how
+             those drift, and a return window that differs between the page
+             and the markup is a rich-result violation. */%>
+        <div class="pp__trust-item">
+          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'undo', size: 15, color: 'var(--color-text-muted)' }) %></span>
+          <span><%= returnWindowDays %>-Day Return Window</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Description + Details -->
+  <section class="pp__details" aria-label="Product information">
+    <div class="pp__col pp__col--editorial">
+      <h2 class="pp__col-title">Description</h2>
+      <div class="pp__editorial-body">
+        <%- product.description %>
+      </div>
+    </div>
+
+    <div class="pp__col pp__col--spec">
+      <h2 class="pp__col-title">Specifications</h2>
+      <dl class="pp__spec-list">
+        <%/* Vendor is gone: it is already the eyebrow directly above the
+             product title, three inches up the same screen. A
+             specifications table exists to carry the facts that are NOT
+             elsewhere on the page; repeating what the reader just read
+             makes the genuinely useful rows harder to find. */%>
+        <div class="pp__spec-row">
+          <dt>Type</dt>
+          <dd><%= product.productType %></dd>
+        </div>
+        <%/* Identifiers and the two facts a TCG buyer asks for by name.
+             Each row is omitted when its field is blank rather than
+             printing an empty cell or a placeholder: an invented GTIN
+             resolves to somebody else's product in Google's catalogue,
+             which is a Misrepresentation finding rather than a
+             missing-field warning.
+
+             Language shows whenever it is set, English included. A
+             Japanese booster box listed without saying so is the most
+             common complaint in this category, and the fix is to state
+             the language on everything, not only the exceptions. */%>
+        <% if (product.language) { %>
+          <div class="pp__spec-row"><dt>Language</dt><dd><%= product.language %></dd></div>
+        <% } %>
+        <% if (product.edition) { %>
+          <div class="pp__spec-row"><dt>Edition</dt><dd><%= product.edition %></dd></div>
+        <% } %>
+        <% if (product.setCode) { %>
+          <div class="pp__spec-row"><dt>Set code</dt><dd><%= product.setCode %></dd></div>
+        <% } %>
+        <% (product.specs || []).forEach(function(spec) { %>
+          <div class="pp__spec-row">
+            <dt><%= spec.label %></dt>
+            <dd><%= spec.value %></dd>
+          </div>
+        <% }); %>
+        <%/* Condition ("Factory Sealed") and Authenticity ("Verified —
+             Direct Distributor") were both here AND in the trust grid
+             above, which says "Factory Sealed Guarantee" and "Original
+             Distributor Allocation" and links to the pages that define
+             them. The trust grid is the better home: it is higher on the
+             page and each item goes somewhere. Both facts remain in the
+             Product schema, where a crawler reads them.
+
+             Shipping and Returns rows are gone for the same reason — the
+             trust grid states both, from the same config. */%>
+        <%/* Availability is stated for every product, preorder included.
+             The old branch showed "Ships Q2 2026" for a preorder and
+             dropped the availability row entirely, so the one row telling
+             a buyer the item is not yet released was the row that
+             disappeared on exactly the products where it matters. */%>
+        <div class="pp__spec-row">
+          <dt>Availability</dt>
+          <dd>
+            <% if (!product.available) { %>Sold Out<% } else if (isPreorder) { %>Preorder — not yet released<% } else { %>In Stock<% } %>
+          </dd>
+        </div>
+        <% if (isPreorder && rel.hasDate) { %>
+          <div class="pp__spec-row">
+            <dt>Release date</dt>
+            <dd><time datetime="<%= rel.iso %>"><%= rel.display %></time></dd>
+          </div>
+        <% } %>
+        <%/* Expected dispatch is not repeated here: the preorder callout
+             at the top of the page already leads with the same window, and
+             a release date row below covers the case where a real date is
+             set. Availability stays, because it is the one row that is
+             correct whatever state the product is in — including sold out,
+             where nothing else on the page says so. */%>
+        <%/* Shipping and Returns are not repeated here. Both are in the
+             trust grid higher up the same page, from the same config, and
+             both are stated in full in the Offer schema. A specifications
+             table earns its place by carrying facts that are NOT already
+             on the page; padding it with restated policy makes the rows
+             that only exist here harder to find. */%>
+        <% if (product.sku) { %>
+          <div class="pp__spec-row"><dt>SKU</dt><dd><%= product.sku %></dd></div>
+        <% } %>
+        <% if (product.gtin) { %>
+          <div class="pp__spec-row"><dt>Barcode (GTIN)</dt><dd><%= product.gtin %></dd></div>
+        <% } %>
+        <% if (product.mpn) { %>
+          <div class="pp__spec-row"><dt>Manufacturer part no.</dt><dd><%= product.mpn %></dd></div>
+        <% } %>
+      </dl>
+    </div>
+
+    <div class="pp__col pp__col--trust">
+      <h2 class="pp__col-title">Why Buy From Zyphera</h2>
+      <ul class="pp__trust-list">
+        <%
+          var trustPoints = [
+            /* Was "Official Distributor", which reads as a claim that
+               Zyphera IS one — an affiliation the footer of this same page
+               explicitly disclaims ("Not affiliated with, endorsed by, or
+               sponsored by The Pokémon Company, Nintendo, Konami..."). A
+               page contradicting its own footer is precisely what a
+               Merchant Center misrepresentation review looks for, and
+               unauthorised "official retailer" wording is also what the
+               publishers themselves act on.
+
+               The heading now describes the sourcing, which is what the
+               description always said and what the business can stand
+               behind. */
+            { title: 'Distributor Sourced', desc: 'Bought through authorized distribution, not the secondary market.' },
+            { title: 'Factory Sealed', desc: 'Never opened, never resealed, never searched.' },
+            { title: 'Collector Packaging', desc: 'Shipped in a rigid outer box that protects corners and seal integrity.' },
+            { title: 'Free Worldwide Shipping', desc: 'Tracked delivery on every order, at our cost, with no minimum spend.' },
+            { title: 'Secure Checkout', desc: 'Payments handled entirely by established third-party processors.' }
+          ];
+        %>
+        <% trustPoints.forEach(function(point) { %>
+          <li class="pp__trust-point">
+            <span class="pp__trust-point-icon" aria-hidden="true">
+              <%- include('../partials/icon', { name: 'check-circle', size: 15, color: 'currentColor' }) %>
+            </span>
+            <div>
+              <p class="pp__trust-point-title"><%= point.title %></p>
+              <p class="pp__trust-point-desc"><%= point.desc %></p>
+            </div>
+          </li>
+        <% }); %>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Related Products -->
+  <% if (typeof relatedProducts !== 'undefined' && relatedProducts.length > 0) { %>
+    <div style="margin-top:0;padding-bottom:4rem">
+      <div class="section-header" style="margin-bottom:var(--space-xl)">
+        <div class="label-overline" style="margin-bottom:0.5rem">You May Also Like</div>
+        <h2 class="heading-section">Related Products</h2>
+        <div class="divider-accent"></div>
+      </div>
+      <div class="grid-4">
+        <% relatedProducts.forEach(function(rp) { %>
+          <%- include('../partials/product-card', { product: rp }) %>
+        <% }); %>
+      </div>
+    </div>
+  <% } %>
+</div>
+
+<%/* Mobile sticky buy bar.
+ 
+     Two changes from the version that shipped. The emoji prefixes are
+     gone: a bell and a lightning bolt render differently on every platform,
+     sit at a different baseline to the text next to them, and are read
+     aloud by a screen reader as "bell" before the actual label. A padlock
+     drawn as an inline SVG says the same thing about a secure checkout and
+     says it identically everywhere.
+ 
+     And the price now tracks the quantity stepper. It was rendered once
+     server-side at the unit price, so a customer who chose six still saw
+     the single-unit total on the button they were about to press — the one
+     number they are checking before committing.
+ 
+     data-unit-price is in cents to match how the server stores it;
+     formatting happens in one place in zyphera.js so the bar and the rest
+     of the page round money the same way. */%>
+<% if (product.available) { %>
+<div class="mobile-sticky-cta">
+  <button
+    type="button"
+    class="btn btn-primary btn-full btn-lg mobile-sticky-cta__btn"
+    data-sticky-buy
+    data-unit-price="<%= (typeof priced !== 'undefined' && priced) ? priced.amount : product.price %>"
+    <%/* The bar's price is recomputed in the browser as the quantity
+         changes, and that arithmetic had a dollar sign baked into it — so
+         the one always-visible price on a phone read $ on every storefront,
+         including the ones charging pounds and euros. The currency travels
+         with the amount now. */%>
+    data-currency="<%= (typeof priced !== 'undefined' && priced) ? priced.currency : 'USD' %>"
+    onclick="document.getElementById('partner-checkout-form').submit()"
+  >
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+    </svg>
+    <span><%= isPreorder ? 'Secure Preorder' : 'Checkout' %></span>
+    <span class="mobile-sticky-cta__price" data-sticky-price><%= (typeof marketMoney !== 'undefined' && typeof priced !== 'undefined' && priced) ? marketMoney(priced.amount, priced.currency) : 'US$' + formatPrice(product.price) %></span>
+  </button>
+</div>
+<% } %>
+
+<style>
+  .pp__preorder-head { font-family:var(--font-heading); font-size:0.9rem; font-weight:700; color:var(--color-cyan); }
+  .pp__preorder-sub { font-size:0.8rem; color:var(--color-text-muted); margin-top:4px; line-height:1.65; }
+  .pp__preorder-sub strong { color:var(--color-text); }
+  .pp__preorder-toggle { margin-top:0.6rem; background:none; border:none; padding:0; font:inherit; font-size:0.78rem; font-weight:600; color:var(--color-cyan); cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+  .pp__preorder-terms { margin-top:0.75rem; background:var(--color-bg-card); border:1px solid var(--color-border-light); border-radius:var(--radius-md); padding:1.1rem 1.25rem; }
+  .pp__preorder-terms dl { margin:0; display:flex; flex-direction:column; gap:0.85rem; }
+  .pp__preorder-terms dt { font-family:var(--font-heading); font-size:0.82rem; font-weight:700; color:var(--color-white); }
+  .pp__preorder-terms dd { margin:0.2rem 0 0; font-size:0.8rem; color:var(--color-text-muted); line-height:1.7; }
+  .pp__preorder-terms-foot { margin-top:1rem; padding-top:0.8rem; border-top:1px solid var(--color-border-light); font-size:0.75rem; color:var(--color-text-faint); }
+  .pp__preorder-terms-foot a { color:var(--color-primary); }
+</style>
+
+<script>
+  /* Progressive enhancement. The terms are in the DOM either way; with
+     JavaScript off the noscript rule below simply forces the block open
+     rather than leaving it unreachable. Content a buyer needs before
+     paying must never depend on a script running. */
+  (function () {
+    var toggle = document.querySelector('[data-preorder-toggle]');
+    var panel = document.getElementById('preorder-terms');
+    if (!toggle || !panel) return;
+    toggle.addEventListener('click', function () {
+      var opening = panel.hasAttribute('hidden');
+      if (opening) panel.removeAttribute('hidden'); else panel.setAttribute('hidden', '');
+      toggle.setAttribute('aria-expanded', String(opening));
+      toggle.textContent = opening ? 'Hide the full preorder terms' : 'Read the full preorder terms';
+    });
+  })();
+</script>
+<noscript>
+  <style>.pp__preorder-terms[hidden] { display:block !important; } .pp__preorder-toggle { display:none; }</style>
+</noscript>

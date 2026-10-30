@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%237C3AED'/><g fill='%23ffffff'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
+  <meta name="theme-color" content="#0c0c12">
+  <meta name="robots" content="noindex, nofollow">
+  <title><%= pageTitle %> | Zyphera Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+  <style>
+    .admin-form input, .admin-form select, .admin-form textarea { transition: all 0.2s ease; }
+    .admin-form input:focus, .admin-form select:focus, .admin-form textarea:focus { border-color: var(--admin-primary); box-shadow: 0 0 0 2px rgba(198,154,69,0.18); }
+    /* Checkout-mode selector, mode panels, route cards, saved sites, and
+       pool stats now live in admin.css using the shared --admin-* tokens —
+       this used to run its own purple/pink palette here, unrelated to the
+       rest of the admin panel's brass/espresso theme. */
+        .px-import__report { border-left: 3px solid #ccc; padding: 0.75rem 1rem; margin: 0 0 1rem; font-size: 0.9rem; }
+      .px-import__report.is-bad { border-left-color: #c0392b; }
+      .px-import__report.is-ok { border-left-color: #27ae60; }
+      .px-import__report ul { margin: 0.5rem 0 0; padding-left: 1.1rem; }
+      .px-import__report li { margin: 0.15rem 0; }
+    </style>
+</head>
+<body class="admin-body">
+  <%- include('_sidebar', { currentPath: '/admin/settings' }) %>
+  <main class="admin-main">
+    <header class="admin-header"><h1 class="admin-header__title"><%= pageTitle %></h1></header>
+    <div class="admin-content">
+      
+      <% if (success) { %>
+        <div class="admin-alert admin-alert--success" style="margin-bottom:1.5rem"><%= success %></div>
+      <% } %>
+      <% if (error) { %>
+        <div class="admin-alert admin-alert--error"><%= error %></div>
+      <% } %>
+
+      <div class="settings-hero">
+        <h2>Checkout</h2>
+        <p>Every order is brokered to a partner site. Configure the rotation below —
+          the buyer never leaves ZypheraTCG until the payment step.</p>
+      </div>
+      <div class="mode-panel">
+
+        <%
+          /* Partner Sites.
+           *
+           * A partner site sells one ladder of twelve plans in equal steps,
+           * which makes that ladder a PRICE GRID rather than twelve
+           * products. zypheratcg is the catalogue, and each product sits at
+           * some number of those steps: a $224.97 product is three steps, so
+           * one of it is rung 3, two is rung 6, and four is the most the
+           * ladder can carry.
+           *
+           * NOTHING IS CONFIGURED PER PRODUCT. Twelve ids per site, entered
+           * once. So this screen is a site list plus a read-only map of what
+           * the arithmetic decided — and, for anything excluded, why. */
+          var pxSites = (partnerExperience.savedSites || []);
+          /* What a site's pacing resolves to, and where from. Mirrors
+             services/partnerRotation.salesPerSite — site, then its group,
+             then the global default. */
+          var pxPaceRaw = function (v) {
+            var n = parseInt(v, 10);
+            return (isFinite(n) && n >= 1) ? Math.min(n, 100) : null;
+          };
+          var pxPaceFor = function (site) {
+            return pxPaceRaw(site && site.salesPerSite)
+              || pxPaceRaw((pxGroupOf(site) || {}).salesPerSite)
+              || pxPaceRaw(partnerExperience.salesPerSite) || 1;
+          };
+          var pxPaceSrc = function (site) {
+            if (pxPaceRaw(site && site.salesPerSite)) return 'site';
+            if (pxPaceRaw((pxGroupOf(site) || {}).salesPerSite)) return 'group';
+            return 'default';
+          };
+          /* Lifetime takings per currency, largest first. Empty until a
+             site has banked something, so a new site shows a clean row
+             rather than a row of zeroes. */
+          var pxRevenueOf = function (site) {
+            var rev = (site && site.stats && site.stats.revenue) || {};
+            return Object.keys(rev)
+              .filter(function (c) { return Number(rev[c]) > 0; })
+              .map(function (c) { return { currency: c, amount: Number(rev[c]) }; })
+              .sort(function (a, b) { return b.amount - a.amount; });
+          };
+          var pxMapping = (typeof partnerMapping !== 'undefined' ? partnerMapping : []);
+          var pxLadders = (typeof partnerLadders !== 'undefined' ? partnerLadders : []);
+          var pxGroups = (partnerExperience.groups || []);
+          function pxGroupOf(site) {
+            for (var i = 0; i < pxGroups.length; i++) if (pxGroups[i].id === site.groupId) return pxGroups[i];
+            return null;
+          }
+          /* A site sells only when it AND its group are on — see
+             services/partnerRotation.pausedBy, which is the same rule the
+             rotation itself applies. Recomputed here rather than passed in
+             so the screen cannot drift from the engine. */
+          function pxPausedBy(site) {
+            if (site.enabled === false) return 'site';
+            /* A checkout observed to be dead. Whop keeps serving an iframe
+               when a business is suspended — it just holds a 404 — so this
+               is counted from hand-offs that never became orders rather
+               than seen. See services/partnerHealth.js. */
+            if (site.health && site.health.state === 'suspended') return 'suspended';
+            var g = pxGroupOf(site);
+            return (g && g.enabled === false) ? 'group' : null;
+          }
+          function pxHealth(site) { return (site && site.health) || {}; }
+          function pxWhen(d) {
+            if (!d) return '';
+            var t = new Date(d);
+            return isNaN(t) ? '' : t.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+          }
+          var pxOrder = (typeof partnerOrder !== 'undefined' ? partnerOrder : []);
+          var pxHistory = (typeof partnerHistory !== 'undefined' ? partnerHistory : []);
+          function pxMoney(c) { return '$' + (Number(c || 0) / 100).toFixed(2); }
+          function pxLadderOf(id) {
+            for (var i = 0; i < pxLadders.length; i++) if (pxLadders[i].id === id) return pxLadders[i];
+            return { filled: 0, total: 12, complete: false, rungs: [], unitCents: 7499 };
+          }
+          function pxLadderText(id) {
+            return pxLadderOf(id).rungs.map(function (r) { return r.planId || ''; }).join('\n');
+          }
+          function pxWhen(d) {
+            if (!d) return 'no orders yet';
+            var days = Math.floor((Date.now() - new Date(d).getTime()) / 86400000);
+            if (days <= 0) return 'last sold today';
+            if (days === 1) return 'last sold yesterday';
+            return 'last sold ' + days + ' days ago';
+          }
+        %>
+
+        <div class="subsection px-section">
+          <div class="px-head">
+            <div>
+              <h4 class="panel-title" style="font-size:0.98rem;margin:0;">Partner Sites</h4>
+              <p class="field-hint" style="margin:0.3rem 0 0;max-width:54rem;">
+                Each site sells twelve plans in equal steps, so its ladder is a price grid. Paste the twelve
+                plan ids once and every product maps itself: a <strong>$224.97</strong> product is three
+                steps, so one uses rung 3, two uses rung 6, and four is as high as the ladder goes.
+                Nothing is entered per product.
+              </p>
+            </div>
+            <div class="px-head__acts">
+              <button type="button" class="admin-btn admin-btn--sm" id="pxFoldAll" onclick="pxFoldAll()">Collapse all</button>
+              <form action="/admin/settings/partner-experience/groups/add" method="POST" class="px-newgroup">
+                <input type="text" name="groupName" placeholder="New group name" aria-label="New group name" required>
+                <button type="submit" class="admin-btn admin-btn--sm">+ Group</button>
+              </form>
+              <button type="button" class="admin-btn admin-btn--primary" onclick="pxToggleAdd()">+ Add a site</button>
+              <button type="button" class="admin-btn" onclick="pxImportToggle(true)">Import a CSV</button>
+            </div>
+          </div>
+
+          <%/* A ten-site rotation cannot be read by scanning ten cards, so
+               the page answers the three standing questions in one line:
+               who is next, how many sites can actually take an order, and
+               whether anything is half-configured. An incomplete ladder is
+               the only state here that silently costs sales, so it is the
+               one that gets a colour. */%>
+          <% var pxNext = pxOrder.find(function (o) { return o.isNext; }); %>
+          <% var pxActive = pxSites.filter(function (x) { return !pxPausedBy(x); }).length; %>
+          <% var pxUnfinished = pxSites.filter(function (x) { return !pxLadderOf(x.id).complete; }).length; %>
+          <% var pxTotalOrders = pxSites.reduce(function (n, x) { return n + ((x.stats && x.stats.orders) || 0); }, 0); %>
+          <div class="px-summary">
+            <div class="px-summary__cell">
+              <span class="px-summary__k">Next order</span>
+              <span class="px-summary__v"><%= pxNext ? pxNext.name : '—' %></span>
+            </div>
+            <div class="px-summary__cell">
+              <span class="px-summary__k">Active</span>
+              <span class="px-summary__v"><%= pxActive %> <span class="px-summary__of">of <%= pxSites.length %></span></span>
+            </div>
+            <div class="px-summary__cell">
+              <span class="px-summary__k">Incomplete</span>
+              <span class="px-summary__v<%= pxUnfinished ? ' is-warn' : '' %>"><%= pxUnfinished %></span>
+            </div>
+            <div class="px-summary__cell">
+              <span class="px-summary__k">Orders brokered</span>
+              <span class="px-summary__v"><%= pxTotalOrders %></span>
+            </div>
+            <a class="px-summary__link" href="/admin/partner-log">Order log &rarr;</a>
+          </div>
+
+          <%/* ── Pacing ────────────────────────────────────────────────
+               How many orders a site takes before the rotation moves on.
+               One is the old fixed behaviour and stays the default.
+
+               Sits with the summary rather than in the integration form
+               below, because it is a fact about the rotation and reads
+               next to "who is next" — and because a number that changes
+               where money goes should not be buried among the keys. */%>
+          <% var pxPer = Math.max(1, parseInt(partnerExperience.salesPerSite, 10) || 1); %>
+          <% var pxDone = Math.max(0, parseInt(partnerExperience.cursorServed, 10) || 0); %>
+          <form action="/admin/settings/partner-experience/rotation" method="POST" class="px-pace">
+            <label for="pxSalesPerSite">Orders per site before moving on</label>
+            <input type="number" id="pxSalesPerSite" name="salesPerSite"
+                   value="<%= pxPer %>" min="1" max="100" step="1" inputmode="numeric">
+            <button type="submit" class="admin-btn">Save</button>
+            <span class="px-pace__now">
+              <% if (pxPer === 1) { %>
+                Every order hands over to the next site.
+              <% } else if (pxNext) { %>
+                <strong><%= pxNext.name %></strong> has taken <strong><%= pxDone %></strong>
+                of <strong><%= pxPer %></strong> this turn.
+              <% } else { %>
+                Each site takes <strong><%= pxPer %></strong> before the rotation moves on.
+              <% } %>
+            </span>
+          </form>
+
+          <% if (pxSites.length > 6) { %>
+            <input type="search" class="px-filter" id="pxFilter" placeholder="Filter sites by name or host"
+                   oninput="pxFilterRows(this.value)" autocomplete="off">
+          <% } %>
+
+          <%/* ── What the arithmetic decided ── */%>
+          <% if (pxMapping.length && pxSites.length) { %>
+            <%/* Folded away. It is a reference table — which product lands on
+                 which rung — and it is read when a price changes, not on
+                 every visit. Open it and the answer is still one glance;
+                 leave it shut and ten sites fit on one screen. */%>
+            <details class="px-map-fold">
+              <summary>
+                <span>Product &rarr; step mapping</span>
+                <span class="field-hint" style="margin:0;"><%= pxMapping.length %> products<%
+                  var offGrid = pxMapping.filter(function (m) { return m.units == null; }).length;
+                  %><%= offGrid ? ' · ' + offGrid + ' off-grid' : '' %></span>
+              </summary>
+            <div class="px-map">
+              <table class="px-map__table">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th class="px-num">Price</th>
+                    <th class="px-num">Steps</th>
+                    <th class="px-num">Max qty</th>
+                    <th>Served by</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% pxMapping.forEach(function (m) {
+                       var serving = m.sites.filter(function (s) { return s.ok && s.enabled; });
+                       var blocked = m.sites.filter(function (s) { return !s.ok; });
+                  %>
+                    <tr class="<%= serving.length ? '' : 'px-map__row--out' %>">
+                      <td><%= m.title %></td>
+                      <td class="px-num"><%= pxMoney(m.price) %></td>
+                      <td class="px-num"><%= m.units == null ? '—' : m.units %></td>
+                      <td class="px-num"><%= m.maxQuantity || '—' %></td>
+                      <td>
+                        <% if (serving.length) { %>
+                          <span class="px-served">
+                            <%/* Just who CAN serve it. Which one is next is
+                                 the cycle strip's job, and saying it twice
+                                 gives two places that can disagree. */%>
+                            <% serving.forEach(function (s) { %>
+                              <span class="px-pill"><%= s.name %></span>
+                            <% }); %>
+                          </span>
+                        <% } else { %>
+                          <%/* The reason matters more than the fact. "Not a
+                               multiple of 74.99" is a diagnosis; the nearest
+                               workable prices are a fix. */%>
+                          <span class="px-map__why"><%= blocked.length ? blocked[0].detail : 'No site configured' %></span>
+                        <% } %>
+                      </td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+              <p class="field-hint" style="margin:0.75rem 0 0;">
+                A price that is not an exact multiple of a site's step is never rounded onto the nearest
+                rung — Whop charges what the plan id says regardless of what the page showed, so a
+                near-miss would undercharge every order silently. Those products use the normal checkout.
+              </p>
+            </div>
+            </details>
+          <% } %>
+
+          <%/* ── Import a CSV ──────────────────────────────────────────────
+               Forty-eight plan ids per site is not a form somebody should
+               fill in. The file carries the ids; the group is chosen here,
+               because a group id belongs to this database and not to a file
+               that might be written anywhere.
+
+               The file input FILLS THE TEXTAREA rather than being submitted
+               itself: the app has no multipart parser, and adding one for a
+               few kilobytes of text is a dependency for nothing. It also
+               means the box works when the picker does not — paste into it
+               and press the button. */%>
+          <%/* OPEN WHENEVER THERE IS A REPORT TO READ. The report is the only
+               thing that says WHICH rows were wrong, and it is read out of
+               the session once and then cleared — so a card left hidden
+               after a failed import destroys the list on the same page load
+               that produced it, leaving the operator a flash message
+               counting problems it will not name. */%>
+          <% var pxImportOpen = (typeof partnerImport !== 'undefined' && partnerImport); %>
+          <form action="/admin/settings/partner-experience/sites/import" method="POST" class="px-card px-card--new" id="pxImportForm"<%- pxImportOpen ? '' : ' style="display:none;"' %>>
+            <div class="px-card__head"><strong>Import sites from a CSV</strong></div>
+
+            <% if (typeof partnerImport !== 'undefined' && partnerImport) { %>
+              <div class="px-import__report<%= partnerImport.ok ? ' is-ok' : ' is-bad' %>">
+                <% if (partnerImport.errors && partnerImport.errors.length) { %>
+                  <strong>Nothing was imported. <%= partnerImport.errors.length %> problem<%= partnerImport.errors.length === 1 ? '' : 's' %>:</strong>
+                  <ul><% partnerImport.errors.slice(0, 40).forEach(function (e) { %><li><%= e %></li><% }); %></ul>
+                  <% if (partnerImport.errors.length > 40) { %><p class="field-hint">…and <%= partnerImport.errors.length - 40 %> more.</p><% } %>
+                <% } else { %>
+                  <strong><%= partnerImport.added %> added, <%= partnerImport.updated %> updated.</strong>
+                <% } %>
+                <% if (partnerImport.warnings && partnerImport.warnings.length) { %>
+                  <ul><% partnerImport.warnings.slice(0, 20).forEach(function (w) { %><li><%= w %></li><% }); %></ul>
+                <% } %>
+              </div>
+            <% } %>
+
+            <div class="px-grid">
+              <div class="form-group">
+                <%/* Blank does NOT detach. A site already in a group keeps
+                     it, because a group is a pause switch and the default
+                     option must not be able to resume a paused set. */%>
+                <label>Attach every site in the file to</label>
+                <select name="importGroupId">
+                  <option value="">— no group (sites already grouped keep theirs) —</option>
+                  <% pxGroups.forEach(function (g) { %>
+                    <option value="<%= g.id %>"><%= g.name %><%= g.enabled === false ? ' (paused)' : '' %></option>
+                  <% }); %>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>File</label>
+                <input type="file" id="pxCsvFile" accept=".csv,text/csv" onchange="pxReadCsv(this)">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>site,url,market,step,plan_id,unit_price</label>
+              <textarea name="csv" id="pxCsvText" rows="6" spellcheck="false"
+                        placeholder="Choose a file above, or paste the rows here."></textarea>
+              <p class="field-hint">
+                One row per rung. A row states its own market and step, so nothing shifts if a
+                row is missing or the columns are reordered — and nothing at all is written
+                unless every row parses. Matched on the URL: a site already listed is updated,
+                keeping its order counts. New sites arrive paused.
+              </p>
+            </div>
+
+            <div class="px-card__foot">
+              <button type="submit" class="admin-btn admin-btn--primary">Import</button>
+              <button type="button" class="admin-btn" onclick="pxImportToggle(false)">Cancel</button>
+            </div>
+          </form>
+
+          <%/* ── Add a site ── */%>
+          <form action="/admin/settings/partner-experience/sites/add" method="POST" class="px-card px-card--new" id="pxAddForm" style="display:none;">
+            <div class="px-card__head"><strong>New site</strong></div>
+            <div class="px-grid">
+              <div class="form-group">
+                <label>Name</label>
+                <input type="text" name="siteName" placeholder="Coverage Desk" required>
+              </div>
+              <div class="form-group px-grid__wide">
+                <label>Service link</label>
+                <input type="url" name="siteUrl" placeholder="https://coverage-desk.onrender.com/services/script-coverage" required>
+              </div>
+              <div class="form-group">
+                <label>Step price</label>
+                <input type="number" step="0.01" name="siteUnitPrice" value="74.99">
+              </div>
+              <div class="form-group">
+                <label>Group</label>
+                <select name="siteGroupId">
+                  <option value="">— none —</option>
+                  <% pxGroups.forEach(function (g) { %>
+                    <option value="<%= g.id %>"><%= g.name %></option>
+                  <% }); %>
+                </select>
+              </div>
+              <div class="form-group px-grid__full">
+                <label>The twelve plan ids</label>
+                <textarea name="sitePlans" rows="12" placeholder="plan_xxxxxxxxxxxxx&#10;plan_xxxxxxxxxxxxx&#10;…one per line, step 1 first"></textarea>
+                <small class="field-hint">One per line, lowest first. <code>3:plan_xxx:224.97</code> is accepted too and goes to the step it names.</small>
+              </div>
+            </div>
+            <div class="px-card__foot">
+              <label class="px-switch"><input type="checkbox" name="siteEnabled" checked><span>Active</span></label>
+              <div style="display:flex;gap:0.6rem;">
+                <button type="button" class="admin-btn" onclick="pxToggleAdd()">Cancel</button>
+                <button type="submit" class="admin-btn admin-btn--primary">Add site</button>
+              </div>
+            </div>
+          </form>
+
+          <% if (!pxSites.length) { %>
+            <div class="px-empty">
+              <p><strong>No partner sites yet.</strong></p>
+              <p>Add one and paste its twelve plan ids. Add a second and sales start alternating between them.</p>
+            </div>
+          <% } else { %>
+            <div class="px-cards">
+              <%/* ── Grouped, then everything ungrouped ──────────────────
+                   The list is rendered once per group and once more for
+                   whatever is in none, so a site appears in exactly one
+                   place and moving it between groups moves the row. A group
+                   whose sites are all individually paused still shows as a
+                   live group: the two flags mean different things and
+                   collapsing them would hide which one is holding a site
+                   back. */%>
+              <% var pxBuckets = pxGroups.map(function (g) {
+                   return { group: g, sites: pxSites.filter(function (x) { return x.groupId === g.id; }) };
+                 });
+                 pxBuckets.push({ group: null, sites: pxSites.filter(function (x) {
+                   return !x.groupId || !pxGroups.some(function (g) { return g.id === x.groupId; });
+                 }) }); %>
+
+              <% pxBuckets.forEach(function (bucket) { %>
+                <% var bKey = bucket.group ? bucket.group.id : '__ungrouped'; %>
+                <% if (bucket.group || bucket.sites.length) { %>
+                  <% if (bucket.group) { %>
+                    <% var gOn = bucket.group.enabled !== false;
+                       var gLive = bucket.sites.filter(function (x) { return !pxPausedBy(x); }).length; %>
+                    <div class="px-group<%= gOn ? '' : ' px-group--off' %>" data-px-group="<%= bKey %>">
+                      <form action="/admin/settings/partner-experience/groups/<%= bucket.group.id %>" method="POST" class="px-group__bar">
+                        <%/* type=button, and first in the bar, so folding is
+                             never a stray submit of the rename form it sits
+                             inside. */%>
+                        <button type="button" class="px-fold-btn" data-px-fold="<%= bKey %>"
+                                onclick="pxFold('<%= bKey %>')" aria-expanded="true"
+                                aria-label="Show or hide the sites in this group">&#9662;</button>
+                        <span class="px-group__dot<%= gOn ? ' is-on' : '' %>"></span>
+                        <input class="px-group__name" type="text" name="groupName" value="<%= bucket.group.name %>" aria-label="Group name">
+                        <%/* Applies to every site in the group that has not
+                             set its own. Blank clears it. */%>
+                        <input class="px-group__pace" type="number" name="groupSalesPerSite"
+                               min="1" max="100" step="1"
+                               value="<%= bucket.group.salesPerSite || '' %>"
+                               placeholder="orders/site"
+                               title="Orders each site in this group takes before the rotation moves on. Blank inherits the default."
+                               aria-label="Orders per site for this group">
+                        <span class="px-group__count">
+                          <%= bucket.sites.length %> site<%= bucket.sites.length === 1 ? '' : 's' %>
+                          <% if (!gOn) { %><span class="px-pill px-pill--muted">Group paused</span>
+                          <% } else { %><span class="px-group__live"><%= gLive %> live</span><% } %>
+                        </span>
+                        <span class="px-group__acts">
+                          <button type="submit" class="admin-btn admin-btn--sm">Rename</button>
+                          <button type="submit" formaction="/admin/settings/partner-experience/groups/<%= bucket.group.id %>/toggle" class="admin-btn admin-btn--sm"><%= gOn ? 'Pause group' : 'Resume group' %></button>
+                          <button type="submit" formaction="/admin/settings/partner-experience/groups/<%= bucket.group.id %>/delete" class="admin-btn admin-btn--danger admin-btn--sm" onclick="return confirm('Remove this group? Its sites are kept and become ungrouped.')">Remove</button>
+                        </span>
+                      </form>
+                  <% } else if (bucket.sites.length && pxGroups.length) { %>
+                    <div class="px-group px-group--none" data-px-group="<%= bKey %>">
+                      <div class="px-group__bar">
+                        <button type="button" class="px-fold-btn" data-px-fold="<%= bKey %>"
+                                onclick="pxFold('<%= bKey %>')" aria-expanded="true"
+                                aria-label="Show or hide the ungrouped sites">&#9662;</button>
+                        <span class="px-group__name px-group__name--static">Ungrouped</span>
+                        <span class="px-group__count"><%= bucket.sites.length %> site<%= bucket.sites.length === 1 ? '' : 's' %></span>
+                      </div>
+                  <% } else { %>
+                    <div class="px-group px-group--bare" data-px-group="<%= bKey %>">
+                  <% } %>
+
+                  <div class="px-group__body" data-px-body="<%= bKey %>">
+                  <% if (!bucket.sites.length) { %>
+                    <p class="px-group__empty">No sites in this group yet — open any site below and move it here.</p>
+                  <% } %>
+
+              <% bucket.sites.forEach(function (site) {
+                   var isOn = site.enabled !== false;
+                   var host = ''; try { host = new URL(site.url).host; } catch (e) { host = site.baseUrl || ''; }
+                   var lad = pxLadderOf(site.id);
+                   var orders = (site.stats && site.stats.orders) || 0;
+              %>
+                <%/* ONE ROW PER SITE, and everything editable behind it in a
+                     modal. Ten sites each unfolding twelve plan ids inline is
+                     a page nobody can hold in their head; the row carries the
+                     four facts worth scanning — live, next, complete, how
+                     many orders — and the dialog carries the rest.
+
+                     <dialog> rather than a div: it traps focus, closes on
+                     Escape, and its form still POSTs normally, so the editor
+                     keeps working exactly as it did when it was a fold. */%>
+                <% var isNext = pxNext && pxNext.id === site.id; %>
+                <button type="button" class="px-row<%= pxPausedBy(site) ? ' px-row--off' : '' %><%= isNext ? ' px-row--next' : '' %>"
+                        data-px-name="<%= (site.name || host).toLowerCase() %> <%= host.toLowerCase() %>"
+                        onclick="pxOpen('<%= site.id %>')">
+                  <span class="px-row__id">
+                    <span class="px-dot<%= (isOn && lad.complete) ? ' px-dot--on' : '' %>"></span>
+                    <strong><%= site.name || host %></strong>
+                    <span class="px-row__host"><%= host %></span>
+                    <% if (!lad.complete) { %>
+                      <span class="px-pill px-pill--warn"><%= lad.filled %>/<%= lad.total %> plans</span>
+                    <% } else if (pxPausedBy(site) === 'site') { %>
+                      <span class="px-pill px-pill--muted">Paused</span>
+                    <% } else if (pxPausedBy(site) === 'suspended') { %>
+                      <%/* Named separately again, and loudest of the three,
+                           because it is the only one nobody chose. The site
+                           is switched on, its group is on, and its checkout
+                           is still eating orders. */%>
+                      <span class="px-pill px-pill--warn">Checkout dead</span>
+                    <% } else if (pxPausedBy(site) === 'group') { %>
+                      <%/* Named separately because the fix is different: this
+                           site is switched on and its group is not. */%>
+                      <span class="px-pill px-pill--muted">Paused with group</span>
+                    <% } %>
+                    <%/* Marked whenever the rotation names it and nothing
+                         is holding it back. NOT gated on a complete ladder:
+                         an unfinished site is still the one the cursor points
+                         at, and hiding the pill left the row bordered as next
+                         while saying so nowhere. The 11/12 badge above already
+                         says what is wrong with it. */%>
+                    <% if (isNext && !pxPausedBy(site)) { %>
+                      <span class="px-pill px-pill--next">Next order</span>
+                    <% } %>
+                  </span>
+                  <%/* Orders and money. The count alone stopped answering
+                       "which account is carrying the weight" the moment the
+                       same ladder started selling at four rungs in four
+                       currencies. Each currency is printed separately —
+                       adding them would produce a number true of nothing. */%>
+                  <% var pxRev = pxRevenueOf(site); %>
+                  <span class="px-row__stat">
+                    <span><strong><%= orders %></strong> <%= orders === 1 ? 'order' : 'orders' %></span>
+                    <% if (pxRev.length) { %>
+                      <span class="px-row__stat-money">
+                        <% pxRev.forEach(function (r, i) { %><%= i ? ' · ' : '' %><%= money(r.amount, r.currency) %><% }); %>
+                      </span>
+                    <% } %>
+                    <span class="px-row__stat-sub"><%= pxWhen(site.stats && site.stats.lastOrderAt) %></span>
+                  </span>
+                  <span class="px-row__chev">&rsaquo;</span>
+                </button>
+
+                <dialog class="px-modal" id="px-modal-<%= site.id %>">
+                <form action="/admin/settings/partner-experience/sites/<%= site.id %>" method="POST" class="px-card<%= isOn ? '' : ' px-card--off' %>">
+                    <div class="px-card__head">
+                      <div class="px-card__id">
+                        <span class="px-dot<%= (isOn && lad.complete) ? ' px-dot--on' : '' %>"></span>
+                        <strong><%= site.name || host %></strong>
+                        <span class="px-card__host"><%= host %></span>
+                      </div>
+                      <button type="button" class="px-modal__x" onclick="pxClose('<%= site.id %>')" aria-label="Close">&times;</button>
+                    </div>
+
+                  <div class="px-grid">
+                    <div class="form-group">
+                      <label>Name</label>
+                      <input type="text" name="siteName" value="<%= site.name || '' %>" required>
+                    </div>
+                    <div class="form-group px-grid__wide">
+                      <label>Service link</label>
+                      <input type="url" name="siteUrl" value="<%= site.url || '' %>" required>
+                    </div>
+                    <div class="form-group">
+                      <label>Step price</label>
+                      <input type="number" step="0.01" name="siteUnitPrice" value="<%= (lad.unitCents / 100).toFixed(2) %>">
+                    </div>
+                    <%/* Moving a site is a change of this one field, saved
+                         with the rest of the form. One group at a time, so
+                         a site can never be in two at once. */%>
+                    <%/* Pacing for this one account. Blank inherits — from its
+                         group if it has one, otherwise from the global
+                         default — which is why the placeholder shows the
+                         number that would apply rather than nothing. */%>
+                    <div class="form-group">
+                      <label>Orders before moving on</label>
+                      <input type="number" name="siteSalesPerSite" min="1" max="100" step="1"
+                             value="<%= site.salesPerSite || '' %>"
+                             placeholder="<%= pxPaceFor(site) %> (inherited)">
+                      <small class="px-hint">
+                        Blank inherits <%= pxPaceFor(site) %> from
+                        <%= pxPaceSrc(site) === 'group' ? 'its group' : 'the default' %>.
+                      </small>
+                    </div>
+                    <div class="form-group">
+                      <label>Group</label>
+                      <select name="siteGroupId">
+                        <option value=""<%= site.groupId ? '' : ' selected' %>>— none —</option>
+                        <% pxGroups.forEach(function (g) { %>
+                          <option value="<%= g.id %>"<%= site.groupId === g.id ? ' selected' : '' %>><%= g.name %><%= g.enabled === false ? ' (paused)' : '' %></option>
+                        <% }); %>
+                      </select>
+                    </div>
+                  </div>
+
+                  <%/* TABS, NOT A STACK. Four markets x twelve ids is
+                       forty-eight fields in one dialog; only one market is
+                       ever being edited. Every textarea stays in the DOM and
+                       only its panel is hidden, so all four still submit
+                       together and one save writes every ladder. */%>
+                  <div class="px-tabs" role="tablist">
+                    <button type="button" class="px-tab is-on" onclick="pxTab(this,'<%= site.id %>','US')"><%- include('../partials/flag', { code: 'US', label: 'United States', size: 16 }) %> US</button>
+                    <% (typeof allMarkets !== 'undefined' ? allMarkets : []).filter(function (mk) { return !mk.isDefault; }).forEach(function (mk) { %>
+                      <% var _l = (site.ladders && site.ladders[mk.id]) || {}; var _filled = (_l.plans || []).filter(Boolean).length; %>
+                      <button type="button" class="px-tab" onclick="pxTab(this,'<%= site.id %>','<%= mk.id %>')">
+                        <%- include('../partials/flag', { code: mk.id, label: mk.name, size: 16 }) %> <%= mk.id %>
+                        <span class="px-tab__n<%= _filled === 12 ? ' is-done' : '' %>"><%= _filled %>/12</span>
+                      </button>
+                    <% }); %>
+                  </div>
+
+                  <div class="px-panel" data-px-panel="<%= site.id %>-US">
+                  <div class="px-ladder">
+                    <div class="px-ladder__head">
+                      <span><%- include('../partials/flag', { code: 'US', label: 'United States', size: 16 }) %> US &mdash; the twelve plan ids</span>
+                      <span class="field-hint" style="margin:0;">One per line, lowest first</span>
+                    </div>
+                    <div class="px-ladder__body">
+                      <textarea name="sitePlans" rows="12" spellcheck="false"><%= pxLadderText(site.id) %></textarea>
+                      <%/* The prices beside the box, so a mis-pasted list is
+                           obvious at a glance rather than after a wrong
+                           charge. */%>
+                      <ol class="px-ladder__steps">
+                        <% lad.rungs.forEach(function (r) { %>
+                          <li class="<%= r.planId ? '' : 'is-empty' %>">
+                            <span class="px-ladder__n"><%= r.step %></span>
+                            <span class="px-ladder__p"><%= pxMoney(r.priceCents) %></span>
+                          </li>
+                        <% }); %>
+                      </ol>
+                    </div>
+                  </div>
+
+                  <%/* ── One ladder per country ──────────────────────────
+                       KEYED BY MARKET, NOT CURRENCY. Germany and France both
+                       charge euros and still need their own twelve ids: the
+                       plan id is where the money lands, so sharing one euro
+                       ladder would pool the revenue and leave no way to tell
+                       which country's campaign produced a sale.
+
+                       A market with no ids here simply does not open, however
+                       it is configured — see services/market.sellable. That is
+                       the safe direction: a closed market sells nothing, a
+                       market borrowing another country's plans charges the
+                       wrong amount to the wrong ledger. */%>
+                  <%/* EVERY market, not just the enabled ones. A market cannot
+                       be enabled until a ladder exists for it, so showing the
+                       box only for enabled markets made the two conditions
+                       depend on each other and neither could ever be met
+                       first. Paste the ids here, then switch the market on. */%>
+                  </div>
+
+                  <% (typeof allMarkets !== 'undefined' ? allMarkets : []).filter(function (mk) { return !mk.isDefault; }).forEach(function (mk) { %>
+                    <% var _lad = (site.ladders && site.ladders[mk.id]) || {}; %>
+                    <div class="px-panel" data-px-panel="<%= site.id %>-<%= mk.id %>" hidden>
+                    <div class="px-ladder">
+                      <div class="px-ladder__head">
+                        <span><%- include('../partials/flag', { code: mk.id, label: mk.name, size: 16 }) %> <%= mk.name %> &mdash; plan ids (<%= mk.currency %>)<%= mk.enabled ? '' : ' · market off' %></span>
+                        <span class="field-hint" style="margin:0;">Blank means this site cannot serve <%= mk.id %></span>
+                      </div>
+                      <div class="px-grid" style="margin-bottom:0.6rem">
+                        <div class="form-group">
+                          <label>Step price (<%= mk.currency %>)</label>
+                          <input type="number" step="0.01" name="ladder_<%= mk.id %>_unit"
+                                 value="<%= _lad.unitCents ? (_lad.unitCents / 100).toFixed(2) : '' %>">
+                        </div>
+                      </div>
+                      <div class="px-ladder__body">
+                        <textarea name="ladder_<%= mk.id %>_plans" rows="12" spellcheck="false"><%= (_lad.plans || []).join('\n') %></textarea>
+                      </div>
+                    </div>
+                    </div>
+                  <% }); %>
+
+                  <% var _h = pxHealth(site); %>
+                  <% if (_h.state === 'suspended') { %>
+                    <%/* The only state on this screen nobody chose, so it
+                         says what was observed and what to do about it
+                         rather than only that something is wrong. Restore
+                         clears the counter too: putting a site back with the
+                         run still over the threshold would suspend it again
+                         on its next hand-off, which reads as a broken
+                         button. */%>
+                    <div class="px-card__note px-card__note--warn" style="margin:0 0 0.8rem;padding:0.75rem 0.9rem;border-left:3px solid #b45309;background:rgba(180,83,9,0.08);">
+                      <strong>Checkout dead — out of the rotation.</strong>
+                      <%= _h.reason || 'Hand-offs stopped converting.' %><% if (_h.suspendedAt) { %> Suspended <%= pxWhen(_h.suspendedAt) %>.<% } %>
+                      A suspended Whop business still loads an iframe, so this is counted from
+                      hand-offs that never became orders rather than seen.
+                      <div style="margin-top:0.5rem;">
+                        <button type="submit" formaction="/admin/settings/partner-experience/sites/<%= site.id %>/restore" class="admin-btn admin-btn--sm">Restore to rotation</button>
+                      </div>
+                    </div>
+                  <% } else if (_h.openHandoffs) { %>
+                    <p class="px-card__hint" style="margin:0 0 0.8rem;">
+                      <%= _h.openHandoffs %> hand-off<%= _h.openHandoffs === 1 ? '' : 's' %> since the last completed order<% if (_h.firstOpenAt) { %>, oldest <%= pxWhen(_h.firstOpenAt) %><% } %>.
+                    </p>
+                  <% } %>
+
+                  <div class="px-card__foot">
+                    <label class="px-switch">
+                      <input type="checkbox" name="siteEnabled" <%= isOn ? 'checked' : '' %>>
+                      <span><%= isOn ? 'Active' : 'Paused' %></span>
+                    </label>
+                    <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
+                      <%/* Nested forms are dropped by the HTML parser, so the
+                           side actions post with formaction from inside this
+                           one rather than being forms of their own. */%>
+                      <button type="submit" formaction="/admin/settings/partner-experience/sites/<%= site.id %>/reset-stats" class="admin-btn admin-btn--sm">Reset counter</button>
+                      <button type="submit" formaction="/admin/settings/partner-experience/sites/<%= site.id %>/toggle" class="admin-btn admin-btn--sm"><%= isOn ? 'Pause' : 'Resume' %></button>
+                      <button type="submit" formaction="/admin/settings/partner-experience/saved-sites/<%= site.id %>/delete" class="admin-btn admin-btn--danger admin-btn--sm" onclick="return confirm('Remove this site? Any product it was the only site for falls back to the normal checkout.')">Remove</button>
+                      <button type="submit" class="admin-btn admin-btn--primary admin-btn--sm">Save</button>
+                    </div>
+                  </div>
+                </form>
+                </dialog>
+              <% }); %>
+                  </div>
+                    </div>
+                <% } %>
+              <% }); %>
+            </div>
+          <% } %>
+        </div>
+
+        <%/* Integration switches. The routes list that used to live here is
+             gone: everything it held now belongs to a site above, and the
+             legacy entries were converted into sites on load. */%>
+        <form action="/admin/settings/partner-experience" method="POST" id="partnerExperienceForm" class="subsection" style="display:flex;flex-direction:column;gap:1rem;margin:1.25rem 0 0;">
+          <div class="check-row">
+            <input type="checkbox" id="partnerEnabled" name="enabled" <%= partnerExperience.enabled ? 'checked' : '' %>>
+            <label for="partnerEnabled"><strong>Send buyers to partner sites</strong> — off means every product uses the normal checkout</label>
+          </div>
+
+          <%/* POOLED EMAIL AND THE SHARED KEY ARE NO LONGER EDITABLE HERE.
+
+               The key is the same `EXPERIENCE_API_KEY` hardcoded in every
+               partner site, so the field could only ever be retyped to the
+               value already stored, and a typo in it fails as a refused
+               token — indistinguishable on screen from an unreachable site.
+               It stays in the config and is still read at checkout; there is
+               simply no longer a box that can break it. Change it in the
+               environment, where the partner sites take theirs from.
+
+               Pooled email is gone. It could substitute one of our own
+               addresses for the buyer's, so the order came back under an
+               address we controlled — a pattern a processor reads as fraud,
+               and one that put us between a customer and their own receipt.
+               There is no longer a switch here, because there is no longer
+               anything to switch. */%>
+
+          <div>
+            <button type="submit" class="admin-btn admin-btn--primary">Save</button>
+          </div>
+        </form>
+
+        <%/* ── The pooled-email record ──────────────────────────────
+             Read-only, and shown only when there is something to show. The
+             add/release/clear controls are deleted: nothing claims an
+             address any more, "release" was what wiped the history of every
+             address handed out and never converted, and "clear" deleted the
+             converted rows too — the ones that say whose order is sitting
+             under one of our addresses. A one-click version of that next to
+             a record we now rely on is how it happens on a tired day.
+
+             The counts come from the pool table, which is authoritative
+             only for `converted`; the downloads read the checkout sessions
+             as well, which is why their totals can be higher. */%>
+        <% if (partnerEmailStats && partnerEmailStats.total) { %>
+        <div class="subsection">
+          <h4 class="panel-title" style="font-size:1.05rem;">
+            <%- include('../partials/icon', { name: 'users', size: 17, color: 'var(--admin-faint)' }) %>
+            Pooled email &mdash; retired
+          </h4>
+          <p class="panel-desc" style="margin-bottom:0.75rem;">
+            For a period the partner checkout was handed one of our own addresses
+            instead of the buyer's, so the order came back under an address we
+            controlled. That is switched off and the code is removed &mdash; every
+            checkout now carries the buyer's own address.
+          </p>
+          <p class="panel-desc">
+            What it recorded is kept, because an order sitting under one of these
+            addresses cannot be traced to a customer without it. Nothing here can
+            grow, and nothing here can be edited.
+          </p>
+
+          <div class="pool-stats">
+            <div class="pool-stat">
+              <div class="pool-stat__label">Converted</div>
+              <div class="pool-stat__value" style="color:var(--admin-primary)"><%= partnerEmailStats.converted %></div>
+            </div>
+            <div class="pool-stat">
+              <div class="pool-stat__label">Left assigned</div>
+              <div class="pool-stat__value"><%= partnerEmailStats.used %></div>
+            </div>
+            <div class="pool-stat">
+              <div class="pool-stat__label">Never used</div>
+              <div class="pool-stat__value" style="color:var(--admin-faint)"><%= partnerEmailStats.available %></div>
+            </div>
+            <div class="pool-stat">
+              <div class="pool-stat__label">Addresses</div>
+              <div class="pool-stat__value" style="color:var(--admin-faint)"><%= partnerEmailStats.total %></div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-top:1rem;">
+            <a class="admin-btn" href="/admin/settings/partner-experience/emails/export.csv">Download the record (CSV)</a>
+            <a class="admin-btn" href="/admin/settings/partner-experience/emails/export.csv?detail=1">Download every hand-off (CSV)</a>
+          </div>
+          <p class="field-hint" style="text-transform:none;font-family:var(--admin-font-ui);margin-top:0.6rem;">
+            The first is one row per address. The second is one row per checkout, and
+            names the real customer each address stood in for.
+          </p>
+        </div>
+        <% } %>
+      </div>
+
+
+    </div>
+  </main>
+
+
+  <script>
+    /* The add form starts hidden, so the page opens on what exists rather
+       than on an empty form. Focus moves into it on open, because a form
+       that appears without focus is one people scroll past. */
+    /* Show the import card, and hide the add form so the two are never
+       open at once claiming to do the same job. */
+    function pxImportToggle(show) {
+      var f = document.getElementById('pxImportForm');
+      var a = document.getElementById('pxAddForm');
+      if (!f) return;
+      f.style.display = show ? 'block' : 'none';
+      if (a && show) a.style.display = 'none';
+      if (show) { var t = document.getElementById('pxCsvText'); if (t) t.focus(); }
+    }
+
+    /* The chosen file becomes the contents of the textarea, so the form
+       posts as ordinary urlencoded text and the server needs no multipart
+       parser. The operator also sees exactly what is about to be sent. */
+    function pxReadCsv(input) {
+      var file = input && input.files && input.files[0];
+      var box = document.getElementById('pxCsvText');
+      if (!file || !box) return;
+      var reader = new FileReader();
+      reader.onload = function () { box.value = String(reader.result || ''); };
+      reader.onerror = function () { box.value = ''; alert('That file could not be read.'); };
+      reader.readAsText(file);
+    }
+
+    function pxToggleAdd() {
+      var f = document.getElementById('pxAddForm');
+      if (!f) return;
+      var show = f.style.display === 'none';
+      f.style.display = show ? 'block' : 'none';
+      /* Both directions, to match pxImportToggle. Two open cards stacked,
+         each with its own submit, is a card the operator can fill in and
+         then post the other one of. */
+      var imp = document.getElementById('pxImportForm');
+      if (imp && show) imp.style.display = 'none';
+      if (show) { var i = f.querySelector('input[name="siteName"]'); if (i) i.focus(); }
+    }
+
+    /* One dialog per site, opened from its row. showModal gives focus
+       trapping and Escape for free; the fallback keeps the editor reachable
+       on a browser without <dialog>. */
+    function pxOpen(id) {
+      var d = document.getElementById('px-modal-' + id);
+      if (!d) return;
+      if (typeof d.showModal === 'function') d.showModal(); else d.setAttribute('open', '');
+    }
+    function pxClose(id) {
+      var d = document.getElementById('px-modal-' + id);
+      if (!d) return;
+      if (typeof d.close === 'function') d.close(); else d.removeAttribute('open');
+    }
+
+    /* Clicking the backdrop closes. The dialog element IS the backdrop, so a
+       click landing on it rather than on the card inside means outside. */
+    document.addEventListener('click', function (e) {
+      if (e.target && e.target.classList && e.target.classList.contains('px-modal')) {
+        if (typeof e.target.close === 'function') e.target.close();
+      }
+    });
+
+    /* Market tabs. Panels are hidden, never removed, so every ladder in the
+       dialog still posts on save regardless of which tab is showing. */
+    function pxTab(btn, siteId, marketId) {
+      var wrap = btn.parentNode;
+      var tabs = wrap.querySelectorAll('.px-tab');
+      for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('is-on');
+      btn.classList.add('is-on');
+      var panels = wrap.parentNode.querySelectorAll('[data-px-panel^="' + siteId + '-"]');
+      for (var j = 0; j < panels.length; j++) {
+        panels[j].hidden = panels[j].getAttribute('data-px-panel') !== (siteId + '-' + marketId);
+      }
+    }
+
+    /* ── Folding groups ───────────────────────────────────────────────
+       Which groups are collapsed is remembered per browser, because every
+       action on this page is a form POST followed by a redirect: without
+       it, collapsing a group would come straight back open on the next
+       save, which is the opposite of tidy.
+
+       localStorage can throw outright — a browser set to block site data
+       does not return null, it raises — so every read and write is
+       guarded and the page renders correctly having remembered nothing. */
+    var PX_FOLD_KEY = 'zy.px.folded';
+    function pxFoldRead() {
+      try { return JSON.parse(localStorage.getItem(PX_FOLD_KEY) || '[]') || []; }
+      catch (e) { return []; }
+    }
+    function pxFoldWrite(list) {
+      try { localStorage.setItem(PX_FOLD_KEY, JSON.stringify(list)); } catch (e) { /* not fatal */ }
+    }
+    function pxFoldApply(key, folded) {
+      var body = document.querySelector('[data-px-body="' + (window.CSS && CSS.escape ? CSS.escape(key) : key) + '"]');
+      var btn = document.querySelector('[data-px-fold="' + (window.CSS && CSS.escape ? CSS.escape(key) : key) + '"]');
+      if (body) body.hidden = !!folded;
+      if (btn) {
+        btn.setAttribute('aria-expanded', folded ? 'false' : 'true');
+        btn.classList.toggle('is-folded', !!folded);
+      }
+    }
+    function pxFold(key) {
+      var list = pxFoldRead();
+      var i = list.indexOf(key);
+      if (i === -1) list.push(key); else list.splice(i, 1);
+      pxFoldWrite(list);
+      pxFoldApply(key, i === -1);
+      pxFoldSyncAllBtn();
+    }
+    function pxFoldAll() {
+      var keys = [].map.call(document.querySelectorAll('[data-px-body]'), function (el) {
+        return el.getAttribute('data-px-body');
+      });
+      /* One button doing both: collapse while anything is open, expand once
+         everything is shut. */
+      var anyOpen = keys.some(function (k) { return pxFoldRead().indexOf(k) === -1; });
+      var next = anyOpen ? keys.slice() : [];
+      pxFoldWrite(next);
+      keys.forEach(function (k) { pxFoldApply(k, next.indexOf(k) !== -1); });
+      pxFoldSyncAllBtn();
+    }
+    function pxFoldSyncAllBtn() {
+      var btn = document.getElementById('pxFoldAll');
+      if (!btn) return;
+      var keys = [].map.call(document.querySelectorAll('[data-px-body]'), function (el) {
+        return el.getAttribute('data-px-body');
+      });
+      var folded = pxFoldRead();
+      var allShut = keys.length && keys.every(function (k) { return folded.indexOf(k) !== -1; });
+      btn.textContent = allShut ? 'Expand all' : 'Collapse all';
+    }
+    (function () {
+      var folded = pxFoldRead();
+      folded.forEach(function (k) { pxFoldApply(k, true); });
+      pxFoldSyncAllBtn();
+    })();
+
+    /* Filter, shown once the list is long enough to need it. Matches the
+       name and the host, which is what anyone actually types. */
+    function pxFilterRows(q) {
+      var needle = String(q || '').trim().toLowerCase();
+      var rows = document.querySelectorAll('.px-row');
+      for (var i = 0; i < rows.length; i++) {
+        var hay = rows[i].getAttribute('data-px-name') || '';
+        rows[i].style.display = (!needle || hay.indexOf(needle) !== -1) ? '' : 'none';
+      }
+      /* Searching opens every group for the duration of the search: a match
+         hidden inside a folded group is a search that answers "nothing
+         found" while the thing sits two clicks away. Clearing the box puts
+         the remembered folds back. */
+      var bodies = document.querySelectorAll('[data-px-body]');
+      for (var b = 0; b < bodies.length; b++) {
+        var key = bodies[b].getAttribute('data-px-body');
+        pxFoldApply(key, needle ? false : pxFoldRead().indexOf(key) !== -1);
+      }
+      /* A group whose every row is filtered out hides too, otherwise a
+         search leaves a column of empty headers behind it. */
+      var groups = document.querySelectorAll('.px-group');
+      for (var g = 0; g < groups.length; g++) {
+        var visible = groups[g].querySelectorAll('.px-row:not([style*="none"])').length;
+        groups[g].style.display = (!needle || visible) ? '' : 'none';
+      }
+    }
+
+
+  </script>
+<style>
+  /* ── Partner sites: summary, rows, modal ───────────────────────────── */
+  .px-summary { display:flex; flex-wrap:wrap; align-items:center; gap:1.75rem;
+    background:var(--admin-bg); border:1px solid var(--admin-border-2);
+    border-radius:var(--admin-r-sm); padding:0.85rem 1.1rem; margin:0 0 1rem; }
+  .px-summary__cell { display:flex; flex-direction:column; gap:0.15rem; }
+  .px-summary__k { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.09em; color:var(--admin-muted); }
+  .px-summary__v { font-size:0.95rem; font-weight:700; color:#fff; }
+  .px-summary__v.is-warn { color:var(--admin-warn); }
+  .px-summary__of { font-weight:400; color:var(--admin-muted); font-size:0.82rem; }
+  .px-group__pace { width: 7rem; }
+  .px-hint { display: block; margin-top: .25rem; font-size: .75rem; opacity: .65; }
+  .px-row__stat-money {
+    font-size: .78rem; opacity: .85; font-variant-numeric: tabular-nums;
+    display: block; margin-top: .1rem;
+  }
+  .px-pace {
+    display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
+    margin: .75rem 0 0; padding: .7rem .9rem;
+    border: 1px solid var(--admin-border, rgba(255,255,255,.12)); border-radius: 8px;
+  }
+  .px-pace label { font-size: .82rem; opacity: .8; }
+  .px-pace input { width: 5.5rem; }
+  .px-pace__now { font-size: .82rem; opacity: .75; margin-left: auto; }
+  @media (max-width: 640px) { .px-pace__now { margin-left: 0; width: 100%; } }
+  .px-summary__link { margin-left:auto; font-size:0.82rem; color:var(--admin-primary); text-decoration:none; }
+  .px-summary__link:hover { text-decoration:underline; }
+
+  .px-filter { width:100%; margin:0 0 0.75rem; padding:0.55rem 0.8rem;
+    background:var(--admin-bg); border:1px solid var(--admin-border-2);
+    border-radius:var(--admin-r-sm); color:var(--admin-text); font-size:0.85rem; outline:none; }
+
+  .px-row { display:flex; align-items:center; gap:0.9rem; width:100%; text-align:left;
+    background:var(--admin-bg); border:1px solid var(--admin-border-2);
+    border-radius:var(--admin-r-sm); padding:0.8rem 1rem; margin-bottom:0.5rem;
+    color:var(--admin-text); cursor:pointer; font:inherit; transition:border-color .12s, background .12s; }
+  .px-row:hover { border-color:var(--admin-primary); background:var(--admin-bg-2, var(--admin-bg)); }
+  .px-row--off { opacity:0.55; }
+  .px-row--next { border-left:2px solid var(--admin-primary); }
+  .px-row__id { display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap; min-width:0; }
+  .px-row__host { font-family:var(--admin-font-mono); font-size:0.76rem; color:var(--admin-muted); }
+  .px-row__stat { margin-left:auto; text-align:right; display:flex; flex-direction:column; gap:0.1rem; white-space:nowrap; }
+  .px-row__stat-sub { font-size:0.72rem; color:var(--admin-muted); }
+  .px-row__chev { color:var(--admin-muted); font-size:1.2rem; line-height:1; }
+
+  /* margin:auto restores the centring a global reset takes away — a native
+     dialog centres itself only while its margin is auto. */
+  .px-modal { border:none; padding:0; background:transparent; max-width:min(56rem, 94vw);
+    width:100%; margin:auto; }
+  .px-modal::backdrop { background:rgba(0,0,0,0.62); }
+  .px-modal .px-card { max-height:86vh; overflow-y:auto; }
+  .px-modal__x { background:none; border:none; color:var(--admin-muted); font-size:1.6rem;
+    line-height:1; cursor:pointer; padding:0 0.25rem; }
+  .px-modal__x:hover { color:#fff; }
+
+  .px-tabs { display:flex; gap:0.35rem; flex-wrap:wrap; margin:1rem 0 0.85rem;
+    border-bottom:1px solid var(--admin-border-2); padding-bottom:0.6rem; }
+  .px-tab { background:none; border:1px solid transparent; border-radius:var(--admin-r-sm);
+    padding:0.4rem 0.7rem; color:var(--admin-muted); cursor:pointer; font:inherit; font-size:0.83rem; }
+  .px-tab:hover { color:#fff; }
+  .px-tab.is-on { background:var(--admin-bg); border-color:var(--admin-border-2); color:#fff; }
+  .px-tab__n { font-size:0.7rem; color:var(--admin-muted); margin-left:0.3rem; }
+  .px-tab__n.is-done { color:var(--admin-ok, #4ade80); }
+
+  .px-head__acts { display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap; }
+  .px-newgroup { display:flex; align-items:center; gap:0.4rem; }
+  .px-newgroup input { padding:0.42rem 0.6rem; background:var(--admin-bg);
+    border:1px solid var(--admin-border-2); border-radius:var(--admin-r-sm);
+    color:var(--admin-text); font-size:0.82rem; outline:none; width:11rem; }
+
+  .px-group { margin:0 0 0.9rem; }
+  .px-group--bare { margin:0; }
+  .px-group--off .px-row { opacity:0.45; }
+  .px-group__bar { display:flex; align-items:center; gap:0.7rem; flex-wrap:wrap;
+    padding:0.55rem 0.7rem; margin-bottom:0.5rem;
+    border-bottom:1px solid var(--admin-border-2); }
+  .px-group__dot { width:7px; height:7px; border-radius:50%; background:var(--admin-border-2); flex-shrink:0; }
+  .px-group__dot.is-on { background:var(--admin-primary); }
+  .px-group__name { background:none; border:1px solid transparent; border-radius:var(--admin-r-sm);
+    color:#fff; font:inherit; font-size:0.9rem; font-weight:600; padding:0.25rem 0.45rem; min-width:9rem; }
+  .px-group__name:hover, .px-group__name:focus { border-color:var(--admin-border-2); outline:none; }
+  .px-group__name--static { color:var(--admin-muted); font-weight:600; }
+  .px-group__count { font-size:0.78rem; color:var(--admin-muted); display:flex; align-items:center; gap:0.5rem; }
+  .px-group__live { color:var(--admin-primary); }
+  .px-group__acts { margin-left:auto; display:flex; gap:0.4rem; flex-wrap:wrap; }
+  .px-fold-btn { background:none; border:none; color:var(--admin-muted); cursor:pointer;
+    font-size:0.85rem; line-height:1; padding:0.2rem 0.15rem; flex-shrink:0;
+    transition:transform .12s, color .12s; }
+  .px-fold-btn:hover { color:#fff; }
+  .px-fold-btn.is-folded { transform:rotate(-90deg); }
+  .px-group__empty { font-size:0.8rem; color:var(--admin-muted); padding:0.4rem 0.7rem 0.9rem; margin:0; }
+
+  .px-map-fold > summary { cursor:pointer; display:flex; align-items:center; justify-content:space-between;
+    gap:1rem; padding:0.7rem 0.9rem; background:var(--admin-bg); border:1px solid var(--admin-border-2);
+    border-radius:var(--admin-r-sm); font-size:0.86rem; color:#fff; margin-bottom:0.75rem; }
+  .px-map-fold > summary:hover { border-color:var(--admin-primary); }
+</style>
+</body>
+</html>

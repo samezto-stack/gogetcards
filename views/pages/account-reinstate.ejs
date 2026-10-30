@@ -1,0 +1,124 @@
+<%- include('../partials/account-head', { customerDoc, section }) %>
+<%
+  /* ── Keep a cancelled order ─────────────────────────────────────────
+     The page the "Keep my order" email button lands on. It lists every
+     cancelled order this customer holds for one product and lets them put
+     any of them back, one button each. A GET here changes nothing.
+
+     THE MONEY DOES NOT MOVE. The customer paid when they ordered, the
+     refund was queued and never issued, and keeping the order withdraws
+     that queue entry. Nothing is charged and nothing is returned, and the
+     page says so before the button rather than after it.
+
+     THIS PAGE PROVES NOTHING. Every condition it renders — the deadline,
+     the refund not yet issued — is checked again server-side on POST in a
+     guarded update (see routes/account.js). A stale tab cannot revive an
+     order whose refund has since gone out. */
+  const money = (c, cur) => (typeof marketMoney === 'function'
+    ? marketMoney(Number(c || 0), cur || 'USD')
+    : `${cur || 'USD'} ${(Number(c || 0) / 100).toFixed(2)}`);
+  const day = (d) => d ? new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '';
+  const title = (product && product.title) || (rows[0] && (rows[0].order.products || [])[0]) || 'this set';
+  const open = rows.filter((r) => r.reinstatable && r.reinstatable.can);
+  const kept_ = rows.filter((r) => r.order.reinstatedAt && !r.order.cancelledAt);
+  const closed = rows.filter((r) => r.order.cancelledAt && !(r.reinstatable && r.reinstatable.can));
+  const refused = typeof refusedReason === 'string' ? refusedReason : '';
+%>
+
+<% if (kept) { %>
+  <div class="ac__notice ac__notice--good">
+    <strong>Your order is back on.</strong>
+    The cancellation and the queued refund have been withdrawn, and nothing has been charged again.
+    A confirmation is on its way to your email, and you&rsquo;ll get a tracking number when it ships.
+  </div>
+<% } %>
+<% if (refused) { %>
+  <div class="ac__notice ac__notice--err"><strong>We couldn&rsquo;t reinstate that.</strong> <%= refused %></div>
+<% } %>
+
+<section class="ac__sheet ac__sheet--accent">
+  <div class="ac__sheet-head">
+    <h2 class="ac__sheet-title">Keep my order</h2>
+    <a class="ac__sheet-more" href="<%= marketPath('/account/orders') %>">All orders</a>
+  </div>
+
+  <div class="ac__body">
+    <% if (!rows.length) { %>
+      <p class="ac__detail">There are no cancelled orders for <%= title %> on this account.</p>
+    <% } else { %>
+      <h3 class="ac__minor"><%= title %> has been released</h3>
+      <ul class="ac__list">
+        <li>Keeping an order puts it back exactly as it was, at the price you already paid. <strong>Nothing is charged again.</strong></li>
+        <li>The queued refund for that order is withdrawn. If you do nothing, it goes ahead as promised after the deadline below.</li>
+        <li>A reinstated order ships with everybody else&rsquo;s, and you can still cancel it from your account before it leaves.</li>
+      </ul>
+
+      <% open.forEach(function (r) { const order = r.order; const cur = order.currency || 'USD'; %>
+        <div class="ac__order ac__order--static" style="margin-top:1rem">
+          <% if (r.image) { %>
+            <img class="ac__thumb" <%- productImage.attrs(r.image, 90) %> alt="" width="72" height="72" loading="lazy" decoding="async">
+          <% } else { %><span class="ac__thumb ac__thumb--blank"></span><% } %>
+          <div class="ac__order-main">
+            <span class="ac__order-title"><%= title %></span>
+            <p class="ac__order-meta">
+              <span>Quantity <%= Number(order.quantity) || 1 %></span>
+              <span class="ac__mono"><%= r.reference %></span>
+              <span>Cancelled <%= day(order.cancelledAt) %></span>
+              <span>Keep by end of <%= day(order.reinstateDeadline) %></span>
+            </p>
+          </div>
+          <div class="ac__order-right">
+            <p class="ac__price"><%= money(order.totalPrice, cur) %></p>
+            <form method="POST" action="<%= marketPath('/account/orders/' + r.reference + '/keep') %>">
+              <button type="submit" class="ac__btn ac__btn--primary">Keep this order</button>
+            </form>
+          </div>
+        </div>
+      <% }); %>
+
+      <% kept_.forEach(function (r) { const order = r.order; const cur = order.currency || 'USD'; %>
+        <div class="ac__order ac__order--static" style="margin-top:1rem">
+          <% if (r.image) { %>
+            <img class="ac__thumb" <%- productImage.attrs(r.image, 90) %> alt="" width="72" height="72" loading="lazy" decoding="async">
+          <% } else { %><span class="ac__thumb ac__thumb--blank"></span><% } %>
+          <div class="ac__order-main">
+            <span class="ac__order-title"><%= title %></span>
+            <p class="ac__order-meta">
+              <span>Quantity <%= Number(order.quantity) || 1 %></span>
+              <span class="ac__mono"><%= r.reference %></span>
+              <span>Reinstated <%= day(order.reinstatedAt) %></span>
+            </p>
+          </div>
+          <div class="ac__order-right">
+            <p class="ac__price"><%= money(order.totalPrice, cur) %></p>
+            <a class="ac__btn ac__btn--ghost" href="<%= marketPath('/account/orders/' + r.reference) %>">View order</a>
+          </div>
+        </div>
+      <% }); %>
+
+      <% if (closed.length) { %>
+        <h3 class="ac__minor" style="margin-top:1.5rem">Not available</h3>
+        <% closed.forEach(function (r) { const order = r.order; %>
+          <div class="ac__order ac__order--static" style="margin-top:0.6rem">
+            <span class="ac__thumb ac__thumb--blank"></span>
+            <div class="ac__order-main">
+              <span class="ac__order-title"><%= title %></span>
+              <p class="ac__order-meta">
+                <span>Quantity <%= Number(order.quantity) || 1 %></span>
+                <span class="ac__mono"><%= r.reference %></span>
+              </p>
+              <p class="ac__muted" style="margin:0.3rem 0 0"><%= r.reinstatable.reason %></p>
+            </div>
+          </div>
+        <% }); %>
+      <% } %>
+    <% } %>
+  </div>
+</section>
+
+<div class="ac__notice">
+  <strong>Not sure?</strong>
+  Doing nothing is fine &mdash; the refund goes ahead as promised and you&rsquo;ll get an email when it&rsquo;s sent.
+  <a href="<%= marketPath('/contact') %>">Contact Zyphera support &rarr;</a>
+</div>
+<%- include('../partials/account-foot') %>

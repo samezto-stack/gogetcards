@@ -1,0 +1,199 @@
+<%/* ── Approximate local price ────────────────────────────────
+     Renders "about CA$615" under a US$ price, so somebody in Canada
+     reaching the payment step already knows roughly what their bank will
+     show them. It is a courtesy line and nothing else.
+
+     WHY THIS DOES NOT UPSET MERCHANT CENTER. Google compares the price in
+     the feed with the price on the landing page. Both are the same USD
+     number, server-rendered, identical for every visitor and for the
+     crawler. This adds a second, clearly-labelled figure next to it; it
+     never replaces the price, never appears in the JSON-LD, never reaches
+     the feed, and is never the number anyone is charged.
+
+     WHY LOCALE AND NOT IP. Switching content on IP is the shape that gets
+     called cloaking, because the crawler cannot see what a visitor in
+     another country was served. This reads the browser's OWN locale, runs
+     the same code for everyone, and leaves the server's HTML byte-identical
+     for all of them. A visitor whose browser says en-US sees no estimate
+     even if they are sitting in Toronto, which is the safe way round: a
+     missing estimate costs nothing, a wrong one costs trust.
+
+     Included by layout.ejs and by checkout-token-step1.ejs, which renders
+     standalone.
+
+     ONLY IN THE DEFAULT MARKET. Every hook this reads is named
+     `data-usd-cents` and is treated as US cents, but on a localised
+     storefront that attribute now carries the local amount — pence on
+     /uk, euro cents on /eu. Converting those again would print "£59.99 /
+     approx CA$81" from a pound figure run through a dollar rate: a second
+     wrong number beside a correct one. There is also nothing to estimate
+     on those pages, because the price shown IS the currency the customer
+     is charged in. */%>
+<% if (typeof market === 'undefined' || !market || market.isDefault) { %>
+<script>
+(function () {
+  <%/* typeof-guarded rather than assuming the local is present. A template
+       that throws on a missing local does not lose an estimate, it loses
+       the whole page: layout.ejs includes this, so every public page would
+       return a blank 500. That is exactly how googleAdsId took the site
+       down once already. No rates simply means no estimate. */%>
+  var FX = <%- jsonForScript((typeof fx !== 'undefined' && fx && fx.rates) ? fx.rates : {}) %>;
+
+  /* Region subtag -> currency. Only the markets we would actually ship to
+     and hold a rate for; anything else falls through and shows nothing. */
+  var CURRENCY_BY_REGION = {
+    CA: 'CAD', GB: 'GBP', AU: 'AUD', NZ: 'NZD', JP: 'JPY', MX: 'MXN',
+    SG: 'SGD', CH: 'CHF', SE: 'SEK', NO: 'NOK', DK: 'DKK', PL: 'PLN',
+    BR: 'BRL', AE: 'AED',
+    AT: 'EUR', BE: 'EUR', CY: 'EUR', DE: 'EUR', EE: 'EUR', ES: 'EUR',
+    FI: 'EUR', FR: 'EUR', GR: 'EUR', HR: 'EUR', IE: 'EUR', IT: 'EUR',
+    LT: 'EUR', LU: 'EUR', LV: 'EUR', MT: 'EUR', NL: 'EUR', PT: 'EUR',
+    SI: 'EUR', SK: 'EUR'
+  };
+
+  /* IANA time zone -> region, for the case language alone gets wrong.
+     Plenty of Canadians run an en-US browser, and language-only detection
+     showed them nothing at all — which on the launch market is most of the
+     point of this feature. A time zone of America/Toronto is a far better
+     guess at "which currency will my bank charge me in" than a language tag
+     that Windows set during setup.
+
+     Still the browser's own value, still the same code for every visitor,
+     still nothing to do with IP. */
+  var REGION_BY_TZ = {
+    'America/Toronto': 'CA', 'America/Vancouver': 'CA', 'America/Edmonton': 'CA',
+    'America/Winnipeg': 'CA', 'America/Halifax': 'CA', 'America/St_Johns': 'CA',
+    'America/Regina': 'CA', 'America/Montreal': 'CA', 'America/Moncton': 'CA',
+    'Europe/London': 'GB', 'Europe/Belfast': 'GB',
+    'Pacific/Auckland': 'NZ', 'Asia/Tokyo': 'JP', 'Asia/Singapore': 'SG',
+    'Asia/Dubai': 'AE', 'America/Sao_Paulo': 'BR',
+    'America/Mexico_City': 'MX', 'America/Tijuana': 'MX', 'America/Monterrey': 'MX',
+    'America/Cancun': 'MX',
+    'Europe/Zurich': 'CH', 'Europe/Stockholm': 'SE', 'Europe/Oslo': 'NO',
+    'Europe/Copenhagen': 'DK', 'Europe/Warsaw': 'PL',
+    'Europe/Berlin': 'DE', 'Europe/Paris': 'FR', 'Europe/Madrid': 'ES',
+    'Europe/Rome': 'IT', 'Europe/Amsterdam': 'NL', 'Europe/Brussels': 'BE',
+    'Europe/Vienna': 'AT', 'Europe/Dublin': 'IE', 'Europe/Lisbon': 'PT',
+    'Europe/Helsinki': 'FI', 'Europe/Athens': 'GR', 'Europe/Bratislava': 'SK',
+    'Europe/Ljubljana': 'SI', 'Europe/Tallinn': 'EE', 'Europe/Riga': 'LV',
+    'Europe/Vilnius': 'LT', 'Europe/Luxembourg': 'LU', 'Europe/Malta': 'MT',
+    'Europe/Zagreb': 'HR', 'Asia/Nicosia': 'CY'
+  };
+
+  function regionFromTimeZone() {
+    try {
+      var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      if (REGION_BY_TZ[tz]) return REGION_BY_TZ[tz];
+      /* Every Australia/* zone is Australia; no need to list them. */
+      if (tz.indexOf('Australia/') === 0) return 'AU';
+    } catch (e) { /* no-op */ }
+    return '';
+  }
+
+  function regionFromLanguage() {
+    try {
+      var tags = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language]) || [];
+      try { tags = tags.concat([Intl.NumberFormat().resolvedOptions().locale]); } catch (e) { /* old browser */ }
+      for (var i = 0; i < tags.length; i++) {
+        var m = /^[a-z]{2,3}[-_]([A-Za-z]{2})\b/.exec(String(tags[i] || ''));
+        if (m) return m[1].toUpperCase();
+      }
+    } catch (e) { /* no-op */ }
+    return '';
+  }
+
+  /* Time zone first, language second. The common miss is a Canadian or a
+     Brit whose browser reports en-US; the cost of preferring the time zone
+     is that somebody travelling sees their host country's currency, which
+     is a far rarer case and a much smaller annoyance than seeing nothing. */
+  var code = CURRENCY_BY_REGION[regionFromTimeZone()] || CURRENCY_BY_REGION[regionFromLanguage()];
+  var rate = code && FX[code];
+  /* No region, a US visitor, an unsupported market, or a rate we never
+     received: show nothing at all. Silence is the correct fallback. */
+  if (!rate) return;
+
+  function money(cents) {
+    var value = (Number(cents) / 100) * rate;
+    /* Round to whole units above a hundred: "about CA$615" reads as an
+       estimate, "about CA$615.37" reads like a price, which is exactly the
+       thing this must not be mistaken for. */
+    var rounded = value >= 100 ? Math.round(value) : Math.round(value * 100) / 100;
+    try {
+      /* Formatted in en-US ON PURPOSE, not in the visitor's own locale.
+         A Canadian browser renders CAD as a bare "$411", an Australian one
+         renders AUD as "$411", and so do NZD, MXN and SGD — which would put
+         "US$299.98" directly above "about $411" and reintroduce the exact
+         ambiguity this whole change exists to remove. en-US is the only
+         common locale that distinguishes all of them: CA$, A$, NZ$, MX$,
+         SGD, alongside £, € and ¥. The cost is US-style digit grouping in a
+         few locales, which is a far smaller problem than two dollar signs
+         meaning two different currencies on one line. */
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency', currency: code,
+        minimumFractionDigits: value >= 100 ? 0 : 2,
+        maximumFractionDigits: value >= 100 ? 0 : 2
+      }).format(rounded);
+    } catch (e) {
+      return rounded + ' ' + code;
+    }
+  }
+
+  function render(root) {
+    var nodes = (root || document).querySelectorAll('[data-usd-cents]:not([data-fx-done])');
+    for (var i = 0; i < nodes.length; i++) {
+      var el = nodes[i];
+      el.setAttribute('data-fx-done', '1');
+      var cents = Number(el.getAttribute('data-usd-cents'));
+      if (!Number.isFinite(cents) || cents <= 0) continue;
+      /* Two spans rather than one string, so the qualifier can be set small
+         and quiet while the amount stays readable. A single muted sentence
+         under a large serif price reads as leftover body text; this reads as
+         an annotation belonging to the price. */
+      var note = document.createElement('span');
+      note.className = 'fx-approx';
+      note.setAttribute('title', 'Estimate only. You are charged ' + (el.getAttribute('data-usd-label') || 'the US dollar price') + '. Your bank sets the final rate.');
+
+      var label = document.createElement('span');
+      label.className = 'fx-approx__label';
+      label.textContent = 'approx';
+
+      var amount = document.createElement('span');
+      amount.className = 'fx-approx__amount';
+      amount.textContent = money(cents);
+
+      /* An inner chip, so the outer span can claim a whole flex row without
+         also being stretched to its width. On the product page the price
+         wrap is a wrapping flex row: flex-basis:100% is what pushes this
+         onto its own line, and it also makes the element full width, which
+         on a phone drew a pill the width of the screen. The visual now
+         lives on this inner span, which is free to shrink to its content. */
+      var chip = document.createElement('span');
+      chip.className = 'fx-approx__chip';
+      chip.appendChild(label);
+      chip.appendChild(amount);
+      note.appendChild(chip);
+      /* Appended to the price CONTAINER, not inside the price itself. Inside,
+         it landed between the price and the struck-through compare price on a
+         product card, interrupting "US$299.98 / US$349.99 / Save 14%" with an
+         unrelated line. At the end of the container it follows the whole
+         price group, which is where an annotation about it belongs. */
+      (el.parentNode || el).appendChild(note);
+    }
+  }
+
+  function ready(fn) {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
+    else fn();
+  }
+  ready(function () { render(document); });
+
+  /* The cart drawer and the quantity control rewrite totals after load, so
+     re-run on the events this site already fires for that. Guarded by
+     data-fx-done, so re-running is free. */
+  ['cart:updated', 'zyphera:price-changed'].forEach(function (evt) {
+    document.addEventListener(evt, function () { render(document); });
+  });
+  window.__zypheraFxRender = render;
+})();
+</script>
+<% } %>

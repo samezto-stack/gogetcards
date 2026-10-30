@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<%/* The partner needs to see this page's origin as the Referer so it can
+     address its completion message back to exactly this window and nothing
+     else. strict-origin-when-cross-origin sends the origin and no path, which
+     is what that check needs and nothing more — the token in this URL never
+     crosses. */%>
+<%# <meta name="referrer" content="strict-origin-when-cross-origin"> %>
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0B0F14">
+<title><%= pageTitle %></title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%230B0F14'/><g fill='%23A78BFA'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/checkout.css">
+<%/* NO GOOGLE TAG ON THE PAYMENT STEP. Meta and Clarity still run, so the
+     step stays measurable; only Google is held back here. The purchase
+     conversion is unaffected — it fires on the thank-you page against a
+     click id cookied on the landing page, long before this step. */%>
+<%- include('../partials/analytics', { googleAds: false }) %>
+<%- include('../partials/fx-approx') %>
+<style>
+  /* The frame holding the payment step. No border, no shadow, no rounded
+     corner: anything that draws an edge around it says "this is a different
+     website", which is the exact impression this page exists to remove.
+
+     Height is set from the inside. The partner page measures itself and
+     posts its height up; until it does, this is tall enough that the first
+     paint is a payment form and not a letterbox. */
+  .ck-embed { width: 100%; border: 0; display: block; min-height: 620px; background: transparent; }
+  .ck-embed-wrap { position: relative; }
+
+  .ck-embed-loading {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    min-height: 620px; color: var(--color-text-muted); font-size: 13px;
+  }
+  .ck-embed-loading[hidden] { display: none; }
+
+  /* Shown only if the frame never paints. It is a real way out, not an
+     apology: the same destination the customer would have been sent to if
+     this page had never existed. */
+  .ck-embed-fallback {
+    max-width: 380px; margin: 0 auto; padding: 28px 24px; text-align: center;
+    line-height: 1.6; font-size: 13.5px; color: var(--color-text-muted);
+  }
+  .ck-embed-fallback h2 { font-family: var(--font-heading); font-size: 16px; color: var(--color-white); margin: 0 0 10px; }
+  .ck-embed-fallback a {
+    display: inline-block; margin-top: 16px; padding: 12px 22px; border-radius: 8px;
+    background: var(--color-accent, #A78BFA); color: #0B0F14; font-weight: 700;
+    text-decoration: none; font-size: 14px;
+  }
+
+  /* ── Payment window state ─────────────────────────────────────────────
+     Deliberately quiet. Everything here is a waiting room: the customer's
+     attention belongs in the window that just opened, and a page competing
+     for it is a page pulling them away from paying. */
+  .ck-paywin { padding-top: 4px; }
+  .ck-paywin-note {
+    margin: 12px 0 0; text-align: center;
+    font-size: 12.5px; color: var(--color-text-muted); line-height: 1.55;
+  }
+  .ck-paywin-wait {
+    padding: 22px 20px; border-radius: 12px;
+    border: 1px solid var(--color-border-light); background: rgba(255,255,255,0.02);
+  }
+  .ck-paywin-wait[hidden], .ck-paywin-err[hidden] { display: none; }
+  .ck-paywin-wait-h {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: var(--color-white);
+  }
+  .ck-paywin-wait p { margin: 10px 0 0; font-size: 13px; line-height: 1.6; color: var(--color-text-muted); }
+  .ck-paywin-actions { display: flex; gap: 18px; margin-top: 16px; flex-wrap: wrap; }
+  .ck-paywin-link {
+    background: none; border: 0; padding: 0; cursor: pointer;
+    font-size: 12.5px; font-weight: 600; color: var(--color-accent, #A78BFA);
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .ck-paywin-cancel { color: var(--color-text-muted); }
+  .ck-paywin-err {
+    margin: 14px 0 0; padding: 12px 14px; border-radius: 10px;
+    border: 1px solid rgba(196,72,92,0.35); background: rgba(196,72,92,0.06);
+    font-size: 12.5px; line-height: 1.6; color: var(--color-text);
+  }
+</style>
+</head>
+<body>
+
+<%- include('../partials/checkout-header') %>
+
+<main class="ck-main">
+
+  <div class="ck-summary-col"><aside class="ck-summary" aria-label="Order summary">
+    <button type="button" class="ck-summary-toggle" aria-expanded="false" id="ck-summary-toggle">
+      <span class="ck-summary-toggle-label">Show order summary <span class="ck-summary-toggle-caret">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+      </span></span>
+      <span class="ck-summary-total-compact"><%= money(priced.total) %></span>
+    </button>
+
+    <div class="ck-summary-body">
+      <h2 class="ck-summary-h">Your order</h2>
+
+      <div class="ck-item">
+        <div class="ck-thumb">
+          <% if (priced.product.imageUrl) { %>
+            <img src="<%= priced.product.imageUrl %>" alt="" width="64" height="64" loading="lazy">
+          <% } %>
+          <% if (priced.quantity > 1) { %>
+            <span class="ck-thumb-qty" style="display:grid" aria-label="Quantity <%= priced.quantity %>"><%= priced.quantity %></span>
+          <% } %>
+        </div>
+        <div class="ck-item-body">
+          <p class="ck-item-name"><%= priced.product.title %></p>
+          <div class="ck-item-badges">
+            <span class="ck-item-badge"><%= priced.isPreorder ? 'Preorder' : 'In stock' %></span>
+            <span class="ck-item-badge ck-item-qty">Qty: <%= priced.quantity %></span>
+          </div>
+        </div>
+        <div class="ck-item-prices">
+          <span class="ck-item-price"><%= money(priced.total) %></span>
+        </div>
+      </div>
+
+      <div class="ck-totals">
+        <div class="ck-total-row"><span>Subtotal</span><span><%= money(priced.total) %></span></div>
+        <div class="ck-total-row"><span>Shipping</span><span class="ck-free">Free</span></div>
+        <div class="ck-total-row"><span>Taxes</span><span class="ck-muted">Included</span></div>
+        <div class="ck-total-row ck-total-row-grand">
+          <span>Total</span>
+          <span class="ck-grand-value"><span class="ck-grand-line" data-usd-cents="<%= priced.total %>" data-usd-label="<%= priced.currency %> <%= money(priced.total) %>"><span class="ck-grand-currency"><%= priced.currency %></span><span class="ck-grand-amount"><%= money(priced.total) %></span></span></span>
+        </div>
+      </div>
+    </div>
+  </aside></div>
+
+  <div class="ck-form-col">
+    <h1 class="ck-title">Secure payment</h1>
+    <p class="ck-title-sub">Your details are saved. Complete payment below to place your order.</p>
+
+    <% if (mode === 'window') { %>
+      <%/* ── The payment window ────────────────────────────────────────────
+           WHY NOT INLINE. A bank's 3-D Secure challenge is very often served
+           with frame-ancestors 'none', because refusing to be framed is the
+           entire point of an anti-fraud page. Inline, the payment sits three
+           frames deep — zypheratcg, the partner, Whop, then the bank — and a
+           customer whose card challenges gets a blank box instead of a
+           payment they can finish. Apple Pay and Google Pay do not survive
+           the nesting either.
+
+           A window is a TOP-LEVEL browsing context. There is no frame for
+           the bank to refuse, and the wallets come back. The customer's own
+           window never leaves zypheratcg: it stays on this page, dimmed,
+           waiting, and takes over again the moment payment completes.
+
+           The window is opened synchronously inside the click, which is what
+           keeps every popup blocker out of the way. If one still refuses,
+           window.open returns null and the customer is redirected exactly as
+           they are today — no dead end. */%>
+      <div class="ck-paywin" id="ck-paywin">
+        <button type="button" class="ck-cta" id="ck-pay-open">
+          <span class="ck-cta-main">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Pay <%= money(priced.total) %>
+          </span>
+        </button>
+        <p class="ck-paywin-note">Opens a secure payment window. Your order stays here.</p>
+
+        <div class="ck-paywin-wait" id="ck-paywin-wait" hidden aria-live="polite">
+          <div class="ck-paywin-wait-h"><span class="ck-spinner" aria-hidden="true"></span> Waiting for payment</div>
+          <p>Finish paying in the window that just opened. This page will update by itself the moment it is done.</p>
+          <div class="ck-paywin-actions">
+            <button type="button" class="ck-paywin-link" id="ck-pay-reopen">Reopen the payment window</button>
+            <button type="button" class="ck-paywin-link ck-paywin-cancel" id="ck-pay-cancel">Cancel</button>
+          </div>
+        </div>
+
+        <p class="ck-paywin-err" id="ck-paywin-err" hidden></p>
+      </div>
+
+      <form id="ck-embed-form" method="POST" action="<%= paymentAction %>" target="zypheraPay" hidden>
+        <input type="hidden" name="<%= partnerTokenParam %>" value="<%= partnerToken %>">
+        <%/* This page's own origin, stated rather than left to be inferred.
+             The partner needs it as postMessage's targetOrigin, and it used
+             to recover it by parsing document.referrer — which works until a
+             visitor's browser sends none. Brave, Firefox in strict mode and
+             stripping proxies all send none, and those customers got no
+             greeting, an eight-second wait and the plain redirect. They still
+             paid, so it never surfaced as a failure; they just quietly got
+             the worse checkout.
+
+             The partner validates this against its own allowlist before
+             using it — it selects from a fixed set, it cannot introduce a new
+             one. See parentOriginFrom() there. */%>
+        <input type="hidden" name="parentOrigin" value="<%= selfOrigin %>">
+        <% Object.keys(carried || {}).forEach(function (k) { %>
+          <input type="hidden" name="<%= k %>" value="<%= carried[k] %>">
+        <% }); %>
+      </form>
+    <% } else { %>
+    <div class="ck-embed-wrap">
+      <div class="ck-embed-loading" id="ck-embed-loading" aria-live="polite">
+        <span class="ck-spinner" aria-hidden="true"></span> Loading secure payment&hellip;
+      </div>
+      <%/* NO src. The frame is navigated by the form below it, which POSTs
+           the one-time token into it, so the URL it loads carries no query
+           string at all — nothing in this page's source, nothing in the
+           partner's access log, nothing for Whop's iframe to inherit as a
+           referrer.
+
+           allow="payment" is kept even though the wallet buttons do not
+           survive a nested frame in practice. It costs nothing, it is
+           required on every frame in the chain if they ever do, and removing
+           it would guarantee they never can. */%>
+      <iframe
+        id="ck-embed"
+        name="ck-embed"
+        class="ck-embed"
+        title="Secure payment"
+        allow="payment *; publickey-credentials-get *; clipboard-write"
+        <%# referrerpolicy="strict-origin-when-cross-origin" %>
+        referrerpolicy="no-referrer"
+        hidden></iframe>
+
+      <%/* Submitted by script the moment the page is ready. It is a real
+           form rather than a fetch because only a navigation can put a
+           cross-origin document inside a frame, and only a POST keeps the
+           token out of the URL that navigation produces. */%>
+      <form id="ck-embed-form" method="POST" action="<%= paymentAction %>" target="ck-embed" hidden>
+        <input type="hidden" name="<%= partnerTokenParam %>" value="<%= partnerToken %>">
+        <%/* This page's own origin, stated rather than left to be inferred.
+             The partner needs it as postMessage's targetOrigin, and it used
+             to recover it by parsing document.referrer — which works until a
+             visitor's browser sends none. Brave, Firefox in strict mode and
+             stripping proxies all send none, and those customers got no
+             greeting, an eight-second wait and the plain redirect. They still
+             paid, so it never surfaced as a failure; they just quietly got
+             the worse checkout.
+
+             The partner validates this against its own allowlist before
+             using it — it selects from a fixed set, it cannot introduce a new
+             one. See parentOriginFrom() there. */%>
+        <input type="hidden" name="parentOrigin" value="<%= selfOrigin %>">
+        <%/* Asks the partner for the stripped-down panel: no header, no
+             order summary, no heading, because this page already draws all
+             three. It has to be explicit now that the payment WINDOW also
+             arrives by POST — that one is a whole page and keeps its own
+             chrome. Without this the frame would render a second header and
+             a second total inside the first ones. */%>
+        <input type="hidden" name="embed" value="1">
+        <% Object.keys(carried || {}).forEach(function (k) { %>
+          <input type="hidden" name="<%= k %>" value="<%= carried[k] %>">
+        <% }); %>
+      </form>
+
+      <div class="ck-embed-fallback" id="ck-embed-fallback" hidden>
+        <h2>Opening the payment page</h2>
+        <p>The payment step could not be shown here, so we are taking you to it directly. Nothing has been charged.</p>
+        <a href="<%= fallbackUrl %>" id="ck-embed-fallback-link">Continue to payment</a>
+      </div>
+    </div>
+    <% } %>
+  </div>
+
+</main>
+
+<script>
+(function () {
+  var MODE           = <%- jsonForScript(mode) %>;
+  var PARTNER_ORIGIN = <%- jsonForScript(partnerOrigin) %>;
+  var FALLBACK_URL   = <%- jsonForScript(fallbackUrl) %>;
+  var form = document.getElementById('ck-embed-form');
+  var done = false;
+
+  /* ── Completion, shared by both modes ──────────────────────────────────
+     The partner signs the order fields on its own server and sends them
+     here. This page rebuilds the thank-you URL from them against its OWN
+     origin, so the receipt takes over the customer's window rather than
+     appearing inside a payment frame or being stranded in a payment window.
+
+     The signature is what makes the data trustworthy, and /thank-you checks
+     it server-side exactly as it does for a redirected customer. Nothing is
+     trusted because it arrived by message: the message decides WHERE to go,
+     never what is true. */
+  function finish(msg) {
+    if (done) return;
+    done = true;
+    var url = new URL('/thank-you', window.location.origin);
+    Object.keys(msg.fields).forEach(function (k) {
+      var v = msg.fields[k];
+      if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
+    });
+    if (msg.iat) url.searchParams.set('iat', String(msg.iat));
+    if (msg.sig) url.searchParams.set('sig', String(msg.sig));
+    window.location.assign(url.toString());
+  }
+
+  /* ══════════════════════════════════════════════════════════════════════
+     PAYMENT WINDOW
+     ══════════════════════════════════════════════════════════════════════ */
+  if (MODE === 'window') {
+    var openBtn   = document.getElementById('ck-pay-open');
+    var reopenBtn = document.getElementById('ck-pay-reopen');
+    var cancelBtn = document.getElementById('ck-pay-cancel');
+    var wait      = document.getElementById('ck-paywin-wait');
+    var errEl     = document.getElementById('ck-paywin-err');
+    var win = null, watcher = null, greeted = false;
+
+    function showError(text) {
+      errEl.textContent = text;
+      errEl.hidden = false;
+    }
+
+    function idle() {
+      wait.hidden = true;
+      openBtn.hidden = false;
+      if (watcher) { clearInterval(watcher); watcher = null; }
+    }
+
+    function watch() {
+      if (watcher) clearInterval(watcher);
+      /* A closed window is the only signal a browser gives us that the
+         customer walked away — there is no "cancelled" event. Polling is
+         the documented way to notice it, and it costs nothing. */
+      watcher = setInterval(function () {
+        if (done) { clearInterval(watcher); return; }
+        if (win && win.closed) {
+          idle();
+          showError(greeted
+            ? 'The payment window was closed before payment finished. Nothing has been charged.'
+            : 'The payment window closed before it finished loading. Nothing has been charged.');
+        }
+      }, 700);
+    }
+
+    function openWindow() {
+      errEl.hidden = true;
+
+      /* Opened SYNCHRONOUSLY inside the click, with no URL. That is what
+         keeps popup blockers out of the way — a window opened during a real
+         user gesture is allowed; one opened in a callback afterwards is not.
+         The form then navigates it, which is also what keeps the token in a
+         POST body rather than in the window's address bar. */
+      var features = 'width=520,height=760,menubar=no,toolbar=no,location=yes,status=no,resizable=yes,scrollbars=yes';
+      try {
+        win = window.open('', 'zypheraPay', features);
+      } catch (e) {
+        win = null;
+      }
+
+      /* Blocked, or refused. Not a dead end: the customer goes exactly where
+         they would have gone if this page had never existed. */
+      if (!win || win.closed || typeof win.closed === 'undefined') {
+        window.location.assign(FALLBACK_URL);
+        return;
+      }
+
+      try {
+        form.submit();
+      } catch (e) {
+        try { win.close(); } catch (e2) { /* no-op */ }
+        window.location.assign(FALLBACK_URL);
+        return;
+      }
+
+      openBtn.hidden = true;
+      wait.hidden = false;
+      try { win.focus(); } catch (e) { /* no-op */ }
+      watch();
+    }
+
+    openBtn.addEventListener('click', openWindow);
+    reopenBtn.addEventListener('click', function () {
+      /* The form can only be POSTed once — its token is one-time and has
+         already been spent by the first submit. Bringing the existing window
+         back to the front is the honest option; a fresh window would need a
+         fresh token, which is a page reload. */
+      if (win && !win.closed) { try { win.focus(); } catch (e) { /* no-op */ } return; }
+      window.location.reload();
+    });
+    cancelBtn.addEventListener('click', function () {
+      if (win && !win.closed) { try { win.close(); } catch (e) { /* no-op */ } }
+      idle();
+    });
+
+    window.addEventListener('message', function (e) {
+      if (e.origin !== PARTNER_ORIGIN) return;
+      if (win && e.source !== win) return;
+      var msg = e.data;
+      if (!msg || typeof msg !== 'object') return;
+      if (msg.type === 'zyphera:checkout-ready') { greeted = true; return; }
+      if (msg.type === 'zyphera:checkout-complete' && msg.fields && typeof msg.fields === 'object') {
+        if (watcher) { clearInterval(watcher); watcher = null; }
+        finish(msg);
+      }
+    });
+
+  /* ══════════════════════════════════════════════════════════════════════
+     INLINE FRAME
+     ══════════════════════════════════════════════════════════════════════ */
+  } else {
+    var frame    = document.getElementById('ck-embed');
+    var loading  = document.getElementById('ck-embed-loading');
+    var fallback = document.getElementById('ck-embed-fallback');
+    var settled  = false;
+
+    /* If the frame never announces itself this page must not become a dead
+       end. Eight seconds is the same budget the partner page gives Whop's
+       own loader. */
+    var giveUp = setTimeout(function () {
+      if (settled) return;
+      settled = true;
+      loading.hidden = true;
+      frame.hidden = true;
+      fallback.hidden = false;
+      window.location.assign(FALLBACK_URL);
+    }, 8000);
+
+    /* THE FRAME IS NOT SHOWN UNTIL IT SAYS IT IS THE CHECKOUT. A load event
+       proves a page arrived, not WHICH page arrived — and the page that
+       arrives when a token fails is the partner's ordinary marketing page. */
+    window.addEventListener('message', function (e) {
+      if (e.origin !== PARTNER_ORIGIN) return;
+      if (frame.contentWindow && e.source !== frame.contentWindow) return;
+      var msg = e.data;
+      if (!msg || typeof msg !== 'object') return;
+
+      if (msg.type === 'zyphera:checkout-ready') {
+        if (settled) return;
+        settled = true;
+        clearTimeout(giveUp);
+        loading.hidden = true;
+        frame.hidden = false;
+        return;
+      }
+
+      /* The partner reports its own height as Whop's iframe resizes.
+         Clamped: a bad number must not draw a page a million pixels tall. */
+      if (msg.type === 'zyphera:checkout-height') {
+        var h = parseInt(msg.height, 10);
+        if (h > 200 && h < 20000) frame.style.height = h + 'px';
+        return;
+      }
+
+      if (msg.type === 'zyphera:checkout-complete' && msg.fields && typeof msg.fields === 'object') {
+        finish(msg);
+      }
+    });
+
+    /* Navigate the frame by POST — LAST, after the listener above is live.
+       Submitting first left a window in which the frame could load and greet
+       with nothing listening, leaving this page on a spinner in front of a
+       working payment form until the timeout gave up on it. */
+    try {
+      form.submit();
+    } catch (e) {
+      window.location.assign(FALLBACK_URL);
+    }
+  }
+
+  /* The summary is collapsed on small screens, same control as step 1. */
+  var toggle = document.getElementById('ck-summary-toggle');
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      var open = document.documentElement.getAttribute('data-ck-summary') === 'open';
+      document.documentElement.setAttribute('data-ck-summary', open ? 'closed' : 'open');
+      toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+    });
+  }
+})();
+</script>
+</body>
+</html>

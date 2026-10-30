@@ -1,0 +1,20 @@
+<%
+  /* Section order and spacing rhythm. The `zy-rhythm-*` classes give each
+     section a deliberately different vertical measure instead of the
+     uniform var(--space-4xl) every section used to share — even spacing
+     everywhere is part of what made the page read as generated.
+
+     The testimonials partial is intentionally NOT included. It contained
+     three fabricated reviews (invented names, cities, and order values)
+     with no review system behind them. Beyond being the page's strongest
+     "generated" signal, fabricated testimonials are prohibited under the
+     FTC's consumer review rule (16 CFR Part 465). It should return only
+     when it can render real, attributable customer reviews. */
+%>
+<%- include('../partials/hero') %>
+<%- include('../partials/trust-bar') %>
+<%- include('../partials/featured-products') %>
+<%- include('../partials/collection-grid') %>
+<%- include('../partials/preorder-section') %>
+<%- include('../partials/why-us') %>
+<%- include('../partials/newsletter') %>

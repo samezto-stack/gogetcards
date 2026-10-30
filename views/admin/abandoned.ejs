@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%237C3AED'/><g fill='%23ffffff'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
+  <meta name="theme-color" content="#0c0c12">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= pageTitle %> | Zyphera Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+  <style>
+    /* One vertical rhythm for the page. Every block sits on a multiple of
+       it, so the gaps between sections are deliberate rather than whatever
+       each rule happened to set. */
+    .ab-metrics { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.9rem; margin: 0 0 2.5rem; }
+    /* Matches .admin-stat-card. These ARE stat cards, and they read subtly
+       wrong next to every other page's. */
+    .ab-metric { background: var(--admin-card); border: 1px solid var(--admin-border); border-radius: var(--admin-r-lg); padding: 1.1rem 1.25rem; }
+    .ab-metric .k { font-family: var(--admin-font-mono); font-size: 0.62rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--admin-faint); }
+    .ab-metric .v { font-family: var(--admin-font-display); font-size: 1.55rem; font-weight: 400; line-height: 1.15; color: var(--admin-text); margin-top: 0.5rem; }
+    .ab-metric .n { font-size: 0.72rem; line-height: 1.45; color: var(--admin-faint); margin-top: 0.35rem; }
+
+    .ab-section { margin: 0 0 2.5rem; }
+    .ab-section:last-child { margin-bottom: 0; }
+    .ab-h2 { font-family: var(--admin-font-display); font-weight: 400; font-size: 1.15rem; letter-spacing: -0.01em; margin: 0 0 0.6rem; }
+
+    .ab-tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0 0 1rem; }
+    .ab-tab { padding: 0.4rem 0.85rem; font-size: 0.78rem; font-weight: 600; border-radius: var(--admin-r-sm); text-decoration: none;
+              color: var(--admin-muted); background: var(--admin-panel-2); border: 1px solid var(--admin-border); transition: color 0.15s, border-color 0.15s; }
+    .ab-tab:hover { color: var(--admin-text); border-color: var(--admin-border-2); }
+    .ab-tab.active { color: var(--admin-primary-ink); background: var(--admin-primary); border-color: var(--admin-primary); }
+
+    /* Same frame and the same cell padding as .admin-table, so the two
+       tables on this page read as one family instead of two. */
+    .ab-steps { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .ab-steps th, .ab-steps td { padding: 0.7rem 1rem; text-align: left; border-bottom: 1px solid var(--admin-border); }
+    .ab-steps th { font-family: var(--admin-font-mono); font-weight: 500; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--admin-faint); background: var(--admin-panel-2); white-space: nowrap; }
+    .ab-steps tbody tr:last-child td { border-bottom: none; }
+    .ab-steps td.num, .ab-steps th.num { font-family: var(--admin-font-mono); text-align: right; }
+    .ab-nodata { color: var(--admin-faint); font-style: italic; }
+
+    .ab-pill { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.66rem;
+               font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; border: 1px solid transparent; }
+    .s-active     { color: #7E93A8; border-color: rgba(126,147,168,0.4); }
+    .s-abandoned  { color: var(--admin-warn); border-color: rgba(214,164,74,0.4); }
+    .s-recovered  { color: var(--admin-ok); border-color: rgba(111,160,122,0.45); }
+    /* Paid, but not by the sequence. Deliberately not the success colour:
+       reading the list, these are not wins the emails can claim. */
+    .s-purchased  { color: #7E93A8; border-color: rgba(126,147,168,0.4); }
+    .s-expired    { color: var(--admin-faint); border-color: var(--admin-border-2); }
+    .s-cancelled  { color: var(--admin-faint); border-color: var(--admin-border-2); }
+    .s-suppressed { color: var(--admin-crit); border-color: rgba(196,72,92,0.4); }
+
+    /* Source and country. Quieter than a status pill on purpose: status is
+       the thing being acted on, these are the things being scanned for a
+       pattern, and two loud pills per row would compete with it. */
+    .ab-tag { display: inline-block; padding: 0.12rem 0.45rem; border-radius: 4px; font-size: 0.68rem;
+              font-weight: 600; letter-spacing: 0.03em; color: var(--admin-muted);
+              border: 1px solid var(--admin-border-2); white-space: nowrap; }
+    .ab-tag-src { color: var(--admin-primary); border-color: var(--admin-border-2); }
+
+    .ab-note { font-size: 0.76rem; color: var(--admin-faint); line-height: 1.65; margin: 0 0 1.25rem; max-width: 74ch; }
+    .ab-mono { font-family: var(--admin-font-mono); font-size: 0.74rem; color: var(--admin-muted); }
+    .ab-sub { font-size: 0.72rem; line-height: 1.45; color: var(--admin-faint); margin-top: 0.2rem; }
+
+    .ab-pager { display: flex; gap: 0.6rem; align-items: center; margin-top: 1.25rem; }
+
+    /* ── Delete ──
+       Out of the way until the row is pointed at: it is the one
+       irreversible control on the page and it should not compete with the
+       data for attention. Hidden with opacity, NOT display:none, so it
+       stays in the tab order — a keyboard user gets it on focus, which is
+       the whole reason not to reach for a hover-only rule. */
+    .ab-actions { width: 1%; white-space: nowrap; text-align: right; }
+
+    /* The convert control. Deliberately understated and gated behind typing
+       a payment id — it creates an order and mails a customer, so it should
+       not be a thing the hand reaches for while scrolling. */
+    .ab-convert { display: inline-flex; gap: 6px; align-items: center; margin-right: 10px; vertical-align: middle; }
+    .ab-convert input {
+      width: 132px; padding: 5px 8px; font-size: 0.74rem;
+      font-family: var(--admin-font-mono, monospace);
+      background: rgba(255,255,255,0.04); color: var(--admin-text, #E7EAF0);
+      border: 1px solid rgba(255,255,255,0.14); border-radius: 6px;
+    }
+    .ab-convert input::placeholder { color: var(--admin-faint, #6B7280); }
+    .ab-convert input:focus { outline: none; border-color: var(--admin-accent, #A78BFA); }
+    .ab-convert-go {
+      padding: 5px 10px; font-size: 0.74rem; font-weight: 700; cursor: pointer;
+      background: rgba(167,139,250,0.14); color: var(--admin-accent, #A78BFA);
+      border: 1px solid rgba(167,139,250,0.4); border-radius: 6px; white-space: nowrap;
+    }
+    .ab-convert-go:hover { background: rgba(167,139,250,0.22); }
+
+    /* ── Sending cap ── */
+    .ab-cap { background: var(--admin-card); border: 1px solid var(--admin-border); border-radius: var(--admin-r-lg); padding: 1.2rem 1.4rem; margin: 0 0 1.75rem; }
+    /* A held sequence must not look like a running one. */
+    .ab-cap--on { border-color: rgba(251,191,36,0.45); background: rgba(251,191,36,0.05); }
+    .ab-cap__head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+    .ab-cap__title { font-family: var(--admin-font-display, inherit); font-size: 0.95rem; font-weight: 700; margin: 0; }
+    .ab-cap__state { font-family: var(--admin-font-mono); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--admin-faint); }
+    .ab-cap--on .ab-cap__state { color: #FCD34D; }
+    .ab-cap__sub { font-size: 0.82rem; line-height: 1.6; color: var(--admin-faint); margin: 0 0 1rem; max-width: 68ch; }
+    .ab-cap__form { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; }
+    .ab-cap__form label { font-size: 0.78rem; color: var(--admin-faint); }
+    .ab-cap__form select { background: var(--admin-bg, #12121a); color: inherit; border: 1px solid var(--admin-border); border-radius: 8px; padding: 0.5rem 0.7rem; font: inherit; font-size: 0.82rem; }
+    .ab-cap__go { background: var(--admin-accent, #7C3AED); color: #fff; border: 0; border-radius: 8px; padding: 0.55rem 1.1rem; font: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+    .ab-cap__go:hover { filter: brightness(1.1); }
+
+    .ab-flash { padding: 0.9rem 1.2rem; border-radius: 10px; margin-bottom: 1.25rem; font-size: 0.86rem; line-height: 1.55; }
+    .ab-flash--ok { background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.35); color: #BBF7D0; }
+    .ab-flash--err { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.35); color: #FCA5A5; }
+    /* The column header carries a name for screen readers without printing
+       one, since the column is visually just an icon. */
+    .ab-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+             overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+    .ab-del { display: inline-flex; align-items: center; justify-content: center;
+              width: 28px; height: 28px; padding: 0; cursor: pointer;
+              border: 1px solid transparent; border-radius: var(--admin-r-sm);
+              background: none; color: var(--admin-faint);
+              opacity: 0; transition: opacity 0.12s, color 0.12s, background 0.12s, border-color 0.12s; }
+    .admin-table tbody tr:hover .ab-del,
+    .ab-del:focus-visible { opacity: 1; }
+    .ab-del:hover { color: var(--admin-crit); background: rgba(196,72,92,0.12); border-color: rgba(196,72,92,0.35); }
+    .ab-del:focus-visible { outline: 2px solid var(--admin-primary); outline-offset: 1px; }
+    /* Touch devices have no hover state, so it would otherwise be both
+       invisible and unreachable on a phone. */
+    @media (hover: none) { .ab-del { opacity: 0.55; } }
+  </style>
+</head>
+<body class="admin-body">
+  <%- include('_sidebar', { currentPath: '/admin/abandoned' }) %>
+
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="admin-header__title"><%= pageTitle %></h1>
+    </header>
+
+    <%
+      /* .admin-main has no padding of its own — every other admin page puts
+         its body inside .admin-content, which supplies it. This page did
+         not, so everything on it sat flush against the sidebar and the top
+         bar with no breathing room anywhere. */
+    %>
+    <div class="admin-content">
+
+    <%
+      /* Every figure on this page belongs to a market. Printing them all
+         with a dollar sign showed a £179.97 UK checkout as "$179.97" — the
+         right number wearing the wrong currency, on the screen used to
+         decide whether a recovery is worth chasing. The prefixes mirror
+         config/markets.js CURRENCIES; a template cannot require it. */
+      const MONEY_PREFIX = { USD: 'US$', CAD: 'CA$', GBP: '\u00A3', EUR: '\u20AC' };
+      const money = (c, cur) => {
+        const code = String(cur || 'USD').toUpperCase();
+        return (MONEY_PREFIX[code] || code + ' ')
+          + (Number(c || 0) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      };
+      const pct = (r) => r === null ? null : (r * 100).toFixed(1) + '%';
+      const when = (d) => d ? new Date(d).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+    %>
+
+    <%/* ── Sending cap ────────────────────────────────────────────────
+         The cap is the highest step allowed out. Steps above it are HELD,
+         not skipped: the row waits with its due time intact and continues
+         when the cap goes back up, its remaining wait preserved. See
+         services/abandonedCheckout/pause.js. */%>
+    <section class="ab-cap <%= pauseState.restricted ? 'ab-cap--on' : '' %>">
+      <div class="ab-cap__head">
+        <h2 class="ab-cap__title">Sending cap</h2>
+        <span class="ab-cap__state">
+          <% if (pauseState.paused) { %>
+            All reminders held
+          <% } else if (pauseState.restricted) { %>
+            Steps 1&ndash;<%= pauseState.maxStep %> sending &middot; <%= pauseState.maxStep + 1 %>&ndash;<%= pauseState.fullMaxStep %> held
+          <% } else { %>
+            Full sequence running
+          <% } %>
+        </span>
+      </div>
+
+      <p class="ab-cap__sub">
+        Holds the later reminders without cancelling them. A held sequence keeps its
+        place &mdash; when the cap goes back up, each one continues from where it
+        stopped with its remaining wait intact, rather than all firing at once.
+        <% if (pauseState.restricted && pauseState.cappedAt) { %>
+          <br><strong>Held since <%= when(pauseState.cappedAt) %><%= pauseState.cappedBy ? ' by ' + pauseState.cappedBy : '' %>.</strong>
+        <% } %>
+      </p>
+
+      <% if (typeof query !== 'undefined' && query.cap === 'down') { %>
+        <div class="ab-flash ab-flash--ok">
+          <strong>Cap set to step <%= query.step %>.</strong>
+          <%= query.held %> sequence<%= query.held === '1' ? '' : 's' %> now holding. Nothing was cancelled.
+        </div>
+      <% } %>
+      <% if (typeof query !== 'undefined' && query.cap === 'up') { %>
+        <div class="ab-flash ab-flash--ok">
+          <strong>Cap raised to step <%= query.step %>.</strong>
+          <%= query.shifted %> sequence<%= query.shifted === '1' ? '' : 's' %> moved forward by
+          <%= query.hours %> h so each resumes where it stopped instead of firing at once.
+        </div>
+      <% } %>
+      <% if (typeof query !== 'undefined' && query.failed === 'cap') { %>
+        <div class="ab-flash ab-flash--err"><strong>Could not change the cap.</strong> Nothing was altered.</div>
+      <% } %>
+
+      <form method="POST" action="/admin/abandoned/cap" class="ab-cap__form">
+        <label for="ab-cap-step">Highest reminder allowed to send</label>
+        <select name="maxStep" id="ab-cap-step">
+          <option value="0" <%= pauseState.maxStep === 0 ? 'selected' : '' %>>0 &mdash; hold everything</option>
+          <% schedule.forEach(function (s) { %>
+            <option value="<%= s.step %>" <%= pauseState.maxStep === s.step ? 'selected' : '' %>>
+              <%= s.step %> &mdash; up to the <%= s.afterMinutes < 60 ? s.afterMinutes + ' min' : (s.afterMinutes / 60) + ' h' %> reminder<%= s.step === maxStep ? ' (full sequence)' : '' %>
+            </option>
+          <% }); %>
+        </select>
+        <button type="submit" class="ab-cap__go">Apply</button>
+      </form>
+    </section>
+
+    <section class="ab-metrics">
+      <div class="ab-metric">
+        <div class="k">Abandoned value</div>
+        <div class="v"><%= money(stats.abandonedValue) %></div>
+        <div class="n">Left behind and not recovered</div>
+      </div>
+      <div class="ab-metric">
+        <div class="k">Recovered value</div>
+        <div class="v"><%= money(stats.recoveredValue) %></div>
+        <div class="n"><%= stats.byStatus.recovered || 0 %> checkouts · came back via a reminder</div>
+      </div>
+      <%/* Kept beside it rather than folded into it. These customers paid
+           without the sequence, and showing the two together is the only
+           way the recovered figure means anything. */%>
+      <div class="ab-metric">
+        <div class="k">Paid without a reminder</div>
+        <div class="v"><%= money(stats.purchasedValue) %></div>
+        <div class="n"><%= stats.byStatus.purchased || 0 %> checkouts · finished on their own</div>
+      </div>
+      <div class="ab-metric">
+        <div class="k">Recovery rate</div>
+        <div class="v"><%= stats.recoveryRate === null ? 'No data' : pct(stats.recoveryRate) %></div>
+        <div class="n">Of checkouts that were left behind</div>
+      </div>
+      <div class="ab-metric">
+        <div class="k">Reminder click-through</div>
+        <div class="v"><%= stats.clickRate === null ? 'No data' : pct(stats.clickRate) %></div>
+        <div class="n"><%= stats.emailsClicked %> of the checkouts emailed had their link used</div>
+      </div>
+      <div class="ab-metric">
+        <div class="k">Reminders sent</div>
+        <div class="v"><%= stats.emailsSent.toLocaleString('en-US') %></div>
+        <div class="n">Across <%= stats.total.toLocaleString('en-US') %> checkouts</div>
+      </div>
+      <div class="ab-metric">
+        <div class="k">Unsubscribed</div>
+        <div class="v"><%= suppressedCount.toLocaleString('en-US') %></div>
+        <div class="n">Addresses that will never be emailed</div>
+      </div>
+    </section>
+
+    <section class="ab-section">
+    <h2 class="ab-h2">Recovery by sequence step</h2>
+    <p class="ab-note">
+      A recovery is credited to the last reminder that actually went out before the customer
+      paid. That is an attribution convention, not a measurement: somebody who came back after
+      the third email may well have been prompted by the first. Steps with nothing sent yet show
+      no data rather than 0%.
+    </p>
+
+    <div class="admin-table-wrap">
+    <table class="ab-steps">
+      <thead>
+        <tr><th>Step</th><th>Sent after</th><th class="num">Emails sent</th><th class="num">Recovered</th><th class="num">Rate</th></tr>
+      </thead>
+      <tbody>
+        <% stats.stepRates.forEach(function (s) { %>
+          <tr>
+            <td><strong><%= String(s.step).padStart(2, '0') %></strong></td>
+            <td><%= s.label %></td>
+            <td class="num"><%= s.sent %></td>
+            <td class="num"><%= s.recovered %></td>
+            <td class="num"><% if (s.rate === null) { %><span class="ab-nodata">no data</span><% } else { %><%= pct(s.rate) %><% } %></td>
+          </tr>
+        <% }); %>
+        <tr>
+          <td colspan="3" style="color:var(--admin-faint)">Recovered before any reminder was sent</td>
+          <td class="num"><%= stats.recoveredAfterStep[0] %></td>
+          <td class="num">—</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <p class="ab-note" style="margin:1.25rem 0 0;">
+      Opens and clicks are not shown. They need delivery webhooks from the mail provider, which
+      are not wired up — and an open rate guessed from send counts would be a made-up number in
+      a place people make decisions. Recovery-link clicks below are counted directly, because
+      those hit this server.
+    </p>
+    </section>
+
+    <section class="ab-section">
+    <h2 class="ab-h2">Checkouts</h2>
+    <p class="ab-note">
+      Deleting a row removes its recovery bookkeeping and nothing else: the scheduler sweeps this
+      collection alone, so a row that is gone can never be picked up by a later reminder. Use it
+      to clear what a test checkout left behind. It does not touch the order behind a recovered
+      row, and it cannot be undone.
+    </p>
+
+    <div class="ab-tabs">
+      <a class="ab-tab <%= status === 'all' ? 'active' : '' %>" href="/admin/abandoned?status=all">All (<%= stats.total %>)</a>
+      <% statuses.forEach(function (s) { %>
+        <a class="ab-tab <%= status === s ? 'active' : '' %>" href="/admin/abandoned?status=<%= s %>">
+          <%= s.charAt(0).toUpperCase() + s.slice(1) %> (<%= stats.byStatus[s] || 0 %>)
+        </a>
+      <% }); %>
+    </div>
+
+    <% if (typeof query !== 'undefined' && query.converted) { %>
+      <div class="ab-flash ab-flash--ok">
+        <strong>Order <%= query.converted %> created.</strong>
+        <% if (query.convertedNew === '1') { %>
+          The confirmation email has gone out, the customer can see it at /account, and this checkout is closed.
+        <% } else { %>
+          That order already existed, so nothing was re-sent.
+        <% } %>
+      </div>
+    <% } %>
+    <% if (typeof query !== 'undefined' && query.convertError) { %>
+      <div class="ab-flash ab-flash--err"><strong>No order created.</strong> <%= query.convertError %></div>
+    <% } %>
+
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Customer</th><th>Source</th><th>Country</th><th>Product</th><th style="text-align:right">Total</th>
+            <th>Status</th><th>Step</th><th>Last email</th><th>Next email</th><th>Last activity</th>
+            <th class="ab-actions"><span class="ab-sr">Delete</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (!rows.length) { %>
+            <tr><td colspan="11" style="padding:2rem;text-align:center;color:var(--admin-faint)">No checkouts with this status.</td></tr>
+          <% } %>
+          <% rows.forEach(function (r) { %>
+            <tr>
+              <td>
+                <div><%= [r.firstName, r.lastName].filter(Boolean).join(' ') || '—' %></div>
+                <div class="ab-mono"><%= r.email %></div>
+                <% if (r.recoveryLinkClicks) { %>
+                  <div class="ab-sub"><%= r.recoveryLinkClicks %> link click<%= r.recoveryLinkClicks === 1 ? '' : 's' %></div>
+                <% } %>
+              </td>
+              <%/* Source and country, side by side and early in the row.
+
+                   These are the two questions asked of every abandoned
+                   checkout — where did they come from, and where are they —
+                   and until now both required opening the record. Placed
+                   before the product because a list is scanned left to
+                   right, and a column nobody reaches is a column that does
+                   not exist.
+
+                   Source is blank on rows captured before it was recorded,
+                   and on any checkout that reached the partner without a
+                   click Event. An em dash rather than a guess. */%>
+              <td>
+                <% if (r.trafficSource) { %>
+                  <span class="ab-tag ab-tag-src"><%= r.trafficSource %></span>
+                <% } else { %><span class="ab-nodata">—</span><% } %>
+              </td>
+              <td>
+                <% if (r.country) { %>
+                  <span class="ab-tag"><%= String(r.country).toUpperCase() %></span>
+                  <% if (r.shipping && r.shipping.city) { %><div class="ab-sub"><%= r.shipping.city %></div><% } %>
+                <% } else { %><span class="ab-nodata">—</span><% } %>
+              </td>
+              <td>
+                <div><%= r.productName || r.productSlug || '—' %></div>
+                <div class="ab-sub">Qty <%= r.quantity || 1 %><%= r.partnerStore ? ' · ' + r.partnerStore : '' %></div>
+              </td>
+              <td style="text-align:right;font-family:var(--admin-font-mono)"><%= r.total ? money(Math.round(parseFloat(r.total) * 100), r.currency) : '—' %></td>
+              <td>
+                <span class="ab-pill s-<%= r.status %>"><%= r.status %></span>
+                <% if (r.stoppedReason) { %><div class="ab-sub"><%= r.stoppedReason %></div><% } %>
+                <% if (r.orderId) { %><div class="ab-sub">Order <%= r.orderId %></div><% } %>
+              </td>
+              <td><%= r.recoveryStep || 0 %> / <%= maxStep %></td>
+              <td class="ab-sub"><%= when(r.lastEmailAt) %></td>
+              <td class="ab-sub"><%= r.status === 'abandoned' ? when(r.nextEmailAt) : '—' %></td>
+              <td class="ab-sub"><%= when(r.lastActivityAt) %></td>
+              <td class="ab-actions">
+                <%
+                  /* A POST, because it changes state — a link here would be
+                     followed by any prefetcher and delete rows nobody asked
+                     it to. The confirm names the customer, so a mis-aimed
+                     click is caught by reading rather than by luck. */
+                  const who = [r.firstName, r.lastName].filter(Boolean).join(' ') || r.email || 'this checkout';
+                %>
+                <%/* Offered only while the row is still open. A recovered or
+                     already-converted checkout has its order, and a second
+                     one would be a charge the customer never made. */%>
+                <% if (!r.orderId && ['active', 'abandoned', 'suppressed'].includes(r.status)) { %>
+                  <form method="POST" class="ab-convert"
+                        action="/admin/abandoned/<%= r._id %>/create-order?status=<%= encodeURIComponent(status) %>&page=<%= page %>"
+                        onsubmit="return confirm('Create a real order for <%= who.replace(/'/g, "\\'") %>?\n\nOnly do this once you have seen the payment succeed in Whop. It sends their confirmation email and makes the order visible in their account.');">
+                    <input type="text" name="paymentId" required placeholder="Whop payment id"
+                           title="From the Whop receipt. Written onto the order so the two can be reconciled later."
+                           autocomplete="off" spellcheck="false">
+                    <button class="ab-convert-go" type="submit" title="Create the order for this checkout">Make order</button>
+                  </form>
+                <% } %>
+                <form method="POST"
+                      action="/admin/abandoned/<%= r._id %>/delete?status=<%= encodeURIComponent(status) %>&page=<%= page %>"
+                      onsubmit="return confirm('Delete the abandoned-checkout record for <%= who.replace(/'/g, "\\'") %>?\n\nNo further recovery emails will be sent for it. This cannot be undone.');">
+                  <button class="ab-del" type="submit" title="Delete this record" aria-label="Delete the abandoned-checkout record for <%= who %>">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                  </button>
+                </form>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if (pages > 1) { %>
+      <div class="ab-pager">
+        <% if (page > 1) { %><a class="ab-tab" href="/admin/abandoned?status=<%= status %>&page=<%= page - 1 %>">Previous</a><% } %>
+        <span class="ab-sub">Page <%= page %> of <%= pages %> · <%= totalRows %> rows</span>
+        <% if (page < pages) { %><a class="ab-tab" href="/admin/abandoned?status=<%= status %>&page=<%= page + 1 %>">Next</a><% } %>
+      </div>
+    <% } %>
+    </section>
+
+    <p class="ab-note" style="margin: 2.5rem 0 0;">
+      Previews of all six reminders live on the
+      <a href="/admin/emails" style="color:var(--admin-primary-soft)">Email</a> page, alongside every
+      other template. Previews render to the screen and send nothing.
+    </p>
+
+    </div>
+  </main>
+</body>
+</html>

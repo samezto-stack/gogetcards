@@ -1,0 +1,116 @@
+<%- include('../partials/account-head', { customerDoc, section }) %>
+<%
+  /* An order is priced in the currency it was CHARGED in, which is not
+     necessarily the storefront being viewed: a UK order is £ even when the
+     customer opens their account from the US site later. So the currency is
+     always passed explicitly and never inferred from the market.
+
+     This used to be `'$' + amount + (code unless USD)`, which rendered a
+     pound order as "$119.98 GBP" — a dollar sign in front of a figure that
+     is not dollars, on the pages where a customer checks what they were
+     charged against their bank. marketMoney is config/markets.format, the
+     same function the product page and the checkout use. */
+  const money = (c, cur) => (typeof marketMoney === 'function'
+    ? marketMoney(Number(c || 0), cur || 'USD')
+    : `${cur || 'USD'} ${(Number(c || 0) / 100).toFixed(2)}`);
+  const day = (d) => d ? new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+%>
+
+<% if (counts.all === 0) { %>
+  <%/* First visit after an account exists but before anything shipped, or
+       an account created by sign-in with no orders. Says something useful
+       instead of rendering an empty grid. */%>
+  <div class="ac__sheet ac__sheet--accent">
+    <div class="ac__empty">
+      <h3>No orders yet.</h3>
+      <p>Your next sealed pickup is waiting.</p>
+      <a href="<%= marketPath('/products') %>" class="ac__btn ac__btn--primary">Shop sealed product</a>
+    </div>
+  </div>
+<% } else { %>
+
+  <% if (preorders.length) { %>
+  <section class="ac__sheet ac__sheet--accent">
+    <div class="ac__sheet-head">
+      <h2 class="ac__sheet-title">Active preorders</h2>
+      <a class="ac__sheet-more" href="<%= marketPath('/account/orders?filter=preorders') %>">All preorders</a>
+    </div>
+    <% preorders.forEach(function (d) { %>
+      <a class="ac__order" href="<%= marketPath('/account/orders/' + (d.reference)) %>">
+        <% if (d.image) { %>
+          <img class="ac__thumb" <%- productImage.attrs(d.image, 70) %> alt="" width="58" height="58" loading="lazy" decoding="async">
+        <% } else { %><span class="ac__thumb ac__thumb--blank"></span><% } %>
+        <div class="ac__order-main">
+          <span class="ac__order-title"><%= (d.product && d.product.title) || (d.order.products||[])[0] || 'Order' %></span>
+          <p class="ac__order-meta">
+            <span class="ac__status ac__status--<%= d.status.tone %>"><%= d.status.label %></span>
+            <% if (d.release && d.release.hasDate) { %><span>Releases <%= d.release.display %></span><% } %>
+            <span class="ac__mono"><%= d.reference %></span>
+          </p>
+        </div>
+        <div class="ac__order-right">
+          <p class="ac__price"><%= money(d.order.totalPrice, d.order.currency) %></p>
+          <span class="ac__muted">Free shipping</span>
+        </div>
+      </a>
+    <% }); %>
+  </section>
+  <% } %>
+
+  <section class="ac__sheet">
+    <div class="ac__sheet-head">
+      <h2 class="ac__sheet-title">Recent orders</h2>
+      <a class="ac__sheet-more" href="<%= marketPath('/account/orders') %>">All <%= counts.all %></a>
+    </div>
+    <% recent.forEach(function (d) { %>
+      <a class="ac__order" href="<%= marketPath('/account/orders/' + (d.reference)) %>">
+        <% if (d.image) { %>
+          <img class="ac__thumb" <%- productImage.attrs(d.image, 70) %> alt="" width="58" height="58" loading="lazy" decoding="async">
+        <% } else { %><span class="ac__thumb ac__thumb--blank"></span><% } %>
+        <div class="ac__order-main">
+          <span class="ac__order-title"><%= (d.product && d.product.title) || (d.order.products||[])[0] || 'Order' %></span>
+          <p class="ac__order-meta">
+            <span class="ac__status ac__status--<%= d.status.tone %>"><%= d.status.label %></span>
+            <span><%= day(d.order.purchaseDate || d.order.createdAt) %></span>
+            <span class="ac__mono"><%= d.reference %></span>
+          </p>
+        </div>
+        <div class="ac__order-right">
+          <p class="ac__price"><%= money(d.order.totalPrice, d.order.currency) %></p>
+        </div>
+      </a>
+    <% }); %>
+  </section>
+<% } %>
+
+<% if (recommendations && recommendations.length) { %>
+<section class="ac__sheet">
+  <div class="ac__sheet-head"><h2 class="ac__sheet-title">Recommended for you</h2></div>
+  <div class="ac__picks">
+    <% recommendations.forEach(function (p) { %>
+      <%/* These are LIVE PRODUCTS, not order history: they are priced in the
+           storefront being viewed, and a product not sold in it is not shown
+           at all rather than shown at another market's price. Same rule the
+           product card follows. */%>
+      <% var _pick = (typeof marketPrice === 'function') ? marketPrice(p) : null; %>
+      <% if (_pick) { %>
+      <a class="ac__pick" href="<%= marketPath('/products/' + (p.slug)) %>">
+        <% const img = p.imageUrl || (p.images||[])[0]; %>
+        <% if (img) { %>
+          <img class="ac__pick-img" <%- productImage.attrs(img, 240) %> alt="" loading="lazy" decoding="async">
+        <% } else { %><span class="ac__pick-img"></span><% } %>
+        <p class="ac__pick-title"><%= p.title %></p>
+        <p class="ac__pick-price"><%= money(_pick.amount, _pick.currency) %></p>
+      </a>
+      <% } %>
+    <% }); %>
+  </div>
+</section>
+<% } %>
+
+<div class="ac__notice">
+  <strong>Questions about an order?</strong>
+  Our team answers within one business day.
+  <a href="<%= marketPath('/contact') %>">Contact Zyphera support &rarr;</a>
+</div>
+<%- include('../partials/account-foot') %>

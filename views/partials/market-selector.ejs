@@ -1,0 +1,37 @@
+<%/* ── Country and currency ─────────────────────────────────────────────
+     A LIST OF LINKS, not a control that changes the page in place.
+     Choosing a market is a navigation to that market's URL, which is what
+     keeps one URL to one price — the property the feed, the Offer schema
+     and the checkout all depend on. A dropdown that swapped the numbers
+     client-side would give a shopper a price Googlebot never sees.
+
+     Rendered only when more than one market is open, so a US-only store
+     shows nothing at all rather than a menu with one entry. */%>
+<% var _mkts = (typeof sellableMarkets !== 'undefined' && sellableMarkets) ? sellableMarkets : []; %>
+<% if (_mkts.length > 1) { %>
+  <details class="mkt">
+    <summary class="mkt__btn" aria-label="Country and currency">
+      <span class="mkt__flag"><%- include('flag', { code: market.id, label: market.name, size: 20 }) %></span>
+      <span class="mkt__code"><%= market.currency %></span>
+      <svg class="mkt__caret" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+    </summary>
+    <div class="mkt__menu" role="menu">
+      <p class="mkt__head">Ship to</p>
+      <% _mkts.forEach(function (m) { %>
+        <%/* The SAME page in the other market where that is meaningful,
+             otherwise its home page. `marketSwitchPath` is set by any
+             route that knows its own equivalent URL; without it a
+             shopper would be dropped on a product that market may not
+             sell, which is a 404 as a reward for switching. */%>
+        <a class="mkt__opt<%= m.id === market.id ? ' is-on' : '' %>"
+           href="<%= (typeof marketSwitchPath !== 'undefined' && marketSwitchPath) ? marketSwitchPath(m) : (m.prefix ? '/' + m.prefix : '/') %>"
+           <%- m.id === market.id ? 'aria-current="true"' : '' %>>
+          <span class="mkt__flag"><%- include('flag', { code: m.id, label: m.name, size: 20 }) %></span>
+          <span class="mkt__name"><%= m.name %></span>
+          <span class="mkt__cur"><%= m.currency %></span>
+        </a>
+      <% }); %>
+      <p class="mkt__note">Prices and delivery are set per country. You are charged in the currency shown.</p>
+    </div>
+  </details>
+<% } %>

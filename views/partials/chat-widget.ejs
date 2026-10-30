@@ -1,0 +1,165 @@
+<!-- Live Chat Widget — Lightweight, theme-matched -->
+<div id="live-chat-widget" class="chat-widget">
+  <button id="chat-toggle" class="chat-widget__toggle" aria-label="Open live chat">
+    <svg id="chat-icon-open" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+    </svg>
+    <svg id="chat-icon-close" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" style="display:none">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  </button>
+  <div id="chat-panel" class="chat-widget__panel" style="display:none">
+    <div class="chat-widget__header">
+      <div>
+        <strong style="font-size:0.9rem">Zyphera Support</strong>
+        <p style="font-size:0.72rem;color:var(--color-text-muted);margin-top:2px">
+          <span class="live-dot" style="width:6px;height:6px"></span>
+          Typically replies within minutes
+        </p>
+      </div>
+    </div>
+    <div class="chat-widget__body" id="chat-messages">
+      <div class="chat-msg chat-msg--bot">
+        <div class="chat-msg__bubble">👋 Hey! Welcome to Zyphera TCG. How can we help you today?</div>
+        <span class="chat-msg__time">Just now</span>
+      </div>
+    </div>
+    <form id="chat-form" class="chat-widget__footer">
+      <input type="text" id="chat-input" placeholder="Type a message..." autocomplete="off" required>
+      <button type="submit" class="chat-widget__send" aria-label="Send">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </form>
+  </div>
+</div>
+
+<style>
+  .chat-widget { position:fixed; bottom:1.5rem; right:1.5rem; z-index:9999; font-family:var(--font-body, 'Inter', sans-serif); }
+  .chat-widget__toggle { width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg, #7C3AED, #06B6D4); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 24px rgba(124,58,237,0.4); transition:transform 0.2s, box-shadow 0.2s; }
+  .chat-widget__toggle:hover { transform:scale(1.08); box-shadow:0 6px 32px rgba(124,58,237,0.5); }
+  .chat-widget__panel { position:absolute; bottom:70px; right:0; width:340px; max-height:480px; background:var(--color-bg-elevated, #161D27); border:1px solid rgba(255,255,255,0.08); border-radius:16px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 8px 40px rgba(0,0,0,0.5); animation:chatSlideUp 0.25s ease; }
+  @keyframes chatSlideUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+  .chat-widget__header { padding:1rem 1.25rem; border-bottom:1px solid rgba(255,255,255,0.06); background:var(--color-bg-card, #1A2232); }
+  .chat-widget__body { flex:1; padding:1rem; overflow-y:auto; max-height:300px; display:flex; flex-direction:column; gap:0.75rem; }
+  .chat-msg { display:flex; flex-direction:column; }
+  .chat-msg--bot { align-items:flex-start; }
+  .chat-msg--user { align-items:flex-end; }
+  .chat-msg__bubble { padding:0.625rem 0.875rem; border-radius:12px; font-size:0.82rem; line-height:1.5; max-width:85%; }
+  .chat-msg--bot .chat-msg__bubble { background:rgba(124,58,237,0.12); color:var(--color-text-body, #E5E7EB); border-bottom-left-radius:4px; }
+  .chat-msg--user .chat-msg__bubble { background:linear-gradient(135deg, #7C3AED, #6D28D9); color:#fff; border-bottom-right-radius:4px; }
+  .chat-msg__time { font-size:0.62rem; color:var(--color-text-faint, #4B5563); margin-top:4px; }
+  .chat-widget__footer { display:flex; gap:0.5rem; padding:0.75rem 1rem; border-top:1px solid rgba(255,255,255,0.06); background:var(--color-bg-card, #1A2232); }
+  .chat-widget__footer input { flex:1; background:var(--color-bg-input, #0B0F14); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:0.5rem 0.75rem; color:var(--color-text-body, #E5E7EB); font-size:0.82rem; outline:none; }
+  .chat-widget__footer input:focus { border-color:#7C3AED; }
+  .chat-widget__send { background:none; border:none; color:#7C3AED; cursor:pointer; padding:4px; transition:color 0.2s; }
+  .chat-widget__send:hover { color:#06B6D4; }
+  .live-dot { display:inline-block; width:8px; height:8px; background:#22C55E; border-radius:50%; margin-right:4px; animation:livePulse 2s infinite; }
+  @keyframes livePulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+  @media (max-width:480px) { .chat-widget__panel { width:calc(100vw - 2rem); right:-0.5rem; } }
+  @media (max-width:768px) { .chat-widget { display:none !important; } }
+</style>
+
+<script>
+(function() {
+  const toggle = document.getElementById('chat-toggle');
+  const panel = document.getElementById('chat-panel');
+  const iconOpen = document.getElementById('chat-icon-open');
+  const iconClose = document.getElementById('chat-icon-close');
+  const form = document.getElementById('chat-form');
+  const input = document.getElementById('chat-input');
+  const messages = document.getElementById('chat-messages');
+  
+  // Persist state across navigation
+  let isOpen = sessionStorage.getItem('zypheraChatOpen') === 'true';
+  let lastChecked = new Date(0).toISOString(); // Fetch all on load
+  let pollInterval = null;
+
+  function addMessageToDOM(msgText, sender, timeStr) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = sender === 'user' ? 'chat-msg chat-msg--user' : 'chat-msg chat-msg--bot';
+    
+    // Format timestamp nicely if provided, else "Just now"
+    let displayTime = "Just now";
+    if (timeStr) {
+      const d = new Date(timeStr);
+      displayTime = d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    }
+    
+    msgDiv.innerHTML = '<div class="chat-msg__bubble">' + msgText.replace(/</g,'&lt;') + '</div><span class="chat-msg__time">' + displayTime + '</span>';
+    messages.appendChild(msgDiv);
+    messages.scrollTop = messages.scrollHeight;
+  }
+  
+  function applyOpenState() {
+    panel.style.display = isOpen ? 'flex' : 'none';
+    iconOpen.style.display = isOpen ? 'none' : 'block';
+    iconClose.style.display = isOpen ? 'block' : 'none';
+    
+    if (isOpen) {
+      if (!pollInterval) pollInterval = setInterval(fetchNewMessages, 3000);
+    } else {
+      if (pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+      }
+    }
+  }
+
+  toggle.addEventListener('click', () => {
+    isOpen = !isOpen;
+    sessionStorage.setItem('zypheraChatOpen', isOpen);
+    applyOpenState();
+    if (isOpen) input.focus();
+  });
+
+  async function fetchNewMessages(isHistoryLoad = false) {
+    try {
+      const res = await fetch('/api/chat?since=' + encodeURIComponent(lastChecked));
+      const data = await res.json();
+      if (data.messages && data.messages.length > 0) {
+        if (isHistoryLoad) {
+          messages.innerHTML = ''; // clear default greeting if there's history
+        }
+        
+        data.messages.forEach(msg => {
+          if (isHistoryLoad || msg.sender === 'admin') {
+            addMessageToDOM(msg.message, msg.sender, msg.createdAt);
+          }
+        });
+        
+        // Update lastChecked pointer
+        lastChecked = data.messages[data.messages.length - 1].createdAt;
+      }
+    } catch (err) {
+      console.error('Failed to fetch chat messages', err);
+    }
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+
+    // Immediately show in DOM
+    addMessageToDOM(text, 'user');
+    input.value = '';
+
+    // Send to server
+    try {
+      await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text })
+      });
+      // Force an immediate check for replies slightly after send
+      setTimeout(() => fetchNewMessages(), 1000);
+    } catch (err) {
+      console.error('Failed to send message', err);
+    }
+  });
+
+  // Initialize
+  applyOpenState();
+  fetchNewMessages(true); // Load history on mount
+})();
+</script>

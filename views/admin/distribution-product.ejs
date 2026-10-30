@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%237C3AED'/><g fill='%23ffffff'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
+  <meta name="theme-color" content="#0c0c12">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= product.title %> — Distribution | Zyphera Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+  <link rel="stylesheet" href="/css/distribution.css?v=<%= assetVersion %>">
+</head>
+<body class="admin-body">
+  <%- include('_sidebar', { currentPath: '/admin/distribution' }) %>
+
+  <main class="admin-main">
+    <header class="admin-header">
+      <div>
+        <a class="dh-back" href="/admin/distribution">← All products</a>
+        <h1 class="admin-header__title"><%= product.title %></h1>
+        <p class="dh-sub">
+          <span class="dh-pill dh-pill--<%= status %>"><%= status %></span>
+          <span class="dh-mono"><%= payload.offerId %></span>
+        </p>
+      </div>
+      <div style="display:flex;gap:0.5rem;align-items:center">
+        <a class="admin-btn admin-btn--outline" href="/products/<%= product.slug %>" target="_blank" rel="noopener">View landing page</a>
+        <a class="admin-btn admin-btn--outline" href="/admin/products/<%= product._id %>/edit">Edit product</a>
+      </div>
+    </header>
+
+    <div class="admin-content">
+
+      <% if (query.saved) { %><div class="dh-flash dh-flash--ok">Distribution settings saved. This product will be re-sent on the next sync.</div><% } %>
+      <% if (query.fixed !== undefined) { %>
+        <div class="dh-flash dh-flash--ok">
+          <%= Number(query.fixed) === 0 ? 'Nothing needed fixing.' : `Applied ${query.fixed} fix${Number(query.fixed) === 1 ? '' : 'es'}.` %>
+        </div>
+      <% } %>
+
+      <div class="dh-cols">
+
+        <!-- ══ Left column: what is wrong and how to fix it ══ -->
+        <div>
+
+          <section class="dh-panel">
+            <h2 class="dh-panel__title">Readiness</h2>
+            <div class="dh-stats">
+              <div class="dh-stat"><span class="dh-stat__n"><%= result.score %></span><span class="dh-stat__l">Score / 100</span></div>
+              <div class="dh-stat dh-stat--err"><span class="dh-stat__n"><%= result.errors %></span><span class="dh-stat__l">Blocking</span></div>
+              <div class="dh-stat dh-stat--warn"><span class="dh-stat__n"><%= result.warnings %></span><span class="dh-stat__l">Warnings</span></div>
+              <div class="dh-stat"><span class="dh-stat__n"><%= result.tcgType ? result.tcgType.label.split(' ')[0] : '—' %></span><span class="dh-stat__l">Detected type</span></div>
+            </div>
+
+            <% if (result.excluded) { %>
+              <p class="dh-hint" style="margin-top:0.9rem">
+                <%= selectionMode === 'selected'
+                  ? 'Not selected for this channel, so nothing is sent.'
+                  : 'Held back from this channel, so nothing is sent.' %>
+                It is validated anyway, so holding it back stays a decision rather than a way of hiding
+                a problem — and the score is honest the day you change your mind.
+              </p>
+            <% } else if (result.errors) { %>
+              <p class="dh-hint" style="margin-top:0.9rem">
+                Nothing is sent while a blocking error remains. Submitting it would spend quota to earn a
+                disapproval, and a pattern of those is what triggers an account review.
+              </p>
+            <% } else { %>
+              <p class="dh-ok-text" style="margin-top:0.9rem">Passes validation. It will be included in the next sync and in every file export.</p>
+            <% } %>
+          </section>
+
+          <% if (result.issues.length) { %>
+          <section class="dh-panel">
+            <h2 class="dh-panel__title">Issues</h2>
+            <ul class="dh-issues">
+              <% result.issues.forEach(function (i) { %>
+                <li class="dh-issue dh-issue--<%= i.severity %>">
+                  <div class="dh-issue__head">
+                    <span class="dh-issue__badge"><%= i.severity %></span>
+                    <strong><%= i.message %></strong>
+                    <span class="dh-issue__count dh-mono"><%= i.code %></span>
+                  </div>
+                  <p class="dh-issue__why"><span>Why Google cares.</span> <%= i.why %></p>
+                  <p class="dh-issue__fix"><span>How to fix it.</span> <%= i.fix %></p>
+                </li>
+              <% }); %>
+            </ul>
+          </section>
+          <% } %>
+
+          <!-- ══ Automatic fixes ══ -->
+          <section class="dh-panel">
+            <h2 class="dh-panel__title">Automatic fixes</h2>
+            <% if (!fixes.changes.length) { %>
+              <p class="dh-hint">Nothing here can be fixed without a decision. Anything left in the list above needs a real value.</p>
+            <% } else { %>
+              <ul class="dh-fixlist">
+                <% fixes.changes.forEach(function (c) { %>
+                  <li>
+                    <code><%= c.field %></code>
+                    <span class="dh-hint"><%= c.from || '(empty)' %></span>
+                    <span class="dh-arrow">→</span>
+                    <strong><%= c.to %></strong>
+                    <p class="dh-hint" style="flex-basis:100%"><%= c.why %></p>
+                  </li>
+                <% }); %>
+              </ul>
+              <form method="POST" action="/admin/distribution/product/<%= product.slug %>/autofix" class="dh-actions">
+                <button class="admin-btn admin-btn--primary">Apply <%= fixes.changes.length %> fix<%= fixes.changes.length === 1 ? '' : 'es' %></button>
+              </form>
+            <% } %>
+
+            <h3 class="dh-panel__title dh-panel__title--sm" style="margin-top:1.4rem">What it will not do</h3>
+            <ul class="dh-refused">
+              <% refused.forEach(function (r) { %>
+                <li><strong><%= r.what %>.</strong> <%= r.why %></li>
+              <% }); %>
+            </ul>
+          </section>
+
+          <!-- ══ Merchant controls ══ -->
+          <section class="dh-panel">
+            <h2 class="dh-panel__title">Distribution settings</h2>
+            <p class="dh-hint">
+              Everything here affects the feed only. None of it changes the product page, which is the point:
+              a title that reads well to a shopper is often not the title that performs in Shopping, and
+              Google's 150-character limit is not a limit the storefront has.
+            </p>
+
+            <form method="POST" action="/admin/distribution/product/<%= product.slug %>" class="dh-form">
+
+              <input type="hidden" name="channel" value="<%= channel %>">
+
+              <%/* One checkbox, phrased for whichever mode the channel is
+                   in. Showing both would mean showing one that does
+                   nothing, and a control with no effect is worse than no
+                   control. */%>
+              <div class="dh-form__row">
+                <% if (selectionMode === 'selected') { %>
+                  <label class="dh-check">
+                    <input type="checkbox" name="sendToGoogle" <%= (product.merchant && product.merchant.included && product.merchant.included.google) ? 'checked' : '' %>>
+                    Send this product to Google
+                  </label>
+                <% } else { %>
+                  <label class="dh-check">
+                    <input type="checkbox" name="excludeGoogle" <%= (product.merchant && product.merchant.excluded && product.merchant.excluded.google) ? 'checked' : '' %>>
+                    Hold this product back from Google
+                  </label>
+                <% } %>
+              </div>
+              <p class="dh-hint" style="margin:-0.4rem 0 1rem">
+                <% if (selectionMode === 'selected') { %>
+                  This channel is set to <strong>send only the products you choose</strong>, so this
+                  product goes to Google only while this is ticked.
+                <% } else { %>
+                  This channel is set to <strong>send everything except what you exclude</strong>, so
+                  this product goes to Google unless this is ticked.
+                <% } %>
+                Either way it stays live and sellable on the site — this controls the feed only, and a
+                product held back after being sent is removed from Google on the next sync rather than
+                left as a listing nobody maintains.
+                <a href="/admin/distribution?channel=<%= channel %>">Change the mode</a>.
+              </p>
+
+              <div class="dh-form__row">
+                <label>Title override
+                  <input type="text" name="mTitle" maxlength="150" value="<%= (product.merchant && product.merchant.title) || '' %>"
+                         placeholder="<%= payload.title %>">
+                </label>
+                <label>Image URL override
+                  <input type="text" name="mImageLink" value="<%= (product.merchant && product.merchant.imageLink) || '' %>"
+                         placeholder="Leave blank to use the product image">
+                </label>
+              </div>
+
+              <div class="dh-form__row" style="grid-template-columns:1fr">
+                <label>Description override
+                  <textarea name="mDescription" maxlength="5000" rows="5"
+                            placeholder="Leave blank to use the product description, with language, edition, set and condition appended automatically."><%= (product.merchant && product.merchant.description) || '' %></textarea>
+                </label>
+              </div>
+
+              <div class="dh-form__row">
+                <label>Google product category
+                  <input type="text" name="googleCategory" value="<%= (product.merchant && product.merchant.googleCategory) || '' %>"
+                         placeholder="<%= defaults.googleCategoryId %>">
+                </label>
+                <label>Product type (your own breadcrumb)
+                  <input type="text" name="googleProductType" value="<%= (product.merchant && product.merchant.googleProductType) || '' %>"
+                         placeholder="<%= (payload.productTypes || []).join(', ') %>">
+                </label>
+              </div>
+              <p class="dh-hint" style="margin:-0.4rem 0 1rem">
+                Default is <span class="dh-mono"><%= defaults.googleCategoryId %></span> —
+                <%= defaults.googleCategoryPath %>. Google uses its own category to classify and yours to report on.
+              </p>
+
+              <div class="dh-form__row">
+                <label class="dh-check">
+                  <input type="checkbox" name="identifierExists" <%= (product.merchant && product.merchant.identifierExists === false) ? '' : 'checked' %>>
+                  This product has a GTIN or MPN
+                </label>
+                <label class="dh-check">
+                  <input type="checkbox" name="isBundle" <%= (product.merchant && product.merchant.isBundle) ? 'checked' : '' %>>
+                  Is a bundle
+                </label>
+                <label>Multipack quantity
+                  <input type="number" name="multipack" min="0" value="<%= (product.merchant && product.merchant.multipack) || 0 %>">
+                </label>
+                <label class="dh-check">
+                  <input type="checkbox" name="adult" <%= (product.merchant && product.merchant.adult) ? 'checked' : '' %>>
+                  Adult
+                </label>
+              </div>
+
+              <div class="dh-form__row">
+                <label>Shipping label
+                  <input type="text" name="shippingLabel" value="<%= (product.merchant && product.merchant.shippingLabel) || '' %>"
+                         placeholder="Optional, groups products in Merchant Center shipping rules">
+                </label>
+                <label>Tax category
+                  <input type="text" name="taxCategory" value="<%= (product.merchant && product.merchant.taxCategory) || '' %>" placeholder="Optional">
+                </label>
+              </div>
+
+              <div class="dh-form__row">
+                <label>Excluded destinations
+                  <select name="excludedDestinations" multiple size="4">
+                    <% ['SHOPPING_ADS','FREE_LISTINGS','DISPLAY_ADS','LOCAL_INVENTORY_ADS'].forEach(function (d) { %>
+                      <option value="<%= d %>" <%= ((product.merchant && product.merchant.excludedDestinations) || []).includes(d) ? 'selected' : '' %>><%= d.replace(/_/g, ' ').toLowerCase() %></option>
+                    <% }); %>
+                  </select>
+                </label>
+              </div>
+
+              <button class="admin-btn admin-btn--primary">Save distribution settings</button>
+            </form>
+          </section>
+
+        </div>
+
+        <!-- ══ Right column: what Google receives ══ -->
+        <div>
+
+          <section class="dh-panel">
+            <h2 class="dh-panel__title">How it appears</h2>
+            <p class="dh-hint" style="margin-bottom:0.9rem">
+              Built from the payload below, not from the product page, so it shows what a shopper sees in
+              Shopping rather than what the storefront shows.
+            </p>
+
+            <div class="dh-preview">
+              <% if (payload.imageLink && probe && probe.ok) { %>
+                <img class="dh-preview__img" src="<%= payload.imageLink %>" alt="">
+              <% } else { %>
+                <div class="dh-preview__img dh-preview__img--missing">
+                  <%= payload.imageLink ? 'This image did not load for the feed validator, so it will not load for Google either.' : 'No image' %>
+                </div>
+              <% } %>
+
+              <p class="dh-preview__title"><%= payload.title.length > 70 ? payload.title.slice(0, 70) + '…' : payload.title %></p>
+              <p class="dh-preview__price">
+                $<%= (product.price / 100).toFixed(2) %>
+                <% if (product.comparePrice && product.comparePrice > product.price) { %>
+                  <span class="dh-preview__was">$<%= (product.comparePrice / 100).toFixed(2) %></span>
+                <% } %>
+              </p>
+              <p class="dh-preview__merchant"><%= tradingName %></p>
+              <% if (payload.availability === 'IN_STOCK') { %>
+                <p class="dh-preview__meta">Free delivery</p>
+              <% } else if (payload.availability === 'PREORDER') { %>
+                <p class="dh-preview__meta dh-preview__meta--warn">
+                  Pre-order<%= payload.availabilityDate ? ' · releases ' + payload.availabilityDate.slice(0, 10) : '' %>
+                </p>
+              <% } else { %>
+                <p class="dh-preview__meta dh-preview__meta--out">Out of stock</p>
+              <% } %>
+            </div>
+          </section>
+
+          <%/* Availability is derived from three product fields and one of
+               them is a tag nobody remembers setting. Showing the
+               derivation is the difference between "why is this a
+               preorder?" being a five-minute hunt and a glance. */%>
+          <section class="dh-panel">
+            <h2 class="dh-panel__title">Availability</h2>
+            <dl class="dh-kv">
+              <dt>Sent as</dt>
+              <dd><strong><%= payload.availability.replace(/_/g, ' ').toLowerCase() %></strong></dd>
+              <dt>Available</dt>
+              <dd><%= product.available ? 'Yes' : 'No' %></dd>
+              <dt>Preorder</dt>
+              <dd>
+                <% if (preorderSource) { %>
+                  Yes, from <%= preorderSource %>
+                <% } else { %>
+                  No
+                <% } %>
+              </dd>
+              <% if (preorderSource) { %>
+                <dt>Release date</dt>
+                <dd><%= release.hasDate ? release.display : 'Not set' %></dd>
+              <% } %>
+            </dl>
+            <p class="dh-hint" style="margin-top:0.7rem">
+              <% if (payload.availability === 'PREORDER') { %>
+                Preorder needs a release date; Google rejects the value without one.
+              <% } else if (preorderSource) { %>
+                Marked a preorder but not available, so Google is told out of stock. That is the honest
+                value and needs no release date.
+              <% } else if (payload.availability === 'OUT_OF_STOCK') { %>
+                Out of stock. Still sent, so the listing stays matched to Google's catalogue and returns
+                the moment it is back.
+              <% } else { %>
+                In stock and orderable now.
+              <% } %>
+              <a href="/admin/products/<%= product._id %>/edit">Change it on the product</a>.
+            </p>
+          </section>
+
+          <section class="dh-panel">
+            <h2 class="dh-panel__title">Image check</h2>
+            <% if (!payload.imageLink) { %>
+              <p class="dh-error-text">No image on this product.</p>
+            <% } else { %>
+              <dl class="dh-kv">
+                <dt>URL</dt><dd class="dh-mono"><%= payload.imageLink %></dd>
+                <dt>Loads</dt>
+                <dd><%= probe.ok ? 'Yes (' + probe.status + ')' : 'No — ' + (probe.error || probe.status) %></dd>
+                <% if (probe.contentType) { %><dt>Type</dt><dd><%= probe.contentType %></dd><% } %>
+                <% if (probe.width) { %><dt>Size</dt><dd><%= probe.width %> × <%= probe.height %></dd><% } %>
+                <% if (probe.bytes) { %><dt>Bytes</dt><dd><%= probe.bytes.toLocaleString('en-US') %></dd><% } %>
+                <dt>Extra images</dt><dd><%= (payload.additionalImageLinks || []).length %></dd>
+              </dl>
+            <% } %>
+          </section>
+
+          <section class="dh-panel">
+            <h2 class="dh-panel__title">Feed payload</h2>
+            <p class="dh-hint" style="margin-bottom:0.7rem">Exactly what the channel receives. Nothing is added between here and the network call.</p>
+            <div class="dh-tabs">
+              <button type="button" class="dh-tab is-active" data-pane="json">JSON</button>
+              <button type="button" class="dh-tab" data-pane="xml">XML</button>
+            </div>
+            <pre class="dh-payload" data-pane="json"><%= JSON.stringify(payload, null, 2) %></pre>
+            <pre class="dh-payload" data-pane="xml" hidden><%= xml %></pre>
+          </section>
+
+          <section class="dh-panel">
+            <h2 class="dh-panel__title">Sync state</h2>
+            <dl class="dh-kv">
+              <dt>Last sent</dt>
+              <dd><%= (product.merchant && product.merchant.lastSyncedAt) ? new Date(product.merchant.lastSyncedAt).toLocaleString('en-US') : 'Never' %></dd>
+              <dt>Result</dt>
+              <dd><%= (product.merchant && product.merchant.lastSyncStatus) || '—' %></dd>
+              <% if (product.merchant && product.merchant.lastSyncError) { %>
+                <dt>Error</dt><dd class="dh-error-text"><%= product.merchant.lastSyncError %></dd>
+              <% } %>
+              <dt>Payload hash</dt>
+              <dd class="dh-mono"><%= (product.merchant && product.merchant.lastSyncHash) || '—' %></dd>
+            </dl>
+            <p class="dh-hint" style="margin-top:0.7rem">
+              A product whose hash still matches is skipped by the next sync. Saving anything on this page
+              clears it, so an edit always resends.
+            </p>
+          </section>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    /* Payload tabs. No framework, no fetch: both panes are already rendered
+       and one is hidden, so switching cannot be out of date with the other. */
+    document.querySelectorAll('.dh-tab').forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        var pane = tab.dataset.pane;
+        document.querySelectorAll('.dh-tab').forEach(function (t) { t.classList.toggle('is-active', t === tab); });
+        document.querySelectorAll('pre.dh-payload').forEach(function (p) { p.hidden = p.dataset.pane !== pane; });
+      });
+    });
+  </script>
+</body>
+</html>

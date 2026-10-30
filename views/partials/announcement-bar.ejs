@@ -1,0 +1,27 @@
+<%
+  /* No emoji, no ALL-CAPS shouting, and no unverifiable buyer-count claim
+     — the previous version's "TRUSTED BY 10,000+ COLLECTORS" was not
+     backed by any real figure, and the emoji ticker fought the tone of
+     everything below it. Each item here is a policy this store actually
+     operates, stated plainly. */
+  var tickerItems = [
+    shippingCopy.short,     // res.locals, from config/shipping.js — the same promise the Offer schema declares
+    'Factory sealed, never resealed',
+    'Ships within 1 business day',
+    'Tracked & insured worldwide',
+  ];
+%>
+<div class="announcement-bar" role="banner" aria-label="Store policies">
+  <div class="announcement-ticker">
+    <span>
+      <% for (var i = 0; i < 3; i++) { %>
+        <% tickerItems.forEach(function (item) { %><span class="announcement-item"><%= item %></span><span class="announcement-sep" aria-hidden="true">·</span><% }); %>
+      <% } %>
+    </span>
+    <span aria-hidden="true">
+      <% for (var j = 0; j < 3; j++) { %>
+        <% tickerItems.forEach(function (item) { %><span class="announcement-item"><%= item %></span><span class="announcement-sep">·</span><% }); %>
+      <% } %>
+    </span>
+  </div>
+</div>

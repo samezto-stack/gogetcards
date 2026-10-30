@@ -1,0 +1,103 @@
+<%- include('../partials/account-head', { customerDoc, section }) %>
+<%
+  /* ── Cancel confirmation ────────────────────────────────────────────
+     A page, not a browser confirm(). Cancelling a four-figure sealed
+     allocation is not an "are you sure?" — it needs to say what is being
+     given up, what comes back, and how long that takes, before anybody
+     presses anything.
+
+     THIS PAGE PROVES NOTHING. Every condition it renders is checked again
+     server-side on POST (see routes/account.js). Reaching it with a stale
+     tab, a back button, or a hand-made request does not get an order
+     cancelled after it has shipped. */
+
+  /* An order is priced in the currency it was CHARGED in, which is not
+     necessarily the storefront being viewed: a UK order is £ even when the
+     customer opens their account from the US site later. So the currency is
+     always passed explicitly and never inferred from the market.
+
+     This used to be `'$' + amount + (code unless USD)`, which rendered a
+     pound order as "$119.98 GBP" — a dollar sign in front of a figure that
+     is not dollars, on the pages where a customer checks what they were
+     charged against their bank. marketMoney is config/markets.format, the
+     same function the product page and the checkout use. */
+  const money = (c, cur) => (typeof marketMoney === 'function'
+    ? marketMoney(Number(c || 0), cur || 'USD')
+    : `${cur || 'USD'} ${(Number(c || 0) / 100).toFixed(2)}`);
+  const order = o.order;
+  const cur = order.currency || 'USD';
+  const title = (o.product && o.product.title) || (order.products || [])[0] || 'this order';
+%>
+
+<% if (formError) { %>
+  <div class="ac__notice ac__notice--err"><strong>We couldn&rsquo;t cancel this.</strong> <%= formError %></div>
+<% } %>
+
+<section class="ac__sheet ac__sheet--accent">
+  <div class="ac__sheet-head">
+    <h2 class="ac__sheet-title">Cancel order <span class="ac__mono"><%= o.reference %></span></h2>
+    <a class="ac__sheet-more" href="<%= marketPath('/account/orders/' + (o.reference)) %>">Back to order</a>
+  </div>
+
+  <div class="ac__order ac__order--static">
+    <% if (o.image) { %>
+      <img class="ac__thumb" <%- productImage.attrs(o.image, 90) %> alt="" width="72" height="72" loading="lazy" decoding="async">
+    <% } else { %><span class="ac__thumb ac__thumb--blank"></span><% } %>
+    <div class="ac__order-main">
+      <span class="ac__order-title"><%= title %></span>
+      <p class="ac__order-meta">
+        <span>Quantity <%= Number(order.quantity) || 1 %></span>
+        <span class="ac__mono"><%= o.reference %></span>
+      </p>
+    </div>
+    <div class="ac__order-right"><p class="ac__price"><%= money(order.totalPrice, cur) %></p></div>
+  </div>
+
+  <div class="ac__body">
+    <h3 class="ac__minor">What happens if you cancel</h3>
+    <ul class="ac__list">
+      <li>The order stops immediately. Nothing further is picked, packed or shipped.</li>
+      <li>
+        <strong><%= money(order.totalPrice, cur) %></strong> is queued for refund to your original
+        payment method. Our team issues refunds by hand &mdash; normally within one business day &mdash;
+        and you&rsquo;ll get an email the moment it&rsquo;s sent. It is not sent the instant you press
+        the button below.
+      </li>
+      <% if (o.isPreorder) { %>
+        <li>
+          <strong>Your allocation is released.</strong> Sealed preorder allocations are limited and
+          are offered to the next buyer straight away. If this set sells out, we cannot get it back
+          for you at this price.
+        </li>
+      <% } %>
+      <li>This cannot be undone. To buy again afterwards you&rsquo;d place a new order at the current price.</li>
+    </ul>
+
+    <form method="POST" action="<%= marketPath('/account/orders/' + (o.reference) + '/cancel') %>" class="ac__cancel-form">
+      <div class="ac__field ac__field--wide">
+        <label for="ac-reason">Reason (optional, helps us improve)</label>
+        <select id="ac-reason" name="reason">
+          <option value="">Prefer not to say</option>
+          <option value="Changed my mind">Changed my mind</option>
+          <option value="Ordered by mistake">Ordered by mistake</option>
+          <option value="Found it cheaper elsewhere">Found it cheaper elsewhere</option>
+          <option value="Waiting too long">Waiting too long for the release</option>
+          <option value="Wrong item or quantity">Wrong item or quantity</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="ac__actions">
+        <button type="submit" class="ac__btn ac__btn--danger">Yes, cancel this order</button>
+        <a class="ac__btn ac__btn--primary" href="<%= marketPath('/account/orders/' + (o.reference)) %>">Keep my order</a>
+      </div>
+    </form>
+  </div>
+</section>
+
+<div class="ac__notice">
+  <strong>Only part of it wrong?</strong>
+  If you need a different quantity, a corrected address or a swap, talk to us first &mdash;
+  we can usually change an order without cancelling it.
+  <a href="<%= marketPath('/contact') %>">Contact Zyphera support &rarr;</a>
+</div>
+<%- include('../partials/account-foot') %>

@@ -1,0 +1,15 @@
+<%- include('../partials/account-head', { customerDoc, section }) %>
+<%/* Deliberately identical whether the reference is unknown or belongs to
+     somebody else. A distinct "not yours" would confirm the order exists,
+     which is exactly what somebody probing references wants to learn. */%>
+<div class="ac__sheet">
+  <div class="ac__empty">
+    <h3>We couldn&rsquo;t find that order.</h3>
+    <p>It may have been placed with a different email address.</p>
+    <div class="ac__actions" style="justify-content:center">
+      <a href="<%= marketPath('/account/orders') %>" class="ac__btn ac__btn--primary">My orders</a>
+      <a href="<%= marketPath('/contact') %>" class="ac__btn ac__btn--ghost">Contact support</a>
+    </div>
+  </div>
+</div>
+<%- include('../partials/account-foot') %>

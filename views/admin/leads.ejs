@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%237C3AED'/><g fill='%23ffffff'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
+  <meta name="theme-color" content="#0c0c12">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leads & Marketing | Zyphera Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+</head>
+<body class="admin-body">
+  <%- include('_sidebar', { currentPath: '/admin/leads' }) %>
+
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="admin-header__title">Leads & Marketing</h1>
+      <button class="admin-btn admin-btn--outline" onclick="copyAllEmails()">📋 Copy All Emails</button>
+    </header>
+
+    <div class="admin-content">
+      <%/* Moved off the Dashboard. It is a marketing tool, not a metric,
+           and it sat in the busiest spot on the busiest page where a
+           mis-click fires a real Purchase event at Meta. It belongs with
+           the other marketing controls. */%>
+      <!-- Manual Meta CAPI Purchase Trigger (moved here from the Dashboard) -->
+      <div style="background: rgba(34, 197, 94, 0.1); padding: 0.8rem 1.2rem; border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem;">
+        <span style="font-size: 0.85rem; font-weight: 600; color: #4ade80;">🟢 Manual Pixel Trigger (Meta CAPI)</span>
+        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+          <input type="number" id="manualCapiValue" placeholder="Order Value (e.g. 139.99)" class="admin-input" style="padding: 0.4rem 0.8rem; background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 6px; font-size: 0.8rem; width: 180px;">
+          <input type="email" id="manualCapiEmail" placeholder="Customer Email" class="admin-input" style="padding: 0.4rem 0.8rem; background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 6px; font-size: 0.8rem; width: 220px;">
+          <div style="display:flex; flex-direction:column; gap:0.2rem;">
+            <span style="font-size:0.65rem; color:var(--admin-muted);">Date (Optional, up to 7 days ago)</span>
+            <input type="datetime-local" id="manualCapiDate" class="admin-input" style="padding: 0.35rem; background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 6px; font-size: 0.8rem; color: white; width: 180px;">
+          </div>
+          <button onclick="fireManualCAPI()" class="admin-btn" style="background: #22c55e; color: #000; font-weight: bold; border: none; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer; align-self: flex-end; margin-bottom: 2px;">🔥 Fire Purchase Event</button>
+        </div>
+        <span id="manualCapiStatus" style="font-size: 0.75rem; color: var(--admin-muted);">Zero connection to Shopify. 100% server-side stealth.</span>
+      </div>
+
+      <div class="admin-stats-grid" style="margin-bottom: 2rem">
+        <div class="admin-stat-card">
+          <div class="admin-stat-card__num"><%= leads.filter(l => l.source === 'cart_abandonment').length %></div>
+          <div class="admin-stat-card__label">Abandoned Carts</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-card__num"><%= leads.filter(l => l.source === 'newsletter').length %></div>
+          <div class="admin-stat-card__label">Newsletter Subs</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-card__num"><%= leads.length %></div>
+          <div class="admin-stat-card__label">Total Leads</div>
+        </div>
+      </div>
+
+      <div style="background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:12px;overflow:hidden">
+        <table style="width:100%;border-collapse:collapse;text-align:left">
+          <thead>
+            <tr style="background:rgba(0,0,0,0.15);border-bottom:1px solid var(--admin-border)">
+              <th style="padding:1rem 1.5rem;font-weight:600;color:var(--admin-muted);font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em">Email Address</th>
+              <th style="padding:1rem 1.5rem;font-weight:600;color:var(--admin-muted);font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em">Source</th>
+              <th style="padding:1rem 1.5rem;font-weight:600;color:var(--admin-muted);font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em">Captured At</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (leads.length === 0) { %>
+              <tr><td colspan="3" style="padding:2rem;text-align:center;color:var(--admin-muted)">No leads captured yet.</td></tr>
+            <% } else { %>
+              <% leads.forEach(lead => { %>
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+                  <td style="padding:1rem 1.5rem;color:#fff;font-family:monospace;font-size:0.95rem"><%= lead.email %></td>
+                  <td style="padding:1rem 1.5rem">
+                    <% if (lead.source === 'cart_abandonment') { %>
+                      <span style="background:rgba(245, 158, 11, 0.15);color:#fbbf24;padding:4px 8px;border-radius:20px;font-size:0.75rem;font-weight:700">Abandoned Cart</span>
+                    <% } else { %>
+                      <span style="background:rgba(34,197,94,0.15);color:var(--admin-accent);padding:4px 8px;border-radius:20px;font-size:0.75rem;font-weight:700">Newsletter</span>
+                    <% } %>
+                  </td>
+                  <td style="padding:1rem 1.5rem;color:var(--admin-muted);font-size:0.85rem">
+                    <%= new Date(lead.createdAt).toLocaleString() %>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // ── Manual CAPI Trigger ──
+    window.fireManualCAPI = async function fireManualCAPI() {
+      const valueInput = document.getElementById('manualCapiValue');
+      const emailInput = document.getElementById('manualCapiEmail');
+      const dateInput = document.getElementById('manualCapiDate');
+      const statusSpan = document.getElementById('manualCapiStatus');
+      
+      const value = valueInput.value.trim();
+      const email = emailInput.value.trim();
+      const dateVal = dateInput ? dateInput.value : '';
+      
+      if (!value) {
+        statusSpan.style.color = '#ef4444';
+        statusSpan.textContent = '❌ Please enter an order value.';
+        return;
+      }
+      
+      statusSpan.style.color = '#eab308';
+      statusSpan.textContent = '⏳ Sending event to Meta...';
+      
+      try {
+        const res = await fetch('/admin/api/manual-capi', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ value, email, date: dateVal })
+        });
+        
+        const data = await res.json();
+        if (data.success) {
+          statusSpan.style.color = '#4ade80';
+          statusSpan.textContent = `✅ Success! Purchase event ($${value}) sent to Meta CAPI.`;
+          valueInput.value = '';
+          emailInput.value = '';
+          
+          setTimeout(() => {
+            statusSpan.style.color = 'var(--admin-muted)';
+            statusSpan.textContent = 'Zero connection to Shopify. 100% server-side stealth.';
+          }, 5000);
+        } else {
+          statusSpan.style.color = '#ef4444';
+          statusSpan.textContent = `❌ Error: ${data.error}`;
+        }
+      } catch (e) {
+        statusSpan.style.color = '#ef4444';
+        statusSpan.textContent = '❌ Network error failed to send.';
+      }
+    };
+
+    function copyAllEmails() {
+      const emails = <%- jsonForScript(leads.map(l => l.email)) %>;
+      navigator.clipboard.writeText(emails.join(', ')).then(() => {
+        alert('Copied ' + emails.length + ' emails to clipboard!');
+      });
+    }
+  </script>
+</body>
+</html>

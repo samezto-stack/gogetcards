@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0B0F14">
+<title><%= pageTitle %></title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%230B0F14'/><g fill='%23A78BFA'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/checkout.css">
+</head>
+<body>
+<%- include('../partials/checkout-header') %>
+<main class="ck-msg">
+  <h1><%= heading %></h1>
+  <p><%= message %></p>
+  <a class="ck-cta" style="display:inline-flex;max-width:280px;margin:0 auto;" href="<%= ctaHref %>">
+    <span class="ck-cta-main"><%= ctaLabel %></span>
+  </a>
+</main>
+<%- include('../partials/checkout-footer') %>
+</body>
+</html>

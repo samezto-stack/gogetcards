@@ -1,0 +1,68 @@
+<%/* ── Flags as SVG, not emoji ──────────────────────────────────────────
+     Regional-indicator emoji are the one glyph family with no fallback:
+     Windows ships no flag glyphs at all, so 🇬🇧 renders as the letters "GB"
+     in a box on the largest desktop platform there is, and on the rest it
+     is at the mercy of the font. The currency selector is the control that
+     tells a shopper which store they are in — it cannot be the thing that
+     renders as tofu.
+
+     Drawn at 3:2 on a 30x20 viewBox so every flag is the same size and
+     baseline without per-flag nudging, with a hairline border because a
+     white-edged flag on a light background otherwise floats.
+
+     Deliberately simplified: thirteen stripes and fifty stars at 20px is
+     mud. These are recognisable at the size they are actually used. */%>
+<%
+  var _code = String(typeof code !== 'undefined' ? code : '').toUpperCase();
+  var _size = (typeof size !== 'undefined' && size) ? size : 20;
+  var _label = (typeof label !== 'undefined' && label) ? label : _code;
+%>
+<svg class="flag" viewBox="0 0 30 20" width="<%= _size %>" height="<%= Math.round(_size * 2 / 3) %>"
+     role="img" aria-label="<%= _label %>" focusable="false"
+     style="display:inline-block;vertical-align:-0.18em;border-radius:2px;flex-shrink:0">
+  <% if (_code === 'US') { %>
+    <rect width="30" height="20" fill="#fff"/>
+    <g fill="#B22234">
+      <rect y="0"  width="30" height="1.54"/><rect y="3.08" width="30" height="1.54"/>
+      <rect y="6.15" width="30" height="1.54"/><rect y="9.23" width="30" height="1.54"/>
+      <rect y="12.31" width="30" height="1.54"/><rect y="15.38" width="30" height="1.54"/>
+      <rect y="18.46" width="30" height="1.54"/>
+    </g>
+    <rect width="12" height="10.77" fill="#3C3B6E"/>
+    <g fill="#fff">
+      <circle cx="2" cy="2" r="0.7"/><circle cx="5" cy="2" r="0.7"/><circle cx="8" cy="2" r="0.7"/>
+      <circle cx="3.5" cy="4" r="0.7"/><circle cx="6.5" cy="4" r="0.7"/><circle cx="9.5" cy="4" r="0.7"/>
+      <circle cx="2" cy="6" r="0.7"/><circle cx="5" cy="6" r="0.7"/><circle cx="8" cy="6" r="0.7"/>
+      <circle cx="3.5" cy="8" r="0.7"/><circle cx="6.5" cy="8" r="0.7"/><circle cx="9.5" cy="8" r="0.7"/>
+    </g>
+  <% } else if (_code === 'CA') { %>
+    <rect width="30" height="20" fill="#fff"/>
+    <rect width="7.5" height="20" fill="#D52B1E"/>
+    <rect x="22.5" width="7.5" height="20" fill="#D52B1E"/>
+    <path fill="#D52B1E" d="M15 3.6l1.15 2.3 2.2-.55-.75 2.1 1.5.9-1.85 1.5.4 1.2-2.2-.35-.1 2.4h-.7l-.1-2.4-2.2.35.4-1.2L10.9 8.35l1.5-.9-.75-2.1 2.2.55z"/>
+  <% } else if (_code === 'UK' || _code === 'GB') { %>
+    <rect width="30" height="20" fill="#012169"/>
+    <path d="M0 0l30 20M30 0L0 20" stroke="#fff" stroke-width="4"/>
+    <path d="M0 0l30 20M30 0L0 20" stroke="#C8102E" stroke-width="2"/>
+    <path d="M15 0v20M0 10h30" stroke="#fff" stroke-width="6.5"/>
+    <path d="M15 0v20M0 10h30" stroke="#C8102E" stroke-width="4"/>
+  <% } else if (_code === 'EU') { %>
+    <rect width="30" height="20" fill="#039"/>
+    <g fill="#FC0">
+      <%/* Twelve stars in a circle, drawn as dots: a five-pointed star at
+           this size is three pixels of noise, a dot is a dot. */%>
+      <% for (var _i = 0; _i < 12; _i++) {
+           var _a = (_i / 12) * Math.PI * 2 - Math.PI / 2;
+           var _cx = (15 + Math.cos(_a) * 5.6).toFixed(2);
+           var _cy = (10 + Math.sin(_a) * 5.6).toFixed(2); %>
+        <circle cx="<%= _cx %>" cy="<%= _cy %>" r="0.95"/>
+      <% } %>
+    </g>
+  <% } else { %>
+    <%/* An unknown market still gets a shape, never a gap. */%>
+    <rect width="30" height="20" fill="#6B7280"/>
+    <text x="15" y="14" text-anchor="middle" font-size="9" fill="#fff"
+          font-family="ui-sans-serif, system-ui, sans-serif"><%= _code.slice(0, 2) %></text>
+  <% } %>
+  <rect width="30" height="20" fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="1" rx="1"/>
+</svg>

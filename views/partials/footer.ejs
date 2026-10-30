@@ -1,0 +1,223 @@
+<footer class="site-footer" role="contentinfo">
+  <div class="footer__accent-line" aria-hidden="true"></div>
+  <div class="container">
+    <div class="footer__grid">
+
+      <!-- Brand Column -->
+      <div class="footer__brand">
+        <%/* Same mark as the header and every generated icon. See
+             views/partials/logomark.ejs. */%>
+        <a href="<%= marketPath('/') %>" class="footer__logo">
+          <span style="display:inline-flex;color:var(--color-primary)"><%- include('logomark', { size: 26 }) %></span>
+          Zyphera<strong>TCG</strong>
+        </a>
+        <p class="footer__tagline">The premium destination for serious sealed TCG collectors. Factory sealed, collector trusted, shipped with care.</p>
+
+        <div class="footer__socials">
+          <!-- Instagram -->
+          <% if (company.social.instagram) { %>
+          <a href="<%= marketPath((company.social.instagram)) %>" class="footer__social-btn" id="footer-instagram" aria-label="Instagram" rel="noopener noreferrer" target="_blank">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          </a>
+          <% } %>
+          <!-- TikTok -->
+          <% if (company.social.tiktok) { %>
+          <a href="<%= marketPath((company.social.tiktok)) %>" class="footer__social-btn" id="footer-tiktok" aria-label="TikTok" rel="noopener noreferrer" target="_blank">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.11v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 0010.86-4.43V7.56a8.16 8.16 0 004.77 1.52v-3.4c-.38.01-.79.01-1.19.01z"/></svg>
+          </a>
+          <% } %>
+          <!-- YouTube -->
+          <% if (company.social.youtube) { %>
+          <a href="<%= marketPath((company.social.youtube)) %>" class="footer__social-btn" id="footer-youtube" aria-label="YouTube" rel="noopener noreferrer" target="_blank">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 00-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 00-1.94 2A29 29 0 001 12a29 29 0 00.46 5.58 2.78 2.78 0 001.94 2C5.12 20 12 20 12 20s6.88 0 8.6-.46a2.78 2.78 0 001.94-2A29 29 0 0023 12a29 29 0 00-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/></svg>
+          </a>
+          <% } %>
+          <!-- Discord -->
+          <% if (company.social.discord) { %>
+          <a href="<%= marketPath((company.social.discord)) %>" class="footer__social-btn" id="footer-discord" aria-label="Discord" rel="noopener noreferrer" target="_blank">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+          </a>
+          <% } %>
+          <!-- X/Twitter -->
+          <% if (company.social.x) { %>
+          <a href="<%= marketPath((company.social.x)) %>" class="footer__social-btn" id="footer-twitter" aria-label="X / Twitter" rel="noopener noreferrer" target="_blank">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </a>
+          <% } %>
+          <!-- Facebook -->
+          <% if (company.social.facebook) { %>
+          <a href="<%= marketPath((company.social.facebook)) %>" class="footer__social-btn" id="footer-facebook" aria-label="Facebook" rel="noopener noreferrer" target="_blank">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+          </a>
+          <% } %>
+        </div>
+
+        <%/* Three decorative badges used to sit here: "SSL Secure",
+             "Factory Sealed" and "Tracked Shipping". All three were
+             unclickable text next to an icon, and the first was the worst
+             of them — "SSL Secure" is the classic self-applied trust seal.
+             SSL has been deprecated in favour of TLS for a decade, every
+             site on the web serves HTTPS, and a badge a store awards
+             itself proves nothing. It is a marker of a cheap template
+             rather than of a secure one.
+
+             These say something specific instead, and each links to the
+             page that commits to it. A badge that can be checked is worth
+             something; a badge that cannot is decoration. It also turns
+             three dead elements into three internal links to the pages a
+             Merchant Center reviewer wants to find. */%>
+        <%/* A visual summary strip, deliberately NOT links.
+ 
+             They were links for one revision, which put three more routes
+             to /shipping, /factory-sealed-guarantee and /refund-policy in
+             the same footer that already lists all three in its columns —
+             "Free shipping on all orders" and "Shipping & Delivery" side by
+             side, going to the same page, reading as two different
+             destinations. "Factory-sealed guarantee" against
+             "Factory-Sealed Guarantee" was worse still: differing only in
+             capitalisation looks like a bug rather than a choice.
+ 
+             What made the original badges bad was their WORDING, not their
+             lack of a link. "SSL Secure" was a security claim a store
+             awarded itself; these three are specific, checkable promises
+             that the pages in the columns above set out in full. */%>
+        <ul class="footer__trust-badges">
+          <li class="footer__trust-badge">
+            <%- include('icon', { name: 'package', size: 12, color: 'var(--color-accent)' }) %>
+            <%= shippingCopy.short %>
+          </li>
+          <li class="footer__trust-badge">
+            <%- include('icon', { name: 'check-circle', size: 12, color: 'var(--color-primary)' }) %>
+            Factory-sealed guarantee
+          </li>
+          <li class="footer__trust-badge">
+            <%- include('icon', { name: 'undo', size: 12, color: 'var(--color-cyan)' }) %>
+            <%= returnWindowDays %>-day returns
+          </li>
+        </ul>
+      </div>
+
+      <%/* Each column is a real <nav> with its own accessible name, and the
+           column title is a heading rather than a styled paragraph.
+           Two things follow from that. A screen reader can jump straight
+           to "Legal and policies" instead of wading through one
+           undifferentiated list of fifteen links, and a crawler reads
+           three labelled navigation groups rather than a flat blob —
+           which is how footer links get understood as site structure
+           instead of boilerplate. */%>
+      <!-- Shop Column -->
+      <nav class="footer__col" aria-labelledby="footer-nav-shop">
+        <h2 class="footer__col-title" id="footer-nav-shop">Shop</h2>
+        <ul class="footer__links">
+          <li><a href="<%= marketPath('/collection/all') %>">All Products</a></li>
+          <li><a href="<%= marketPath('/collection/pokemon') %>">Pokémon</a></li>
+          <li><a href="<%= marketPath('/collection/yugioh') %>">Yu-Gi-Oh!</a></li>
+          <li><a href="<%= marketPath('/collection/mtg') %>">Magic: The Gathering</a></li>
+          <li><a href="<%= marketPath('/collection/one-piece') %>">One Piece</a></li>
+          <li><a href="<%= marketPath('/collection/palworld') %>">Palworld</a></li>
+          <li><a href="<%= marketPath('/collection/preorders') %>">Preorders</a></li>
+        </ul>
+      </nav>
+
+      <!-- Guarantees Column -->
+      <%/* The trust pages, linked from every page on the site. They were
+           the orphans before this column existed: a guarantee nobody can
+           navigate to is not a trust signal, and an unlinked page is a
+           crawl dead end. */%>
+      <nav class="footer__col" aria-labelledby="footer-nav-trust">
+        <h2 class="footer__col-title" id="footer-nav-trust">Guarantees</h2>
+        <ul class="footer__links">
+          <li><a href="<%= marketPath('/authenticity-guarantee') %>">Authenticity Guarantee</a></li>
+          <li><a href="<%= marketPath('/factory-sealed-guarantee') %>">Factory-Sealed Guarantee</a></li>
+          <li><a href="<%= marketPath('/why-buy-from-zyphera') %>">Why Buy From Zyphera</a></li>
+          <li><a href="<%= marketPath('/preorder-policy') %>">Preorder Policy</a></li>
+          <li><a href="<%= marketPath('/allocation-policy') %>">Allocation Policy</a></li>
+        </ul>
+      </nav>
+
+      <!-- Info Column -->
+      <nav class="footer__col" aria-labelledby="footer-nav-info">
+        <h2 class="footer__col-title" id="footer-nav-info">Help</h2>
+        <ul class="footer__links">
+          <li><a href="<%= marketPath('/about') %>">About Zyphera</a></li>
+          <li><a href="<%= marketPath('/contact') %>">Contact Us</a></li>
+          <li><a href="<%= marketPath('/customer-support') %>">Customer Support</a></li>
+          <li><a href="<%= marketPath('/order-tracking') %>">Track Your Order</a></li>
+          <li><a href="<%= marketPath('/shipping') %>">Shipping &amp; Delivery</a></li>
+          <li><a href="<%= marketPath('/faq') %>">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <!-- Legal Column -->
+      <nav class="footer__col" aria-labelledby="footer-nav-legal">
+        <h2 class="footer__col-title" id="footer-nav-legal">Payment &amp; Legal</h2>
+        <ul class="footer__links">
+          <li><a href="<%= marketPath('/payment-information') %>">Payment Information</a></li>
+          <li><a href="<%= marketPath('/secure-checkout') %>">Secure Checkout</a></li>
+          <li><a href="<%= marketPath('/refund-policy') %>">Refund &amp; Returns</a></li>
+          <li><a href="<%= marketPath('/terms-of-service') %>">Terms of Service</a></li>
+          <li><a href="<%= marketPath('/privacy-policy') %>">Privacy Policy</a></li>
+          <li><a href="<%= marketPath('/cookie-policy') %>">Cookie Policy</a></li>
+          <li><a href="<%= marketPath('/disclaimer') %>">Disclaimer</a></li>
+        </ul>
+      </nav>
+
+    </div>
+
+    <!-- Footer Bottom -->
+    <div class="footer__bottom">
+      <%/* Seller identity on every page, not only on /contact.
+           "Missing or insufficient business information" is Merchant
+           Center's most common first-submission rejection, and what it
+           asks for is that a shopper can tell who they are buying from
+           without hunting. Each fragment appears only when
+           config/company.js holds a real value: an invented company
+           number or country is a Misrepresentation suspension, whereas an
+           omission is at worst a request for more detail. */%>
+      <p>
+        &copy; <%= currentYear %>
+        <%= company.business.legalName || company.business.tradingName %>.
+        All rights reserved.
+        <% if (company.business.registrationNumber) { %>Registered no. <%= company.business.registrationNumber %>.<% } %>
+        <% if (company.business.vatNumber) { %>VAT <%= company.business.vatNumber %>.<% } %>
+        <% if (company.business.country) { %>Ships from <%= company.business.country %>.<% } %>
+        Prices in <%= company.business.currency %>.
+      </p>
+      <%/* The postal address on every page rather than only on Contact.
+           A Merchant Center reviewer looks for a physical address without
+           hunting for it, and the footer is the first place anyone
+           checking whether a shop is real will look. Renders nothing when
+           the address is unset. */%>
+      <% if (company.business.address) { %>
+        <p class="footer__address">
+          <address style="font-style:normal;display:inline">
+            <%= company.business.legalName || company.business.tradingName %>,
+            <%= company.addressOneLine() %>
+          </address>
+        </p>
+      <% } %>
+      <p class="footer__disclaimer">
+        Zyphera TCG is an independent retailer. Not affiliated with, endorsed by, or
+        sponsored by The Pokémon Company, Nintendo, Konami, Wizards of the Coast, Bushiroad,
+        Hasbro, or Bandai. All product names, logos and brands are the property of
+        their respective owners.
+      </p>
+      <%/* Was "Questions? Contact us or email support@..." — a second link
+           to /contact in a footer whose Help column already carries one,
+           under a different label. The email address is a different
+           destination, so it stays. */%>
+      <p class="footer__contact-line">
+        Questions? Email
+        <a href="mailto:<%= company.business.supportEmail %>"><%= company.business.supportEmail %></a>
+        and we reply within <%= company.business.responseTimeHours %> hours.
+      </p>
+      <%/* Badges come from config/payments.js. They used to be six
+           hardcoded SVGs — Visa, Mastercard, PayPal, Apple Pay, Google Pay
+           and Klarna — none of them tied to what checkout actually
+           renders, and four that nobody could confirm a buyer ever sees.
+           An advertised payment method the customer cannot use is a
+           Merchant Center misrepresentation violation. */%>
+      <%- include('payment-methods') %>
+    </div>
+  </div>
+</footer>

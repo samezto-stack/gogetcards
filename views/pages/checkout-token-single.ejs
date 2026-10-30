@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<%
+/* A private, token-addressed URL has no business in an index. This is NOT
+   how anything is hidden from Google: the product page that links here is
+   fully crawlable and carries the same price, availability and terms this
+   page shows. Nothing on this page varies by who is asking. */
+%>
+<meta name="robots" content="noindex, nofollow">
+<%/* no-referrer, exactly as the standalone step-2 payment page set on itself.
+     This page's URL carries the session token in its path, and the payment
+     step is revealed into THIS document, so nothing about how the partner is
+     reached may leak that URL. The partner does not need it: this page hands
+     it the origin explicitly through the parentOrigin field the handoff form
+     posts (see buildHandoffForm below), so the completion handshake works
+     with no Referer at all — same as the two-step flow. Nothing is masked;
+     the frame's src and the partner origin stay fully visible in the page. */%>
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0B0F14">
+<title><%= pageTitle %></title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%230B0F14'/><g fill='%23A78BFA'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/checkout.css">
+<%/* googleAds:false — this one page carries the payment step, so it follows
+     the rule the standalone step-2 page followed: NO Google tag here. Meta
+     and Clarity still run, so the checkout stays measurable; only Google is
+     held back. The purchase conversion is unaffected — it fires on the
+     thank-you page against a click id the tag cookied on the landing page,
+     long before this step. */%>
+<%- include('../partials/analytics', { googleAds: false }) %>
+<%- include('../partials/fx-approx') %>
+<style>
+  /* ─────────────────────────────────────────────────────────────────────
+     THE PROGRESSIVE REVEAL.
+     One page, two phases. The information form fills the form column; when
+     it validates, the server mints the token and the payment step is drawn
+     in below it — the customer never leaves this document, and the address
+     bar never changes. These styles are the small amount the single page
+     needs on top of checkout.css: the reveal itself, the collapsed review
+     of the details once they are saved, and the embed/window chrome the
+     old step-2 page carried inline.
+     ───────────────────────────────────────────────────────────────────── */
+
+  /* The payment step, hidden until there is a token to fill it. Not
+     display:none on reveal — it animates open so the transition reads as
+     "the next thing appeared here", not "the page changed". */
+  .ck-pay-reveal { margin-top: 30px; }
+  .ck-pay-reveal[hidden] { display: none; }
+  .ck-pay-reveal.is-revealing {
+    animation: ck-reveal 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes ck-reveal {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ck-pay-reveal.is-revealing { animation: none; }
+  }
+
+  .ck-pay-reveal-head { margin: 0 0 4px; }
+  .ck-pay-reveal-head h2 {
+    font-family: var(--font-heading); font-size: 19px; font-weight: 700;
+    color: var(--color-white); margin: 0;
+  }
+  .ck-pay-reveal-sub {
+    margin: 6px 0 20px; font-size: 13px; color: var(--color-text-muted); line-height: 1.55;
+  }
+
+  /* ── The saved details, collapsed ─────────────────────────────────────
+     Once payment is showing, the form it came from folds into two quiet
+     rows the customer can read at a glance and a link back to change them.
+     Shopify does exactly this: the step you finished stays on screen as a
+     confirmation, not a void. */
+  .ck-review { margin: 0 0 4px; }
+  .ck-review[hidden] { display: none; }
+  .ck-review-row {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 14px 16px; border: 1px solid var(--color-border-light); border-radius: 12px;
+    background: rgba(255,255,255,0.015);
+  }
+  .ck-review-row + .ck-review-row { margin-top: 10px; }
+  .ck-review-label {
+    flex: 0 0 76px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase; color: var(--color-text-muted); padding-top: 2px;
+  }
+  .ck-review-val { flex: 1 1 auto; font-size: 13.5px; color: var(--color-white); line-height: 1.5; overflow-wrap: anywhere; }
+  .ck-review-val .ck-review-2nd { display: block; color: var(--color-text-muted); font-size: 12.5px; margin-top: 3px; }
+  .ck-review-edit {
+    flex: 0 0 auto; background: none; border: 0; padding: 2px 0; cursor: pointer;
+    font-size: 12.5px; font-weight: 600; color: var(--color-primary-text);
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .ck-review-check {
+    display: inline-flex; align-items: center; gap: 7px; margin: 0 0 14px;
+    font-size: 12.5px; font-weight: 600; color: var(--color-accent);
+  }
+
+  /* ── The embedded frame ───────────────────────────────────────────────
+     No border, no shadow, no rounded corner: anything that draws an edge
+     around it says "this is a different website", which is the exact
+     impression this arrangement exists to remove. Height is set from the
+     inside; until it is, this is tall enough that the first paint is a
+     payment form and not a letterbox. (Copied from the step-2 page so the
+     inline reveal renders identically to the classic fallback.) */
+  .ck-embed { width: 100%; border: 0; display: block; min-height: 620px; background: transparent; }
+  .ck-embed-wrap { position: relative; }
+  .ck-embed-loading {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    min-height: 620px; color: var(--color-text-muted); font-size: 13px;
+  }
+  .ck-embed-loading[hidden] { display: none; }
+  .ck-embed-fallback {
+    max-width: 380px; margin: 0 auto; padding: 28px 24px; text-align: center;
+    line-height: 1.6; font-size: 13.5px; color: var(--color-text-muted);
+  }
+  .ck-embed-fallback h2 { font-family: var(--font-heading); font-size: 16px; color: var(--color-white); margin: 0 0 10px; }
+  .ck-embed-fallback a {
+    display: inline-block; margin-top: 16px; padding: 12px 22px; border-radius: 8px;
+    background: var(--color-primary); color: #fff; font-weight: 700;
+    text-decoration: none; font-size: 14px;
+  }
+
+  /* ── The payment window (3-D Secure / wallets) ────────────────────────
+     Deliberately quiet. The customer's attention belongs in the window that
+     just opened; a page competing for it is a page pulling them away from
+     paying. */
+  .ck-paywin { padding-top: 2px; }
+  .ck-paywin-note {
+    margin: 12px 0 0; text-align: center;
+    font-size: 12.5px; color: var(--color-text-muted); line-height: 1.55;
+  }
+  .ck-paywin-wait {
+    padding: 22px 20px; border-radius: 12px;
+    border: 1px solid var(--color-border-light); background: rgba(255,255,255,0.02);
+  }
+  .ck-paywin-wait[hidden], .ck-paywin-err[hidden] { display: none; }
+  .ck-paywin-wait-h {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: var(--color-white);
+  }
+  .ck-paywin-wait p { margin: 10px 0 0; font-size: 13px; line-height: 1.6; color: var(--color-text-muted); }
+  .ck-paywin-actions { display: flex; gap: 18px; margin-top: 16px; flex-wrap: wrap; }
+  .ck-paywin-link {
+    background: none; border: 0; padding: 0; cursor: pointer;
+    font-size: 12.5px; font-weight: 600; color: var(--color-primary-text);
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .ck-paywin-cancel { color: var(--color-text-muted); }
+  .ck-paywin-err {
+    margin: 14px 0 0; padding: 12px 14px; border-radius: 10px;
+    border: 1px solid rgba(196,72,92,0.35); background: rgba(196,72,92,0.06);
+    font-size: 12.5px; line-height: 1.6; color: var(--color-text);
+  }
+
+  /* A form-level error, shown when prepare fails for a reason that is not a
+     single field (a partner outage the fetch surfaced before the page could
+     navigate). Rare, and never a dead end — the native submit still runs. */
+  .ck-form-error {
+    display: flex; align-items: flex-start; gap: 9px; margin: 0 0 18px;
+    padding: 12px 14px; border-radius: 10px;
+    border: 1px solid rgba(196,72,92,0.35); background: rgba(196,72,92,0.06);
+    font-size: 13px; line-height: 1.55; color: var(--color-text);
+  }
+  .ck-form-error[hidden] { display: none; }
+  .ck-form-error svg { flex-shrink: 0; margin-top: 2px; color: #E0607A; }
+</style>
+</head>
+<body>
+
+<%- include('../partials/checkout-header') %>
+
+<%
+  const p = priced.product;
+  const v = values || {};
+  const e = errors || {};
+  const err = (field) => e[field]
+    ? '<p class="ck-error-msg"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' + e[field] + '</p>'
+    : '';
+  const bad = (field) => e[field] ? ' has-error' : '';
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+%>
+
+<main class="ck-main">
+
+  <div class="ck-summary-col"><aside class="ck-summary" aria-label="Order summary">
+    <button type="button" class="ck-summary-toggle" aria-expanded="false" id="ck-summary-toggle">
+      <span class="ck-summary-toggle-label">Show order summary <span class="ck-summary-toggle-caret">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+      </span></span>
+      <span class="ck-summary-total-compact"><%= money(priced.total) %></span>
+    </button>
+
+    <div class="ck-summary-body">
+      <h2 class="ck-summary-h">Your order</h2>
+
+      <div class="ck-line-item">
+        <div class="ck-thumb">
+          <% if (p.imageUrl) { %>
+            <img src="<%= p.imageUrl %>" alt="<%= esc(p.title) %>">
+          <% } else { %>
+            <svg viewBox="0 0 64 48" role="img" aria-label="Product image">
+              <rect x="20" y="10" width="24" height="28" rx="2" fill="none" stroke="#3A4867" stroke-width="1.2"/>
+              <path d="M20 31l6-6 4.5 4.5L36 23l8 8" fill="none" stroke="#3A4867" stroke-width="1.2" stroke-linejoin="round"/>
+              <circle cx="28" cy="18" r="2.4" fill="none" stroke="#3A4867" stroke-width="1.2"/>
+            </svg>
+          <% } %>
+          <% if (priced.quantity > 1) { %>
+            <span class="ck-thumb-qty" style="display:grid" aria-label="Quantity <%= priced.quantity %>"><%= priced.quantity %></span>
+          <% } %>
+        </div>
+
+        <div class="ck-item-main">
+          <p class="ck-item-name"><%= p.title %></p>
+          <p class="ck-item-meta">
+            <span class="ck-item-badge"><%= priced.isPreorder ? 'Preorder' : 'In stock' %></span>
+            <span class="ck-item-badge ck-item-qty">Qty: <%= priced.quantity %></span>
+          </p>
+          <p class="ck-item-pricing">
+            <span class="ck-item-price"><%= money(priced.total) %></span>
+            <%
+              const showsEach = priced.quantity > 1 && priced.total % priced.quantity === 0;
+            %>
+            <% if (showsEach) { %>
+              <span class="ck-item-unit"><%= money(priced.total / priced.quantity) %> each</span>
+            <% } else if (priced.quantity > 1) { %>
+              <span class="ck-item-unit">total for <%= priced.quantity %> units</span>
+            <% } %>
+          </p>
+        </div>
+      </div>
+
+      <div class="ck-totals">
+        <div class="ck-total-row"><span>Subtotal</span><span><%= money(priced.total) %></span></div>
+        <div class="ck-total-row"><span>Shipping</span><span class="ck-free">Free</span></div>
+        <div class="ck-total-row"><span>Taxes</span><span class="ck-muted">Included</span></div>
+        <div class="ck-total-row ck-total-row-grand">
+          <span>Total</span>
+          <span class="ck-grand-value"><span class="ck-grand-line" data-usd-cents="<%= priced.total %>" data-usd-label="<%= priced.currency %> <%= money(priced.total) %>"><span class="ck-grand-currency"><%= priced.currency %></span><span class="ck-grand-amount"><%= money(priced.total) %></span></span></span>
+        </div>
+      </div>
+
+      <dl class="ck-facts">
+        <dt class="ck-facts-h"><%= priced.isPreorder ? 'Preorder details' : 'Order details' %></dt>
+        <% if (priced.isPreorder && priced.release.hasDate) { %>
+          <div class="ck-fact"><dt>Release</dt><dd><span class="ck-fact-em"><%= priced.release.display %></span></dd></div>
+        <% } %>
+        <div class="ck-fact">
+          <dt>Fulfillment</dt>
+          <dd><%= priced.isPreorder ? 'Ships after release' : 'Ships in 1 business day' %></dd>
+        </div>
+        <div class="ck-fact"><dt>Shipping</dt><dd>Free tracked</dd></div>
+        <div class="ck-fact"><dt>Cancellation</dt><dd>Full refund before dispatch</dd></div>
+      </dl>
+
+      <div class="ck-summary-assurance">
+        <span class="ck-assurance-title">What happens next</span>
+        <% if (priced.isPreorder) { %>
+          <span class="ck-assurance-item"><strong>Secure your preorder</strong><span>Payment is collected today.</span></span>
+          <span class="ck-assurance-item"><strong>Order confirmation</strong><span>Emailed after payment.</span></span>
+          <span class="ck-assurance-item"><strong>Tracking</strong><span>Emailed when your order ships.</span></span>
+        <% } else { %>
+          <span class="ck-assurance-item"><strong>Payment</strong><span>Charged today.</span></span>
+          <span class="ck-assurance-item"><strong>Order confirmation</strong><span>Emailed after payment.</span></span>
+          <span class="ck-assurance-item"><strong>Tracking</strong><span>Emailed when your order ships.</span></span>
+        <% } %>
+        <% if (priced.total > 50000) { %>
+          <span class="ck-assurance-note">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Orders over $500 are sent signature-required, so someone will need to sign for it.
+          </span>
+        <% } %>
+      </div>
+    </div>
+  </aside></div>
+
+  <div class="ck-form-col">
+
+    <h1 class="ck-title">Complete your order</h1>
+    <p class="ck-title-sub" id="ck-lede">Enter your details, then pay securely — all on this page.</p>
+
+    <% if (notice) { %>
+      <p class="ck-notice">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span><%= notice %></span>
+      </p>
+    <% } %>
+
+    <% if (typeof testMode !== 'undefined' && testMode) { %>
+      <p class="ck-notice ck-notice-test">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/></svg>
+        <span><strong>Test checkout.</strong> No card will be charged. The payment step will show a test panel instead of the card form, and the order, the confirmation email and the notification that follow are the real ones.</span>
+      </p>
+    <% } %>
+
+    <nav class="ck-steps" aria-label="Checkout progress" id="ck-steps"><span class="ck-step is-active" id="ck-step-info" aria-current="step"><span class="ck-step-dot">01</span><span class="ck-step-name">Information</span></span><span class="ck-step-sep" aria-hidden="true"></span><span class="ck-step" id="ck-step-pay"><span class="ck-step-dot">02</span><span class="ck-step-name">Payment</span></span></nav>
+
+    <%/* ── The information form ────────────────────────────────────────────
+         Its action and method are the classic two-step endpoint, so with
+         JavaScript off it posts, validates and advances to the payment page
+         exactly as it always has. The script below intercepts the submit,
+         asks the server for the payment step as JSON, and reveals it in
+         #ck-pay-reveal instead — same token, same handoff, no page load. */%>
+    <form method="POST" action="<%= marketPath('/checkout/' + (token)) %>" novalidate autocomplete="on" id="ck-form">
+
+      <p class="ck-form-error" id="ck-form-error" hidden role="alert">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="ck-form-error-text"></span>
+      </p>
+
+      <section class="ck-section">
+        <h2 class="ck-section-title">Contact information</h2>
+        <div class="ck-field<%= bad('email') %>">
+          <label for="ck-email">Email</label>
+          <input id="ck-email" name="email" class="ck-input" type="email" value="<%= esc(v.email) %>" placeholder="you@example.com" autocomplete="email" inputmode="email" required>
+          <%- err('email') %>
+        </div>
+      </section>
+
+      <section class="ck-section">
+        <h2 class="ck-section-title">Shipping address</h2>
+
+        <div class="ck-field<%= bad('country') %>">
+          <label for="ck-country">Country / region</label>
+          <select id="ck-country" name="country" class="ck-select" required>
+            <option value="">Select your country</option>
+            <% const COUNTRIES = [['US','United States'],['CA','Canada'],['GB','United Kingdom'],['AU','Australia'],['NZ','New Zealand'],['IE','Ireland'],['DE','Germany'],['FR','France'],['ES','Spain'],['IT','Italy'],['NL','Netherlands'],['BE','Belgium'],['AT','Austria'],['CH','Switzerland'],['SE','Sweden'],['NO','Norway'],['DK','Denmark'],['FI','Finland'],['PL','Poland'],['PT','Portugal'],['CZ','Czechia'],['JP','Japan'],['SG','Singapore'],['HK','Hong Kong'],['KR','South Korea'],['MX','Mexico'],['BR','Brazil'],['AE','United Arab Emirates'],['ZA','South Africa'],['MA','Morocco']]; %>
+            <% COUNTRIES.forEach(function (c) { %>
+              <option value="<%= c[0] %>"<%= v.country === c[0] ? ' selected' : '' %>><%= c[1] %></option>
+            <% }); %>
+          </select>
+          <span class="ck-select-caret"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></span>
+          <%- err('country') %>
+        </div>
+
+        <div class="ck-row ck-row-2">
+          <div class="ck-field<%= bad('firstName') %>">
+            <label for="ck-firstName">First name</label>
+            <input id="ck-firstName" name="firstName" class="ck-input" type="text" value="<%= esc(v.firstName) %>" autocomplete="given-name" required>
+            <%- err('firstName') %>
+          </div>
+          <div class="ck-field<%= bad('lastName') %>">
+            <label for="ck-lastName">Last name</label>
+            <input id="ck-lastName" name="lastName" class="ck-input" type="text" value="<%= esc(v.lastName) %>" autocomplete="family-name" required>
+            <%- err('lastName') %>
+          </div>
+        </div>
+
+        <div class="ck-field<%= bad('address1') %>">
+          <label for="ck-address">Address</label>
+          <input id="ck-address" name="address1" class="ck-input" type="text" value="<%= esc(v.address1) %>" placeholder="Street and number" autocomplete="address-line1" required>
+          <%- err('address1') %>
+        </div>
+
+        <div class="ck-field">
+          <label for="ck-apartment">Apartment, suite, etc. <span class="opt">(optional)</span></label>
+          <input id="ck-apartment" name="address2" class="ck-input" type="text" value="<%= esc(v.address2) %>" autocomplete="address-line2">
+        </div>
+
+        <%
+          const SUBDIVISIONS = {
+            US: [['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],['CA','California'],['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],['DC','District of Columbia'],['FL','Florida'],['GA','Georgia'],['HI','Hawaii'],['ID','Idaho'],['IL','Illinois'],['IN','Indiana'],['IA','Iowa'],['KS','Kansas'],['KY','Kentucky'],['LA','Louisiana'],['ME','Maine'],['MD','Maryland'],['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],['MS','Mississippi'],['MO','Missouri'],['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],['NH','New Hampshire'],['NJ','New Jersey'],['NM','New Mexico'],['NY','New York'],['NC','North Carolina'],['ND','North Dakota'],['OH','Ohio'],['OK','Oklahoma'],['OR','Oregon'],['PA','Pennsylvania'],['PR','Puerto Rico'],['RI','Rhode Island'],['SC','South Carolina'],['SD','South Dakota'],['TN','Tennessee'],['TX','Texas'],['UT','Utah'],['VT','Vermont'],['VA','Virginia'],['WA','Washington'],['WV','West Virginia'],['WI','Wisconsin'],['WY','Wyoming']],
+            CA: [['AB','Alberta'],['BC','British Columbia'],['MB','Manitoba'],['NB','New Brunswick'],['NL','Newfoundland and Labrador'],['NT','Northwest Territories'],['NS','Nova Scotia'],['NU','Nunavut'],['ON','Ontario'],['PE','Prince Edward Island'],['QC','Quebec'],['SK','Saskatchewan'],['YT','Yukon']],
+            AU: [['ACT','Australian Capital Territory'],['NSW','New South Wales'],['NT','Northern Territory'],['QLD','Queensland'],['SA','South Australia'],['TAS','Tasmania'],['VIC','Victoria'],['WA','Western Australia']],
+          };
+          const subList = SUBDIVISIONS[v.country] || null;
+          const stateLabels = { US: 'State', CA: 'Province', AU: 'State / territory' };
+          const zipLabels = { US: 'ZIP code' };
+        %>
+        <div class="ck-row ck-row-3">
+          <div class="ck-field<%= bad('city') %>">
+            <label for="ck-city">City</label>
+            <input id="ck-city" name="city" class="ck-input" type="text" value="<%= esc(v.city) %>" autocomplete="address-level2" required>
+            <%- err('city') %>
+          </div>
+          <div class="ck-field<%= bad('state') %>" id="ck-state-field">
+            <label for="<%= subList ? 'ck-state' : 'ck-state-text' %>" id="ck-state-label"><%= stateLabels[v.country] || 'State / region' %></label>
+            <select id="ck-state" name="state" class="ck-select" data-cc="<%= esc(v.country) %>"<%= subList ? '' : ' disabled style="display:none"' %>>
+              <option value="">Select</option>
+              <% (subList || []).forEach(function (s) { %>
+                <option value="<%= s[0] %>"<%= v.state === s[0] ? ' selected' : '' %>><%= s[1] %></option>
+              <% }); %>
+            </select>
+            <span class="ck-select-caret" id="ck-state-caret"<%= subList ? '' : ' style="display:none"' %>><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></span>
+            <input id="ck-state-text" name="state" class="ck-input" type="text" value="<%= esc(subList ? '' : v.state) %>" autocomplete="address-level1"<%= subList ? ' disabled style="display:none"' : '' %>>
+            <%- err('state') %>
+          </div>
+          <div class="ck-field<%= bad('postalCode') %>">
+            <label for="ck-zip" id="ck-zip-label"><%= zipLabels[v.country] || 'Postal code' %></label>
+            <input id="ck-zip" name="postalCode" class="ck-input" type="text" value="<%= esc(v.postalCode) %>" autocomplete="postal-code">
+            <%- err('postalCode') %>
+          </div>
+        </div>
+        <script id="ck-subdivisions" type="application/json"><%- jsonForScript(SUBDIVISIONS) %></script>
+
+        <div class="ck-field">
+          <label for="ck-phone">Phone <span class="opt">(optional)</span></label>
+          <input id="ck-phone" name="phone" class="ck-input" type="tel" value="<%= esc(v.phone) %>" autocomplete="tel" inputmode="tel">
+        </div>
+      </section>
+
+      <button type="submit" class="ck-cta" id="ck-continue">
+        <span class="ck-cta-main"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Continue to secure payment</span>
+        <%= money(priced.total) %>
+      </button>
+
+      <div class="ck-pay-icons">
+        <h2 class="ck-pay-h">Secure payment</h2>
+        <div class="ck-pay-marks" id="ck-pay-marks" data-marks="" aria-label="Accepted payment methods"></div>
+        <p class="ck-pay-note">Secure payment processing by <strong>Whop</strong>.</p>
+        <p class="ck-pay-note ck-pay-fallback">Available methods are shown on the payment step.</p>
+      </div>
+    </form>
+
+    <%/* ── The payment step, revealed here ─────────────────────────────────
+         Empty until the script fills it from the JSON that POST .../prepare
+         returns. The details form above collapses into #ck-review at the
+         same moment, so the customer sees what they saved and pays without
+         the page ever changing address. */%>
+    <div class="ck-pay-reveal" id="ck-pay-reveal" hidden>
+      <div class="ck-review" id="ck-review" hidden></div>
+
+      <div class="ck-pay-reveal-head">
+        <h2>Payment</h2>
+      </div>
+      <p class="ck-pay-reveal-sub" id="ck-pay-reveal-sub">Complete payment below to place your order. Your card is handled securely by Whop.</p>
+
+      <div id="ck-pay-mount" aria-live="polite"></div>
+    </div>
+
+    <div class="ck-trust-row">
+      <span class="ck-trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Factory sealed</strong>Authorized distribution</span></span>
+      <span class="ck-trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Free tracked shipping</strong>Every order</span></span>
+      <span class="ck-trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Cancellation</strong>Before dispatch</span></span>
+    </div>
+
+    <p class="ck-legal">
+      By continuing, you agree to our <a href="<%= marketPath('/terms-of-service') %>">Terms</a>,
+      <a href="<%= marketPath('/privacy-policy') %>">Privacy</a>, <a href="<%= marketPath('/refund-policy') %>">Refunds</a>
+      and <a href="<%= marketPath('/preorder-policy') %>">Preorder Policy</a>.
+    </p>
+
+  </div>
+</main>
+
+<%- include('../partials/checkout-footer') %>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   THE PROGRESSIVE SINGLE-PAGE CHECKOUT.
+
+   Progressive enhancement, in the strict sense: with this script absent or
+   failed, the form posts to the classic two-step endpoint and the customer
+   reaches the same payment page they always have. Everything here only
+   removes a page load — it never becomes the only way through.
+
+   The flow:
+     1. The customer fills the form and presses Continue.
+     2. This posts the form to POST /checkout/:token/prepare via fetch.
+        The SERVER validates, saves, re-prices, mints the one-time partner
+        token and decides embed vs window — the exact same helpers the
+        classic routes run.
+     3. On a validation problem the server returns the field errors and the
+        page shows them inline, no reload.
+     4. On success the server returns everything needed to draw the partner
+        payment step; the page collapses the form into a saved-details
+        review and reveals the payment below it, wiring the SAME postMessage
+        handshake the standalone step-2 page uses.
+   ═══════════════════════════════════════════════════════════════════════ */
+(function () {
+  var PREPARE_URL = <%- jsonForScript(marketPath('/checkout/' + token + '/prepare')) %>;
+  var INFO_URL    = <%- jsonForScript(marketPath('/checkout/' + token)) %>;
+
+  var form      = document.getElementById('ck-form');
+  var cta       = document.getElementById('ck-continue');
+  var reveal    = document.getElementById('ck-pay-reveal');
+  var review    = document.getElementById('ck-review');
+  var mount     = document.getElementById('ck-pay-mount');
+  var formError = document.getElementById('ck-form-error');
+  var formErrorText = document.getElementById('ck-form-error-text');
+  var stepInfo  = document.getElementById('ck-step-info');
+  var stepPay   = document.getElementById('ck-step-pay');
+  var lede      = document.getElementById('ck-lede');
+
+  /* ── The mobile order-summary toggle, identical to the two-step pages. */
+  (function () {
+    var toggle = document.getElementById('ck-summary-toggle');
+    var summary = toggle && toggle.closest('.ck-summary');
+    if (toggle && summary) {
+      toggle.addEventListener('click', function () {
+        var open = summary.classList.toggle('is-open');
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        toggle.querySelector('.ck-summary-toggle-label').firstChild.textContent =
+          (open ? 'Hide' : 'Show') + ' order summary ';
+      });
+    }
+  })();
+
+  /* ── The state/province control follows the country. Verbatim from the
+        two-step step-1 page: the server rendered the right control for the
+        country it had, and this only re-picks when the customer changes it. */
+  (function () {
+    var data = document.getElementById('ck-subdivisions');
+    var country = document.getElementById('ck-country');
+    var sel = document.getElementById('ck-state');
+    var txt = document.getElementById('ck-state-text');
+    var caret = document.getElementById('ck-state-caret');
+    var label = document.getElementById('ck-state-label');
+    var zipLabel = document.getElementById('ck-zip-label');
+    if (!data || !country || !sel || !txt) return;
+
+    var SUBDIVISIONS;
+    try { SUBDIVISIONS = JSON.parse(data.textContent); } catch (e) { return; }
+    var NAMES = { US: 'State', CA: 'Province', AU: 'State / territory' };
+
+    function show(el, on) { el.style.display = on ? '' : 'none'; el.disabled = !on; }
+
+    function sync() {
+      var cc = country.value;
+      var list = SUBDIVISIONS[cc];
+      if (label) {
+        label.textContent = NAMES[cc] || 'State / region';
+        label.setAttribute('for', list ? 'ck-state' : 'ck-state-text');
+      }
+      if (zipLabel) zipLabel.textContent = cc === 'US' ? 'ZIP code' : 'Postal code';
+
+      if (list) {
+        if (sel.getAttribute('data-cc') !== cc) {
+          var keep = sel.value;
+          sel.innerHTML = '';
+          var blank = document.createElement('option');
+          blank.value = '';
+          blank.textContent = 'Select';
+          sel.appendChild(blank);
+          for (var i = 0; i < list.length; i++) {
+            var o = document.createElement('option');
+            o.value = list[i][0];
+            o.textContent = list[i][1];
+            sel.appendChild(o);
+          }
+          sel.setAttribute('data-cc', cc);
+          sel.value = keep;
+          if (sel.selectedIndex < 0) sel.value = '';
+        }
+        show(sel, true);
+        if (caret) caret.style.display = '';
+        show(txt, false);
+      } else {
+        show(sel, false);
+        if (caret) caret.style.display = 'none';
+        show(txt, true);
+      }
+    }
+    country.addEventListener('change', sync);
+    sync();
+  })();
+
+  /* Without fetch there is nothing to enhance — leave the plain form to do
+     its job. (Every browser that runs this has fetch; the guard is honesty,
+     not paranoia.) */
+  if (!form || !cta || !window.fetch || !reveal || !mount) {
+    if (form && cta) {
+      form.addEventListener('submit', function () {
+        setTimeout(function () {
+          cta.disabled = true;
+          cta.querySelector('.ck-cta-main').textContent = 'Saving your details…';
+        }, 0);
+      });
+    }
+    return;
+  }
+
+  /* ── Field errors ──────────────────────────────────────────────────── */
+  var FIELD_ORDER = ['email', 'country', 'firstName', 'lastName', 'address1', 'city', 'state', 'postalCode'];
+
+  function fieldWrap(name) {
+    var el = form.querySelector('[name="' + name + '"]');
+    return el ? el.closest('.ck-field') : null;
+  }
+
+  function clearErrors() {
+    formError.hidden = true;
+    var wraps = form.querySelectorAll('.ck-field.has-error');
+    for (var i = 0; i < wraps.length; i++) {
+      wraps[i].classList.remove('has-error');
+      var msg = wraps[i].querySelector('.ck-error-msg');
+      if (msg) msg.parentNode.removeChild(msg);
+    }
+  }
+
+  function errorIcon() {
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', '13'); svg.setAttribute('height', '13');
+    svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor'); svg.setAttribute('stroke-width', '2');
+    svg.setAttribute('stroke-linecap', 'round'); svg.setAttribute('stroke-linejoin', 'round');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
+    return svg;
+  }
+
+  function showErrors(errors) {
+    clearErrors();
+    var first = null;
+    for (var i = 0; i < FIELD_ORDER.length; i++) {
+      var name = FIELD_ORDER[i];
+      if (!errors[name]) continue;
+      var wrap = fieldWrap(name);
+      if (!wrap) continue;
+      wrap.classList.add('has-error');
+      var p = document.createElement('p');
+      p.className = 'ck-error-msg';
+      p.appendChild(errorIcon());
+      p.appendChild(document.createTextNode(errors[name]));
+      wrap.appendChild(p);
+      if (!first) first = wrap;
+    }
+    if (first) {
+      var input = first.querySelector('input, select');
+      if (input && input.offsetParent !== null) { try { input.focus({ preventScroll: true }); } catch (e) { input.focus(); } }
+      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  function resetCta() {
+    cta.disabled = false;
+    cta.querySelector('.ck-cta-main').innerHTML =
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Continue to secure payment';
+  }
+
+  /* ── The collapsed review of the saved details ─────────────────────── */
+  function labelFor(select) {
+    if (!select || select.tagName !== 'SELECT') return '';
+    var o = select.options[select.selectedIndex];
+    return o ? o.textContent : '';
+  }
+
+  function buildReview() {
+    review.innerHTML = '';
+    var email = (form.querySelector('[name="email"]') || {}).value || '';
+
+    var name = [
+      (form.querySelector('[name="firstName"]') || {}).value || '',
+      (form.querySelector('[name="lastName"]') || {}).value || '',
+    ].join(' ').trim();
+    var addr1 = (form.querySelector('[name="address1"]') || {}).value || '';
+    var addr2 = (form.querySelector('[name="address2"]') || {}).value || '';
+    var city  = (form.querySelector('[name="city"]') || {}).value || '';
+    var stateSel = document.getElementById('ck-state');
+    var stateTxt = document.getElementById('ck-state-text');
+    var state = (stateSel && !stateSel.disabled) ? labelFor(stateSel) : (stateTxt ? stateTxt.value : '');
+    var zip   = (form.querySelector('[name="postalCode"]') || {}).value || '';
+    var countrySel = document.getElementById('ck-country');
+    var country = labelFor(countrySel);
+
+    var line1 = name;
+    var line2Parts = [];
+    if (addr1) line2Parts.push(addr1);
+    if (addr2) line2Parts.push(addr2);
+    var cityLine = [city, state, zip].filter(Boolean).join(', ');
+    if (cityLine) line2Parts.push(cityLine);
+    if (country) line2Parts.push(country);
+
+    review.appendChild(reviewRow('Contact', email, '', function () { editFrom('email'); }));
+    review.appendChild(reviewRow('Ship to', line1, line2Parts.join(' · '), function () { editFrom('address1'); }));
+  }
+
+  function reviewRow(label, main, secondary, onEdit) {
+    var row = document.createElement('div');
+    row.className = 'ck-review-row';
+
+    var lab = document.createElement('div');
+    lab.className = 'ck-review-label';
+    lab.textContent = label;
+
+    var val = document.createElement('div');
+    val.className = 'ck-review-val';
+    val.textContent = main || '—';
+    if (secondary) {
+      var sec = document.createElement('span');
+      sec.className = 'ck-review-2nd';
+      sec.textContent = secondary;
+      val.appendChild(sec);
+    }
+
+    var edit = document.createElement('button');
+    edit.type = 'button';
+    edit.className = 'ck-review-edit';
+    edit.textContent = 'Change';
+    edit.addEventListener('click', onEdit);
+
+    row.appendChild(lab);
+    row.appendChild(val);
+    row.appendChild(edit);
+    return row;
+  }
+
+  /* Going back to edit. The revealed payment is torn down — its one-time
+     token is spent, so re-submitting mints a fresh one — and the form
+     returns exactly as it was. */
+  function editFrom(focusName) {
+    teardownPayment();
+    reveal.hidden = true;
+    review.hidden = true;
+    form.hidden = false;
+    stepPay.classList.remove('is-active');
+    stepPay.removeAttribute('aria-current');
+    stepInfo.classList.add('is-active');
+    stepInfo.setAttribute('aria-current', 'step');
+    resetCta();
+    var el = form.querySelector('[name="' + focusName + '"]');
+    if (el) { try { el.focus(); } catch (e) {} }
+    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  var teardown = null;
+  function teardownPayment() {
+    if (teardown) { try { teardown(); } catch (e) {} teardown = null; }
+    mount.innerHTML = '';
+  }
+
+  /* ── Reveal ────────────────────────────────────────────────────────── */
+  function revealPayment(data) {
+    buildReview();
+    form.hidden = true;
+    review.hidden = false;
+    reveal.hidden = false;
+    reveal.classList.add('is-revealing');
+
+    stepInfo.classList.remove('is-active');
+    stepInfo.removeAttribute('aria-current');
+    stepPay.classList.add('is-active');
+    stepPay.setAttribute('aria-current', 'step');
+    if (lede) lede.textContent = 'Your details are saved. Complete payment below to place your order.';
+
+    if (data.mode === 'window') mountWindow(data);
+    else mountEmbed(data);
+
+    reveal.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /* Both mounts build a real POST form and submit it into a frame or a
+     window — a navigation, never a fetch, because only a navigation can put
+     a cross-origin document in a frame, and only a POST keeps the one-time
+     token out of the URL. This is the step-2 page's mechanism, unchanged;
+     it is built in the DOM here rather than printed by EJS. */
+
+  function hiddenInput(name, value) {
+    var i = document.createElement('input');
+    i.type = 'hidden'; i.name = name; i.value = value == null ? '' : String(value);
+    return i;
+  }
+
+  function buildHandoffForm(data, target, embed) {
+    var f = document.createElement('form');
+    f.method = 'POST';
+    f.action = data.paymentAction;
+    f.target = target;
+    f.hidden = true;
+    f.appendChild(hiddenInput(data.partnerTokenParam || 't', data.partnerToken || ''));
+    f.appendChild(hiddenInput('parentOrigin', data.selfOrigin || ''));
+    if (embed) f.appendChild(hiddenInput('embed', '1'));
+    var carried = data.carried || {};
+    Object.keys(carried).forEach(function (k) { f.appendChild(hiddenInput(k, carried[k])); });
+    return f;
+  }
+
+  /* ── Completion, shared by both modes ──────────────────────────────────
+     The partner signs the order fields on its own server and posts them up.
+     This rebuilds the thank-you URL from them against THIS origin and its
+     signature, so /thank-you verifies it server-side exactly as it does for
+     a redirected customer. The message decides WHERE to go, never what is
+     true. */
+  var done = false;
+  function finish(msg) {
+    if (done) return;
+    done = true;
+    var url = new URL('/thank-you', window.location.origin);
+    Object.keys(msg.fields).forEach(function (k) {
+      var val = msg.fields[k];
+      if (val !== undefined && val !== null) url.searchParams.set(k, String(val));
+    });
+    if (msg.iat) url.searchParams.set('iat', String(msg.iat));
+    if (msg.sig) url.searchParams.set('sig', String(msg.sig));
+    window.location.assign(url.toString());
+  }
+
+  /* ── Inline frame ──────────────────────────────────────────────────── */
+  function mountEmbed(data) {
+    var PARTNER_ORIGIN = data.partnerOrigin;
+    var FALLBACK_URL   = data.fallbackUrl;
+
+    var wrap = document.createElement('div');
+    wrap.className = 'ck-embed-wrap';
+
+    var loading = document.createElement('div');
+    loading.className = 'ck-embed-loading';
+    loading.setAttribute('aria-live', 'polite');
+    loading.innerHTML = '<span class="ck-spinner" aria-hidden="true"></span> Loading secure payment&hellip;';
+
+    var frame = document.createElement('iframe');
+    frame.id = 'ck-embed';
+    frame.name = 'ck-embed';
+    frame.className = 'ck-embed';
+    frame.title = 'Secure payment';
+    frame.setAttribute('allow', 'payment *; publickey-credentials-get *; clipboard-write');
+    frame.setAttribute('referrerpolicy', 'no-referrer');
+    frame.hidden = true;
+
+    var f = buildHandoffForm(data, 'ck-embed', true);
+
+    var fallback = document.createElement('div');
+    fallback.className = 'ck-embed-fallback';
+    fallback.hidden = true;
+    var fb = '<h2>Opening the payment page</h2>';
+    fb += '<p>The payment step could not be shown here, so we are taking you to it directly. Nothing has been charged.</p>';
+    fallback.innerHTML = fb;
+    var fbLink = document.createElement('a');
+    fbLink.href = FALLBACK_URL;
+    fbLink.textContent = 'Continue to payment';
+    fallback.appendChild(fbLink);
+
+    wrap.appendChild(loading);
+    wrap.appendChild(frame);
+    wrap.appendChild(f);
+    wrap.appendChild(fallback);
+    mount.appendChild(wrap);
+
+    var settled = false;
+    var giveUp = setTimeout(function () {
+      if (settled) return;
+      settled = true;
+      loading.hidden = true;
+      frame.hidden = true;
+      fallback.hidden = false;
+      window.location.assign(FALLBACK_URL);
+    }, 8000);
+
+    function onMsg(e) {
+      if (e.origin !== PARTNER_ORIGIN) return;
+      if (frame.contentWindow && e.source !== frame.contentWindow) return;
+      var msg = e.data;
+      if (!msg || typeof msg !== 'object') return;
+
+      if (msg.type === 'zyphera:checkout-ready') {
+        if (settled) return;
+        settled = true;
+        clearTimeout(giveUp);
+        loading.hidden = true;
+        frame.hidden = false;
+        return;
+      }
+      if (msg.type === 'zyphera:checkout-height') {
+        var h = parseInt(msg.height, 10);
+        if (h > 200 && h < 20000) frame.style.height = h + 'px';
+        return;
+      }
+      if (msg.type === 'zyphera:checkout-complete' && msg.fields && typeof msg.fields === 'object') {
+        finish(msg);
+      }
+    }
+    window.addEventListener('message', onMsg);
+    teardown = function () { clearTimeout(giveUp); window.removeEventListener('message', onMsg); };
+
+    /* Submit LAST, after the listener is live, so the frame cannot greet an
+       empty page. */
+    try { f.submit(); } catch (e) { window.location.assign(FALLBACK_URL); }
+  }
+
+  /* ── Payment window ────────────────────────────────────────────────── */
+  function mountWindow(data) {
+    var PARTNER_ORIGIN = data.partnerOrigin;
+    var FALLBACK_URL   = data.fallbackUrl;
+
+    var panel = document.createElement('div');
+    panel.className = 'ck-paywin';
+
+    var openBtn = document.createElement('button');
+    openBtn.type = 'button';
+    openBtn.className = 'ck-cta';
+    openBtn.innerHTML = '<span class="ck-cta-main"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Pay ' + (data.totalLabel || '') + '</span>';
+
+    var note = document.createElement('p');
+    note.className = 'ck-paywin-note';
+    note.textContent = 'Opens a secure payment window. Your order stays here.';
+
+    var wait = document.createElement('div');
+    wait.className = 'ck-paywin-wait';
+    wait.hidden = true;
+    wait.setAttribute('aria-live', 'polite');
+    wait.innerHTML =
+      '<div class="ck-paywin-wait-h"><span class="ck-spinner" aria-hidden="true"></span> Waiting for payment</div>' +
+      '<p>Finish paying in the window that just opened. This page will update by itself the moment it is done.</p>' +
+      '<div class="ck-paywin-actions"></div>';
+    var reopenBtn = document.createElement('button');
+    reopenBtn.type = 'button'; reopenBtn.className = 'ck-paywin-link';
+    reopenBtn.textContent = 'Reopen the payment window';
+    var cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button'; cancelBtn.className = 'ck-paywin-link ck-paywin-cancel';
+    cancelBtn.textContent = 'Cancel';
+    wait.querySelector('.ck-paywin-actions').appendChild(reopenBtn);
+    wait.querySelector('.ck-paywin-actions').appendChild(cancelBtn);
+
+    var errEl = document.createElement('p');
+    errEl.className = 'ck-paywin-err';
+    errEl.hidden = true;
+
+    panel.appendChild(openBtn);
+    panel.appendChild(note);
+    panel.appendChild(wait);
+    panel.appendChild(errEl);
+
+    var f = buildHandoffForm(data, 'zypheraPay', false);
+
+    mount.appendChild(panel);
+    mount.appendChild(f);
+
+    var win = null, watcher = null, greeted = false;
+
+    function showError(text) { errEl.textContent = text; errEl.hidden = false; }
+    function idle() {
+      wait.hidden = true; openBtn.hidden = false;
+      if (watcher) { clearInterval(watcher); watcher = null; }
+    }
+    function watch() {
+      if (watcher) clearInterval(watcher);
+      watcher = setInterval(function () {
+        if (done) { clearInterval(watcher); return; }
+        if (win && win.closed) {
+          idle();
+          showError(greeted
+            ? 'The payment window was closed before payment finished. Nothing has been charged.'
+            : 'The payment window closed before it finished loading. Nothing has been charged.');
+        }
+      }, 700);
+    }
+    function openWindow() {
+      errEl.hidden = true;
+      var features = 'width=520,height=760,menubar=no,toolbar=no,location=yes,status=no,resizable=yes,scrollbars=yes';
+      try { win = window.open('', 'zypheraPay', features); } catch (e) { win = null; }
+      if (!win || win.closed || typeof win.closed === 'undefined') { window.location.assign(FALLBACK_URL); return; }
+      try { f.submit(); }
+      catch (e) { try { win.close(); } catch (e2) {} window.location.assign(FALLBACK_URL); return; }
+      openBtn.hidden = true; wait.hidden = false;
+      try { win.focus(); } catch (e) {}
+      watch();
+    }
+
+    openBtn.addEventListener('click', openWindow);
+    reopenBtn.addEventListener('click', function () {
+      if (win && !win.closed) { try { win.focus(); } catch (e) {} return; }
+      window.location.reload();
+    });
+    cancelBtn.addEventListener('click', function () {
+      if (win && !win.closed) { try { win.close(); } catch (e) {} }
+      idle();
+    });
+
+    function onMsg(e) {
+      if (e.origin !== PARTNER_ORIGIN) return;
+      if (win && e.source !== win) return;
+      var msg = e.data;
+      if (!msg || typeof msg !== 'object') return;
+      if (msg.type === 'zyphera:checkout-ready') { greeted = true; return; }
+      if (msg.type === 'zyphera:checkout-complete' && msg.fields && typeof msg.fields === 'object') {
+        if (watcher) { clearInterval(watcher); watcher = null; }
+        finish(msg);
+      }
+    }
+    window.addEventListener('message', onMsg);
+    teardown = function () {
+      if (watcher) { clearInterval(watcher); watcher = null; }
+      window.removeEventListener('message', onMsg);
+      if (win && !win.closed) { try { win.close(); } catch (e) {} }
+    };
+  }
+
+  /* ── Submit ────────────────────────────────────────────────────────── */
+  var submitting = false;
+
+  form.addEventListener('submit', function (ev) {
+    if (submitting) { ev.preventDefault(); return; }
+    ev.preventDefault();
+    submitting = true;
+    formError.hidden = true;
+
+    cta.disabled = true;
+    cta.querySelector('.ck-cta-main').textContent = 'Saving your details…';
+
+    var body = new URLSearchParams(new FormData(form)).toString();
+
+    fetch(PREPARE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'Accept': 'application/json',
+        'X-Requested-With': 'fetch',
+      },
+      body: body,
+      credentials: 'same-origin',
+    }).then(function (res) {
+      /* A rate-limit or a server error is not something to interpret — let
+         the plain form carry the customer through the classic flow. */
+      if (!res.ok) throw new Error('prepare status ' + res.status);
+      return res.json();
+    }).then(function (data) {
+      submitting = false;
+      if (!data || typeof data !== 'object') throw new Error('bad json');
+
+      if (data.ok === true && data.kind === 'embed') {
+        cta.querySelector('.ck-cta-main').textContent = 'Loading secure payment…';
+        revealPayment(data);
+        return;
+      }
+      if (data.kind === 'invalid') {
+        resetCta();
+        showErrors(data.errors || {});
+        return;
+      }
+      if (data.kind === 'navigate' && data.location) {
+        cta.querySelector('.ck-cta-main').textContent = 'Continuing…';
+        window.location.assign(data.location);
+        return;
+      }
+      if (data.kind === 'expired') {
+        window.location.assign(INFO_URL);
+        return;
+      }
+      /* Anything unexpected: fall back to the real form submission. */
+      nativeSubmit();
+    }).catch(function () {
+      /* Network failure, non-JSON, a rejected fetch: the enhancement failed,
+         so hand off to the plain two-step flow rather than trapping the
+         customer. */
+      submitting = false;
+      nativeSubmit();
+    });
+  });
+
+  var nativeDone = false;
+  function nativeSubmit() {
+    if (nativeDone) return;
+    nativeDone = true;
+    resetCta();
+    cta.querySelector('.ck-cta-main').textContent = 'Continuing to payment…';
+    /* HTMLFormElement.prototype.submit bypasses this listener, so no loop. */
+    try { HTMLFormElement.prototype.submit.call(form); }
+    catch (e) { window.location.assign(INFO_URL); }
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 100" width="100%" height="100%">
+  <defs>
+    <linearGradient id="pkmGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFCB05"/>
+      <stop offset="100%" stop-color="#C7A008"/>
+    </linearGradient>
+    <linearGradient id="pkmBlue" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3B4CCA"/>
+      <stop offset="100%" stop-color="#263691"/>
+    </linearGradient>
+  </defs>
+  <text x="50%" y="65%" font-family="Arial Black, Impact, sans-serif" font-size="52" font-weight="900" text-anchor="middle" fill="url(#pkmGrad)" stroke="url(#pkmBlue)" stroke-width="3" style="letter-spacing: 2px;">POKEMON</text>
+</svg>

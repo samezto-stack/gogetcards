@@ -1,0 +1,56 @@
+<%/* Cookie notice.
+
+     WHY THIS EXISTS: the site loads Microsoft Clarity on every page, and
+     the Meta pixel whenever one is configured, and told nobody. Both are
+     non-essential analytics and advertising technologies, and setting them
+     without notice or a way to decline is a straightforward ePrivacy and
+     GDPR problem for any EU or UK visitor, a CPRA problem in California,
+     and a transparency problem for a Merchant Center reviewer regardless
+     of jurisdiction.
+
+     WHAT IT ACTUALLY DOES: declining is real, not cosmetic. The choice is
+     stored in localStorage and read by public/js/zyphera.js before either
+     tracker loads, so a visitor who declines is not measured. A banner
+     that sets the cookies anyway is worse than no banner, because it turns
+     an omission into a false statement.
+
+     Accept and Decline are the same size, in the same style, side by side.
+     Making refusal harder than acceptance is the pattern regulators
+     specifically name, and it is not worth the handful of extra sessions.
+
+     Rendered server-side but hidden by default; the script reveals it only
+     when no choice has been recorded, so a returning visitor never sees it
+     again and there is no flash of a banner for someone who already
+     answered. */%>
+<div class="cookie-notice" id="cookie-notice" role="region" aria-label="Cookie choices" hidden>
+  <div class="cookie-notice__inner">
+    <div class="cookie-notice__text">
+      <p class="cookie-notice__title">We use a couple of non-essential cookies</p>
+      <p class="cookie-notice__body">
+        Essential cookies keep your cart working and cannot be turned off. Beyond that we
+        use analytics to see where the site confuses people, and an advertising pixel when
+        ads are running. Decline and neither one loads.
+        <a href="<%= marketPath('/cookie-policy') %>">What each one does</a>.
+      </p>
+    </div>
+    <div class="cookie-notice__actions">
+      <button type="button" class="btn btn-outline btn-sm" id="cookie-decline">Decline</button>
+      <button type="button" class="btn btn-primary btn-sm" id="cookie-accept">Accept</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .cookie-notice { position: fixed; left: 0; right: 0; bottom: 0; z-index: 9000; background: var(--color-bg-elevated); border-top: 1px solid var(--color-border-light); box-shadow: 0 -8px 32px rgba(0,0,0,0.35); }
+  .cookie-notice__inner { max-width: 72rem; margin: 0 auto; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 2rem; }
+  .cookie-notice__title { font-family: var(--font-heading); font-size: 0.88rem; font-weight: 700; color: var(--color-white); }
+  .cookie-notice__body { font-size: 0.8rem; line-height: 1.65; color: var(--color-text-muted); margin-top: 0.2rem; max-width: 68ch; }
+  .cookie-notice__body a { color: var(--color-primary); }
+  /* Equal weight, equal size. Declining must not be the harder path. */
+  .cookie-notice__actions { display: flex; gap: 0.6rem; flex-shrink: 0; }
+  .cookie-notice__actions .btn { min-width: 6.5rem; }
+  @media (max-width: 760px) {
+    .cookie-notice__inner { flex-direction: column; align-items: stretch; gap: 0.9rem; padding: 1rem 1.15rem; }
+    .cookie-notice__actions .btn { flex: 1; }
+  }
+</style>

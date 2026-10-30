@@ -1,0 +1,31 @@
+<%
+  /* One status badge per card, in ONE restrained treatment.
+     Previously each state had its own saturated colour (red "Hot Drop",
+     cyan "Preorder", gold "Limited", purple "Rare", green "New"), and a
+     card could stack that on top of a coloured game pill and a red
+     low-stock pill. Three bright pills on one card is the pattern that
+     reads as generated. Colour now carries meaning only where it earns
+     it: preorder keeps a cool tint because it changes what the buyer is
+     actually agreeing to, everything else is neutral. */
+  var badgeLabel = '';
+  var badgeClass = '';
+  if (product.preorder || (product.tags && product.tags.includes('preorder'))) {
+    badgeLabel = 'Preorder';
+    badgeClass = 'badge--preorder';
+  } else if (product.badge === 'Hot' || (product.tags && product.tags.includes('hot'))) {
+    badgeLabel = 'Hot Drop';
+    badgeClass = 'badge--quiet';
+  } else if (product.badge === 'Limited' || (product.tags && product.tags.includes('limited'))) {
+    badgeLabel = 'Limited';
+    badgeClass = 'badge--quiet';
+  } else if (product.badge === 'Rare' || (product.tags && (product.tags.includes('rare') || product.tags.includes('vintage')))) {
+    badgeLabel = 'Rare';
+    badgeClass = 'badge--quiet';
+  } else if (product.badge === 'New') {
+    badgeLabel = 'New';
+    badgeClass = 'badge--quiet';
+  }
+%>
+<% if (badgeLabel) { %>
+  <span class="badge <%= badgeClass %> pc__badge"><%= badgeLabel %></span>
+<% } %>

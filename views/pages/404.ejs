@@ -1,0 +1,11 @@
+<div class="container" style="min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;padding:4rem var(--space-xl);text-align:center">
+  <div style="font-size:5rem" aria-hidden="true">🔍</div>
+  <h1 class="heading-section">Page Not Found</h1>
+  <p style="color:var(--color-text-muted);max-width:400px">
+    The page you're looking for doesn't exist or may have been moved.
+  </p>
+  <div style="display:flex;gap:1rem;flex-wrap:wrap">
+    <a href="<%= marketPath('/') %>" class="btn btn-primary btn-lg" id="404-home-btn">← Back to Home</a>
+    <a href="<%= marketPath('/collection/all') %>" class="btn btn-outline btn-lg" id="404-shop-btn">Browse Products</a>
+  </div>
+</div>

@@ -1,0 +1,103 @@
+<%- include('../partials/account-head', { customerDoc, section }) %>
+<%
+  /* ── Security ───────────────────────────────────────────────────────
+     Somewhere to see every device holding a live session and to end them
+     all. That matters more here than on a password site: there is no
+     password to change as a panic button, so "sign out everywhere" IS the
+     panic button, and it has to be findable.
+
+     The user agent is summarised, not printed. A raw UA string is noise to
+     a customer; browser plus platform is the part that lets somebody say
+     "that isn't me". */
+
+  const stamp = (d) => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    + ', ' + new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : 'Unknown';
+
+  function device(ua) {
+    const s = String(ua || '');
+    if (!s) return 'Unknown device';
+    const browser = /Edg\//.test(s) ? 'Edge'
+      : /OPR\/|Opera/.test(s) ? 'Opera'
+      : /Chrome\//.test(s) && !/Chromium/.test(s) ? 'Chrome'
+      : /Firefox\//.test(s) ? 'Firefox'
+      : /Safari\//.test(s) ? 'Safari'
+      : 'Browser';
+    const platform = /iPhone/.test(s) ? 'iPhone'
+      : /iPad/.test(s) ? 'iPad'
+      : /Android/.test(s) ? 'Android'
+      : /Mac OS X|Macintosh/.test(s) ? 'Mac'
+      : /Windows/.test(s) ? 'Windows'
+      : /Linux/.test(s) ? 'Linux'
+      : '';
+    return platform ? `${browser} on ${platform}` : browser;
+  }
+
+  const originLabel = { purchase: 'Signed in at checkout', magic_link: 'Signed in by email link' };
+%>
+
+<section class="ac__sheet ac__sheet--accent">
+  <div class="ac__sheet-head"><h2 class="ac__sheet-title">How you sign in</h2></div>
+  <div class="ac__body">
+    <p class="ac__detail">
+      Your account has no password. When you need to sign in we email a one-time link
+      to <strong><%= customerDoc.displayEmail || customerDoc.email %></strong>; it expires
+      in 15&nbsp;minutes and stops working once used.
+    </p>
+    <p class="ac__hint" style="margin-top:0.6rem">
+      That means there is no password of yours for us, or anyone else, to lose.
+      Whoever can read your email can reach this account &mdash; so if you ever lose access to
+      that inbox, <a href="<%= marketPath('/contact') %>">tell us</a> and we&rsquo;ll end every session on it.
+    </p>
+  </div>
+</section>
+
+<section class="ac__sheet">
+  <div class="ac__sheet-head">
+    <h2 class="ac__sheet-title">Signed-in devices</h2>
+    <span class="ac__muted"><%= sessions.length %> active</span>
+  </div>
+
+  <% if (!sessions.length) { %>
+    <div class="ac__empty"><h3>No other devices.</h3><p>Only this one holds a session.</p></div>
+  <% } else { %>
+    <% sessions.forEach(function (s) { %>
+      <div class="ac__order ac__order--static">
+        <div class="ac__order-main">
+          <span class="ac__order-title">
+            <%= device(s.userAgent) %>
+            <% if (s.current) { %><span class="ac__status ac__status--good">This device</span><% } %>
+          </span>
+          <p class="ac__order-meta">
+            <span>Last used <%= stamp(s.lastUsedAt || s.createdAt) %></span>
+            <% if (s.ipPrefix) { %><span class="ac__mono"><%= s.ipPrefix %></span><% } %>
+            <% if (originLabel[s.origin]) { %><span><%= originLabel[s.origin] %></span><% } %>
+          </p>
+        </div>
+        <div class="ac__order-right">
+          <span class="ac__muted">Expires <%= stamp(s.expiresAt).split(',')[0] %></span>
+        </div>
+      </div>
+    <% }); %>
+  <% } %>
+</section>
+
+<section class="ac__sheet">
+  <div class="ac__sheet-head"><h2 class="ac__sheet-title">End every session</h2></div>
+  <div class="ac__body">
+    <p class="ac__detail">
+      Signs you out of this device and every other one immediately. Use it if you signed in
+      on a shared computer, or if a device above isn&rsquo;t yours. You can sign back in
+      straight away with a new email link.
+    </p>
+    <form method="POST" action="<%= marketPath('/account/sign-out-all') %>" class="ac__actions" style="margin-top:1rem">
+      <button type="submit" class="ac__btn ac__btn--danger">Sign out everywhere</button>
+    </form>
+  </div>
+</section>
+
+<div class="ac__notice">
+  <strong>Want your account closed?</strong>
+  <a href="<%= marketPath('/contact') %>">Ask support</a> and we&rsquo;ll close it. We keep order records we&rsquo;re
+  legally required to keep for tax and consumer-protection reasons, and delete the rest.
+</div>
+<%- include('../partials/account-foot') %>

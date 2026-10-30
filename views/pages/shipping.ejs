@@ -1,0 +1,144 @@
+<%
+  var b = company.business;
+  var d = shippingCfg.DISPATCH;
+%>
+
+<nav class="col-page__breadcrumb container" style="padding-top:1rem" aria-label="Breadcrumb">
+  <a href="<%= marketPath('/') %>">Home</a>
+  <span aria-hidden="true">/</span>
+  <span aria-current="page">Shipping &amp; Delivery</span>
+</nav>
+
+<div class="container legal-page" style="padding-top:2rem;padding-bottom:4rem;max-width:56rem">
+  <h1 class="heading-section">Shipping &amp; Delivery</h1>
+  <p class="legal-updated">
+    Everything on this page is what the checkout actually does and what we
+    declare to Google. There is one shipping policy and this is it.
+  </p>
+
+  <div class="ship-banner">
+    <p class="ship-banner__head"><%= shippingCfg.copy.short %></p>
+    <p class="ship-banner__sub">
+      Every order ships tracked, at our cost, wherever you are. No minimum spend,
+      no threshold to reach, and no cheaper untracked option to decline.
+    </p>
+  </div>
+
+  <h2>How long it takes</h2>
+
+  <%/* Rendered from config/shipping.js rather than written out by hand.
+       The old version of this table lived in a database page as literal
+       HTML while the Offer schema quoted a single flat US rate to every
+       shopper on earth and the announcement bar quoted a third figure —
+       three different answers to "what will delivery cost me", which is
+       the "shipping mismatch" a Merchant Center reviewer catches by
+       comparing the feed against this page. Now there is one source. */%>
+  <div class="legal-table-wrap">
+    <table class="legal-table">
+      <caption class="sr-only">Carriers, delivery estimates and cost by destination. Shipping is free to every destination listed.</caption>
+      <thead>
+        <tr>
+          <th scope="col">Destination</th>
+          <th scope="col">Carrier</th>
+          <th scope="col">Estimated delivery</th>
+          <th scope="col">Cost</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% shippingCfg.REGIONS.forEach(function (r) { %>
+          <tr>
+            <th scope="row"><%= r.name %></th>
+            <td><%= r.carrier %></td>
+            <td><%= r.transitDays[0] %>&ndash;<%= r.transitDays[1] %> business days</td>
+            <td class="ship-free">Free</td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    Delivery estimates are counted from dispatch, not from when you order, and they
+    are the carrier's estimate rather than a guarantee. All prices are in
+    <%= b.currency %>.
+  </p>
+
+  <h2>When your order leaves us</h2>
+  <ul>
+    <li>
+      In-stock orders placed before <%= d.cutoffLocal %> <%= d.cutoffTimezone %> on a business day
+      are dispatched the same day. After that, or at a weekend or public holiday,
+      they go the next business day.
+    </li>
+    <li>
+      Preorders ship on the publisher's release date, or within
+      <%= d.preorderBusinessDaysAfterRelease %> business days of it. You are charged when you
+      place the preorder, not on release day. See the full
+      <a href="<%= marketPath('/collection/preorders') %>">preorder terms</a> on any preorder listing.
+    </li>
+    <li>
+      You get a tracking number by email the moment the label is created.
+    </li>
+  </ul>
+
+  <h2>Tracking and cover</h2>
+  <ul>
+    <li>Every order ships tracked, with no exceptions and no cheaper untracked option.</li>
+    <li>Every order is covered against loss or damage in transit. If it arrives damaged or does not arrive, that is our problem to fix, not yours to absorb.</li>
+    <li>Orders over $<%= shippingCfg.SIGNATURE_REQUIRED_OVER_USD %> require a signature on delivery.</li>
+  </ul>
+
+  <h2>How we pack</h2>
+  <ul>
+    <li>Booster boxes and elite trainer boxes are individually wrapped before they go in the outer carton.</li>
+    <li>Everything ships in a rigid corrugated box sized so the contents cannot move. Corners and seals are what a collector inspects first, so they are what the packaging is designed to protect.</li>
+    <li>Master cases ship in the distributor's own sealed shipper, unopened.</li>
+  </ul>
+
+  <h2>International orders, duties and taxes</h2>
+  <ul>
+    <li>
+      Import duty, VAT and customs handling fees are set by the destination country,
+      are charged to you by the carrier or the customs authority, and are
+      <strong>not</strong> included in the price you pay us.
+    </li>
+    <li>
+      We declare the true value of every shipment. We do not mark orders as gifts and
+      we do not undervalue them. Being asked to is the one request we always refuse:
+      it is customs fraud, and it is the buyer who carries the consequence.
+    </li>
+    <li>
+      If a parcel is refused or abandoned at customs, the outbound and return carriage
+      come out of the refund.
+    </li>
+  </ul>
+
+  <h2>Returns</h2>
+  <p>
+    Unopened, still-sealed product can be returned within <%= returnWindowDays %> days of
+    delivery. If an item arrives damaged or is not what you ordered we pay the return
+    postage and you choose between a replacement and a full refund; for a change of
+    mind the return postage is yours. The full terms, including how to start a return,
+    are on the <a href="<%= marketPath('/refund-policy') %>">Refund Policy</a> page.
+  </p>
+
+  <h2>Questions about a shipment</h2>
+  <p>
+    Email <a href="mailto:<%= b.supportEmail %>"><%= b.supportEmail %></a> with your order
+    number, or use the <a href="<%= marketPath('/contact') %>">contact form</a>. We reply within
+    <%= b.responseTimeHours %> hours, <%= b.supportHours ? b.supportHours.charAt(0).toLowerCase() + b.supportHours.slice(1) : 'on business days' %>.
+  </p>
+</div>
+
+<style>
+  .legal-table-wrap { overflow-x: auto; margin: 1.25rem 0 1rem; }
+  .legal-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; min-width: 34rem; }
+  .legal-table th, .legal-table td { text-align: left; padding: 0.7rem 0.9rem; border-bottom: 1px solid var(--color-border-light); }
+  .legal-table thead th { font-family: var(--font-heading); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-faint); }
+  .legal-table tbody th { font-weight: 600; color: var(--color-text); }
+  .legal-table td { color: var(--color-text-muted); }
+  .ship-free { color: var(--color-accent, #10B981) !important; font-weight: 700; }
+  .ship-banner { background: linear-gradient(135deg, rgba(124,58,237,0.12), rgba(6,182,212,0.08)); border: 1px solid rgba(124,58,237,0.3); border-radius: var(--radius-lg); padding: 1.4rem 1.6rem; margin: 1.5rem 0 2rem; }
+  .ship-banner__head { font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; color: var(--color-white); }
+  .ship-banner__sub { font-size: 0.88rem; color: var(--color-text-muted); line-height: 1.75; margin-top: 0.4rem; max-width: 60ch; }
+</style>

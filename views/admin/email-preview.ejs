@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%237C3AED'/><g fill='%23ffffff'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
+  <meta name="theme-color" content="#0c0c12">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email templates | Zyphera Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+  <style>
+    .ep { display:grid; grid-template-columns: 280px 1fr; gap:1.25rem; align-items:start; }
+    .ep__list { background:var(--admin-surface); border:1px solid var(--admin-border); border-radius:10px; overflow:hidden; }
+    .ep__t { padding:0.7rem 1rem; border-bottom:1px solid var(--admin-border); }
+    .ep__t:last-child { border-bottom:0; }
+    .ep__t h3 { margin:0 0 0.4rem; font-size:0.82rem; font-weight:600; }
+    .ep__s { display:block; font-size:0.74rem; color:var(--admin-muted); text-decoration:none; padding:0.18rem 0; }
+    .ep__s:hover { color:var(--admin-primary); }
+    .ep__frame { background:var(--admin-surface); border:1px solid var(--admin-border); border-radius:10px; overflow:hidden; }
+    .ep__bar { display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center; padding:0.7rem 1rem; border-bottom:1px solid var(--admin-border); }
+    .ep__w { border:0; width:100%; height:78vh; background:#080B10; display:block; }
+    @media (max-width: 1000px) { .ep { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body class="admin-body">
+  <%- include('_sidebar', { currentPath: '/admin/emails' }) %>
+
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="admin-header__title">Email templates</h1>
+      <a class="admin-btn" href="/admin/emails">&larr; Email log</a>
+    </header>
+
+    <div class="admin-content">
+      <p style="font-size:0.82rem;color:var(--admin-muted);margin:0 0 1.25rem;line-height:1.6;max-width:70ch">
+        Every template, in every state that changes what it says. These render against the same
+        fixtures <code style="font-family:var(--admin-font-mono)">scripts/audit/check-email.js</code>
+        asserts on, so what you look at here and what the audit checks cannot drift apart.
+        Nothing on this page sends anything.
+      </p>
+
+      <div class="ep">
+        <div class="ep__list">
+          <% types.forEach(function (t) { %>
+            <div class="ep__t">
+              <h3><%= labels[t] %></h3>
+              <% (cases[t] || []).forEach(function (state) { %>
+                <a class="ep__s" href="#" onclick="return show('<%= t %>','<%= state.replace(/'/g, "\\'") %>')">
+                  &rarr; <%= state %>
+                </a>
+              <% }); %>
+              <% if (!(cases[t] || []).length) { %>
+                <span class="ep__s" style="color:var(--admin-crit)">no sample data</span>
+              <% } %>
+            </div>
+          <% }); %>
+        </div>
+
+        <div class="ep__frame">
+          <div class="ep__bar">
+            <strong id="epTitle" style="font-size:0.82rem">Pick a template</strong>
+            <span id="epSubject" style="font-size:0.74rem;color:var(--admin-muted)"></span>
+            <span style="margin-left:auto;display:flex;gap:0.4rem">
+              <button class="admin-btn admin-btn--sm" onclick="setWidth(600)">Desktop</button>
+              <button class="admin-btn admin-btn--sm" onclick="setWidth(375)">Phone</button>
+              <a class="admin-btn admin-btn--sm" id="epText" href="#" target="_blank" rel="noopener">Plain text</a>
+              <a class="admin-btn admin-btn--sm" id="epRaw" href="#" target="_blank" rel="noopener">Open</a>
+            </span>
+          </div>
+          <%/* An iframe at an exact pixel width is the only truthful way
+               to check a 600px email against a 375px phone. Resizing the
+               browser tests the admin page, not the message. */%>
+          <div style="padding:1rem;background:#05070A;display:flex;justify-content:center">
+            <iframe class="ep__w" id="epFrame" style="width:600px" title="Email preview"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    var current = null;
+    function show(type, state) {
+      current = { type: type, state: state };
+      var url = '/admin/emails/preview/' + type + '?state=' + encodeURIComponent(state);
+      document.getElementById('epFrame').src = url;
+      document.getElementById('epTitle').textContent = type;
+      document.getElementById('epRaw').href = url;
+      document.getElementById('epText').href = url + '&as=text';
+      fetch(url + '&as=subject')
+        .then(function (r) { return r.text(); })
+        .then(function (s) { document.getElementById('epSubject').textContent = 'Subject: ' + s; })
+        .catch(function () {});
+      return false;
+    }
+    function setWidth(px) { document.getElementById('epFrame').style.width = px + 'px'; }
+  </script>
+</body>
+</html>

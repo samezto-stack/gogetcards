@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="theme-color" content="#0B0F14">
+<title><%= pageTitle %></title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%230B0F14'/><g fill='%23A78BFA'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/checkout.css">
+</head>
+<body>
+<%- include('../partials/checkout-header') %>
+
+<main class="ck-so">
+
+  <%/* ── What happened, before anything else ──────────────────────────
+       The buyer typed their name and address and got here instead of a
+       payment form. The first thing on the page is therefore that no
+       money moved, not the upsell — an offer that arrives before the
+       reassurance reads as the reason they were stopped. */%>
+  <p class="ck-so-flag">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    Nothing was charged &middot; no order was placed
+  </p>
+
+  <h1 class="ck-so-h">Sold out while you were checking out</h1>
+
+  <%/* The item they came for, small and spent. Grayscale and struck
+       through so it reads as closed at a glance rather than needing to
+       be read. */%>
+  <div class="ck-so-gone">
+    <% if (gone.image) { %>
+      <img class="ck-so-gone-img" src="<%= productImage.at(gone.image, 80) %>" alt="" aria-hidden="true" width="40" height="40" loading="lazy">
+    <% } %>
+    <span class="ck-so-gone-title"><%= gone.title %></span>
+    <span class="ck-so-gone-tag">Sold out</span>
+  </div>
+
+  <% if (alt) { %>
+    <div class="ck-so-arrow" aria-hidden="true">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+    </div>
+
+    <p class="ck-so-lead">The closest replacement we have, in stock now:</p>
+
+    <a class="ck-so-card" href="<%= marketPath('/products/' + (alt.slug)) %>">
+      <div class="ck-so-card-media">
+        <% if (alt.image) { %>
+          <img src="<%= productImage.at(alt.image, 570) %>" alt="<%= alt.title %>" loading="lazy">
+        <% } else { %>
+          <svg viewBox="0 0 64 48" role="img" aria-label="Product image"><rect width="64" height="48" rx="4" fill="#1a2230"/></svg>
+        <% } %>
+      </div>
+
+      <div class="ck-so-card-body">
+        <h2 class="ck-so-card-title"><%= alt.title %></h2>
+
+        <%/* ── Badges ────────────────────────────────────────────────
+             EVERY ONE OF THESE IS A STORED FACT. Nothing here is
+             computed to create urgency: the stock line renders only when
+             a real figure was entered, the limit is the allocation the
+             checkout actually enforces, and the release date is the one
+             the feed submits to Google. An invented "3 left!" on the
+             page that just told someone their order failed is the
+             fastest way to make the recovery read as a trick. */%>
+        <div class="ck-so-badges">
+          <% if (alt.isPreorder) { %>
+            <span class="ck-so-badge ck-so-badge--pre">Preorder<%= alt.release ? ' · ships ' + alt.release : '' %></span>
+          <% } else { %>
+            <span class="ck-so-badge ck-so-badge--in">In stock</span>
+          <% } %>
+          <% if (alt.stock > 0) { %>
+            <span class="ck-so-badge ck-so-badge--low"><%= alt.stock %> left</span>
+          <% } %>
+          <% if (alt.limit > 0) { %>
+            <span class="ck-so-badge">Limit <%= alt.limit %> per customer</span>
+          <% } %>
+        </div>
+
+        <%/* No price at all rather than a number from another currency:
+             alt.price is 0 when the successor carries no row for this
+             storefront, and an offer with no figure is honest where a
+             converted or base-currency one would not be. */%>
+        <%/* Guarded because this page renders with layout:false and is
+             exercised standalone; an undefined helper here would turn a
+             sold-out notice into a 500 for a buyer who has already filled
+             in the form. */%>
+        <% var soMoney = (typeof marketMoney === 'function')
+             ? marketMoney
+             : function (a) { return 'US$' + formatPrice(a); }; %>
+        <% if (alt.price > 0) { %>
+          <div class="ck-so-pricing">
+            <span class="ck-so-price"><%= soMoney(alt.price, alt.currency) %></span>
+            <% if (alt.comparePrice > alt.price) { %>
+              <span class="ck-so-was"><%= soMoney(alt.comparePrice, alt.currency) %></span>
+              <span class="ck-so-save">Save <%= Math.round(((alt.comparePrice - alt.price) / alt.comparePrice) * 100) %>%</span>
+            <% } %>
+          </div>
+        <% } %>
+      </div>
+    </a>
+
+    <a class="ck-cta" href="<%= marketPath('/products/' + (alt.slug)) %>">
+      <span class="ck-cta-main">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        <%= alt.isPreorder ? 'Secure this preorder' : 'Check out this one instead' %>
+      </span>
+    </a>
+    <p class="ck-cta-sub">You will re-enter your details once &mdash; we do not carry them across a cancelled order.</p>
+
+    <p class="ck-so-alt"><a href="<%= marketPath('/collection/all') %>">or browse the full catalogue</a></p>
+  <% } else { %>
+    <p class="ck-so-lead ck-so-lead--solo">
+      We are sorry to catch you this late in checkout. The rest of the catalogue is still open,
+      and this set is worth watching &mdash; sealed product like this does come back.
+    </p>
+    <a class="ck-cta" href="<%= marketPath('/collection/all') %>"><span class="ck-cta-main">Browse the store</span></a>
+  <% } %>
+
+</main>
+
+<%- include('../partials/checkout-footer') %>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<header class="site-header" role="banner" id="site-header">
+  <div class="container">
+    <div class="header__inner">
+
+      <!-- Logo -->
+      <a href="<%= marketPath('/') %>" class="header__logo" id="nav-logo" aria-label="Zyphera TCG">
+        <%/* Was a gradient hexagon with a dot. Every generated asset —
+             favicon, apple-touch icon, PWA icon, OG share card, order push
+             icon — renders the three-card Z from brand/mark.js, so the tab
+             icon and the on-page logo were two different marks. */%>
+        <div class="header__logo-icon" style="color:var(--color-primary)">
+          <%- include('logomark', { size: 28 }) %>
+        </div>
+        <span class="header__logo-text">
+          Zyphera<span class="header__logo-tcg">TCG</span>
+        </span>
+      </a>
+
+      <!-- Desktop Nav -->
+      <nav class="header__nav hide-mobile" role="navigation" aria-label="Main navigation">
+        <a href="<%= marketPath('/') %>" class="header__nav-link<%= currentPath === '/' ? ' active' : '' %>" id="nav-home">Home</a>
+        <a href="<%= marketPath('/collection/all') %>" class="header__nav-link<%= currentPath.startsWith('/collection') ? ' active' : '' %>" id="nav-shop">Shop All</a>
+        <a href="<%= marketPath('/collection/pokemon') %>" class="header__nav-link" id="nav-pokemon">Pokémon</a>
+        <a href="<%= marketPath('/collection/yugioh') %>" class="header__nav-link" id="nav-yugioh">Yu-Gi-Oh!</a>
+        <a href="<%= marketPath('/collection/mtg') %>" class="header__nav-link" id="nav-mtg">MTG</a>
+        <a href="<%= marketPath('/collection/palworld') %>" class="header__nav-link" id="nav-palworld">Palworld</a>
+        <a href="<%= marketPath('/collection/preorders') %>" class="header__nav-link" id="nav-preorders">Preorders</a>
+        <a href="<%= marketPath('/about') %>" class="header__nav-link<%= currentPath === '/about' ? ' active' : '' %>" id="nav-about">About</a>
+        <a href="<%= marketPath('/contact') %>" class="header__nav-link<%= currentPath === '/contact' ? ' active' : '' %>" id="nav-contact">Contact</a>
+      </nav>
+
+      <!-- Actions -->
+      <div class="header__actions">
+        <%- include('market-selector') %>
+        <%/* Search. The sitewide WebSite schema has always declared a
+             SearchAction pointing at /collection/all?q=, so Google was
+             entitled to render a sitelinks search box for this site — and
+             nothing on the site read `q` or offered a box, so every search
+             returned the whole unfiltered catalogue. Both halves exist
+             now: the collection route filters on the term, and this is
+             where a person types it. */%>
+        <form class="header__search hide-mobile" action="<%= marketPath('/collection/all') %>" method="GET" role="search">
+          <label class="sr-only" for="site-search">Search products</label>
+          <input
+            type="search"
+            id="site-search"
+            name="q"
+            placeholder="Search sealed product"
+            autocomplete="off"
+            maxlength="80"
+            value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>"
+          >
+          <button type="submit" aria-label="Search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+        </form>
+
+        <%/* Account. Rendered from res.locals.customer, which middleware/
+             customer.js sets on every storefront request and which is null
+             when nobody is signed in — so this is one link with two labels,
+             not a signed-in variant of the header. Guarded on `typeof`
+             because a page rendered outside that middleware (the error
+             handler, for one) must not blow up over a missing local. */%>
+        <% var acCust = (typeof customer !== 'undefined') ? customer : null; %>
+        <a
+          class="header__account"
+          href="<%= marketPath('/account') %>"
+          id="nav-account"
+          aria-label="<%= acCust ? 'My account' : 'Sign in to your account' %>"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="header__account-text hide-mobile"><%= acCust ? (acCust.firstName || 'Account') : 'Sign in' %></span>
+        </a>
+
+        <!-- Cart Button -->
+        <button
+          class="header__cart-btn"
+          id="cart-drawer-trigger"
+          aria-label="Open cart"
+          aria-expanded="false"
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 01-8 0"/>
+          </svg>
+          <span class="header__cart-count js-cart-count" <% if (!cart || cart.totalItems === 0) { %>style="display:none"<% } %>>
+            <%= cart ? cart.totalItems : 0 %>
+          </span>
+        </button>
+
+        <!-- Mobile hamburger -->
+        <button
+          class="header__hamburger hide-desktop"
+          id="hamburger-btn"
+          aria-label="Toggle mobile menu"
+          aria-expanded="false"
+          aria-controls="mobile-nav"
+        >
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Nav -->
+  <nav class="mobile-nav" id="mobile-nav" role="navigation" aria-label="Mobile navigation" aria-hidden="true">
+    <div class="mobile-nav__inner">
+      <%/* Search on mobile too. The desktop box is hidden below the
+           breakpoint, and a store whose schema advertises a search action
+           should not lose it on the devices most of its traffic uses. */%>
+      <form class="mobile-nav__search" action="<%= marketPath('/collection/all') %>" method="GET" role="search">
+        <label class="sr-only" for="mobile-search">Search products</label>
+        <input type="search" id="mobile-search" name="q" placeholder="Search sealed product" maxlength="80" autocomplete="off">
+        <button type="submit" aria-label="Search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+      </form>
+      <a href="<%= marketPath('/') %>" class="mobile-nav__link" id="mobile-nav-home">Home <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></a>
+      <a href="<%= marketPath('/collection/all') %>" class="mobile-nav__link">Shop All <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></a>
+      <a href="<%= marketPath('/collection/pokemon') %>" class="mobile-nav__link">Pokémon <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></a>
+      <a href="<%= marketPath('/collection/yugioh') %>" class="mobile-nav__link">Yu-Gi-Oh! <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></a>
+      <a href="<%= marketPath('/collection/mtg') %>" class="mobile-nav__link">MTG <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></a>
+      <a href="<%= marketPath('/collection/preorders') %>" class="mobile-nav__link">Preorders <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></a>
+      <%/* One Piece, About and the policy pages were reachable from the
+           desktop nav or the footer but not from here, so a phone visitor
+           navigating by the menu could not reach them at all. */%>
+      <a href="<%= marketPath('/collection/one-piece') %>" class="mobile-nav__link">One Piece <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></a>
+      <a href="<%= marketPath('/collection/palworld') %>" class="mobile-nav__link">Palworld <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></a>
+      <a href="<%= marketPath('/about') %>" class="mobile-nav__link">About <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></a>
+      <a href="<%= marketPath('/contact') %>" class="mobile-nav__link">Contact Us <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></a>
+      <a href="<%= marketPath('/shipping') %>" class="mobile-nav__link">Shipping &amp; Delivery <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></a>
+      <a href="<%= marketPath('/faq') %>" class="mobile-nav__link">FAQ <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></a>
+      <a href="<%= marketPath('/account') %>" class="mobile-nav__link"><%= (typeof customer !== 'undefined' && customer) ? 'My account' : 'Sign in' %> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></a>
+    </div>
+  </nav>
+
+  <div class="header__backdrop" id="header-backdrop" aria-hidden="true"></div>
+</header>

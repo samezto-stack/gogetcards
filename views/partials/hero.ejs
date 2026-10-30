@@ -1,0 +1,40 @@
+<section class="hero zy-texture" id="hero">
+  <div class="hero__veil" aria-hidden="true"></div>
+
+  <div class="container">
+    <div class="hero__content animate-fade-in-up">
+      <div class="hero__eyebrow">
+        <span class="zy-meta">Factory Sealed · Distributor Direct</span>
+      </div>
+
+      <h1 class="heading-hero hero__headline">
+        Factory sealed.<br>
+        Allocated early.<br>
+        <span class="hero__headline-accent">Held to release day.</span>
+      </h1>
+
+      <p class="hero__sub">
+        Booster boxes, cases and elite trainer boxes for Pokémon, Yu-Gi-Oh!, Magic and One Piece, sourced through authorized distribution and never opened in between.
+      </p>
+
+      <div class="hero__ctas">
+        <a href="<%= marketPath('/collection/preorders') %>" class="btn btn-primary btn-lg" id="hero-preorder-btn">
+          View Preorders
+        </a>
+        <a href="<%= marketPath('/collection/all') %>" class="btn btn-outline btn-lg" id="hero-shop-btn">
+          Shop All Products
+        </a>
+      </div>
+
+      <!-- Category chips replace the floating card deco that used to sit
+           at the right edge — same navigation value, but tactile and
+           actually clickable instead of decorative. -->
+      <nav class="hero__chips" aria-label="Shop by game">
+        <a href="<%= marketPath('/collection/pokemon') %>" class="hero__chip"><img src="/images/pokemon.svg" alt="" aria-hidden="true" width="15" height="15" loading="lazy" decoding="async"><span>Pokémon</span></a>
+        <a href="<%= marketPath('/collection/mtg') %>" class="hero__chip"><img src="/images/mtg.svg" alt="" aria-hidden="true" width="15" height="15" loading="lazy" decoding="async"><span>Magic</span></a>
+        <a href="<%= marketPath('/collection/one-piece') %>" class="hero__chip"><img src="/images/onepiece.svg" alt="" aria-hidden="true" width="15" height="15" loading="lazy" decoding="async"><span>One Piece</span></a>
+        <a href="<%= marketPath('/collection/yugioh') %>" class="hero__chip"><img src="/images/yugioh.svg" alt="" aria-hidden="true" width="15" height="15" loading="lazy" decoding="async"><span>Yu-Gi-Oh!</span></a>
+      </nav>
+    </div>
+  </div>
+</section>

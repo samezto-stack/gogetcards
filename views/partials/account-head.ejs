@@ -1,0 +1,39 @@
+<%
+  /* ── Account chrome, opening half ───────────────────────────────────
+     Every /account page opens with this and closes with account-foot.
+     EJS has no slot mechanism, so the frame is a matched pair rather than
+     a wrapper — which is fine as long as they stay adjacent in every page,
+     and every page here is short enough that they do.
+
+     ONE frame, not a card component repeated per page. These pages differ
+     in content, not in chrome, and giving each its own container is how an
+     account area becomes six pages that almost match. */
+  const acNav = [
+    { id: 'overview', label: 'Overview', href: '/account' },
+    { id: 'orders',   label: 'Orders',   href: '/account/orders' },
+    { id: 'profile',  label: 'Profile',  href: '/account/profile' },
+    { id: 'security', label: 'Security', href: '/account/security' },
+  ];
+  const acSince = customerDoc && customerDoc.createdAt ? new Date(customerDoc.createdAt).getFullYear() : null;
+%>
+<div class="ac">
+  <div class="ac__inner">
+    <header class="ac__head">
+      <div class="ac__id">
+        <p class="ac__eyebrow">My account</p>
+        <h1 class="ac__name">Welcome back, <%= customerDoc.greetingName() %></h1>
+        <p class="ac__sub">
+          <%= customerDoc.displayEmail || customerDoc.email %><% if (acSince) { %> &middot; Collector since <%= acSince %><% } %>
+        </p>
+      </div>
+      <form method="POST" action="<%= marketPath('/account/sign-out') %>" class="ac__signout">
+        <button class="ac__linkbtn" type="submit">Sign out</button>
+      </form>
+    </header>
+
+    <nav class="ac__nav" aria-label="Account sections">
+      <% acNav.forEach(function (n) { %>
+        <a href="<%= n.href %>" class="ac__tab <%= section === n.id ? 'is-on' : '' %>"<%- section === n.id ? ' aria-current="page"' : '' %>><%= n.label %></a>
+      <% }); %>
+      <a href="<%= marketPath('/contact') %>" class="ac__tab ac__tab--end">Support</a>
+    </nav>

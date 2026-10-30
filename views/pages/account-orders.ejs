@@ -1,0 +1,110 @@
+<%- include('../partials/account-head', { customerDoc, section }) %>
+<%
+  /* ── Orders ─────────────────────────────────────────────────────────
+     The same row as the overview, at full length, with a filter strip.
+
+     FILTERS WITH NOTHING BEHIND THEM ARE NOT RENDERED. A customer with two
+     orders should not be looking at a row of seven empty buckets; the strip
+     grows as their history does. The active filter is always shown even at
+     zero, so a link that returns nothing still explains itself. */
+
+  /* An order is priced in the currency it was CHARGED in, which is not
+     necessarily the storefront being viewed: a UK order is £ even when the
+     customer opens their account from the US site later. So the currency is
+     always passed explicitly and never inferred from the market.
+
+     This used to be `'$' + amount + (code unless USD)`, which rendered a
+     pound order as "$119.98 GBP" — a dollar sign in front of a figure that
+     is not dollars, on the pages where a customer checks what they were
+     charged against their bank. marketMoney is config/markets.format, the
+     same function the product page and the checkout use. */
+  const money = (c, cur) => (typeof marketMoney === 'function'
+    ? marketMoney(Number(c || 0), cur || 'USD')
+    : `${cur || 'USD'} ${(Number(c || 0) / 100).toFixed(2)}`);
+  const day = (d) => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+
+  const tabs = [
+    { id: 'all',        label: 'All' },
+    { id: 'active',     label: 'In progress' },
+    { id: 'preorders',  label: 'Preorders' },
+    { id: 'shipped',    label: 'Shipped' },
+    { id: 'delivered',  label: 'Delivered' },
+    { id: 'cancelled',  label: 'Cancelled' },
+    { id: 'refunded',   label: 'Refunds' },
+  ].filter((t) => t.id === 'all' || counts[t.id] > 0 || t.id === filter);
+
+  const emptyCopy = {
+    all: 'You have no orders yet.',
+    active: 'Nothing in progress right now.',
+    preorders: 'No active preorders.',
+    shipped: 'Nothing in transit.',
+    delivered: 'Nothing delivered yet.',
+    cancelled: 'No cancelled orders.',
+    refunded: 'No refunds.',
+  };
+%>
+
+<% if (typeof unavailable !== 'undefined' && unavailable) { %>
+  <%/* Set when a reorder link was clicked for something that has since sold
+       out or been withdrawn. Told plainly rather than by silently landing
+       them back on a list with no explanation. */%>
+  <div class="ac__notice ac__notice--warn">
+    <strong>That product isn&rsquo;t available right now.</strong>
+    Sealed allocations sell out. <a href="<%= marketPath('/products') %>">See what&rsquo;s in stock</a>.
+  </div>
+<% } %>
+
+<% if (tabs.length > 1) { %>
+<nav class="ac__filters" aria-label="Filter orders">
+  <% tabs.forEach(function (t) { %>
+    <a class="ac__filter <%= filter === t.id ? 'is-on' : '' %>"
+       href="/account/orders<%= t.id === 'all' ? '' : '?filter=' + t.id %>"
+       <%- filter === t.id ? 'aria-current="true"' : '' %>>
+      <%= t.label %><span class="ac__filter-n"><%= counts[t.id] %></span>
+    </a>
+  <% }); %>
+</nav>
+<% } %>
+
+<% if (!orders.length) { %>
+  <div class="ac__sheet">
+    <div class="ac__empty">
+      <h3><%= emptyCopy[filter] || emptyCopy.all %></h3>
+      <p>Factory-sealed product, shipped from El Segundo, California.</p>
+      <a href="<%= marketPath('/products') %>" class="ac__btn ac__btn--primary">Shop sealed product</a>
+    </div>
+  </div>
+<% } else { %>
+  <section class="ac__sheet">
+    <% orders.forEach(function (d) { %>
+      <a class="ac__order" href="<%= marketPath('/account/orders/' + (d.reference)) %>">
+        <% if (d.image) { %>
+          <img class="ac__thumb" <%- productImage.attrs(d.image, 70) %> alt="" width="58" height="58" loading="lazy" decoding="async">
+        <% } else { %><span class="ac__thumb ac__thumb--blank"></span><% } %>
+        <div class="ac__order-main">
+          <span class="ac__order-title"><%= (d.product && d.product.title) || (d.order.products || [])[0] || 'Order' %></span>
+          <p class="ac__order-meta">
+            <span class="ac__status ac__status--<%= d.status.tone %>"><%= d.status.label %></span>
+            <span><%= day(d.order.purchaseDate || d.order.createdAt) %></span>
+            <% if (d.isPreorder && d.release && d.release.hasDate && !d.order.cancelledAt) { %>
+              <span>Releases <%= d.release.display %></span>
+            <% } %>
+            <% if (d.order.quantity > 1) { %><span>Qty <%= d.order.quantity %></span><% } %>
+            <span class="ac__mono"><%= d.reference %></span>
+          </p>
+        </div>
+        <div class="ac__order-right">
+          <p class="ac__price"><%= money(d.order.totalPrice, d.order.currency) %></p>
+          <span class="ac__muted">View order &rarr;</span>
+        </div>
+      </a>
+    <% }); %>
+  </section>
+<% } %>
+
+<div class="ac__notice">
+  <strong>Order references start with ZTCG.</strong>
+  Quote one to support and we can find everything about it in a second.
+  <a href="<%= marketPath('/contact') %>">Contact Zyphera support &rarr;</a>
+</div>
+<%- include('../partials/account-foot') %>

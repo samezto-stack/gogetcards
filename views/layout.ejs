@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <%
+    var siteOrigin = (typeof canonicalOrigin !== 'undefined' && canonicalOrigin) ? canonicalOrigin : 'https://zypheratcg.com';
+    var defaultDesc = 'Factory-sealed Pokémon, Yu-Gi-Oh!, Magic and One Piece booster boxes, cases and elite trainer boxes. Sourced through authorized distribution, shipped sealed.';
+    var desc = (typeof metaDescription !== 'undefined' && metaDescription) ? metaDescription : defaultDesc;
+    var title = (typeof pageTitle !== 'undefined' && pageTitle) ? pageTitle : 'Zyphera TCG';
+    var fullTitle = title.includes('Zyphera') ? title : (title + ' | Zyphera TCG');
+    var ogImg = (typeof ogImage !== 'undefined' && ogImage) ? ogImage : (siteOrigin + '/images/og-default.jpg');
+    if (ogImg.indexOf('http') !== 0) { ogImg = siteOrigin + (ogImg.charAt(0) === '/' ? '' : '/') + ogImg; }
+  %>
+  <meta name="description" content="<%= desc %>">
+  <meta name="robots" content="<%= (typeof robotsOverride !== 'undefined' && robotsOverride) ? robotsOverride : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' %>">
+  <meta property="og:site_name" content="Zyphera TCG">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:title" content="<%= fullTitle %>">
+  <meta property="og:description" content="<%= desc %>">
+  <meta property="og:type" content="<%= typeof ogType !== 'undefined' ? ogType : 'website' %>">
+  <meta property="og:url" content="<%= typeof canonicalUrl !== 'undefined' ? canonicalUrl : siteOrigin %>">
+  <%/* og:image is now always emitted. It previously rendered only when a
+       page happened to set one, and the sitewide default pointed at
+       /images/og-default.jpg, which did not exist in the repo at all — so
+       every share and every paid-social preview had a broken image. */%>
+  <meta property="og:image" content="<%= ogImg %>">
+  <%/* Dimensions are declared ONLY for the known 1200x630 share card. A
+       product photo is an arbitrary ratio, and asserting 1200x630 for it
+       makes social platforms crop or letterbox to a size the file isn't. */%>
+  <% if (ogImg.indexOf('/images/og-default.jpg') !== -1) { %>
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Zyphera TCG, factory sealed trading card products">
+  <% } else { %>
+    <meta property="og:image:alt" content="<%= fullTitle %>">
+  <% } %>
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="<%= fullTitle %>">
+  <meta name="twitter:description" content="<%= desc %>">
+  <meta name="twitter:image" content="<%= ogImg %>">
+  <% if (typeof canonicalUrl !== 'undefined' && canonicalUrl) { %>
+    <link rel="canonical" href="<%= canonicalUrl %>">
+  <% } %>
+  <%/* ── hreflang ────────────────────────────────────────────────────
+       One cluster per product, listing only the markets that actually
+       price it. Three rules make this work rather than backfire:
+       every page in the set is SELF-canonical (a canonical pointing at
+       another market cancels the alternate), the set is reciprocal
+       because it is generated from one list, and x-default is the US
+       page so an unmatched locale lands somewhere real. A cluster
+       containing a URL that 404s is discarded whole by Google, which is
+       why the route filters on having a price rather than on the market
+       merely being open. */%>
+  <% if (typeof marketAlternates !== 'undefined' && marketAlternates && marketAlternates.length > 1) { %>
+    <% marketAlternates.forEach(function (a) { %>
+      <link rel="alternate" hreflang="<%= a.locale %>" href="<%= a.href %>">
+    <% }); %>
+    <link rel="alternate" hreflang="x-default" href="<%= marketAlternates[0].href %>">
+  <% } %>
+  <%/* rel=prev/next on paginated collection pages. Google no longer uses
+       these as an indexing signal, but Bing does, and they remain the
+       standard way to tell any crawler that a sequence of URLs is one
+       ordered set rather than near-duplicate pages. */%>
+  <% (typeof paginationLinks !== 'undefined' && paginationLinks || []).forEach(function (l) { %>
+    <link rel="<%= l.rel %>" href="<%= l.href %>">
+  <% }); %>
+
+  <title><%= fullTitle %></title>
+
+  <%/* Icons. /favicon.png was a 490 KB JPEG with a .png extension: every
+       visitor downloaded half a megabyte for a 16px tab icon, and browsers
+       that trust the declared type over the magic bytes showed nothing.
+       These are real PNGs at the sizes that are actually requested. */%>
+  <%/* SVG first: one file, sharp at every size, and the browser picks it
+       when it can. The PNGs stay as the fallback for anything that does
+       not support an SVG icon. */%>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=<%= assetVersion %>">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=<%= assetVersion %>">
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png?v=<%= assetVersion %>">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=<%= assetVersion %>">
+  <link rel="manifest" href="/site.webmanifest?v=<%= assetVersion %>">
+  <meta name="theme-color" content="#0B0D12">
+
+  <%/* Fonts. Two changes, neither of which alters a single glyph on the
+       page:
+
+       1. Variable ranges (300..900) instead of seven enumerated static
+          weights. Every one of those weights is genuinely used in the
+          CSS, so trimming the list would have changed the design; the
+          variable font covers the whole range in one file instead of
+          seven, which is what actually made the request heavy.
+
+       2. Off the critical path. This was a plain <link rel=stylesheet>,
+          so the browser blocked first paint on a third-party round trip
+          to fonts.googleapis.com and then a second one to
+          fonts.gstatic.com. media="print" makes it a non-blocking fetch;
+          onload promotes it to all media once it arrives. display=swap
+          already meant text painted in the fallback first, so this
+          changes when the stylesheet blocks, not when text appears. */%>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <%
+    var fontHref = 'https://fonts.googleapis.com/css2?family=Outfit:wght@300..900&family=Inter:wght@300..700&family=Fraunces:opsz,wght@9..144,500..600&display=swap';
+  %>
+  <link rel="stylesheet" href="<%= fontHref %>" media="print" onload="this.media='all';this.onload=null;">
+  <noscript><link rel="stylesheet" href="<%= fontHref %>"></noscript>
+
+  <link rel="stylesheet" href="/css/zyphera.css?v=<%= assetVersion %>">
+
+  <%/* Sitewide entity graph. None of this existed before: search engines
+       and AI answer engines had no Organization to attach the brand to, no
+       WebSite node, and no sitelinks search box. Emitted on every page so
+       the brand entity is reinforced everywhere rather than once. */%>
+  <%
+    /* Organization, built here rather than inline below so the optional
+       fields can be added conditionally without an unreadable nest of
+       ternaries inside JSON.stringify.
+
+       Every optional key is set ONLY when config/company.js holds a real
+       value. That asymmetry is deliberate: Google resolves a legal name,
+       registration number or postal address against public records, so a
+       plausible-looking placeholder is a Misrepresentation suspension,
+       while an omission is at worst a request for more information.
+
+       logo now points at favicon-512.png. It pointed at /favicon.png,
+       which is a 490 KB JPEG carrying a .png extension — Google needs a
+       real image at the declared type for a logo to be usable at all. */
+    var biz = company.business;
+    var org = {
+      '@type': 'Organization',
+      '@id': siteOrigin + '/#organization',
+      name: biz.tradingName,
+      url: siteOrigin,
+      logo: { '@type': 'ImageObject', url: siteOrigin + '/favicon-512.png', width: 512, height: 512 },
+      image: ogImg,
+      description: 'Retailer of factory-sealed trading card game products, sourced through authorized distribution.',
+      slogan: 'Factory sealed. Allocated early. Held to release day.',
+      paymentAccepted: payments.copy.schemaPaymentAccepted,
+      currenciesAccepted: biz.currency,
+      contactPoint: [{
+        '@type': 'ContactPoint',
+        contactType: 'customer support',
+        email: biz.supportEmail,
+        availableLanguage: ['English'],
+        url: siteOrigin + '/contact'
+      }]
+    };
+    if (biz.phone) org.contactPoint[0].telephone = biz.phone;
+    if (biz.legalName) org.legalName = biz.legalName;
+    if (biz.registrationNumber) org.identifier = biz.registrationNumber;
+    if (biz.vatNumber) org.vatID = biz.vatNumber;
+    if (biz.countryCode) {
+      org.address = { '@type': 'PostalAddress', addressCountry: biz.countryCode };
+      if (biz.address) {
+        org.address.streetAddress = biz.address.street;
+        org.address.addressLocality = biz.address.city;
+        org.address.addressRegion = biz.address.region;
+        org.address.postalCode = biz.address.postalCode;
+      }
+    }
+    /* sameAs only for profiles that exist. A dead link in sameAs is worse
+       than no sameAs: it ties the brand entity to a 404. */
+    var socialUrls = Object.keys(company.social || {})
+      .map(function (k) { return company.social[k]; })
+      .filter(Boolean);
+    if (socialUrls.length) org.sameAs = socialUrls;
+  %>
+  <script type="application/ld+json"><%- jsonForScript({
+    '@context': 'https://schema.org',
+    '@graph': [
+      org,
+      {
+        '@type': 'WebSite',
+        '@id': siteOrigin + '/#website',
+        url: siteOrigin,
+        name: 'Zyphera TCG',
+        description: defaultDesc,
+        publisher: { '@id': siteOrigin + '/#organization' },
+        inLanguage: 'en-US',
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: { '@type': 'EntryPoint', urlTemplate: siteOrigin + '/collection/all?q={search_term_string}' },
+          'query-input': 'required name=search_term_string'
+        }
+      }
+    ]
+  }) %></script>
+
+  <% if (typeof jsonLd !== 'undefined' && jsonLd) { %>
+    <script type="application/ld+json"><%- jsonForScript(jsonLd) %></script>
+  <% } %>
+
+  <script>document.documentElement.className = document.documentElement.className.replace('no-js', 'js');</script>
+
+    <%- include('partials/analytics') %>
+    <%- include('partials/fx-approx') %>
+</head>
+
+<body id="zyphera-body" class="<%= typeof bodyClass !== 'undefined' ? bodyClass : '' %>">
+
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+<%/* ── "Looks like you're in Canada" ────────────────────────────────
+     A SUGGESTION AND NOTHING MORE. It offers a link; following it is a
+     navigation to that market's URL. The page it appears on is unchanged
+     and identical for every visitor, which is what separates this from
+     the IP-redirect pattern that gets a store's landing pages flagged as
+     showing crawlers something different from customers.
+
+     Server-rendered from a CDN country header, so it is absent rather
+     than wrong when there is no header. Dismissal is remembered for the
+     session — being wrong about somebody's country is routine for a VPN
+     or a traveller, and a strip that returns on every page is worse than
+     no strip. */%>
+<% if (typeof marketSuggestion !== 'undefined' && marketSuggestion) { %>
+  <div class="mkt-hint" id="mkt-hint" role="note">
+    <span><%- include('partials/flag', { code: marketSuggestion.id, label: marketSuggestion.name, size: 18 }) %> Shopping from <%= marketSuggestion.name %>?</span>
+    <a href="/<%= marketSuggestion.prefix %>">See prices in <%= marketSuggestion.currency %></a>
+    <button type="button" aria-label="Dismiss" onclick="this.parentNode.remove();try{sessionStorage.setItem('mkt-hint-off','1')}catch(e){}">&times;</button>
+  </div>
+  <script>try{if(sessionStorage.getItem('mkt-hint-off')){var _h=document.getElementById('mkt-hint');if(_h)_h.remove();}}catch(e){}</script>
+<% } %>
+  <%- include('partials/announcement-bar') %>
+  <%- include('partials/header') %>
+
+  <main id="main-content" role="main" tabindex="-1">
+    <%- body %>
+  </main>
+
+  <%- include('partials/footer') %>
+  <%- include('partials/cart-drawer') %>
+  <%- include('partials/chat-widget') %>
+  <%- include('partials/cookie-notice') %>
+
+  <script src="/js/zyphera.js?v=<%= assetVersion %>"></script>
+  <%- script %>
+</body>
+</html>

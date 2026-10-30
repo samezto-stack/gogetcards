@@ -1,0 +1,338 @@
+<nav class="col-page__breadcrumb container" style="padding-top:1rem" aria-label="Breadcrumb">
+  <a href="<%= marketPath('/') %>">Home</a>
+  <span aria-hidden="true">/</span>
+  <span aria-current="page">About</span>
+</nav>
+
+<div class="about-page">
+  <!-- Hero -->
+  <div class="about-hero">
+    <div class="about-hero__orb" aria-hidden="true"></div>
+    <div class="container" style="position:relative; z-index:2">
+      <div class="label-overline" style="margin-bottom:0.75rem">About Zyphera TCG</div>
+      <h1 class="heading-hero" style="max-width:760px">
+        We sell sealed product<br /><span class="gradient-text">we can account for</span>
+      </h1>
+      <%/* The previous opening was "Zyphera TCG was born out of
+           frustration... we decided to build the store we always wished
+           existed", which is the origin story every store in this category
+           tells and which says nothing checkable. This one leads with the
+           single fact that distinguishes the business and that a customer
+           can hold us to. */%>
+      <p class="about-hero__sub">
+        Every box, case and elite trainer box we list is bought through authorized
+        distribution and reaches you exactly as it left the manufacturer. That
+        constraint is the whole business. It costs us margin, it occasionally costs
+        us a set we would like to have listed, and it is the reason we can make the
+        guarantees on this site without hedging them.
+      </p>
+    </div>
+  </div>
+
+  <!-- What we do -->
+  <section class="section-padding">
+    <div class="container">
+      <div class="about-story">
+        <div class="about-story__text">
+          <div class="label-overline" style="margin-bottom:0.75rem">What we do</div>
+          <h2 class="heading-section">Sealed product, sourced one way</h2>
+          <div class="divider-accent"></div>
+          <p>
+            Zyphera TCG is an independent retailer of sealed trading card product:
+            Pokémon, Yu-Gi-Oh!, Magic: The Gathering and One Piece booster boxes,
+            cases and elite trainer boxes, plus preorders on sets before they release.
+          </p>
+          <p style="margin-top:1rem">
+            We buy through authorized distribution and nowhere else. Not the secondary
+            market, not liquidation lots, not private sellers, not marketplaces where
+            a product's history cannot be established. Where a set is allocated and we
+            cannot get enough of it, we list what we were allocated and stop, rather
+            than filling the gap from somewhere we would not want to name.
+          </p>
+          <p style="margin-top:1rem">
+            Nothing we ship has been opened, weighed, searched or resealed. Weighing
+            is worth naming specifically: it is the technique that identifies searched
+            product, and it is also the technique that creates it. We do not do it and
+            we do not buy from anyone we believe does.
+          </p>
+          <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:2rem">
+            <a href="<%= marketPath('/collection/all') %>" class="btn btn-primary" id="about-shop-btn">Browse Products →</a>
+            <a href="<%= marketPath('/authenticity-guarantee') %>" class="btn btn-outline" id="about-guarantee-btn">Read the authenticity guarantee</a>
+          </div>
+        </div>
+        <%
+          /* Stats render ONLY when config/company.js has a real value.
+             This block previously asserted "10,000+ Orders Delivered",
+             "4.9 Average Rating", "6+ Years Operating" and "£10M+ Product
+             Shipped" (GBP, on a USD store) with nothing behind any of it.
+             The rating in particular is an FTC problem: a stated average
+             with no review system is exactly what 16 CFR Part 465 covers.
+             Fill values in config/company.js as you can evidence them. */
+          var st = company.stats, ct = company.constants;
+          var statCards = [];
+          if (st.ordersDelivered)     statCards.push({ icon:'package',  num: st.ordersDelivered,      label:'Orders Delivered' });
+          if (ct.factorySealedPct)    statCards.push({ icon:'lock',     num: ct.factorySealedPct,     label:'Factory Sealed' });
+          if (st.averageRating)       statCards.push({ icon:'sparkles', num: st.averageRating,        label:'Average Rating' });
+          if (st.yearsOperating)      statCards.push({ icon:'trophy',   num: st.yearsOperating + '+', label:'Years Operating' });
+          if (ct.tcgBrandsStocked)    statCards.push({ icon:'diamond',  num: ct.tcgBrandsStocked,     label:'TCG Brands Stocked' });
+          if (st.productShippedValue) statCards.push({ icon:'globe',    num: st.productShippedValue,  label:'Product Shipped' });
+        %>
+        <% if (statCards.length) { %>
+        <div class="about-story__stats">
+          <% statCards.forEach(function (c) { %>
+            <div class="about-stat">
+              <span class="about-stat__icon"><%- include('../partials/icon', { name: c.icon, size: 24, color: 'currentColor' }) %></span>
+              <span class="about-stat__num"><%= c.num %></span>
+              <span class="about-stat__label"><%= c.label %></span>
+            </div>
+          <% }); %>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </section>
+
+  <!-- What we commit to -->
+  <%/* Four commitments, each one linking to the page that states it in
+       full. This replaces a "Values" grid of Integrity / Quality /
+       Community / Transparency, which are the four words every company
+       picks and none of which a customer can check. Each of these is a
+       promise with a page behind it. */%>
+  <section class="section-padding--sm" style="background:var(--color-bg-elevated); border-top:1px solid var(--color-border-light)">
+    <div class="container">
+      <div class="section-header text-center">
+        <div class="label-overline" style="margin-bottom:0.5rem">What we commit to</div>
+        <h2 class="heading-section">Four promises, each written down</h2>
+        <div class="divider-accent"></div>
+      </div>
+      <div class="grid-4">
+        <a class="value-card value-card--link" href="<%= marketPath('/authenticity-guarantee') %>">
+          <div class="value-card__icon"><%- include('../partials/icon', { name: 'shield', size: 32, color: 'var(--color-primary)' }) %></div>
+          <h3 class="value-card__title">Authenticity</h3>
+          <p class="value-card__desc">
+            Genuine, manufacturer-produced stock, in the language and edition the listing
+            states. If we ever get that wrong, you are refunded in full with no time limit.
+          </p>
+          <span class="value-card__more">Read the guarantee</span>
+        </a>
+        <a class="value-card value-card--link" href="<%= marketPath('/factory-sealed-guarantee') %>">
+          <div class="value-card__icon"><%- include('../partials/icon', { name: 'lock', size: 32, color: 'var(--color-gold)' }) %></div>
+          <h3 class="value-card__title">Sealed means sealed</h3>
+          <p class="value-card__desc">
+            Never opened, weighed, searched or resealed. If a seal arrives damaged we
+            replace or refund it and pay the postage.
+          </p>
+          <span class="value-card__more">Read the guarantee</span>
+        </a>
+        <a class="value-card value-card--link" href="<%= marketPath('/preorder-policy') %>">
+          <div class="value-card__icon"><%- include('../partials/icon', { name: 'bell', size: 32, color: 'var(--color-cyan)' }) %></div>
+          <h3 class="value-card__title">Preorders without surprises</h3>
+          <p class="value-card__desc">
+            You are charged at checkout, not on release day, and we say so in the first
+            line rather than burying it. Cancel any time before dispatch for a full refund.
+          </p>
+          <span class="value-card__more">Read the policy</span>
+        </a>
+        <a class="value-card value-card--link" href="<%= marketPath('/shipping') %>">
+          <div class="value-card__icon"><%- include('../partials/icon', { name: 'globe', size: 32, color: 'var(--color-accent)' }) %></div>
+          <h3 class="value-card__title"><%= shippingCopy.short %></h3>
+          <p class="value-card__desc">
+            Tracked, worldwide, at our cost, with no minimum spend. Every order covered
+            against loss or damage in transit.
+          </p>
+          <span class="value-card__more">See delivery times</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- What we will not do -->
+  <%/* The section that makes the rest credible. A page that only lists
+       what a company is good at reads as marketing; naming the things we
+       decline to do, including the ones that cost us sales, is the part a
+       reader weighs. Every line here is a real operating constraint. */%>
+  <section class="section-padding">
+    <div class="container">
+      <div class="about-nots">
+        <div>
+          <div class="label-overline" style="margin-bottom:0.75rem">Where we are not competing</div>
+          <h2 class="heading-section">Things we will not do</h2>
+          <div class="divider-accent"></div>
+        </div>
+        <ul class="about-nots__list">
+          <li>
+            <strong>We will not tell you what is inside a sealed product.</strong>
+            Pull rates are set by the manufacturer and are a matter of chance. Nobody
+            can promise you a hit, and anyone who does is telling you something they
+            cannot know.
+          </li>
+          <li>
+            <strong>We will not present this as an investment.</strong>
+            Prices in this category move sharply in both directions and past movement
+            predicts nothing. Buy what you want to own.
+          </li>
+          <li>
+            <strong>We will not undervalue a customs declaration.</strong>
+            We are asked regularly. It is fraud, and the consequence lands on the buyer
+            rather than on us, which is the other reason we say no.
+          </li>
+          <li>
+            <strong>We will not invent numbers.</strong>
+            No review scores without a review system behind them, no customer counts we
+            cannot evidence, no countdown timers on products that are not scarce. If a
+            figure appears on this site, we can show you what it is based on.
+          </li>
+          <li>
+            <strong>We will not always be the cheapest.</strong>
+            Buying exclusively through distribution costs more than buying wherever
+            stock appears, and on a hot set a marketplace listing will sometimes beat us.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Team, only if real -->
+  <% if ((company.team || []).length) { %>
+  <section class="section-padding--sm" style="background:var(--color-bg-elevated); border-top:1px solid var(--color-border-light)">
+    <div class="container">
+      <div class="section-header text-center">
+        <div class="label-overline" style="margin-bottom:0.5rem">The People</div>
+        <h2 class="heading-section">Who you are dealing with</h2>
+        <div class="divider-accent"></div>
+      </div>
+      <div class="grid-3">
+        <%/* Three named staff with biographies used to be hardcoded here.
+             Real people only: add them to config/company.js team[]. With
+             none configured the whole section is omitted rather than
+             filled with invented colleagues. */%>
+        <% (company.team || []).forEach(function (m) { %>
+          <div class="team-card">
+            <div class="team-card__avatar"><%- include('../partials/icon', { name: m.icon || 'zap', size: 28, color: 'currentColor' }) %></div>
+            <h3 class="team-card__name"><%= m.name %></h3>
+            <p class="team-card__role"><%= m.role %></p>
+            <% if (m.bio) { %><p class="team-card__bio"><%= m.bio %></p><% } %>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+  </section>
+  <% } %>
+
+  <% if ((company.timeline || []).length) { %>
+  <section class="section-padding">
+    <div class="container">
+      <div class="section-header text-center">
+        <div class="label-overline" style="margin-bottom:0.5rem">Our Journey</div>
+        <h2 class="heading-section">The Zyphera Timeline</h2>
+        <div class="divider-accent"></div>
+      </div>
+      <div class="about-timeline">
+        <% (company.timeline || []).forEach(function(m) { %>
+          <div class="about-milestone">
+            <div class="about-milestone__year"><%= m.year %></div>
+            <div class="about-milestone__dot"></div>
+            <div class="about-milestone__text"><%= m.description || m.text %></div>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+  </section>
+  <% } %>
+
+  <!-- Reaching us -->
+  <section class="section-padding--sm" style="background:var(--color-bg-elevated); border-top:1px solid var(--color-border-light)">
+    <div class="container">
+      <div class="about-contact">
+        <div>
+          <h2 class="heading-section">How to reach us</h2>
+          <div class="divider-accent"></div>
+          <p>
+            Every message is read and answered by a person, within
+            <%= company.business.responseTimeHours %> hours,
+            <%= company.business.supportHours ? company.business.supportHours.charAt(0).toLowerCase() + company.business.supportHours.slice(1) : 'on business days' %>.
+            There is no automated first line to argue past.
+          </p>
+          <p style="margin-top:0.75rem">
+            Email <a href="mailto:<%= company.business.supportEmail %>"><%= company.business.supportEmail %></a>
+            or use the contact form. Full business details, including where we trade from,
+            are on the contact page.
+          </p>
+          <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:1.75rem">
+            <a href="<%= marketPath('/contact') %>" class="btn btn-primary">Contact Us</a>
+            <a href="<%= marketPath('/customer-support') %>" class="btn btn-outline">How support works</a>
+          </div>
+        </div>
+        <div class="about-contact__links">
+          <p class="about-contact__links-title">Everything we commit to, in full</p>
+          <ul>
+            <li><a href="<%= marketPath('/authenticity-guarantee') %>">Authenticity Guarantee</a></li>
+            <li><a href="<%= marketPath('/factory-sealed-guarantee') %>">Factory-Sealed Guarantee</a></li>
+            <li><a href="<%= marketPath('/preorder-policy') %>">Preorder Policy</a></li>
+            <li><a href="<%= marketPath('/allocation-policy') %>">Allocation Policy</a></li>
+            <li><a href="<%= marketPath('/shipping') %>">Shipping &amp; Delivery</a></li>
+            <li><a href="<%= marketPath('/refund-policy') %>">Refund &amp; Returns</a></li>
+            <li><a href="<%= marketPath('/payment-information') %>">Payment Information</a></li>
+            <li><a href="<%= marketPath('/faq') %>">FAQ</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<style>
+  .about-page { padding-bottom:var(--space-4xl); }
+  .about-hero { position:relative; overflow:hidden; background:var(--color-bg-elevated); border-bottom:1px solid var(--color-border-light); padding:5rem 0 4rem; }
+  .about-hero__orb { position:absolute; width:600px; height:400px; top:50%; left:50%; transform:translate(-50%,-50%); background:radial-gradient(ellipse,rgba(124,58,237,0.12) 0%,transparent 70%); pointer-events:none; }
+  .about-hero__sub { font-size:1.05rem; color:var(--color-text-muted); max-width:64ch; line-height:1.85; margin-top:1.25rem; }
+  .about-story { display:grid; grid-template-columns:1fr 1fr; gap:4rem; align-items:center; }
+  .about-story__text p { color:var(--color-text-muted); line-height:1.85; font-size:0.95rem; max-width:60ch; }
+  .about-story__stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.25rem; }
+  .about-stat { background:var(--color-bg-card); border:1px solid var(--color-border-light); border-radius:var(--radius-lg); padding:1.25rem; display:flex; flex-direction:column; align-items:center; gap:0.375rem; text-align:center; transition:all var(--transition-normal); }
+  .about-stat:hover { border-color:rgba(124,58,237,0.35); transform:translateY(-2px); }
+  .about-stat__icon { display:flex; align-items:center; justify-content:center; color: var(--color-text-muted); }
+  .about-stat__num { font-family:var(--font-heading); font-size:1.35rem; font-weight:900; }
+  .about-stat__label { font-size:0.7rem; color:var(--color-text-faint); text-transform:uppercase; letter-spacing:0.06em; font-weight:600; text-align:center; }
+
+  .team-card { background:var(--color-bg-card); border:1px solid var(--color-border-light); border-radius:var(--radius-lg); padding:2rem 1.5rem; display:flex; flex-direction:column; gap:0.625rem; align-items:center; text-align:center; transition:all var(--transition-normal); }
+  .team-card:hover { border-color:rgba(124,58,237,0.35); transform:translateY(-3px); }
+  .team-card__avatar { width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,rgba(124,58,237,0.2),rgba(6,182,212,0.2)); border:2px solid var(--color-border-light); display:flex; align-items:center; justify-content:center; color: var(--color-white); }
+  .team-card__name { font-family:var(--font-heading); font-size:1rem; font-weight:800; color:var(--color-white); }
+  .team-card__role { font-size:0.75rem; color:var(--color-primary); font-weight:700; font-family:var(--font-heading); text-transform:uppercase; letter-spacing:0.06em; }
+  .team-card__bio { font-size:0.85rem; color:var(--color-text-muted); line-height:1.7; }
+  .about-timeline { display:flex; flex-direction:column; gap:0; max-width:720px; margin:0 auto; }
+  .about-milestone { display:grid; grid-template-columns:80px 24px 1fr; gap:1.5rem; align-items:start; padding:1.25rem 0; border-left:2px solid var(--color-border-light); margin-left:40px; padding-left:1.5rem; position:relative; }
+  .about-milestone__year { font-family:var(--font-heading); font-size:1rem; font-weight:900; text-align:right; }
+  .about-milestone__dot { width:12px; height:12px; border-radius:50%; background:var(--color-primary); margin-top:3px; flex-shrink:0; box-shadow:0 0 12px rgba(124,58,237,0.5); position:absolute; left:-7px; top:1.5rem; }
+  .about-milestone__text { font-size:0.9rem; color:var(--color-text-muted); line-height:1.6; }
+
+  .value-card { background:var(--color-bg-card); border:1px solid var(--color-border-light); border-radius:var(--radius-lg); padding:1.75rem 1.5rem; display:flex; flex-direction:column; gap:0.75rem; transition:all var(--transition-normal); }
+  .value-card:hover { border-color:rgba(124,58,237,0.35); transform:translateY(-3px); }
+  .value-card__icon { display:flex; align-items:center; }
+  .value-card__title { font-family:var(--font-heading); font-size:1rem; font-weight:800; color:var(--color-white); }
+  .value-card__desc { font-size:0.84rem; color:var(--color-text-muted); line-height:1.7; }
+  .value-card--link { text-decoration:none; }
+  .value-card__more { margin-top:auto; padding-top:0.5rem; font-size:0.76rem; font-weight:700; color:var(--color-primary); font-family:var(--font-heading); }
+
+  .about-nots { display:grid; grid-template-columns:22rem 1fr; gap:3.5rem; align-items:start; }
+  .about-nots__list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:1.15rem; }
+  .about-nots__list li { font-size:0.92rem; line-height:1.8; color:var(--color-text-muted); padding-left:1.15rem; border-left:2px solid var(--color-border-light); max-width:64ch; }
+  .about-nots__list strong { color:var(--color-white); display:block; margin-bottom:0.15rem; font-family:var(--font-heading); font-size:0.9rem; }
+
+  .about-contact { display:grid; grid-template-columns:1fr 18rem; gap:3.5rem; align-items:start; }
+  .about-contact p { color:var(--color-text-muted); line-height:1.85; font-size:0.95rem; max-width:58ch; }
+  .about-contact a { color:var(--color-primary); }
+  .about-contact__links { background:var(--color-bg-card); border:1px solid var(--color-border-light); border-radius:var(--radius-lg); padding:1.4rem; }
+  .about-contact__links-title { font-family:var(--font-heading); font-size:0.76rem; font-weight:800; text-transform:uppercase; letter-spacing:0.07em; color:var(--color-text-faint); margin-bottom:0.85rem; }
+  .about-contact__links ul { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:0.45rem; }
+  .about-contact__links a { font-size:0.85rem; color:var(--color-text-muted); text-decoration:none; }
+  .about-contact__links a:hover { color:var(--color-primary); }
+
+  @media (max-width:1024px) {
+    .about-story { grid-template-columns:1fr; }
+    .about-story__stats { grid-template-columns:repeat(3,1fr); }
+    .about-nots, .about-contact { grid-template-columns:1fr; gap:2rem; }
+  }
+  @media (max-width:640px) { .about-story__stats { grid-template-columns:1fr 1fr; } .about-milestone { grid-template-columns:60px 1fr; } }
+</style>

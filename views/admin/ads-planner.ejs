@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%237C3AED'/><g fill='%23ffffff'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
+  <meta name="theme-color" content="#0c0c12">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ads Planner | Zyphera Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+  <style>
+    .an-bar { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .an-bar select, .an-bar input[type="date"] { background: var(--admin-surface); color: var(--admin-text);
+      border: 1px solid var(--admin-border); border-radius: 6px; padding: 0.4rem 0.7rem; font: inherit; font-size: 0.82rem; }
+    .an-bar__spacer { margin-left: auto; }
+    .an-dl { font-size: 0.72rem; color: var(--admin-faint); text-decoration: none; border: 1px solid var(--admin-border);
+      border-radius: 6px; padding: 0.35rem 0.7rem; }
+    .an-dl:hover { color: var(--admin-text); border-color: var(--admin-accent); }
+    .an-note { background: rgba(251,191,36,0.06); border: 1px solid rgba(251,191,36,0.3); color: #FCD34D;
+      border-radius: 10px; padding: 0.8rem 1.1rem; font-size: 0.8rem; line-height: 1.55; margin-bottom: 1.25rem; }
+    .an-sec { background: var(--admin-card); border: 1px solid var(--admin-border); border-radius: 12px;
+      padding: 1.2rem 1.4rem; margin-bottom: 1.5rem; }
+    .an-sec > h2 { font-size: 0.95rem; font-weight: 700; margin: 0 0 0.3rem; }
+    .an-sec > .sub { font-size: 0.76rem; color: var(--admin-faint); margin: 0 0 1rem; line-height: 1.55; max-width: 80ch; }
+    .ap-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .ap-table th { text-align: left; font-family: var(--admin-font-mono); font-size: 0.58rem; letter-spacing: 0.09em;
+      text-transform: uppercase; color: var(--admin-faint); font-weight: 500; padding: 0.6rem 0.55rem;
+      border-bottom: 1px solid var(--admin-border); white-space: nowrap; }
+    .ap-table td { padding: 0.65rem 0.55rem; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
+    .ap-table td.n { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--admin-font-mono); white-space: nowrap; }
+    .ap-table td.rev { color: var(--admin-accent); font-weight: 700; }
+    .ap-table tfoot td { border-top: 1px solid var(--admin-border); border-bottom: 0; padding-top: 0.8rem; font-weight: 700; }
+    .ap-mkt { font-weight: 700; white-space: nowrap; }
+    .ap-mkt small { display:block; font-weight: 400; color: var(--admin-faint); font-family: var(--admin-font-mono); font-size: 0.62rem; }
+    .ap-top { font-size: 0.7rem; color: var(--admin-muted); line-height: 1.5; max-width: 26ch; }
+    .ap-spend { width: 92px; background: var(--admin-surface); color: var(--admin-text); border: 1px solid var(--admin-border);
+      border-radius: 6px; padding: 0.35rem 0.5rem; font: inherit; font-size: 0.8rem; text-align: right; font-variant-numeric: tabular-nums; }
+    .ap-spend:focus { outline: none; border-color: var(--admin-accent); }
+    .ap-roas { font-weight: 700; }
+    .ap-roas.good { color: #4ADE80; } .ap-roas.mid { color: #FCD34D; } .ap-roas.bad { color: #F87171; } .ap-roas.none { color: var(--admin-faint); font-weight: 400; }
+    .ap-actions { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; margin-top: 0.4rem; }
+    .ap-copy { background: linear-gradient(90deg, var(--admin-primary), var(--admin-bordeaux)); color: #fff; border: 0;
+      border-radius: 8px; padding: 0.55rem 1.1rem; font: inherit; font-weight: 600; font-size: 0.82rem; cursor: pointer; }
+    .ap-copy:active { transform: translateY(1px); }
+    .ap-copied { color: #4ADE80; font-size: 0.78rem; opacity: 0; transition: opacity .2s; }
+    .ap-copied.show { opacity: 1; }
+    .ap-out { width: 100%; min-height: 220px; margin-top: 1rem; background: var(--admin-surface); color: var(--admin-text);
+      border: 1px solid var(--admin-border); border-radius: 8px; padding: 0.9rem 1rem; font-family: var(--admin-font-mono);
+      font-size: 0.74rem; line-height: 1.55; white-space: pre; overflow: auto; }
+    .an-empty { padding: 1.5rem 0.5rem; text-align: center; color: var(--admin-faint); font-size: 0.85rem; }
+    @media (max-width: 820px){ .ap-table, .ap-table thead, .ap-table tbody, .ap-table tr, .ap-table td, .ap-table th { display:block; }
+      .ap-table thead { display:none; } .ap-table tr { border:1px solid var(--admin-border); border-radius:10px; margin-bottom:0.8rem; padding:0.4rem 0.6rem; }
+      .ap-table td { border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; gap:1rem; }
+      .ap-table td::before { content: attr(data-l); color: var(--admin-faint); font-family: var(--admin-font-mono); font-size:0.6rem; text-transform:uppercase; }
+      .ap-table td.n { text-align:right; } }
+  </style>
+</head>
+<body class="admin-body">
+  <%- include('_sidebar', { currentPath: '/admin/analytics/ads' }) %>
+
+  <main class="admin-main">
+    <%
+      const num = (n) => Number(n || 0).toLocaleString('en-US');
+      const pc = (n) => (n === null || n === undefined) ? '—' : Number(n).toFixed(2) + '%';
+      const fmtLocal = (cents, cur) => { try { return new Intl.NumberFormat('en-US', { style:'currency', currency: cur }).format((cents||0)/100); } catch (e) { return ((cents||0)/100).toFixed(2) + ' ' + cur; } };
+      const usd = (cents) => '$' + (Number(cents || 0)/100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const rangeLabel = (ranges.find(r => r.key === range) || {}).label || range;
+      const winStart = win.startDate.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+      const winEnd = new Date(win.endDate.getTime() - 1).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+      // Compact per-row payload the browser uses to compute ROAS and build the copy block.
+      const jsRows = report.rows.map(r => ({
+        id: r.id, name: r.name, flag: r.flag, currency: r.currency,
+        sessions: r.sessions, orders: r.orders,
+        revLocal: r.revenueCents/100, revUsd: r.revenueUsdCents/100, aovLocal: r.aovCents/100,
+        cr: r.conversionRate, top: r.topProducts.map(p => `${p.name} (${p.n})`),
+      }));
+    %>
+
+    <header class="admin-header">
+      <div>
+        <h1 class="admin-header__title">Ads Planner</h1>
+        <p class="admin-header__sub">Google&nbsp;Ads · <%= winStart %> &rarr; <%= winEnd %> · the store's side of the numbers, ready to plan against</p>
+      </div>
+    </header>
+
+    <form method="GET" action="/admin/analytics/ads" class="an-bar">
+      <select name="range" onchange="this.form.submit()">
+        <% ranges.forEach(function (r) { %>
+          <option value="<%= r.key %>" <%= range === r.key ? 'selected' : '' %>><%= r.label %></option>
+        <% }); %>
+      </select>
+      <% if (range === 'custom') { %>
+        <input type="date" name="start" value="<%= query.start || '' %>">
+        <input type="date" name="end" value="<%= query.end || '' %>">
+        <button type="submit" class="admin-btn admin-btn--sm">Apply</button>
+      <% } %>
+      <span class="an-bar__spacer"></span>
+      <a class="an-dl" href="/admin/analytics/ads.csv?range=<%= range %><%= range==='custom' ? ('&start='+(query.start||'')+'&end='+(query.end||'')) : '' %>">ads-planner.csv</a>
+      <a class="an-dl" href="/admin/analytics">← Full analytics</a>
+    </form>
+
+    <div class="an-note">
+      <strong>What this is:</strong> orders and revenue attributed to <strong>Google&nbsp;Ads clicks</strong> (a visit that arrived with a <code>gclid</code>), split by the countries you advertise in. Each country's revenue is in <strong>its own currency</strong>; the USD column and totals use the live courtesy rate. Type your <strong>spend (in USD)</strong> from Google&nbsp;Ads into each row and ROAS / cost-per-order compute instantly — then hit <strong>Copy for Claude</strong>.
+    </div>
+
+    <% if (report.empty) { %>
+      <div class="an-sec"><div class="an-empty">
+        No Google&nbsp;Ads-attributed sessions or orders in this window.<br>
+        Either ads weren't running, or clicks arrived without a <code>gclid</code> (check that auto-tagging is on in Google&nbsp;Ads). Try a wider range.
+      </div></div>
+    <% } %>
+
+    <div class="an-sec">
+      <h2>Per-country performance</h2>
+      <p class="sub">Sessions are ad clicks by visitor country; orders and revenue are ad-attributed sales by storefront. Enter spend to see ROAS (revenue ÷ spend), cost per order, and cost per click.</p>
+      <table class="ap-table">
+        <thead>
+          <tr>
+            <th>Country</th>
+            <th>Ad sessions</th>
+            <th>Ad orders</th>
+            <th>Conv. rate</th>
+            <th>Revenue</th>
+            <th>AOV</th>
+            <th>Spend (USD)</th>
+            <th>ROAS</th>
+            <th>Cost / order</th>
+            <th>Cost / click</th>
+            <th>Top products</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% report.rows.forEach(function (r) { %>
+            <tr data-market="<%= r.id %>">
+              <td data-l="Country"><span class="ap-mkt"><%= r.flag %> <%= r.name %><small><%= r.currency %></small></span></td>
+              <td class="n" data-l="Sessions"><%= num(r.sessions) %></td>
+              <td class="n" data-l="Orders"><%= num(r.orders) %></td>
+              <td class="n" data-l="Conv."><%= pc(r.conversionRate) %></td>
+              <td class="n rev" data-l="Revenue"><%= fmtLocal(r.revenueCents, r.currency) %><% if (r.currency !== 'USD') { %><br><small style="color:var(--admin-faint);font-weight:400">≈ <%= usd(r.revenueUsdCents) %></small><% } %></td>
+              <td class="n" data-l="AOV"><%= fmtLocal(r.aovCents, r.currency) %></td>
+              <td class="n" data-l="Spend"><input class="ap-spend" type="number" min="0" step="0.01" inputmode="decimal" data-market="<%= r.id %>" placeholder="0.00"></td>
+              <td class="n" data-l="ROAS"><span class="ap-roas none" data-cell="roas">—</span></td>
+              <td class="n" data-l="Cost/order"><span data-cell="cpa">—</span></td>
+              <td class="n" data-l="Cost/click"><span data-cell="cpc">—</span></td>
+              <td class="ap-top" data-l="Top"><%= r.topProducts.length ? r.topProducts.map(p => `${p.name} (${p.n})`).join(', ') : '—' %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td data-l="Total">Total (USD)</td>
+            <td class="n" data-l="Sessions"><%= num(report.total.sessions) %></td>
+            <td class="n" data-l="Orders"><%= num(report.total.orders) %></td>
+            <td class="n" data-l="Conv."><%= pc(report.total.conversionRate) %></td>
+            <td class="n rev" data-l="Revenue"><%= usd(report.total.revenueUsdCents) %></td>
+            <td class="n" data-l="AOV"><%= usd(report.total.aovUsdCents) %></td>
+            <td class="n" data-l="Spend"><span data-cell="total-spend">—</span></td>
+            <td class="n" data-l="ROAS"><span class="ap-roas none" data-cell="total-roas">—</span></td>
+            <td class="n" data-l="Cost/order"><span data-cell="total-cpa">—</span></td>
+            <td class="n"></td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="ap-actions">
+        <button type="button" class="ap-copy" id="apCopy">Copy for Claude</button>
+        <span class="ap-copied" id="apCopied">Copied ✓</span>
+        <span style="margin-left:auto;font-size:0.72rem;color:var(--admin-faint)">Spend is remembered on this device until you change the range.</span>
+      </div>
+      <textarea class="ap-out" id="apOut" readonly aria-label="Summary to copy"></textarea>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      var ROWS = <%- jsonForScript(jsRows) %>;
+      var META = { range: <%- jsonForScript(rangeLabel) %>, start: <%- jsonForScript(winStart) %>, end: <%- jsonForScript(winEnd) %> };
+      var STORE_KEY = 'ztcg_ads_spend_' + <%- jsonForScript(range) %>;
+      var spend = {}; // market -> USD number
+
+      function loadSpend() {
+        try { spend = JSON.parse(localStorage.getItem(STORE_KEY) || '{}') || {}; } catch (e) { spend = {}; }
+      }
+      function saveSpend() {
+        try { localStorage.setItem(STORE_KEY, JSON.stringify(spend)); } catch (e) {}
+      }
+      var fmtUsd = function (n) { return '$' + (Number(n) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+      var roasClass = function (x) { return x >= 3 ? 'good' : x >= 1.5 ? 'mid' : 'bad'; };
+
+      function recalc() {
+        var totalSpend = 0, haveAnySpend = false;
+        var totalRevUsd = ROWS.reduce(function (s, r) { return s + r.revUsd; }, 0);
+        var totalOrders = ROWS.reduce(function (s, r) { return s + r.orders; }, 0);
+
+        ROWS.forEach(function (r) {
+          var tr = document.querySelector('tr[data-market="' + r.id + '"]');
+          if (!tr) return;
+          var s = Number(spend[r.id]);
+          var roasEl = tr.querySelector('[data-cell="roas"]');
+          var cpaEl = tr.querySelector('[data-cell="cpa"]');
+          var cpcEl = tr.querySelector('[data-cell="cpc"]');
+          if (s > 0) {
+            haveAnySpend = true; totalSpend += s;
+            // Revenue in USD vs spend in USD — same currency, honest ROAS.
+            var roas = r.revUsd / s;
+            roasEl.textContent = roas.toFixed(2) + '×';
+            roasEl.className = 'ap-roas ' + roasClass(roas);
+            cpaEl.textContent = r.orders > 0 ? fmtUsd(s / r.orders) : '—';
+            cpcEl.textContent = r.sessions > 0 ? fmtUsd(s / r.sessions) : '—';
+          } else {
+            roasEl.textContent = '—'; roasEl.className = 'ap-roas none';
+            cpaEl.textContent = '—'; cpcEl.textContent = '—';
+          }
+        });
+
+        var tsEl = document.querySelector('[data-cell="total-spend"]');
+        var trEl = document.querySelector('[data-cell="total-roas"]');
+        var tcEl = document.querySelector('[data-cell="total-cpa"]');
+        if (haveAnySpend) {
+          tsEl.textContent = fmtUsd(totalSpend);
+          var bR = totalSpend > 0 ? totalRevUsd / totalSpend : 0;
+          trEl.textContent = bR.toFixed(2) + '×'; trEl.className = 'ap-roas ' + roasClass(bR);
+          tcEl.textContent = totalOrders > 0 ? fmtUsd(totalSpend / totalOrders) : '—';
+        } else {
+          tsEl.textContent = '—'; trEl.textContent = '—'; trEl.className = 'ap-roas none'; tcEl.textContent = '—';
+        }
+        buildOut(haveAnySpend, totalSpend, totalRevUsd, totalOrders);
+      }
+
+      function buildOut(haveSpend, totalSpend, totalRevUsd, totalOrders) {
+        var L = [];
+        L.push('Zyphera TCG — Google Ads planning data');
+        L.push('Window: ' + META.range + ' (' + META.start + ' → ' + META.end + ')');
+        L.push('Revenue is in each country\'s currency; USD figures use live FX. Spend entered in USD.');
+        L.push('');
+        ROWS.forEach(function (r) {
+          var s = Number(spend[r.id]) || 0;
+          L.push(r.name + ' (' + r.currency + ')');
+          L.push('  Ad sessions: ' + r.sessions.toLocaleString('en-US'));
+          L.push('  Ad orders: ' + r.orders.toLocaleString('en-US'));
+          L.push('  Conversion rate: ' + (r.cr == null ? 'n/a (no sessions)' : r.cr.toFixed(2) + '%'));
+          L.push('  Ad revenue: ' + r.revLocal.toLocaleString('en-US', { style: 'currency', currency: r.currency }) + (r.currency !== 'USD' ? ' (≈ ' + fmtUsd(r.revUsd) + ')' : ''));
+          L.push('  AOV: ' + r.aovLocal.toLocaleString('en-US', { style: 'currency', currency: r.currency }));
+          if (s > 0) {
+            L.push('  Spend (USD): ' + fmtUsd(s) + '  |  ROAS: ' + (r.revUsd / s).toFixed(2) + '×  |  Cost/order: ' + (r.orders ? fmtUsd(s / r.orders) : 'n/a') + '  |  Cost/click: ' + (r.sessions ? fmtUsd(s / r.sessions) : 'n/a'));
+          } else {
+            L.push('  Spend (USD): (not entered)');
+          }
+          L.push('  Top products: ' + (r.top.length ? r.top.join(', ') : '—'));
+          L.push('');
+        });
+        L.push('TOTALS (USD): revenue ' + fmtUsd(totalRevUsd) + ', orders ' + totalOrders.toLocaleString('en-US') + (haveSpend ? ', spend ' + fmtUsd(totalSpend) + ', blended ROAS ' + (totalSpend ? (totalRevUsd / totalSpend).toFixed(2) : '0') + '×' : ', spend not entered'));
+        L.push('');
+        L.push('Note: avg CPC across campaigns is under $0.10 (low-price niche).');
+        document.getElementById('apOut').value = L.join('\n');
+      }
+
+      loadSpend();
+      document.querySelectorAll('.ap-spend').forEach(function (inp) {
+        var m = inp.getAttribute('data-market');
+        if (spend[m] != null) inp.value = spend[m];
+        inp.addEventListener('input', function () {
+          var v = parseFloat(inp.value);
+          if (v > 0) spend[m] = v; else delete spend[m];
+          saveSpend();
+          recalc();
+        });
+      });
+
+      document.getElementById('apCopy').addEventListener('click', function () {
+        var out = document.getElementById('apOut');
+        out.select();
+        var done = function () {
+          var c = document.getElementById('apCopied');
+          c.classList.add('show'); setTimeout(function () { c.classList.remove('show'); }, 1600);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(out.value).then(done, function () { try { document.execCommand('copy'); done(); } catch (e) {} });
+        } else { try { document.execCommand('copy'); done(); } catch (e) {} }
+      });
+
+      recalc();
+    })();
+  </script>
+</body>
+</html>

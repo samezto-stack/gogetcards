@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%237C3AED'/><g fill='%23ffffff'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
+  <meta name="theme-color" content="#0c0c12">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= pageTitle %> | Zyphera Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+</head>
+<body class="admin-body">
+  <%- include('_sidebar', { currentPath: '/admin/customers' }) %>
+
+  <main class="admin-main">
+    <%
+      /* Server-side helper from routes/admin.js — one prefix map, not a
+         copy per template. A EUR order used to read "$69.99 EUR". */
+      const money = (c, cur) => locals.money(c, cur);
+      const day = (d) => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+      const stamp = (d) => d ? day(d) + ', ' + new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '—';
+      const name = [customer.firstName, customer.lastName].filter(Boolean).join(' ');
+      const a = customer.address || {};
+      const addr = [a.line1, a.line2, [a.city, a.region, a.postalCode].filter(Boolean).join(', '), a.country].filter(Boolean);
+      const savedMsg = {
+        status: 'Account status updated.',
+        sessions: 'Every session for this customer was ended.',
+        fulfilment: 'Fulfilment updated. The customer sees this in their account immediately.',
+        refund: 'Refund status updated.',
+      };
+      const failedMsg = {
+        real_orders: 'Nothing was deleted. This account has orders that did not come from the test-purchase flow, and this button will not delete a real sale.',
+      };
+      const tone = { good: 'ok', accent: 'ok', warn: 'warn', neutral: 'neutral' };
+    %>
+
+    <header class="admin-header">
+      <h1 class="admin-header__title"><%= name || (customer.displayEmail || customer.email) %></h1>
+      <a class="admin-btn" href="/admin/customers">&larr; All customers</a>
+    </header>
+
+    <div class="admin-content">
+      <% if (saved && savedMsg[saved]) { %>
+        <div class="admin-alert admin-alert--success" style="margin-bottom:1.25rem"><%= savedMsg[saved] %></div>
+      <% } %>
+      <% if (failed && failedMsg[failed]) { %>
+        <div class="admin-alert admin-alert--error" style="margin-bottom:1.25rem"><%= failedMsg[failed] %></div>
+      <% } %>
+
+      <% if (customer.status === 'closed') { %>
+        <div class="admin-alert admin-alert--error" style="margin-bottom:1.25rem">
+          This account is closed. Sign-in links are refused and every session has been ended.
+        </div>
+      <% } %>
+
+      <div class="admin-stats-grid" style="margin-bottom:1.5rem">
+        <div class="admin-stat-card">
+          <div class="admin-stat-card__num"><%= counts.all %></div>
+          <div class="admin-stat-card__label">Orders</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-card__num"><%= money(totalSpend) %></div>
+          <div class="admin-stat-card__label">Lifetime value</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-card__num"><%= counts.preorders %></div>
+          <div class="admin-stat-card__label">Active preorders</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-card__num"><%= sessions.length %></div>
+          <div class="admin-stat-card__label">Live sessions</div>
+        </div>
+      </div>
+
+      <%/* ── Identity ────────────────────────────────────────────── */%>
+      <section class="admin-section" style="margin-bottom:1.75rem">
+        <h2 class="admin-section__title">Profile</h2>
+        <div style="background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:10px;padding:1.25rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.25rem">
+          <div>
+            <div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--admin-faint);margin-bottom:0.3rem">Email</div>
+            <div style="font-family:var(--admin-font-mono);font-size:0.8rem"><%= customer.displayEmail || customer.email %></div>
+          </div>
+          <div>
+            <div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--admin-faint);margin-bottom:0.3rem">Phone</div>
+            <div style="font-size:0.85rem"><%= customer.phone || '—' %></div>
+          </div>
+          <div>
+            <div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--admin-faint);margin-bottom:0.3rem">Default address</div>
+            <div style="font-size:0.85rem;line-height:1.5">
+              <% if (addr.length) { addr.forEach(function (l) { %><%= l %><br><% }); } else { %>—<% } %>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--admin-faint);margin-bottom:0.3rem">Account</div>
+            <div style="font-size:0.85rem;line-height:1.6">
+              Created <%= day(customer.createdAt) %> via <%= customer.createdVia || 'purchase' %><br>
+              Marketing: <%= customer.marketingOptIn ? 'opted in' : 'not opted in' %>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <%/* ── Orders ──────────────────────────────────────────────── */%>
+      <section class="admin-section" style="margin-bottom:1.75rem">
+        <h2 class="admin-section__title">Orders</h2>
+
+        <% if (!orders.length) { %>
+          <div style="background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:10px;padding:2rem;text-align:center;color:var(--admin-muted);font-size:0.85rem">
+            No orders on this account.
+          </div>
+        <% } %>
+
+        <% orders.forEach(function (d) { const o = d.order; %>
+          <article style="background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:10px;padding:1.15rem 1.25rem;margin-bottom:0.85rem">
+            <div style="display:flex;flex-wrap:wrap;gap:0.75rem 1.25rem;align-items:baseline">
+              <strong style="font-family:var(--admin-font-mono);font-size:0.85rem"><%= d.reference %></strong>
+              <span class="status-pill status-pill--<%= tone[d.status.tone] || 'neutral' %>">
+                <span class="status-pill__dot"></span><%= d.status.label %>
+              </span>
+              <span style="font-size:0.82rem;color:var(--admin-muted)">
+                <%= (d.product && d.product.title) || (o.products || [])[0] || 'Order' %>
+                <% if ((Number(o.quantity) || 1) > 1) { %> &times;<%= o.quantity %><% } %>
+              </span>
+              <span style="margin-left:auto;font-family:var(--admin-font-mono);font-size:0.85rem"><%= money(o.totalPrice, o.currency) %></span>
+            </div>
+            <div style="font-size:0.72rem;color:var(--admin-faint);margin-top:0.4rem">
+              Placed <%= stamp(o.purchaseDate || o.createdAt) %>
+              <% if (d.isPreorder) { %> &middot; Preorder<% if (d.release && d.release.hasDate) { %>, releases <%= d.release.display %><% } %><% } %>
+              &middot; <%= o.source || o.paymentProvider || 'direct' %>
+              <% if (o.cancelledAt) { %> &middot; Cancelled <%= day(o.cancelledAt) %> by <%= o.cancelledBy || 'unknown' %><% } %>
+              <% if (o.cancellationReason) { %> &middot; &ldquo;<%= o.cancellationReason %>&rdquo;<% } %>
+            </div>
+
+            <%/* ── Fulfilment ─────────────────────────────────────
+                 The customer's account reads these fields directly, so
+                 what is typed here is what they see within seconds. */%>
+            <form method="POST" action="/admin/customers/<%= customer._id %>/orders/<%= o._id %>/fulfilment"
+                  style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;margin-top:0.9rem;padding-top:0.9rem;border-top:1px solid var(--admin-border)">
+              <select name="fulfillmentStatus" class="admin-select" style="font-size:0.78rem;padding:0.35rem 0.6rem">
+                <% ['unfulfilled', 'preparing', 'shipped', 'delivered'].forEach(function (s) { %>
+                  <option value="<%= s %>" <%= o.fulfillmentStatus === s ? 'selected' : '' %>><%= s %></option>
+                <% }); %>
+              </select>
+              <input class="admin-search-input" style="width:150px" name="trackingCarrier" value="<%= o.trackingCarrier || '' %>" placeholder="Carrier">
+              <input class="admin-search-input" style="width:180px" name="trackingNumber" value="<%= o.trackingNumber || '' %>" placeholder="Tracking number">
+              <input class="admin-search-input" style="width:220px" name="trackingUrl" value="<%= o.trackingUrl || '' %>" placeholder="https://tracking-url">
+              <button class="admin-btn admin-btn--sm admin-btn--primary" type="submit">Save fulfilment</button>
+            </form>
+
+            <%/* ── Cancellation & refund ──────────────────────────
+                 NOTHING HERE MOVES MONEY. "Mark refunded" records that a
+                 refund already sent by hand in the payment provider has
+                 been sent; the customer's account then says so. Pressing
+                 it before actually refunding makes the portal lie. */%>
+            <form method="POST" action="/admin/customers/<%= customer._id %>/orders/<%= o._id %>/refund"
+                  style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;margin-top:0.6rem">
+              <span style="font-size:0.72rem;color:var(--admin-faint);margin-right:0.25rem">
+                Refund: <strong style="color:var(--admin-muted)"><%= o.refundStatus %></strong>
+                <% if (o.refundAmount) { %> (<%= money(o.refundAmount, o.currency) %>)<% } %>
+              </span>
+              <%/* The customer has been asked whether they want the order
+                   back, and the email promised the refund goes out AFTER
+                   the deadline. Marking it refunded before then breaks
+                   that promise. See docs/release-day.md. */%>
+              <% if (o.cancelledAt && o.refundStatus === 'processing' && o.reinstateDeadline && new Date(o.reinstateDeadline) > new Date()) { %>
+                <span style="font-size:0.72rem;color:#e0b470;flex-basis:100%">
+                  Keep-or-refund offer open until
+                  <%= new Date(o.reinstateDeadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Los_Angeles' }) %>
+                  &mdash; do not issue this refund before then.
+                </span>
+              <% } %>
+              <% if (o.reinstatedAt && !o.cancelledAt) { %>
+                <span style="font-size:0.72rem;color:#8fc79c;flex-basis:100%">Reinstated by the customer on <%= day(o.reinstatedAt) %> &mdash; no refund owed.</span>
+              <% } %>
+              <% if (!o.cancelledAt) { %>
+                <button class="admin-btn admin-btn--sm admin-btn--danger" name="action" value="cancel" type="submit"
+                        onclick="return confirm('Cancel this order and queue a refund? This does not contact the payment provider.')">Cancel &amp; owe refund</button>
+              <% } %>
+              <% if (o.refundStatus === 'none') { %>
+                <button class="admin-btn admin-btn--sm" name="action" value="processing" type="submit">Mark refund owed</button>
+              <% } %>
+              <% if (o.refundStatus !== 'refunded') { %>
+                <button class="admin-btn admin-btn--sm" name="action" value="refunded" type="submit"
+                        onclick="return confirm('Only press this AFTER issuing the refund in the payment provider. The customer will be told their money has been sent.')">Mark refunded</button>
+              <% } else { %>
+                <span style="font-size:0.72rem;color:var(--admin-faint)">Refunded <%= day(o.refundedAt) %></span>
+              <% } %>
+              <% if (o.refundStatus !== 'none') { %>
+                <button class="admin-btn admin-btn--sm" name="action" value="clear" type="submit">Clear refund flag</button>
+              <% } %>
+            </form>
+          </article>
+        <% }); %>
+      </section>
+
+      <%/* ── Sessions ────────────────────────────────────────────── */%>
+      <section class="admin-section" style="margin-bottom:1.75rem">
+        <h2 class="admin-section__title">Sessions</h2>
+        <div style="background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:10px;padding:1.25rem">
+          <% if (!sessions.length) { %>
+            <p style="font-size:0.85rem;color:var(--admin-muted);margin:0">No live sessions.</p>
+          <% } else { %>
+            <div class="admin-table-wrap" style="border:0">
+              <table class="admin-table">
+                <thead><tr><th>Device</th><th>Network</th><th>Started via</th><th>Last used</th><th>Expires</th></tr></thead>
+                <tbody>
+                  <% sessions.forEach(function (s) { %>
+                    <tr>
+                      <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.72rem"><%= s.userAgent || '—' %></td>
+                      <td style="font-family:var(--admin-font-mono);font-size:0.72rem"><%= s.ipPrefix || '—' %></td>
+                      <td><%= s.origin || '—' %></td>
+                      <td><%= stamp(s.lastUsedAt || s.createdAt) %></td>
+                      <td><%= day(s.expiresAt) %></td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
+          <form method="POST" action="/admin/customers/<%= customer._id %>/sessions/revoke" style="margin-top:1rem">
+            <button class="admin-btn admin-btn--sm admin-btn--danger" type="submit"
+                    onclick="return confirm('Sign this customer out of every device?')">Sign out everywhere</button>
+          </form>
+        </div>
+      </section>
+
+      <%/* ── Account state ───────────────────────────────────────── */%>
+      <section class="admin-section" style="margin-bottom:1.75rem">
+        <h2 class="admin-section__title">Account state</h2>
+        <div style="background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:10px;padding:1.25rem">
+          <p style="font-size:0.82rem;color:var(--admin-muted);margin:0 0 1rem;line-height:1.6">
+            Closing an account refuses new sign-in links and ends every live session. Order records are
+            kept &mdash; we are required to hold them for tax and consumer-protection reasons, and the
+            customer's orders remain visible here. This is reversible.
+          </p>
+          <form method="POST" action="/admin/customers/<%= customer._id %>/status">
+            <input type="hidden" name="status" value="<%= customer.status === 'closed' ? 'active' : 'closed' %>">
+            <button class="admin-btn admin-btn--sm <%= customer.status === 'closed' ? '' : 'admin-btn--danger' %>" type="submit"
+                    onclick="return confirm('<%= customer.status === 'closed' ? 'Reopen this account?' : 'Close this account and end every session?' %>')">
+              <%= customer.status === 'closed' ? 'Reopen account' : 'Close account' %>
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <%/* ── Permanent deletion ──────────────────────────────────────
+           Kept apart from Close, and last on the page, because the two
+           are not degrees of the same thing: one is reversible and one
+           is not. Which buttons appear is decided by what the orders
+           ARE, not by a checkbox — the destructive variant is only
+           rendered when every order on the account came from the
+           test-purchase flow, and the route re-checks that against the
+           database before deleting anything. */%>
+      <section class="admin-section">
+        <h2 class="admin-section__title" style="color:#e07487">Delete permanently</h2>
+        <div style="background:var(--admin-surface);border:1px solid rgba(196,72,92,0.35);border-radius:10px;padding:1.25rem">
+
+          <% if (testOnly) { %>
+            <p style="font-size:0.82rem;color:var(--admin-muted);margin:0 0 1rem;line-height:1.6">
+              <% if (testOrderCount) { %>
+                Every order on this account (<%= testOrderCount %>) came from the test-purchase flow, so
+                the whole thing can go: the account, its sessions, its sign-in links and those orders.
+              <% } else { %>
+                This account has no orders, so there is nothing to keep.
+              <% } %>
+              This cannot be undone.
+            </p>
+            <div style="display:flex;flex-wrap:wrap;gap:0.5rem">
+              <% if (testOrderCount) { %>
+                <form method="POST" action="/admin/customers/<%= customer._id %>/delete">
+                  <input type="hidden" name="orders" value="test">
+                  <button class="admin-btn admin-btn--sm admin-btn--danger" type="submit"
+                          onclick="return confirm('Permanently delete this account AND its <%= testOrderCount %> test order(s)? This cannot be undone.')">
+                    Delete account and <%= testOrderCount %> test order<%= testOrderCount === 1 ? '' : 's' %>
+                  </button>
+                </form>
+              <% } %>
+              <form method="POST" action="/admin/customers/<%= customer._id %>/delete">
+                <input type="hidden" name="orders" value="keep">
+                <button class="admin-btn admin-btn--sm" type="submit"
+                        onclick="return confirm('Permanently delete this account? Orders are kept.')">
+                  Delete account only
+                </button>
+              </form>
+            </div>
+
+          <% } else { %>
+            <p style="font-size:0.82rem;color:var(--admin-muted);margin:0 0 1rem;line-height:1.6">
+              This account has <strong style="color:var(--admin-text)"><%= realOrderCount %></strong> real
+              order<%= realOrderCount === 1 ? '' : 's' %>, so its orders cannot be deleted from here.
+              Deleting the account itself removes the profile, its sessions and its sign-in links, and
+              leaves every order intact.
+            </p>
+            <p style="font-size:0.78rem;color:var(--admin-faint);margin:0 0 1rem;line-height:1.6">
+              Orders are matched to an account by email address, so if this customer signs in again with
+              the same address the account is rebuilt around the orders that are still here. To stop them
+              signing in, close the account above instead.
+            </p>
+            <form method="POST" action="/admin/customers/<%= customer._id %>/delete">
+              <input type="hidden" name="orders" value="keep">
+              <button class="admin-btn admin-btn--sm admin-btn--danger" type="submit"
+                      onclick="return confirm('Permanently delete this account? Their <%= realOrderCount %> order(s) are kept.')">
+                Delete account only
+              </button>
+            </form>
+          <% } %>
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

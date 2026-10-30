@@ -1,0 +1,43 @@
+{
+  "name": "zypheratcg",
+  "version": "1.0.0",
+  "description": "Zyphera TCG — Premium Sealed TCG Marketplace",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "seed": "node seed.js",
+    "backup": "node scripts/backup.js",
+    "restore": "node scripts/restore.js",
+    "add-redirect": "node scripts/add-redirect.js",
+    "test": "node --test \"test/**/*.test.js\"",
+    "test:security": "node --test \"test/security/*.test.js\"",
+    "audit": "npm audit --omit=dev"
+  },
+  "dependencies": {
+    "axios": "^1.16.1",
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.7.4",
+    "connect-mongo": "^5.1.0",
+    "cors": "^2.8.6",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.0",
+    "express-ejs-layouts": "^2.5.1",
+    "express-rate-limit": "^7.4.0",
+    "express-session": "^1.18.0",
+    "geoip-lite": "^2.0.1",
+    "helmet": "^7.1.0",
+    "mongoose": "^8.6.0",
+    "nodemailer": "^10.1.7",
+    "otplib": "^13.4.0",
+    "qrcode": "^1.5.4",
+    "stripe": "^22.3.1"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^11.0.1"
+  },
+  "engines": {
+    "node": "22.x"
+  }
+}

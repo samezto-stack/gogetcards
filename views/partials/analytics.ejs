@@ -1,0 +1,95 @@
+<%/* ── Analytics and advertising ──────────────────────────────
+     ONE COPY, INCLUDED BY EVERY PAGE THAT SHOULD HAVE IT.
+
+     This used to live inline in layout.ejs, which meant any page
+     rendered with `layout: false` silently had no tracking at all —
+     including /checkout/:token, the single most important step in the
+     funnel. Splitting it out is what lets the checkout be measured
+     without giving the admin pages a pixel they have no business
+     carrying.
+
+     WHERE IT IS INCLUDED: layout.ejs (so every public page),
+     checkout-token-step1.ejs and checkout-token-step2.ejs (both of which
+     render standalone).
+
+     WHERE IT IS DELIBERATELY NOT: every admin view, and the partner
+     payment hosts. Those are separate applications that never include
+     this file, so no Google or Meta tag has ever run on
+     podium-strategy or any of its siblings — verified, not assumed.
+     What the payment page does send is a first-party beacon to this
+     server carrying an order id and a step name, which is our own
+     funnel telemetry and involves no third party.
+
+     THE `googleAds` OPTION. Pass `{ googleAds: false }` to include
+     everything here EXCEPT the Google tag — which is what step 2 of the
+     checkout does. Meta and Clarity are unaffected, so the step stays
+     measurable; only Google is held back.
+
+     It suppresses gtag() itself, not just the library. Nothing on step 2
+     calls gtag, and defining a queue that is never drained would leave
+     the appearance of tracking with none of the effect. The purchase
+     conversion is unaffected either way: it fires on the thank-you page,
+     and the click id it attributes to was written to a cookie by the tag
+     on the landing page, long before the checkout began. */%>
+<% /* Empty string reads exactly like an unset id everywhere below, so the
+      opt-out needs no second condition at any of the use sites. */ %>
+<% const adsId = (typeof googleAds !== 'undefined' && googleAds === false) ? '' : googleAdsId; %>
+  <script>
+    window.__zypheraConsent = {
+      KEY: 'zy_cookie_consent',
+      get: function () {
+        try { return localStorage.getItem(this.KEY); } catch (e) { return null; }
+      },
+      set: function (value) {
+        try { localStorage.setItem(this.KEY, value); } catch (e) { /* private mode */ }
+      },
+      load: function () {
+        if (this.__loaded) return;
+        this.__loaded = true;
+        <% if (metaPixelId) { %>
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '<%= metaPixelId %>');
+        fbq('track', 'PageView');
+        <% } %>
+        (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "xlgaj8np2e");
+        <% if (adsId) { %>
+        <%/* The Google Ads tag, INSIDE the consent gate with the others.
+             Google's published snippet loads unconditionally; putting it
+             here instead is the entire point of having a gate — a tracker
+             that ignores a refusal turns the banner into a lie. The cost is
+             that a visitor who declines is invisible to Ads, which is
+             exactly what the refusal asked for. */%>
+        (function () {
+          var s = document.createElement('script');
+          s.async = true;
+          s.src = 'https://www.googletagmanager.com/gtag/js?id=<%= adsId %>';
+          document.head.appendChild(s);
+        })();
+        gtag('js', new Date());
+        gtag('config', '<%= adsId %>');
+        <% } %>
+      }
+    };
+    <% if (adsId) { %>
+    <%/* dataLayer and gtag() are defined OUTSIDE load(), so any page can
+         call gtag() without knowing whether consent was given: with
+         consent the library drains the queue, without it the calls sit in
+         an array nobody ever sends. That is what lets the purchase
+         conversion on the thank-you page be written plainly, with no
+         consent check of its own and no risk of a ReferenceError. */%>
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { window.dataLayer.push(arguments); };
+    <% } %>
+    if (window.__zypheraConsent.get() === 'accepted') window.__zypheraConsent.load();
+  </script>

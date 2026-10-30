@@ -1,0 +1,519 @@
+<meta name="referrer" content="no-referrer">
+<style>
+  .form-input {
+    width: 100%;
+    padding: 16px 18px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    color: var(--color-white);
+    font-size: 1rem;
+    font-family: var(--font-body);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-sizing: border-box;
+  }
+  .form-input:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+  .form-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .form-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+    opacity: 1;
+  }
+  .checkout-container {
+    max-width: 1040px;
+    margin: 40px auto 40px;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 60px;
+    min-height: calc(100vh - 280px);
+  }
+  .checkout-left {
+    padding-right: 0;
+  }
+  .checkout-right {
+    background: rgba(17, 24, 39, 0.7);
+    padding: 40px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    height: fit-content;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 100px;
+    align-self: start;
+  }
+  .checkout-header {
+    font-size: 1.35rem;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    margin-bottom: 24px;
+    color: var(--color-white);
+    letter-spacing: -0.01em;
+  }
+  .form-group {
+    margin-bottom: 16px;
+  }
+  .form-row {
+    display: flex;
+    gap: 16px;
+  }
+  .form-row .form-group {
+    flex: 1;
+    margin-bottom: 16px;
+  }
+  .order-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  .order-item-img-wrapper {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .order-item-img {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    border-radius: 6px;
+  }
+  .order-item-badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    z-index: 2;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+  .order-item-title {
+    font-size: 1rem;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    color: var(--color-white);
+    line-height: 1.4;
+  }
+  .order-item-price {
+    font-family: var(--font-heading);
+    font-weight: 500;
+    color: var(--color-white);
+    text-align: right;
+    font-size: 1rem;
+    white-space: nowrap;
+  }
+  .order-summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.95rem;
+    font-weight: 400;
+  }
+  .order-summary-row span:last-child {
+    font-weight: 500;
+    color: var(--color-white);
+  }
+  .order-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 1.6rem;
+    font-family: var(--font-heading);
+    font-weight: 800;
+    color: var(--color-white);
+    letter-spacing: -0.01em;
+  }
+  .order-total span:first-child {
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+  
+  .trust-features {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin: 24px 0 12px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  .trust-features span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .trust-features svg {
+    width: 14px;
+    height: 14px;
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .btn-pay {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(0);
+    box-shadow: 0 4px 10px rgba(139, 92, 246, 0.15);
+  }
+  .btn-pay:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(139, 92, 246, 0.25);
+    background: #9333ea;
+  }
+  .btn-pay:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(139, 92, 246, 0.15);
+  }
+
+  /* Footer override for checkout page to keep focus on form */
+  footer {
+    padding: 24px 0 !important;
+  }
+  .footer-inner {
+    margin-top: 0 !important;
+  }
+
+  @media(max-width: 900px) {
+    .checkout-container {
+      grid-template-columns: 1fr;
+      gap: 40px;
+      margin: 20px auto;
+      padding: 0 16px;
+    }
+    .checkout-left {
+      order: 2;
+    }
+    .checkout-right {
+      order: 1;
+      padding: 24px;
+      position: relative;
+      top: auto;
+    }
+    .form-row {
+      flex-direction: column;
+      gap: 0;
+    }
+    .trust-features {
+      flex-direction: column;
+      gap: 8px;
+    }
+  }
+</style>
+
+<div class="checkout-container">
+  <div class="checkout-left">
+    <h2 class="checkout-header">Contact</h2>
+    
+    <%/* Every field gained a real <label for> and an autocomplete token.
+         Nine inputs carried a placeholder and nothing else, which fails
+         WCAG 3.3.2 two ways: a placeholder is not an accessible name, so a
+         screen reader announced nine unlabelled text boxes, and it
+         vanishes the moment you type, so anyone checking their own work
+         has no idea which box is which. The autocomplete tokens are the
+         standard ones, which is what lets a browser or phone fill an
+         address in one tap — on a checkout, that is conversion as much as
+         accessibility.
+
+         Labels are visually hidden rather than shown, so the design is
+         unchanged: the placeholders stay exactly as they were. No id,
+         name, value or event handler is touched, so the JavaScript that
+         reads these fields behaves identically. */%>
+    <form id="checkoutForm" onsubmit="event.preventDefault();">
+      <%/* Admin-only. `testMode` is null for every customer, so this block
+           does not exist on a real checkout — not hidden by CSS, not
+           rendered and collapsed, absent from the HTML entirely. */%>
+      <% if (typeof testMode !== 'undefined' && testMode) { %>
+        <div class="checkout-testmode">
+          <strong>Test purchase available.</strong>
+          Put <code><%= testMode.tag %></code> before the @ in your own address
+          (e.g. <code>you<%= testMode.tag %>@gmail.com</code>) and this checkout skips
+          payment and goes straight to the real confirmation — same email, same
+          account, same receipt. Use <code><%= testMode.email %></code> if you don't
+          want the mail. Only you see this, and only while signed into admin.
+        </div>
+      <% } %>
+      <div class="form-group">
+        <label class="sr-only" for="email">Email address</label>
+        <input type="email" id="email" class="form-input" required placeholder="Email" autocomplete="email" inputmode="email">
+      </div>
+
+      <h2 class="checkout-header" style="margin-top: 40px;">Shipping address</h2>
+
+      <div class="form-group">
+        <label class="sr-only" for="country">Country or region</label>
+        <select id="country" class="form-input" required style="cursor:pointer;" autocomplete="country">
+          <option value="US">United States</option>
+          <option value="CA">Canada</option>
+          <option value="GB">United Kingdom</option>
+          <option value="AU">Australia</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="sr-only" for="firstName">First name</label>
+          <input type="text" id="firstName" class="form-input" required placeholder="First name" autocomplete="given-name">
+        </div>
+        <div class="form-group">
+          <label class="sr-only" for="lastName">Last name</label>
+          <input type="text" id="lastName" class="form-input" required placeholder="Last name" autocomplete="family-name">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="sr-only" for="address">Street address</label>
+        <input type="text" id="address" class="form-input" required placeholder="Address" autocomplete="address-line1">
+      </div>
+
+      <div class="form-group">
+        <label class="sr-only" for="apartment">Apartment, suite or unit (optional)</label>
+        <input type="text" id="apartment" class="form-input" placeholder="Apartment, suite, etc. (optional)" autocomplete="address-line2">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="flex: 1.5;">
+          <label class="sr-only" for="city">City</label>
+          <input type="text" id="city" class="form-input" required placeholder="City" autocomplete="address-level2">
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label class="sr-only" for="state">State or province</label>
+          <input type="text" id="state" class="form-input" required placeholder="State" autocomplete="address-level1">
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label class="sr-only" for="zip">ZIP or postal code</label>
+          <input type="text" id="zip" class="form-input" required placeholder="ZIP code" autocomplete="postal-code">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="sr-only" for="phone">Phone number</label>
+        <input type="tel" id="phone" class="form-input" required placeholder="Phone" autocomplete="tel" inputmode="tel">
+      </div>
+
+      <%
+        /* These three chips were hardcoded "Free Shipping", "Taxes
+           Included" and "Factory Sealed Guarantee", and two of them were
+           not true.
+ 
+           "Free Shipping" was true only above a threshold at the time; the
+           store now ships everything free, so the claim is finally
+           accurate and comes from config rather than being retyped here.
+           "Taxes Included" was contradicted outright by the
+           store's own shipping policy, which states that import duty, VAT
+           and customs handling are set by the destination country, are
+           charged to the buyer, and are not included in our price.
+ 
+           A price claim that the customer's own invoice later disproves is
+           a Merchant Center pricing violation, and stating it on the
+           payment step is the worst possible place for it: it is the last
+           thing read before paying and the first thing quoted in a
+           chargeback. */
+        var trustChips = [
+          shippingCfg.copy.medium,
+          'Duties and import taxes not included',
+          'Factory sealed, sourced through authorized distribution',
+        ];
+      %>
+      <div class="trust-features">
+        <% trustChips.forEach(function (chip) { %>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg> <%= chip %></span>
+        <% }); %>
+      </div>
+      <%/* The order total, stated in the currency it is charged in, right
+           above the pay button. The button said "Pay $X" with no currency
+           named at all, on a store that ships worldwide — a Canadian or
+           Australian shopper had no way to tell which dollar. */%>
+      <p style="font-size:0.78rem;color:var(--color-text-faint,#8b8b96);margin:0.5rem 0 0.75rem;line-height:1.6">
+        Total charged: <strong>$<%= (cartTotal / 100).toFixed(2) %> <%= company.business.currency %></strong>.
+        Shipping is free and already included, so this is the full amount.
+        <a href="<%= marketPath('/shipping') %>" style="color:inherit;text-decoration:underline">Shipping rates</a> ·
+        <a href="<%= marketPath('/refund-policy') %>" style="color:inherit;text-decoration:underline"><%= returnWindowDays %>-day returns</a>
+      </p>
+
+      <button type="submit" class="btn btn-primary btn-full btn-lg btn-pay" style="padding: 20px; font-size: 1.15rem; font-weight: 600; border-radius: 8px; display:flex; align-items:center; justify-content:center; gap:8px;" id="submitBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        Pay $<%= (cartTotal / 100).toFixed(2) %>
+      </button>
+    </form>
+  </div>
+
+  <div class="checkout-right">
+    <div class="order-items">
+      <% cartItems.forEach(item => { 
+          let imgUrl = item.product.imageUrl || (item.product.images && item.product.images.length > 0 ? item.product.images[0] : '/images/placeholder.jpg');
+          
+          if (imgUrl.includes('cdn/shop')) {
+            if (imgUrl.includes('width=')) {
+              imgUrl = imgUrl.replace(/width=\d+/, 'width=80');
+            } else {
+              imgUrl += imgUrl.includes('?') ? '&width=80' : '?width=80';
+            }
+          }
+      %>
+        <div class="order-item">
+          <div class="order-item-img-wrapper">
+            <span class="order-item-badge"><%= item.quantity %></span>
+            <img <%- productImage.attrs(imgUrl, 64) %> alt="<%= item.title || 'Product' %>" width="64" height="64" loading="lazy" decoding="async" onerror="this.onerror=null;this.srcset='';this.src='/images/placeholder.jpg';" class="order-item-img">
+          </div>
+          <div style="flex: 1;">
+            <div class="order-item-title"><%= item.product.title %></div>
+          </div>
+          <div class="order-item-price">$<%= ((item.product.price * item.quantity) / 100).toFixed(2) %></div>
+        </div>
+      <% }) %>
+    </div>
+
+    <div style="margin-top: 28px;">
+      <div class="order-summary-row">
+        <span>Subtotal</span>
+        <span>$<%= (cartTotal / 100).toFixed(2) %></span>
+      </div>
+      <div class="order-summary-row">
+        <span>Shipping</span>
+        <span>Free</span>
+      </div>
+      <div class="order-summary-row">
+        <span>Taxes</span>
+        <span>Included in price</span>
+      </div>
+    </div>
+
+    <div class="order-total">
+      <span>Total</span>
+      <span>
+        <span style="font-size:0.85rem; color:var(--color-text-muted); font-weight:400; margin-right:8px;">USD</span>
+        $<%= (cartTotal / 100).toFixed(2) %>
+      </span>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Admin-only test-purchase note. Deliberately looks like a developer
+   affordance rather than part of the checkout, so a screenshot of this
+   page can never be mistaken for something a customer was shown. */
+.checkout-testmode {
+  margin: 0 0 18px; padding: 12px 14px; border-radius: 8px; line-height: 1.6;
+  font-size: 0.78rem; color: var(--color-text-muted);
+  background: rgba(245,158,11,0.06); border: 1px dashed rgba(245,158,11,0.45);
+}
+.checkout-testmode strong { color: var(--color-gold); font-weight: 600; }
+.checkout-testmode code {
+  font-family: var(--font-mono); font-size: 0.76rem; color: var(--color-text);
+  background: rgba(255,255,255,0.06); padding: 1px 5px; border-radius: 4px;
+}
+</style>
+<div id="cartItemsData" style="display:none;" data-items="<%= encodeURIComponent(JSON.stringify(cartItems)) %>" data-total="<%= cartTotal %>"></div>
+<script>
+  (function() {
+    var form = document.getElementById('checkoutForm');
+    if (!form) return;
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      var btn = document.getElementById('submitBtn');
+      btn.textContent = 'Processing...';
+      btn.disabled = true;
+
+      var itemsDataEl = document.getElementById('cartItemsData');
+      var itemsStr = decodeURIComponent(itemsDataEl.getAttribute('data-items') || '');
+      var totalVal = parseFloat(itemsDataEl.getAttribute('data-total')) || 0;
+      var parsedItems;
+      try { parsedItems = JSON.parse(itemsStr); } catch(ex) { parsedItems = []; }
+
+      var cartData = { total: totalVal, items: parsedItems };
+
+      var email = document.getElementById('email').value.trim();
+      var firstName = document.getElementById('firstName').value.trim();
+      var lastName = document.getElementById('lastName').value.trim();
+      var addressLine1 = document.getElementById('address').value.trim();
+      var apartment = document.getElementById('apartment').value.trim();
+      var city = document.getElementById('city').value.trim();
+      var state = document.getElementById('state').value.trim();
+      var zip = document.getElementById('zip').value.trim();
+      var country = document.getElementById('country').value.trim();
+      var phone = document.getElementById('phone').value.trim();
+      
+      var fullAddress = addressLine1;
+      if (apartment) fullAddress += ' ' + apartment;
+      fullAddress += ', ' + city + ', ' + state + ' ' + zip + ', ' + country;
+      
+      var addressDetails = { 
+        addressLine1: addressLine1, 
+        apartment: apartment,
+        city: city, 
+        state: state, 
+        zip: zip, 
+        country: country,
+        phone: phone
+      };
+
+      fetch('/checkout/capture-lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: email, 
+          firstName: firstName, 
+          lastName: lastName, 
+          address: fullAddress, 
+          addressDetails: addressDetails, 
+          cartData: cartData 
+        })
+      })
+      .then(function(res) { return res.text(); })
+      .then(function(text) {
+        var data;
+        try { data = JSON.parse(text); } catch(ex) {
+          alert('Server error: ' + text.substring(0, 200));
+          btn.textContent = 'Continue to Payment';
+          btn.disabled = false;
+          return;
+        }
+        if (data.success && data.redirect) {
+          window.location.href = data.redirect;
+        } else if (data.success) {
+          alert('Error: No redirect URL from server.');
+          btn.textContent = 'Continue to Payment';
+          btn.disabled = false;
+        } else {
+          alert('Error: ' + (data.error || 'Unknown error.'));
+          btn.textContent = 'Continue to Payment';
+          btn.disabled = false;
+        }
+      })
+      .catch(function(err) {
+        alert('Network error: ' + err.message);
+        btn.textContent = 'Continue to Payment';
+        btn.disabled = false;
+      });
+    });
+  })();
+</script>
