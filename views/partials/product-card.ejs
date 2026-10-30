@@ -72,10 +72,10 @@
       var lcType = (product.productType || '').toLowerCase();
       var lcVendor = (product.vendor || '').toLowerCase();
       var pcTags = product.tags || [];
-      if (lcType.includes('pokemon') || lcVendor.includes('pokemon') || pcTags.includes('pokemon')) metaBits.push('Pokémon');
-      else if (lcType.includes('yu-gi-oh') || lcType.includes('yugioh') || lcVendor.includes('konami') || pcTags.includes('yugioh')) metaBits.push('Yu-Gi-Oh!');
-      else if (lcType.includes('mtg') || lcType.includes('magic') || lcVendor.includes('wizards') || pcTags.includes('mtg')) metaBits.push('Magic');
-      else if (lcType.includes('one piece') || lcVendor.includes('bandai') || pcTags.includes('one-piece')) metaBits.push('One Piece');
+      /* Line name from config/catalog.js, so the card, the badge and the
+         nav can never disagree about what a product is. */
+      var pcLine = catalog.detect(product);
+      if (pcLine) metaBits.push(pcLine.shortName);
       if (product.vendor) metaBits.push(product.vendor);
     %>
     <p class="pc__meta"><%= metaBits.join(' · ') %></p>

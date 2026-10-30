@@ -44,6 +44,7 @@ const faqConfig = require('../config/faq');
 const distributionCfg = require('../config/distribution');
 const preorderCfg = require('../config/preorder');
 const trustPages = require('../config/trustPages');
+const catalog = require('../config/catalog');
 const orderReference = require('../helpers/orderReference');
 const fulfilmentFor = require('../helpers/orderFulfilment');
 const { provisionFromOrder } = require('../services/customerProvisioning');
@@ -1993,8 +1994,9 @@ router.get('/sitemap.xml', async (req, res) => {
     const staticPages = [
       '/', '/about', '/contact', '/shipping', '/faq',
       ...trustPages.allSlugs().map((s) => `/${s}`),
-      '/collection/all', '/collection/pokemon', '/collection/yugioh',
-      '/collection/mtg', '/collection/one-piece', '/collection/preorders',
+      '/collection/all',
+      ...catalog.handles().map((h) => `/collection/${h}`),
+      '/collection/preorders',
     ];
     staticPages.forEach(p => {
       xml += `  <url><loc>${host}${p}</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>\n`;

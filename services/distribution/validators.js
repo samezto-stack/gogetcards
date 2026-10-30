@@ -64,6 +64,15 @@ const BRAND_CANON = {
   'bushiroad': 'Bushiroad',
   'bushi road': 'Bushiroad',
   'ravensburger': 'Ravensburger',
+  /* Sports card manufacturers. Bowman is a Topps line, but distributors and
+     checklists name it as the brand, so it is accepted as one. */
+  'topps': 'Topps',
+  'bowman': 'Bowman',
+  'panini': 'Panini',
+  'panini america': 'Panini',
+  'fanatics': 'Fanatics',
+  'upper deck': 'Upper Deck',
+  'upperdeck': 'Upper Deck',
   'upper deck': 'Upper Deck',
   'topps': 'Topps',
   'panini': 'Panini',
@@ -134,7 +143,7 @@ function validate(product, opts = {}) {
     issues.push(issue('brand_missing', 'error',
       'No brand',
       'Google requires a brand for any product made by a recognisable manufacturer, and sealed TCG product always is. Without it the item cannot be matched to Google\'s catalogue and is commonly disapproved outright.',
-      'Set Brand on the product, or Vendor, which brand falls back to. For sealed product this is the publisher: The Pokémon Company, Bandai, Konami, Wizards of the Coast.',
+      'Set Brand on the product, or Vendor, which brand falls back to. For sealed product this is the publisher or manufacturer: The Pokémon Company, Bandai, Wizards of the Coast, Ravensburger, Topps, Panini.',
       'brand'));
   } else {
     const canon = canonicalBrand(payload.brand);

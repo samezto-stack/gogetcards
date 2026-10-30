@@ -1,7 +1,7 @@
 {
   "name": "GoGetCards",
   "short_name": "GoGetCards",
-  "description": "Factory-sealed Pokemon, Yu-Gi-Oh!, Magic and One Piece booster boxes, cases and elite trainer boxes.",
+  "description": "Factory-sealed TCG boxes and sports card hobby boxes: Pokemon, Magic, One Piece, Lorcana, baseball, basketball and football.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F3F4F7",

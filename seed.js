@@ -4,6 +4,7 @@
  * Run: node seed.js
  */
 require('dotenv').config();
+const catalog = require('./config/catalog');
 const mongoose = require('mongoose');
 const Product = require('./models/Product');
 const Collection = require('./models/Collection');
@@ -161,12 +162,12 @@ const PRODUCTS = [
 ];
 
 const COLLECTIONS = [
-  { name: "Pokémon", handle: "pokemon", description: "Booster boxes, ETBs, Master Cases & vintage lots", accentColor: "#FACC15", iconName: "zap", brandSvg: "pokemon.svg", sortOrder: 1 },
-  { name: "Yu-Gi-Oh!", handle: "yugioh", description: "Booster boxes, tins, collector sets & tournament staples", accentColor: "#A78BFA", iconName: "diamond", brandSvg: "yugioh.svg", sortOrder: 2 },
-  { name: "MTG", handle: "mtg", description: "Draft boosters, collector boxes & sealed Commander sets", accentColor: "#06B6D4", iconName: "sparkles", brandSvg: "mtg.svg", sortOrder: 3 },
-  { name: "One Piece", handle: "one-piece", description: "Japanese & English booster boxes, starter decks & cases", accentColor: "#22C55E", iconName: "globe", brandSvg: "onepiece.svg", sortOrder: 4 },
-  { name: "Preorders", handle: "preorders", description: "Lock in your price today. We ship directly from our distributor on release day.", accentColor: "#06B6D4", iconName: "bell", sortOrder: 5 },
-  { name: "All Products", handle: "all", description: "Browse our full catalogue of factory-sealed TCG products.", accentColor: "#7C3AED", iconName: "package", sortOrder: 0 },
+  ...catalog.all().map((line, i) => ({
+    name: line.name, handle: line.handle, description: line.description,
+    accentColor: line.accent, iconName: line.kind === 'sport' ? 'trophy' : 'sparkles', brandSvg: line.icon, sortOrder: i + 1,
+  })),
+  { name: "Preorders", handle: "preorders", description: "Lock in your price today. We ship directly from our distributor on release day.", accentColor: "#C2410C", iconName: "bell", sortOrder: 20 },
+  { name: "All Products", handle: "all", description: "Browse our full catalogue of factory-sealed TCG and sports card products.", accentColor: "#0F2A4A", iconName: "package", sortOrder: 0 },
 ];
 
 const PAGES = [

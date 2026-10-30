@@ -370,6 +370,9 @@ async function boot() {
     // default and every consuming block omits itself when unset, so an
     // unfilled field renders nothing rather than an invented figure.
     res.locals.company = require('./config/company');
+    // The lines sold (config/catalog.js): nav, footer, hero chips, home grid,
+    // badges and the product card all read this one list.
+    res.locals.catalog = require('./config/catalog');
     // Accepted payment methods (config/payments.js). Every badge row, trust
     // line and FAQ answer reads from this one list, so the site cannot
     // advertise a method on one page that checkout does not offer — which

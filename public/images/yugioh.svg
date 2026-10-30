@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 100">
-  <defs>
-    <linearGradient id="ygoGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#E13030"/>
-      <stop offset="100%" stop-color="#8F1414"/>
-    </linearGradient>
-  </defs>
-  <text x="50%" y="65%" font-family="Arial Black, Impact, sans-serif" font-size="48" font-weight="900" font-style="italic" text-anchor="middle" fill="url(#ygoGrad)" stroke="#FFD700" stroke-width="2" style="letter-spacing: 1px;">YU-GI-OH!</text>
-</svg>

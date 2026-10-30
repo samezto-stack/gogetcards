@@ -24,11 +24,11 @@
 const collections = {
   all: {
     intro:
-      'Every sealed product currently allocated to GoGetCards, across Pokémon, Yu-Gi-Oh!, Magic: The Gathering and One Piece. Nothing here is opened, weighed, searched or resold from a secondary marketplace. Stock comes through authorized distribution and ships in the state it arrived in.',
+      'Every sealed product currently allocated to GoGetCards: Pokémon, Magic: The Gathering, One Piece and Disney Lorcana on the trading card game side, and Topps and Panini baseball, basketball and football hobby boxes on the sports side. Nothing here is opened, weighed, searched or resold from a secondary marketplace. Stock comes through authorized distribution and ships in the state it arrived in.',
     guide: {
       title: 'How sealed product is sold',
       body: [
-        'Sealed trading card product is sold in a small number of standard configurations, and the names are consistent across games even when the contents are not.',
+        'Sealed trading card product is sold in a small number of standard configurations, and the names are consistent across games even when the contents are not. Sports cards use their own vocabulary for the same idea: a hobby box is the sealed box sold through card shops, a jumbo box holds fewer, fatter packs, and a case holds a fixed number of either.',
         'A booster pack is the base unit. A booster box holds a fixed number of packs, usually 24 or 36 depending on the game and the product line. A case holds a fixed number of booster boxes, most often 6 or 12. Collector or premium boxes hold fewer packs but a higher share of rare treatments, and elite trainer boxes bundle packs with sleeves, dice and a storage box.',
         'Buying a full case rather than loose boxes matters for one practical reason: a factory-sealed case has not been opened since it left the printer, so there is no point at which individual boxes could have been substituted or weighed.',
       ],
@@ -107,32 +107,6 @@ const collections = {
     ],
   },
 
-  yugioh: {
-    intro:
-      'Sealed Yu-Gi-Oh! Trading Card Game product from Konami: core set booster boxes, cases, structure decks and premium sets. Shipped in original manufacturer wrap, sourced through authorized distribution.',
-    guide: {
-      title: 'Yu-Gi-Oh! sealed configurations',
-      body: [
-        'Yu-Gi-Oh! pack sizes vary more by product line than in most games. A core set booster pack holds 9 cards; a core set booster box holds 24 packs. Cases of core sets are typically 12 boxes.',
-        'Premium and collector lines differ deliberately. Products in those lines carry fewer, larger packs with a higher rare density, and their box and case counts are printed on the product itself rather than following the core-set pattern.',
-        'Structure decks are fixed, preconstructed and identical unit to unit. They are not a randomized product and are not bought for pull rates.',
-      ],
-    },
-    faqs: [
-      {
-        q: 'How many packs are in a Yu-Gi-Oh! core set booster box?',
-        a: 'Twenty-four packs of 9 cards for standard core sets.',
-      },
-      {
-        q: 'How many boxes are in a case?',
-        a: 'Twelve for core sets. Premium lines differ and the count is listed on the product page.',
-      },
-      {
-        q: 'Are structure decks randomized?',
-        a: 'No. Every copy of a given structure deck contains the same cards.',
-      },
-    ],
-  },
 
   mtg: {
     intro:
@@ -161,33 +135,10 @@ const collections = {
     ],
   },
 
-  palworld: {
-    intro:
-      'Sealed Palworld Official Card Game product from Bushiroad: booster boxes and decks. English-language releases sourced through authorized distribution and shipped in original manufacturer wrap.',
-    guide: {
-      title: 'Palworld sealed configurations',
-      body: [
-        'A Palworld Official Card Game booster pack holds 7 cards, and an English-language booster box holds 12 packs.',
-        'The line launched in July 2026 and is numbered BP01 upward for booster sets, with ST prefixes for trial and starter decks. Because it is a new game, print runs and reprint policy are not yet established the way they are for older lines.',
-        'The set code for every product is listed in its specifications, so there is no ambiguity about which wave a box belongs to.',
-      ],
-    },
-    faqs: [
-      {
-        q: 'How many packs are in a Palworld booster box?',
-        a: 'Twelve packs of 7 cards for English-language releases.',
-      },
-      {
-        q: 'Who publishes the Palworld Official Card Game?',
-        a: 'Bushiroad, under license from Pocketpair.',
-      },
-      {
-        q: 'What do the BP and ST codes mean?',
-        a: 'BP is a booster set and ST is a trial or starter deck. The code for each product is in its specifications.',
-      },
-    ],
-  },
-  onepiece: {
+  /* Keyed by the ROUTE handle. This was `onepiece` in zypheratcg while the
+     collection lives at /collection/one-piece, so forHandle() never found
+     it and the One Piece page rendered with no copy at all. */
+  'one-piece': {
     intro:
       'Sealed One Piece Card Game product from Bandai: booster boxes, cases and premium sets. English-language releases sourced through authorized distribution and shipped in original manufacturer wrap.',
     guide: {
@@ -211,6 +162,77 @@ const collections = {
         q: 'What do the OP, EB and ST codes mean?',
         a: 'OP is a main booster set, EB is an extra booster, ST is a starter deck. The code for each product is in its specifications.',
       },
+    ],
+  },
+  lorcana: {
+    intro:
+      'Sealed Disney Lorcana product from Ravensburger: booster boxes, illumineer\'s troves and starter decks. English-language releases sourced through authorized distribution and shipped in original manufacturer wrap.',
+    guide: {
+      title: 'Lorcana sealed configurations',
+      body: [
+        'A Disney Lorcana booster pack holds 12 cards. A booster box holds 24 packs, and a case holds 4 booster boxes.',
+        'An Illumineer\'s Trove bundles booster packs with a storage box, deck boxes and a player\'s guide; the pack count is printed on the trove and listed on each product page.',
+        'Sets are numbered in order of release and the set name is listed in the specifications on every product page, so there is no ambiguity about which chapter a box belongs to.',
+      ],
+    },
+    faqs: [
+      { q: 'How many packs are in a Lorcana booster box?', a: 'Twenty-four packs of 12 cards.' },
+      { q: 'How many boxes are in a case?', a: 'Four.' },
+      { q: 'Who publishes Disney Lorcana?', a: 'Ravensburger, under license from Disney.' },
+    ],
+  },
+
+  baseball: {
+    intro:
+      'Sealed baseball card product from Topps and Bowman: hobby boxes, jumbo boxes and cases. Sourced through authorized distribution and shipped in the original factory wrap.',
+    guide: {
+      title: 'How sealed baseball product is sold',
+      body: [
+        'Topps and Bowman sell the same card set in several sealed formats. A hobby box is the version sold through card shops and carries the guaranteed autograph or relic count printed on the box. A jumbo box holds fewer packs with more cards in each and usually a higher hit count. Retail blasters and hanger boxes are a separate product with different odds and are not what we stock.',
+        'Pack and card counts, and the number of guaranteed hits, change from product to product and year to year, so every listing states the configuration printed on that box rather than a general rule.',
+        'A hobby case holds a fixed number of hobby boxes, typically 12, and is the only format that has not been opened since it left Topps.',
+      ],
+    },
+    faqs: [
+      { q: 'What is the difference between a hobby box and a retail box?', a: 'A hobby box is sold through card shops and carries guaranteed autographs or relics printed on the box. Retail product has different odds and is not stocked here.' },
+      { q: 'How many boxes are in a case?', a: 'Usually 12 for Topps and Bowman hobby product. The count is listed on each product page.' },
+      { q: 'Is the product factory sealed?', a: 'Yes. Boxes ship in the original Topps wrap and are never opened, searched or resealed.' },
+    ],
+  },
+
+  basketball: {
+    intro:
+      'Sealed basketball card product from Panini: Prizm, Select, Donruss and other hobby boxes and cases. Sourced through authorized distribution and shipped in the original factory wrap.',
+    guide: {
+      title: 'How sealed basketball product is sold',
+      body: [
+        'Panini sells each basketball set in several sealed formats. A hobby box is the card-shop version and carries the guaranteed autograph count printed on the box. Some lines also sell a hobby hybrid, a choice box or a first-off-the-line variant with different pack and hit counts.',
+        'Pack counts, cards per pack and guaranteed hits are printed on every box and change between products, so every listing states the configuration printed on that box rather than a general rule.',
+        'A hobby case holds a fixed number of hobby boxes, typically 12, and is the only format that has not been opened since it left Panini.',
+      ],
+    },
+    faqs: [
+      { q: 'How many autographs are in a hobby box?', a: 'It depends on the product. The guaranteed count printed on the box is listed on each product page.' },
+      { q: 'How many boxes are in a case?', a: 'Usually 12 for Panini hobby product. The count is listed on each product page.' },
+      { q: 'Is the product factory sealed?', a: 'Yes. Boxes ship in the original Panini wrap and are never opened, searched or resealed.' },
+    ],
+  },
+
+  football: {
+    intro:
+      'Sealed football card product from Panini: Prizm, Select, Mosaic and other hobby boxes and cases. Sourced through authorized distribution and shipped in the original factory wrap.',
+    guide: {
+      title: 'How sealed football product is sold',
+      body: [
+        'Panini sells each football set in several sealed formats. A hobby box is the card-shop version and carries the guaranteed autograph or memorabilia count printed on the box. Some lines also sell a hobby hybrid or a first-off-the-line variant with different pack and hit counts.',
+        'Pack counts, cards per pack and guaranteed hits are printed on every box and change between products, so every listing states the configuration printed on that box rather than a general rule.',
+        'A hobby case holds a fixed number of hobby boxes, typically 12, and is the only format that has not been opened since it left Panini.',
+      ],
+    },
+    faqs: [
+      { q: 'How many autographs are in a hobby box?', a: 'It depends on the product. The guaranteed count printed on the box is listed on each product page.' },
+      { q: 'How many boxes are in a case?', a: 'Usually 12 for Panini hobby product. The count is listed on each product page.' },
+      { q: 'Is the product factory sealed?', a: 'Yes. Boxes ship in the original Panini wrap and are never opened, searched or resealed.' },
     ],
   },
 };

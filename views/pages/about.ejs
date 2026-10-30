@@ -39,8 +39,9 @@
           <div class="divider-accent"></div>
           <p>
             GoGetCards is an independent retailer of sealed trading card product:
-            Pokémon, Yu-Gi-Oh!, Magic: The Gathering and One Piece booster boxes,
-            cases and elite trainer boxes, plus preorders on sets before they release.
+            Pokémon, Magic: The Gathering, One Piece and Disney Lorcana booster boxes,
+            cases and elite trainer boxes, and Topps and Panini baseball, basketball and
+            football hobby boxes, plus preorders on sets before they release.
           </p>
           <p style="margin-top:1rem">
             We buy through authorized distribution and nowhere else. Not the secondary
@@ -74,7 +75,7 @@
           if (ct.factorySealedPct)    statCards.push({ icon:'lock',     num: ct.factorySealedPct,     label:'Factory Sealed' });
           if (st.averageRating)       statCards.push({ icon:'sparkles', num: st.averageRating,        label:'Average Rating' });
           if (st.yearsOperating)      statCards.push({ icon:'trophy',   num: st.yearsOperating + '+', label:'Years Operating' });
-          if (ct.tcgBrandsStocked)    statCards.push({ icon:'diamond',  num: ct.tcgBrandsStocked,     label:'TCG Brands Stocked' });
+          if (ct.linesStocked)        statCards.push({ icon:'diamond',  num: ct.linesStocked,         label:'Games & Sports Stocked' });
           if (st.productShippedValue) statCards.push({ icon:'globe',    num: st.productShippedValue,  label:'Product Shipped' });
         %>
         <% if (statCards.length) { %>

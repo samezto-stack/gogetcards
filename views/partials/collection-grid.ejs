@@ -1,56 +1,30 @@
+<%/* Home-page "shop by line" grid. One card per entry in config/catalog.js,
+     split into the two kinds the store sells so a visitor sees at a glance
+     that both trading card games and sports cards are here. The copy on
+     each card is the line's description from the catalog. */%>
 <section class="section-padding--sm" style="background:var(--color-bg-elevated);border-top:1px solid var(--color-border-light)">
   <div class="container">
     <div class="section-header text-center" style="margin-bottom:var(--space-2xl)">
-      <div class="label-overline" style="margin-bottom:0.5rem">Browse by Game</div>
+      <div class="label-overline" style="margin-bottom:0.5rem">Browse by game and sport</div>
       <h2 class="heading-section">Shop by Collection</h2>
       <div class="divider-accent"></div>
     </div>
 
     <div class="cat__grid">
-      <a href="<%= marketPath('/collection/pokemon') %>" class="cat__card" style="--cat-accent:#FACC15" id="cat-pokemon">
+      <% catalog.all().forEach(function (line) { %>
+      <a href="<%= marketPath('/collection/' + line.handle) %>" class="cat__card" style="--cat-accent:<%= line.accent %>" id="cat-<%= line.handle %>">
         <div class="cat__emoji" aria-hidden="true">
-          <img src="/images/pokemon.svg" alt="Pokémon" width="120" height="40" loading="lazy" decoding="async" style="height:40px;width:auto;object-fit:contain;filter:drop-shadow(0 0 8px rgba(255,255,255,0.1))">
+          <img src="/images/<%= line.icon %>" alt="" width="120" height="40" loading="lazy" decoding="async" style="height:40px;width:auto;object-fit:contain">
         </div>
         <div class="cat__info">
-          <h3 class="cat__title">Pokémon</h3>
-          <p class="cat__desc">Booster boxes, ETBs, Master Cases & vintage lots</p>
-          <span class="cat__link" style="color:var(--cat-accent)">Shop Pokémon →</span>
+          <div class="label-overline" style="font-size:0.65rem;margin-bottom:0.25rem"><%= line.kind === 'sport' ? (line.league + ' · ' + line.publisher) : line.publisher %></div>
+          <h3 class="cat__title"><%= line.name %></h3>
+          <p class="cat__desc"><%= line.description %></p>
+          <span class="cat__link" style="color:var(--cat-accent)">Shop <%= line.shortName %> →</span>
         </div>
         <div class="cat__glow" aria-hidden="true" style="background:var(--cat-accent)"></div>
       </a>
-      <a href="<%= marketPath('/collection/yugioh') %>" class="cat__card" style="--cat-accent:#A78BFA" id="cat-yugioh">
-        <div class="cat__emoji" aria-hidden="true">
-          <img src="/images/yugioh.svg" alt="Yu-Gi-Oh!" width="120" height="40" loading="lazy" decoding="async" style="height:40px;width:auto;object-fit:contain;filter:drop-shadow(0 0 8px rgba(255,255,255,0.1))">
-        </div>
-        <div class="cat__info">
-          <h3 class="cat__title">Yu-Gi-Oh!</h3>
-          <p class="cat__desc">Booster boxes, tins, collector sets & tournament staples</p>
-          <span class="cat__link" style="color:var(--cat-accent)">Shop Yu-Gi-Oh! →</span>
-        </div>
-        <div class="cat__glow" aria-hidden="true" style="background:var(--cat-accent)"></div>
-      </a>
-      <a href="<%= marketPath('/collection/mtg') %>" class="cat__card" style="--cat-accent:#06B6D4" id="cat-mtg">
-        <div class="cat__emoji" aria-hidden="true">
-          <img src="/images/mtg.svg" alt="MTG" width="120" height="40" loading="lazy" decoding="async" style="height:40px;width:auto;object-fit:contain;filter:drop-shadow(0 0 8px rgba(255,255,255,0.1))">
-        </div>
-        <div class="cat__info">
-          <h3 class="cat__title">MTG</h3>
-          <p class="cat__desc">Draft boosters, collector boxes & sealed Commander sets</p>
-          <span class="cat__link" style="color:var(--cat-accent)">Shop MTG →</span>
-        </div>
-        <div class="cat__glow" aria-hidden="true" style="background:var(--cat-accent)"></div>
-      </a>
-      <a href="<%= marketPath('/collection/one-piece') %>" class="cat__card" style="--cat-accent:#22C55E" id="cat-one-piece">
-        <div class="cat__emoji" aria-hidden="true">
-          <img src="/images/onepiece.svg" alt="One Piece" width="120" height="40" loading="lazy" decoding="async" style="height:40px;width:auto;object-fit:contain;filter:drop-shadow(0 0 8px rgba(255,255,255,0.1))">
-        </div>
-        <div class="cat__info">
-          <h3 class="cat__title">One Piece</h3>
-          <p class="cat__desc">Japanese & English booster boxes, starter decks & cases</p>
-          <span class="cat__link" style="color:var(--cat-accent)">Shop One Piece →</span>
-        </div>
-        <div class="cat__glow" aria-hidden="true" style="background:var(--cat-accent)"></div>
-      </a>
+      <% }); %>
     </div>
   </div>
 </section>

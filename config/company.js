@@ -108,7 +108,7 @@ module.exports = {
   // Facts that are true regardless of scale, so they render by default.
   constants: {
     factorySealedPct: '100%',
-    tcgBrandsStocked: 4,
+    linesStocked: 7,        // four TCGs and three sports, see config/catalog.js
   },
 
   // Real people only. Each entry: { name, role, bio }.

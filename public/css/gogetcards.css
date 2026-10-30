@@ -169,10 +169,12 @@ ul, ol { list-style: none; }
 /* --- BRAND BADGES (Option B — styled text) --- */
 .brand-badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: var(--radius-sm); font-family: var(--font-heading); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.04em; }
 .brand-badge--pokemon { background: rgba(250,204,21,0.12); color: #FACC15; border: 1px solid rgba(250,204,21,0.3); }
-.brand-badge--yugioh { background: rgba(124,58,237,0.12); color: #C4B5FD; border: 1px solid rgba(124,58,237,0.3); }
 .brand-badge--mtg { background: rgba(6,182,212,0.12); color: var(--color-cyan); border: 1px solid rgba(6,182,212,0.3); }
 .brand-badge--onepiece { background: rgba(34,197,94,0.12); color: var(--color-accent); border: 1px solid rgba(34,197,94,0.3); }
-.brand-badge--palworld { background: rgba(249,115,22,0.12); color: #FDBA74; border: 1px solid rgba(249,115,22,0.3); }
+.brand-badge--lorcana { background: rgba(107,79,191,0.12); color: #B9A7EE; border: 1px solid rgba(107,79,191,0.35); }
+.brand-badge--baseball { background: rgba(36,87,184,0.12); color: #9DBBF3; border: 1px solid rgba(36,87,184,0.35); }
+.brand-badge--basketball { background: rgba(143,148,163,0.14); color: #C9CDD8; border: 1px solid rgba(143,148,163,0.35); }
+.brand-badge--football { background: rgba(31,32,38,0.3); color: #D6D8E0; border: 1px solid rgba(214,216,224,0.3); }
 
 /* --- CARDS --- */
 .card { background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: var(--radius-lg); overflow: hidden; transition: all var(--transition-normal); }

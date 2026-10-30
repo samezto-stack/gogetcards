@@ -110,11 +110,9 @@
         <h2 class="footer__col-title" id="footer-nav-shop">Shop</h2>
         <ul class="footer__links">
           <li><a href="<%= marketPath('/collection/all') %>">All Products</a></li>
-          <li><a href="<%= marketPath('/collection/pokemon') %>">Pokémon</a></li>
-          <li><a href="<%= marketPath('/collection/yugioh') %>">Yu-Gi-Oh!</a></li>
-          <li><a href="<%= marketPath('/collection/mtg') %>">Magic: The Gathering</a></li>
-          <li><a href="<%= marketPath('/collection/one-piece') %>">One Piece</a></li>
-          <li><a href="<%= marketPath('/collection/palworld') %>">Palworld</a></li>
+          <% catalog.all().forEach(function (line) { %>
+          <li><a href="<%= marketPath('/collection/' + line.handle) %>"><%= line.name %></a></li>
+          <% }); %>
           <li><a href="<%= marketPath('/collection/preorders') %>">Preorders</a></li>
         </ul>
       </nav>

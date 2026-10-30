@@ -97,21 +97,53 @@ const SPEC_TEMPLATES = [
     ],
   },
   {
-    id: 'pw-booster-box',
-    label: 'Palworld — Booster Box',
+    id: 'lor-booster-box',
+    label: 'Disney Lorcana — Booster Box',
     specs: [
-      { label: 'Configuration', value: '12 Booster Packs' },
-      { label: 'Cards Per Pack', value: '7' },
+      { label: 'Configuration', value: '24 Booster Packs' },
+      { label: 'Cards Per Pack', value: '12' },
       { label: 'Language', value: 'English' },
     ],
   },
+  /* Sports templates leave the counts blank on purpose. Pack counts, cards
+     per pack and guaranteed hits are printed on each box and differ between
+     Topps Chrome, Bowman, Prizm and Select, and between years of the same
+     line; a confident default here would be wrong more often than right.
+     The rows exist so every sports listing states the same facts in the
+     same order. */
   {
-    id: 'ygo-booster-box',
-    label: 'Yu-Gi-Oh! — Booster Box',
+    id: 'sport-hobby-box',
+    label: 'Sports — Hobby Box',
     specs: [
-      { label: 'Configuration', value: '24 Booster Packs' },
-      { label: 'Cards Per Pack', value: '9' },
-      { label: 'Language', value: 'English' },
+      { label: 'Configuration', value: 'Hobby Box' },
+      { label: 'Packs Per Box', value: '' },
+      { label: 'Cards Per Pack', value: '' },
+      { label: 'Guaranteed Hits', value: '' },
+      { label: 'Sport', value: '' },
+      { label: 'Season', value: '' },
+    ],
+  },
+  {
+    id: 'sport-jumbo-box',
+    label: 'Sports — Jumbo Box',
+    specs: [
+      { label: 'Configuration', value: 'Jumbo Hobby Box' },
+      { label: 'Packs Per Box', value: '' },
+      { label: 'Cards Per Pack', value: '' },
+      { label: 'Guaranteed Hits', value: '' },
+      { label: 'Sport', value: '' },
+      { label: 'Season', value: '' },
+    ],
+  },
+  {
+    id: 'sport-hobby-case',
+    label: 'Sports — Hobby Case',
+    specs: [
+      { label: 'Configuration', value: '12 Sealed Hobby Boxes' },
+      { label: 'Packs Per Box', value: '' },
+      { label: 'Guaranteed Hits Per Box', value: '' },
+      { label: 'Sport', value: '' },
+      { label: 'Season', value: '' },
     ],
   },
 ];

@@ -1,26 +1,8 @@
-<%
-  var bbClass = '';
-  var bbLabel = '';
-  var lcType = (product.productType || '').toLowerCase();
-  var lcVendor = (product.vendor || '').toLowerCase();
-  var tags = product.tags || [];
-  if (lcType.includes('pokemon') || lcVendor.includes('pokemon') || tags.includes('pokemon')) {
-    bbClass = 'brand-badge--pokemon';
-    bbLabel = 'Pokémon';
-  } else if (lcType.includes('yu-gi-oh') || lcType.includes('yugioh') || lcVendor.includes('konami') || tags.includes('yugioh')) {
-    bbClass = 'brand-badge--yugioh';
-    bbLabel = 'Yu-Gi-Oh!';
-  } else if (lcType.includes('mtg') || lcType.includes('magic') || lcVendor.includes('wizards') || tags.includes('mtg')) {
-    bbClass = 'brand-badge--mtg';
-    bbLabel = 'Magic: The Gathering';
-  } else if (lcType.includes('one piece') || lcVendor.includes('bandai') || tags.includes('one-piece')) {
-    bbClass = 'brand-badge--onepiece';
-    bbLabel = 'One Piece';
-  } else if (lcType.includes('palworld') || lcVendor.includes('bushiroad') || tags.includes('palworld')) {
-    bbClass = 'brand-badge--palworld';
-    bbLabel = 'Palworld';
-  }
-%>
-<% if (bbLabel) { %>
-  <span class="brand-badge <%= bbClass %>"><%= bbLabel %></span>
+<%/* The line a product belongs to, as a small badge. Detection and labels
+     come from config/catalog.js (exposed to views as `catalog`), so a new
+     line is one entry there rather than another branch here. Renders
+     nothing when the product matches no line. */%>
+<% var bbLine = catalog.detect(product); %>
+<% if (bbLine) { %>
+  <span class="brand-badge <%= bbLine.badgeClass %>"><%= bbLine.name %></span>
 <% } %>
