@@ -21,7 +21,7 @@ const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 
 process.env.THANK_YOU_SIGNING_SECRET = process.env.THANK_YOU_SIGNING_SECRET || 'test-secret-for-audit';
-process.env.SITE_ORIGIN = process.env.SITE_ORIGIN || 'https://zypheratcg.com';
+process.env.SITE_ORIGIN = process.env.SITE_ORIGIN || 'https://gogetcards.com';
 /* Force the SMTP transport, because that is the one this test stubs. Without
    it, an ambient ZEPTOMAIL_TOKEN / SMTP_PASS in a developer's .env would flip
    services/mail to the HTTPS API and every "send" would try a real network

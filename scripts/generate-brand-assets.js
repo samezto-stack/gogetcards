@@ -15,11 +15,12 @@
 const fs = require('fs');
 const path = require('path');
 const { chromium } = require('playwright');
-const { markSvg, markBody, VIOLET } = require('../brand/mark.js');
+const { markSvg, markBody, BRAND } = require('../brand/mark.js');
 
 const PUBLIC = path.join(__dirname, '..', 'public');
-const BRAND = path.join(__dirname, '..', 'brand');
-const BG_DARK = '#0B0F14';
+const BRAND_DIR = path.join(__dirname, '..', 'brand');
+const BG_DARK = '#0F2A4A';   // brand navy: the share card and icon tiles sit on it
+const ACCENT = '#F2A33A';    // warm orange, the "Cards" in the wordmark
 
 /* Every raster icon is a filled violet square with a white mark rather
    than a transparent violet mark. Two reasons: iOS composites a
@@ -49,10 +50,10 @@ async function shoot(page, html, width, height, out, type = 'png') {
 (async () => {
   // ── Vector masters ──
   fs.writeFileSync(path.join(PUBLIC, 'favicon.svg'), markSvg());
-  fs.writeFileSync(path.join(BRAND, 'logo-violet.svg'), markSvg());
-  fs.writeFileSync(path.join(BRAND, 'logo-white.svg'), markSvg({ fill: '#FFFFFF' }));
-  fs.writeFileSync(path.join(BRAND, 'logo-black.svg'), markSvg({ fill: '#000000' }));
-  console.log('svg   favicon.svg, logo-violet, logo-white, logo-black');
+  fs.writeFileSync(path.join(BRAND_DIR, 'logo-navy.svg'), markSvg());
+  fs.writeFileSync(path.join(BRAND_DIR, 'logo-white.svg'), markSvg({ fill: '#FFFFFF' }));
+  fs.writeFileSync(path.join(BRAND_DIR, 'logo-black.svg'), markSvg({ fill: '#000000' }));
+  console.log('svg   favicon.svg, logo-navy, logo-white, logo-black');
 
   const browser = await chromium.launch({
     executablePath: process.env.CHROMIUM_PATH || undefined,
@@ -62,7 +63,7 @@ async function shoot(page, html, width, height, out, type = 'png') {
 
   // ── Icons ──
   for (const { file, size } of RASTERS) {
-    const html = `<style>html,body{margin:0;padding:0}</style>${markSvg({ fill: '#FFFFFF', bg: VIOLET, size })}`;
+    const html = `<style>html,body{margin:0;padding:0}</style>${markSvg({ fill: '#FFFFFF', bg: BRAND, size })}`;
     const bytes = await shoot(page, html, size, size, path.join(PUBLIC, file));
     console.log(`png   ${file.padEnd(22)} ${size}x${size}  ${bytes.toLocaleString()} bytes`);
   }
@@ -77,13 +78,13 @@ async function shoot(page, html, width, height, out, type = 'png') {
        align-items:center;justify-content:center;gap:38px;
        font-family:-apple-system,Segoe UI,Roboto,Helvetica,sans-serif}
     .w{font-size:64px;font-weight:800;letter-spacing:-.02em;color:#fff}
-    .w span{color:${VIOLET}}
-    .t{font-size:25px;font-weight:400;color:#8b95a3;letter-spacing:.01em}
+    .w span{color:${ACCENT}}
+    .t{font-size:25px;font-weight:400;color:#c7d0dd;letter-spacing:.01em}
   </style>
   <div class="c">
-    <svg viewBox="0 0 512 512" width="150" height="150">${markBody(VIOLET)}</svg>
-    <div class="w">Zyphera <span>TCG</span></div>
-    <div class="t">Factory sealed. Allocated early. Held to release day.</div>
+    <svg viewBox="0 0 512 512" width="150" height="150">${markBody('#FFFFFF')}</svg>
+    <div class="w">GoGet<span>Cards</span></div>
+    <div class="t">Sealed TCG and sports cards. Photographed before they ship.</div>
   </div>`;
   const ogBytes = await shoot(page, og, 1200, 630, path.join(PUBLIC, 'images', 'og-default.jpg'), 'jpeg');
   console.log(`jpg   og-default.jpg          1200x630  ${ogBytes.toLocaleString()} bytes`);

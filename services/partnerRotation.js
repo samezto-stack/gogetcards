@@ -4,7 +4,7 @@
  * THE ARRANGEMENT THIS IMPLEMENTS. Each partner site sells one thing on a
  * ladder of twelve plans in equal steps — $74.99, $149.98, … $899.88. That
  * ladder is not twelve products; it is a PRICE GRID in units of $74.99.
- * zypheratcg is the catalogue, and each of its products sits at some number
+ * gogetcards is the catalogue, and each of its products sits at some number
  * of those units: a $224.97 product is three units, a $374.95 product is
  * five.
  *

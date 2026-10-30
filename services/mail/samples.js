@@ -20,7 +20,7 @@
 
 const view = require('./view');
 
-const ACCESS_URL = 'https://zypheratcg.com/account/open/9f3a2b1c8d7e6f5a4b3c2d1e0f9a8b7c';
+const ACCESS_URL = 'https://gogetcards.com/account/open/9f3a2b1c8d7e6f5a4b3c2d1e0f9a8b7c';
 
 const baseOrder = (o = {}) => Object.assign({
   orderId: 'whop_pay_SAMPLE0000001',
@@ -76,8 +76,8 @@ const rv = (over = {}) => ({
   currency: 'USD',
   isPreorder: true,
   release: { hasDate: true, display: 'November 20, 2026' },
-  recoveryUrl: 'https://zypheratcg.com/checkout/recover/SAMPLE-TOKEN',
-  unsubscribeUrl: 'https://zypheratcg.com/email/unsubscribe/SAMPLE-TOKEN?c=zc_sample',
+  recoveryUrl: 'https://gogetcards.com/checkout/recover/SAMPLE-TOKEN',
+  unsubscribeUrl: 'https://gogetcards.com/email/unsubscribe/SAMPLE-TOKEN?c=zc_sample',
   ...over,
 });
 

@@ -1,6 +1,6 @@
 # Applying to Google Merchant Center
 
-Written for Zyphera TCG specifically, against the account state as of this
+Written for GoGetCards specifically, against the account state as of this
 commit. Work top to bottom. Steps 1–3 happen before you open Merchant
 Center at all, and skipping them is the usual reason a first submission
 fails.
@@ -61,7 +61,7 @@ This is not a formality. See **Risk 1** below before choosing.
 
 If any product routes buyers to a different domain at checkout, it must not
 be advertised. Set the channel to **"Send only the products I choose"** and
-tick only products that check out on `zypheratcg.com`.
+tick only products that check out on `gogetcards.com`.
 
 If every product checks out on your own domain, leave it on **"Send
 everything, except what I exclude"**.
@@ -82,7 +82,7 @@ compares your site against itself, and against what Google already knows.
       unimpressive.
 - [ ] **Contact routes actually work.** Send a test message through
       `/contact` and confirm it arrives in Admin → Messages. Email
-      `support@zypheratcg.com` from an outside address and confirm it is
+      `support@gogetcards.com` from an outside address and confirm it is
       received. Reviewers test these. A published address that bounces is
       worse than no address at all.
 - [ ] **Policy pages resolve.** Refund, shipping, privacy, terms. All 14
@@ -99,7 +99,7 @@ compares your site against itself, and against what Google already knows.
 1. Go to **merchantcenter.google.com** and sign in with the Google account
    that should own this. Use an account you will still control in two
    years; transferring ownership later is possible but tedious.
-2. Enter the business name exactly as it appears on the site: **Zyphera
+2. Enter the business name exactly as it appears on the site: **GoGetCards
    TCG**. Not a variation, not a legal entity you have not registered.
 3. Enter the business address from Step 3.
 4. **Where do your customers check out?** Answer **"On my website"**. This
@@ -114,7 +114,7 @@ compares your site against itself, and against what Google already knows.
 
 Two separate operations that sound like one:
 
-- **Verify** proves you have administrative access to `zypheratcg.com`.
+- **Verify** proves you have administrative access to `gogetcards.com`.
 - **Claim** ties that URL to this Merchant Center account. Only one account
   can hold the claim.
 
@@ -180,7 +180,7 @@ propagate without anyone remembering to re-upload anything.
 1. Create an OAuth client in Google Cloud Console (type: **Web
    application**).
 2. Add the redirect URI shown on **Admin → Distribution**:
-   `https://zypheratcg.com/admin/distribution/connect/callback`
+   `https://gogetcards.com/admin/distribution/connect/callback`
 3. Paste the client ID and secret into Distribution → Save credentials.
    The secret is encrypted before storage.
 4. **Authorise with Google**, then pick the merchant account.
@@ -206,7 +206,7 @@ and for channels with no API integration. They are not the Google path.
 
 ---
 
-## The three things most likely to get Zyphera suspended
+## The three things most likely to get GoGetCards suspended
 
 Ranked by actual probability, not by how alarming they sound.
 
@@ -223,14 +223,14 @@ misrepresentation — the no-warning category.
   the address bar. That is the same pattern as embedding Stripe. Not a
   problem.
 - The **partner-experience rotator is the problem.** `checkoutMode` and the
-  partner-redirect routes can send a buyer from a Zyphera product page to a
+  partner-redirect routes can send a buyer from a GoGetCards product page to a
   different domain entirely. If a reviewer clicks an advertised product and
   lands on another site to pay, that is precisely the violation described
   above.
 
 **What to do — pick one:**
 
-- **(a) Advertise only the products that check out on `zypheratcg.com`.**
+- **(a) Advertise only the products that check out on `gogetcards.com`.**
   Use "Send only the products I choose" (Step 2) and tick nothing that
   routes to a partner domain. This is the low-effort option and it is
   sufficient.
@@ -267,7 +267,7 @@ exposure, and both are the kind of detail a reviewer reads. If they are
 true, keep them — they are good trust signals. If not, say so and they come
 out in a minute.
 
-Already fixed this session: the product page called Zyphera an **"Official
+Already fixed this session: the product page called GoGetCards an **"Official
 Distributor"** while the footer of the same page disclaimed affiliation
 with The Pokémon Company, Nintendo, Konami, Wizards of the Coast, Hasbro
 and Bandai by name. A page contradicting its own footer is exactly what a

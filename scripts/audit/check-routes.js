@@ -12,7 +12,7 @@ const path = require('path');
 const http = require('http');
 
 const ROOT = path.join(__dirname, '..', '..');
-process.env.SITE_URL = 'https://zypheratcg.com';
+process.env.SITE_URL = 'https://gogetcards.com';
 
 /* Populated by the locals middleware below, and read by the parity check
    at the end so the two cannot drift. */
@@ -44,12 +44,12 @@ app.use((req, res, next) => {
       require('../../config/markets').format(Number(cents || 0), currency || 'USD'),
     currentPath: req.path,
     currentYear: 2026,
-    pageTitle: 'Zyphera TCG',
+    pageTitle: 'GoGetCards',
     metaDescription: '',
     ogType: 'website',
     ogImage: '',
-    canonicalUrl: 'https://zypheratcg.com' + req.path,
-    canonicalOrigin: 'https://zypheratcg.com',
+    canonicalUrl: 'https://gogetcards.com' + req.path,
+    canonicalOrigin: 'https://gogetcards.com',
     jsonLd: null,
     bodyClass: '',
     /* Every local views/partials/analytics.ejs reads. It is included by
@@ -336,7 +336,7 @@ const server = app.listen(0, async () => {
   check('product: og:type is product',
     !!(inStock.html && /property="og:type" content="product"/.test(inStock.html)));
   check('product: canonical is the product URL',
-    !!(inStock.html && /rel="canonical" href="https:\/\/zypheratcg\.com\/products\/op-17-booster-box"/.test(inStock.html)));
+    !!(inStock.html && /rel="canonical" href="https:\/\/gogetcards\.com\/products\/op-17-booster-box"/.test(inStock.html)));
 
   /* ── Shipping page and its redirect ── */
   const ship = await get('/shipping');
@@ -355,7 +355,7 @@ const server = app.listen(0, async () => {
   check('search results are noindex, follow',
     /name="robots" content="noindex, follow"/.test(search.body));
   check('search canonical points at the plain collection URL',
-    /rel="canonical" href="https:\/\/zypheratcg\.com\/collection\/all"/.test(search.body));
+    /rel="canonical" href="https:\/\/gogetcards\.com\/collection\/all"/.test(search.body));
 
   /* ── Trust and policy pages ── */
   const trustPages = require(path.join(ROOT, 'config/trustPages'));
@@ -368,7 +368,7 @@ const server = app.listen(0, async () => {
     const r = await get('/' + slug);
     trustBodies[slug] = r.body;
     const page = trustPages.bySlug(slug);
-    const canonical = `rel="canonical" href="https://zypheratcg.com/${slug}"`;
+    const canonical = `rel="canonical" href="https://gogetcards.com/${slug}"`;
     const ok = r.status === 200
       && r.body.includes(page.title)
       && /name="description" content="[^"]{60,}"/.test(r.body)
@@ -512,7 +512,7 @@ const server = app.listen(0, async () => {
   check('robots.txt disallows the customer portal',
     /Disallow: \/account/.test(robots.body));
   check('robots.txt advertises the sitemap on SITE_URL',
-    /Sitemap: https:\/\/zypheratcg\.com\/sitemap\.xml/.test(robots.body));
+    /Sitemap: https:\/\/gogetcards\.com\/sitemap\.xml/.test(robots.body));
 
   server.close();
   console.log(fails ? `\n${fails} route check(s) FAILED` : '\nAll route checks pass');

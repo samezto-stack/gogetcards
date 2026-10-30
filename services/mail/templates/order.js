@@ -115,7 +115,7 @@ function build(v) {
     /* ── The account ── */
     L.section(
       L.label('Your account')
-      + L.paragraph('Your Zyphera account has been created. You can follow this order, see tracking as soon as it exists, and cancel or reorder without emailing anyone.')
+      + L.paragraph('Your GoGetCards account has been created. You can follow this order, see tracking as soon as it exists, and cancel or reorder without emailing anyone.')
       + `<div style="height:18px;line-height:18px;font-size:0;">&nbsp;</div>`
       + L.button(v.accessUrl, 'View my order')
       + L.paragraph('The link above signs you in on any device and expires in 7 days. There is no password to set.', { size: 12, top: 16 }),
@@ -164,7 +164,7 @@ function build(v) {
     ...next.map((n) => '- ' + n.replace(/<[^>]+>/g, '')),
     '',
     'YOUR ACCOUNT',
-    'Your Zyphera account has been created. View this order, see tracking and',
+    'Your GoGetCards account has been created. View this order, see tracking and',
     'manage the order here (the link signs you in and expires in 7 days):',
     v.accessUrl,
     '',

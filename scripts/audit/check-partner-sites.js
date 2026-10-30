@@ -413,7 +413,7 @@ for (const f of ['routes/admin.js', 'server.js', 'views/admin/settings.ejs', 'vi
 check('no route hands a buyer to a myshopify cart', !/myshopify\.com\/cart/.test(feSrc));
 check('the refusal page says nothing was charged', /Nothing was charged/.test(feSrc));
 check('the redirect helper the old Buy button used is gone',
-  !fs.readFileSync(path.join(ROOT, 'public/js/zyphera.js'), 'utf8').includes('window.goToCheckout'));
+  !fs.readFileSync(path.join(ROOT, 'public/js/gogetcards.js'), 'utf8').includes('window.goToCheckout'));
 
 /* ── Pooled email stays retired ──────────────────────────────────────
    The scheme substituted one of OUR addresses for the buyer's, so the

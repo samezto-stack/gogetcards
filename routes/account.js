@@ -71,7 +71,7 @@ const page = (extra = {}) => ({
 router.get('/sign-in', (req, res) => {
   if (req.customer) return res.redirect(customerAuth.safeRedirect(req.query.next || '/account'));
   res.render('pages/account-signin', page({
-    pageTitle: 'Sign in | Zyphera TCG',
+    pageTitle: 'Sign in | GoGetCards',
     sent: false, formError: '', email: '',
     redirectTo: customerAuth.safeRedirect(req.query.next || '/account'),
   }));
@@ -90,7 +90,7 @@ router.post('/sign-in', signInLimiter, express.urlencoded({ extended: false, lim
   const redirectTo = customerAuth.safeRedirect((req.body && req.body.next) || '/account');
 
   const render = (extra) => res.render('pages/account-signin', page({
-    pageTitle: 'Sign in | Zyphera TCG', email, redirectTo, sent: false, formError: '', ...extra,
+    pageTitle: 'Sign in | GoGetCards', email, redirectTo, sent: false, formError: '', ...extra,
   }));
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -156,7 +156,7 @@ router.get('/open/:token', async (req, res) => {
      which tokens exist, and there is no reason to answer that at all
      before somebody presses the button. */
   res.render('pages/account-open', page({
-    pageTitle: 'Open your account | Zyphera TCG',
+    pageTitle: 'Open your account | GoGetCards',
     token: String(req.params.token || ''),
     formError: '',
   }));
@@ -174,7 +174,7 @@ router.post('/open/:token', async (req, res) => {
     missing: 'That link is not valid. Enter your email below and we will send a fresh one.',
   };
   res.status(400).render('pages/account-signin', page({
-    pageTitle: 'Sign in | Zyphera TCG',
+    pageTitle: 'Sign in | GoGetCards',
     sent: false, email: '', redirectTo: '/account',
     formError: messages[result.reason] || messages.unknown,
   }));
@@ -207,7 +207,7 @@ router.get('/', requireCustomer, async (req, res, next) => {
     const recent = all.slice(0, 4);
 
     res.render('pages/account', page({
-      pageTitle: 'My account | Zyphera TCG',
+      pageTitle: 'My account | GoGetCards',
       customerDoc: req.customer,
       counts, totalSpend, preorders, recent,
       recommendations: await recommendationsFor(req.customer, all),
@@ -223,7 +223,7 @@ router.get('/orders', requireCustomer, async (req, res, next) => {
     const filter = String(req.query.filter || 'all');
     const { shown, counts } = await customerOrders.ordersForCustomer(req.customer, { filter });
     res.render('pages/account-orders', page({
-      pageTitle: 'My orders | Zyphera TCG',
+      pageTitle: 'My orders | GoGetCards',
       customerDoc: req.customer,
       orders: shown, counts, filter, section: 'orders',
       /* Set by the reorder route when the product has gone. */
@@ -238,12 +238,12 @@ router.get('/orders/:ref', requireCustomer, async (req, res, next) => {
     /* Not found and not yours are the same response on purpose. A 403 on
        somebody else's reference confirms it exists. */
     if (!found) return res.status(404).render('pages/account-missing', page({
-      pageTitle: 'Order not found | Zyphera TCG',
+      pageTitle: 'Order not found | GoGetCards',
       customerDoc: req.customer, section: 'orders',
     }));
 
     res.render('pages/account-order', page({
-      pageTitle: `Order ${found.reference} | Zyphera TCG`,
+      pageTitle: `Order ${found.reference} | GoGetCards`,
       customerDoc: req.customer, o: found, section: 'orders',
       justCancelled: req.query.cancelled === '1',
     }));
@@ -259,7 +259,7 @@ router.get('/orders/:ref/cancel', requireCustomer, async (req, res, next) => {
     if (!found.cancellable.can) return res.redirect(`/account/orders/${found.reference}`);
 
     res.render('pages/account-cancel', page({
-      pageTitle: `Cancel order ${found.reference} | Zyphera TCG`,
+      pageTitle: `Cancel order ${found.reference} | GoGetCards`,
       customerDoc: req.customer, o: found, section: 'orders', formError: '',
     }));
   } catch (err) { next(err); }
@@ -287,7 +287,7 @@ router.post('/orders/:ref/cancel', requireCustomer,
 
       if (!found.cancellable.can) {
         return res.status(409).render('pages/account-cancel', page({
-          pageTitle: `Cancel order ${found.reference} | Zyphera TCG`,
+          pageTitle: `Cancel order ${found.reference} | GoGetCards`,
           customerDoc: req.customer, o: found, section: 'orders',
           formError: found.cancellable.reason,
         }));
@@ -323,7 +323,7 @@ router.post('/orders/:ref/cancel', requireCustomer,
       if (!updated) {
         const fresh = await customerOrders.findOwnedOrder(req.customer, req.params.ref);
         return res.status(409).render('pages/account-cancel', page({
-          pageTitle: 'Cancel order | Zyphera TCG',
+          pageTitle: 'Cancel order | GoGetCards',
           customerDoc: req.customer, o: fresh || found, section: 'orders',
           formError: 'This order changed while you were on this page and can no longer be cancelled.',
         }));
@@ -365,7 +365,7 @@ router.get('/reinstate/:slug', requireCustomer, async (req, res, next) => {
     const product = mine.length ? mine[0].product : await Product.findOne({ slug }).lean();
 
     res.render('pages/account-reinstate', page({
-      pageTitle: 'Keep my order | Zyphera TCG',
+      pageTitle: 'Keep my order | GoGetCards',
       customerDoc: req.customer, section: 'orders',
       product, slug, rows: mine,
       kept: req.query.kept === '1',
@@ -460,7 +460,7 @@ async function deliveryWindowFor(order) {
 
 router.get('/profile', requireCustomer, (req, res) => {
   res.render('pages/account-profile', page({
-    pageTitle: 'Profile | Zyphera TCG',
+    pageTitle: 'Profile | GoGetCards',
     customerDoc: req.customer, section: 'profile', saved: req.query.saved === '1', formError: '',
   }));
 });
@@ -506,7 +506,7 @@ router.get('/security', requireCustomer, async (req, res, next) => {
     const sessions = await CustomerSession.find({ customer: req.customer._id })
       .sort({ lastUsedAt: -1 }).lean();
     res.render('pages/account-security', page({
-      pageTitle: 'Security | Zyphera TCG',
+      pageTitle: 'Security | GoGetCards',
       customerDoc: req.customer, section: 'security',
       sessions: sessions.map((s) => ({
         ...s,

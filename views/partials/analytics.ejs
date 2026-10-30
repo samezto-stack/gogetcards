@@ -35,7 +35,7 @@
       opt-out needs no second condition at any of the use sites. */ %>
 <% const adsId = (typeof googleAds !== 'undefined' && googleAds === false) ? '' : googleAdsId; %>
   <script>
-    window.__zypheraConsent = {
+    window.__gogetcardsConsent = {
       KEY: 'zy_cookie_consent',
       get: function () {
         try { return localStorage.getItem(this.KEY); } catch (e) { return null; }
@@ -91,5 +91,5 @@
     window.dataLayer = window.dataLayer || [];
     window.gtag = function () { window.dataLayer.push(arguments); };
     <% } %>
-    if (window.__zypheraConsent.get() === 'accepted') window.__zypheraConsent.load();
+    if (window.__gogetcardsConsent.get() === 'accepted') window.__gogetcardsConsent.load();
   </script>

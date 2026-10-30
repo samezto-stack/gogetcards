@@ -16,7 +16,7 @@ const http = require('http');
 
 const ROOT = path.join(__dirname, '..', '..');
 const D = require(path.join(ROOT, 'config/distribution')).defaults;
-process.env.SITE_URL = 'https://zypheratcg.com';
+process.env.SITE_URL = 'https://gogetcards.com';
 process.env.ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '0'.repeat(32);
 
 let fails = 0;

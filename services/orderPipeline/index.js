@@ -32,7 +32,7 @@ const SiteConfig = require('../../models/SiteConfig');
 const partnerRotation = require('../partnerRotation');
 
 // Looks back up the checkout_click Event recorded at the original checkout
-// click on zypheratcg (see routes/frontend.js's trackCheckoutReached), by
+// click on gogetcards (see routes/frontend.js's trackCheckoutReached), by
 // the zcid that rode through the entire Partner Experience round trip
 // untouched. Returns null when unresolvable — no zcid on this order (e.g. a
 // native Shopify/Stripe order, whose completion is reported from a separate

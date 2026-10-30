@@ -27,13 +27,13 @@
 /* The live domain. Changing this changes every canonical URL, the
    sitemap, the feed's product links and the OAuth redirect URI, so it is
    stated once, here. */
-const PRODUCTION_ORIGIN = 'https://zypheratcg.com';
+const PRODUCTION_ORIGIN = 'https://gogetcards.com';
 
 /** Absolute origin, never with a trailing slash. */
 function origin() {
   const configured = (process.env.SITE_URL || '').trim().replace(/\/$/, '');
   /* An override has to be a real absolute origin. A half-set variable —
-     "zypheratcg.com" with no scheme, or a stray path — would otherwise
+     "gogetcards.com" with no scheme, or a stray path — would otherwise
      silently produce URLs that resolve nowhere, which is worse than the
      unset case this default exists to prevent. */
   return /^https?:\/\/[^/]+$/i.test(configured) ? configured : PRODUCTION_ORIGIN;

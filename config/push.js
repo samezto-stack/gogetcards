@@ -20,7 +20,7 @@ const site = require('./site');
 
 module.exports = {
   // Store name as it appears at the start of the notification sentence.
-  brand: process.env.PUSH_BRAND || 'ZypheraTCG',
+  brand: process.env.PUSH_BRAND || 'GoGetCards',
 
   bark: {
     /* From the Bark iOS app: the last path segment of the URL it shows.

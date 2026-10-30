@@ -62,7 +62,7 @@ const PAGES = {
     nav: 'Authenticity Guarantee',
     group: 'guarantees',
     description:
-      'How Zyphera TCG sources sealed trading card product, what our authenticity guarantee covers, and what happens if a product is ever not what we said it was.',
+      'How GoGetCards sources sealed trading card product, what our authenticity guarantee covers, and what happens if a product is ever not what we said it was.',
     intro:
       'Counterfeit and resealed sealed product is the single biggest risk in this category, and the honest answer to "how do I know this is real" is not a badge on a website. It is where the product came from.',
     sections: [
@@ -90,7 +90,7 @@ const PAGES = {
     nav: 'Factory-Sealed Guarantee',
     group: 'guarantees',
     description:
-      'What "factory sealed" means at Zyphera TCG, how we handle sealed product, and what to do if a seal arrives damaged.',
+      'What "factory sealed" means at GoGetCards, how we handle sealed product, and what to do if a seal arrives damaged.',
     intro:
       '"Factory sealed" is used loosely across this hobby. Here is exactly what we mean by it, and what we do to make sure it stays true between our supplier and your door.',
     sections: [
@@ -118,7 +118,7 @@ const PAGES = {
     nav: 'Preorder Policy',
     group: 'buying',
     description:
-      'How preorders work at Zyphera TCG: when you are charged, when the product ships, what happens if the publisher moves the release date, and how to cancel.',
+      'How preorders work at GoGetCards: when you are charged, when the product ships, what happens if the publisher moves the release date, and how to cancel.',
     intro:
       'A preorder is a promise about something that does not exist yet, so the terms matter more than they do on an in-stock order. All of them are here, including the ones that are not in our favour.',
     sections: [
@@ -149,7 +149,7 @@ const PAGES = {
     nav: 'Allocation Policy',
     group: 'buying',
     description:
-      'How Zyphera TCG allocates limited sealed product, what per-customer limits are for, and what happens when a distributor reduces our allocation.',
+      'How GoGetCards allocates limited sealed product, what per-customer limits are for, and what happens when a distributor reduces our allocation.',
     intro:
       'Sealed product on a hot set is allocated, not simply ordered. Distributors decide how much we get, and sometimes they revise it downward after we have already taken preorders. This is how we handle that.',
     sections: [
@@ -180,7 +180,7 @@ const PAGES = {
     nav: 'Payment Information',
     group: 'buying',
     description:
-      'Which payment methods Zyphera TCG accepts, which currency you are charged in, how card details are handled, and when your card is charged.',
+      'Which payment methods GoGetCards accepts, which currency you are charged in, how card details are handled, and when your card is charged.',
     intro:
       'What you can pay with, what you will be charged, and who handles your card details.',
     sections: [
@@ -220,7 +220,7 @@ const PAGES = {
     nav: 'Secure Checkout',
     group: 'buying',
     description:
-      'How checkout works at Zyphera TCG, what happens to your data at each step, and what to check before you enter a card number on any site.',
+      'How checkout works at GoGetCards, what happens to your data at each step, and what to check before you enter a card number on any site.',
     intro:
       'What happens between clicking checkout and getting a confirmation email, and what we do and do not have access to along the way.',
     sections: [
@@ -255,7 +255,7 @@ const PAGES = {
     nav: 'Track Your Order',
     group: 'support',
     description:
-      'How to track a Zyphera TCG order, when tracking updates appear, and what to do if a parcel stops moving or is marked delivered but has not arrived.',
+      'How to track a GoGetCards order, when tracking updates appear, and what to do if a parcel stops moving or is marked delivered but has not arrived.',
     intro:
       'Where your tracking number comes from, what the updates mean, and what to do when a parcel goes quiet.',
     sections: [
@@ -287,7 +287,7 @@ const PAGES = {
     nav: 'Customer Support',
     group: 'support',
     description:
-      'How to reach Zyphera TCG, when we answer, what to include so we can help on the first reply, and what we will and will not do.',
+      'How to reach GoGetCards, when we answer, what to include so we can help on the first reply, and what we will and will not do.',
     intro:
       'Who answers, how quickly, and how to get a useful answer the first time.',
     sections: [
@@ -327,7 +327,7 @@ const PAGES = {
     nav: 'Refund & Returns',
     group: 'legal',
     description:
-      `Zyphera TCG's return policy: a ${RETURN_DAYS}-day window on unopened sealed product, free returns on damaged or incorrect items, and full refunds on cancelled preorders.`,
+      `The GoGetCards return policy: a ${RETURN_DAYS}-day window on unopened sealed product, free returns on damaged or incorrect items, and full refunds on cancelled preorders.`,
     intro:
       'What you can return, how long you have, who pays the postage, and how long the money takes to come back.',
     sections: [
@@ -387,7 +387,7 @@ const PAGES = {
     nav: 'Terms of Service',
     group: 'legal',
     description:
-      'The terms you agree to when you buy from Zyphera TCG: orders and acceptance, pricing and currency, preorders, delivery, returns, and limits of liability.',
+      'The terms you agree to when you buy from GoGetCards: orders and acceptance, pricing and currency, preorders, delivery, returns, and limits of liability.',
     intro:
       'These terms apply to every order placed on this site. They are written to be read rather than to be impenetrable, and where they limit something, they say so plainly.',
     sections: [
@@ -448,7 +448,7 @@ const PAGES = {
     nav: 'Privacy Policy',
     group: 'legal',
     description:
-      'What personal data Zyphera TCG collects, why, who it is shared with, how long it is kept, and how to exercise your rights over it.',
+      'What personal data GoGetCards collects, why, who it is shared with, how long it is kept, and how to exercise your rights over it.',
     intro:
       'What we collect, why we collect it, who else sees it, and how to make us delete it. We do not sell customer data to anybody, for any purpose.',
     sections: [
@@ -518,7 +518,7 @@ const PAGES = {
     nav: 'Cookie Policy',
     group: 'legal',
     description:
-      'The cookies and similar technologies Zyphera TCG uses, what each one does, and how to turn off the ones that are not essential.',
+      'The cookies and similar technologies GoGetCards uses, what each one does, and how to turn off the ones that are not essential.',
     intro:
       'Which cookies this site sets, what each is for, and how to refuse the ones that are not needed to make the site work.',
     sections: [
@@ -553,12 +553,12 @@ const PAGES = {
     nav: 'Disclaimer',
     group: 'legal',
     description:
-      'Zyphera TCG is an independent retailer and is not affiliated with any trading card publisher. What we do and do not claim about the product we sell.',
+      'GoGetCards is an independent retailer and is not affiliated with any trading card publisher. What we do and do not claim about the product we sell.',
     intro:
       'Who we are not affiliated with, and what we are not claiming about the things we sell.',
     sections: [
       s('We are independent',
-        p('Zyphera TCG is an independent retailer of sealed trading card product. We are not affiliated with, endorsed by, sponsored by, or licensed by The Pokémon Company, Nintendo, Creatures Inc., GAME FREAK, Konami, Wizards of the Coast, Hasbro, or Bandai.'),
+        p('GoGetCards is an independent retailer of sealed trading card product. We are not affiliated with, endorsed by, sponsored by, or licensed by The Pokémon Company, Nintendo, Creatures Inc., GAME FREAK, Wizards of the Coast, Hasbro, Bandai, Ravensburger, Disney, Topps, Panini, Fanatics, Major League Baseball, the National Basketball Association, or the National Football League.'),
         p('We buy through authorized distribution, which is how we can guarantee authenticity, but that is a supply relationship and not an endorsement. Any seller describing itself as an "official" or "authorized" retailer of a publisher without a licence agreement is overstating its position, and we are not going to do that.')),
       s('Trademarks',
         p('All product names, set names, logos, character names and card images are trademarks or copyright of their respective owners. They appear here to identify the product being sold, which is a normal and lawful use, and no claim of ownership is made or implied.')),
@@ -575,12 +575,12 @@ const PAGES = {
     ],
   },
 
-  'why-buy-from-zyphera': {
-    title: 'Why Buy From Zyphera',
-    nav: 'Why Buy From Zyphera',
+  'why-buy-from-gogetcards': {
+    title: 'Why Buy From GoGetCards',
+    nav: 'Why Buy From GoGetCards',
     group: 'guarantees',
     description:
-      'What Zyphera TCG does differently: authorized distribution, factory-sealed guarantee, free tracked shipping worldwide, and preorder terms written in plain language.',
+      'What GoGetCards does differently: authorized distribution, factory-sealed guarantee, free tracked shipping worldwide, and preorder terms written in plain language.',
     intro:
       'There are a lot of places to buy sealed trading card product. Here is what we actually commit to, and where we are deliberately not competing.',
     sections: [

@@ -23,7 +23,7 @@ const company = require('../../../config/company');
 
 function accountAccess(v) {
   const minutes = v.expiresMinutes || 15;
-  const lede = 'Use the button below to open your Zyphera TCG account.';
+  const lede = 'Use the button below to open your GoGetCards account.';
 
   const body = [
     L.section(L.heading('Sign in to your account.') + L.lede(L.esc(lede)), { pad: '32px 32px 24px' }),
@@ -46,7 +46,7 @@ function accountAccess(v) {
     ),
   ].join('');
 
-  const subject = 'Your Zyphera TCG sign-in link';
+  const subject = 'Your GoGetCards sign-in link';
 
   return {
     subject,

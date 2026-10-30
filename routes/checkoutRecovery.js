@@ -127,7 +127,7 @@ function expiredPage(res, { heading, message }) {
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>${heading} | Zyphera TCG</title>
+<title>${heading} | GoGetCards</title>
 <style>
   :root{color-scheme:dark}
   body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0B0F14;color:#E5E7EB;
@@ -428,7 +428,7 @@ function unsubPage({ heading, message }) {
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>${heading} | Zyphera TCG</title>
+<title>${heading} | GoGetCards</title>
 <style>
   :root{color-scheme:dark}
   body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0B0F14;color:#E5E7EB;
@@ -441,7 +441,7 @@ function unsubPage({ heading, message }) {
 <body><div class="c">
   <h1>${heading}</h1>
   <p>${message}</p>
-  <p><a href="${origin}/">Zyphera TCG</a></p>
+  <p><a href="${origin}/">GoGetCards</a></p>
 </div></body></html>`;
 }
 

@@ -5,3 +5,7 @@ node_modules/
 
 # Database dumps. Real customer data — never in git.
 backups/
+
+# Local MongoDB data directories from manual testing. Never in git.
+test-data/
+test-data-*/

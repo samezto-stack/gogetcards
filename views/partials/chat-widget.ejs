@@ -11,7 +11,7 @@
   <div id="chat-panel" class="chat-widget__panel" style="display:none">
     <div class="chat-widget__header">
       <div>
-        <strong style="font-size:0.9rem">Zyphera Support</strong>
+        <strong style="font-size:0.9rem">GoGetCards Support</strong>
         <p style="font-size:0.72rem;color:var(--color-text-muted);margin-top:2px">
           <span class="live-dot" style="width:6px;height:6px"></span>
           Typically replies within minutes
@@ -20,7 +20,7 @@
     </div>
     <div class="chat-widget__body" id="chat-messages">
       <div class="chat-msg chat-msg--bot">
-        <div class="chat-msg__bubble">👋 Hey! Welcome to Zyphera TCG. How can we help you today?</div>
+        <div class="chat-msg__bubble">👋 Hey! Welcome to GoGetCards. How can we help you today?</div>
         <span class="chat-msg__time">Just now</span>
       </div>
     </div>
@@ -70,7 +70,7 @@
   const messages = document.getElementById('chat-messages');
   
   // Persist state across navigation
-  let isOpen = sessionStorage.getItem('zypheraChatOpen') === 'true';
+  let isOpen = sessionStorage.getItem('gogetcardsChatOpen') === 'true';
   let lastChecked = new Date(0).toISOString(); // Fetch all on load
   let pollInterval = null;
 
@@ -107,7 +107,7 @@
 
   toggle.addEventListener('click', () => {
     isOpen = !isOpen;
-    sessionStorage.setItem('zypheraChatOpen', isOpen);
+    sessionStorage.setItem('gogetcardsChatOpen', isOpen);
     applyOpenState();
     if (isOpen) input.focus();
   });

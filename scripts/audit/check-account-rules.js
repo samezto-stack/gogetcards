@@ -178,7 +178,7 @@ console.log('redirect safety');
   });
   ['https://evil.example/x', '//evil.example/x', 'http://evil.example', '\\\\evil.example',
    'javascript:alert(1)', 'data:text/html,x', '/\\evil.example', '///evil.example',
-   '', null, undefined, 'account', 'https://zypheratcg.com.evil.example/',
+   '', null, undefined, 'account', 'https://gogetcards.com.evil.example/',
   ].forEach((p) => {
     ok(`hostile redirect neutralised: ${JSON.stringify(p)}`, safe(p) === '/account');
   });

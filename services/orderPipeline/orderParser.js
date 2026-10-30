@@ -20,7 +20,7 @@ const FIELDS = [
   'total_price',
   'store', 'checkout_id', 'purchase_date', 'payment_provider', 'payment_id',
   // The zcid handed out by trackCheckoutReached() at the original
-  // checkout-click on zypheratcg — forwarded verbatim through the whole
+  // checkout-click on gogetcards — forwarded verbatim through the whole
   // Partner Experience round trip (see partner.html's buildThankYouFields)
   // so the pipeline can look back up the true traffic-source attribution
   // captured at that moment (see routes/frontend.js's resolveTrafficSource).

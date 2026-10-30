@@ -20,7 +20,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const pages = JSON.parse(fs.readFileSync(path.join(require('os').tmpdir(), 'zyphera-rendered.json'), 'utf8'));
+const pages = JSON.parse(fs.readFileSync(path.join(require('os').tmpdir(), 'gogetcards-rendered.json'), 'utf8'));
 
 /** Visible text only: script and style contents are not read by a human. */
 function visibleText(html) {

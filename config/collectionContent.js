@@ -24,7 +24,7 @@
 const collections = {
   all: {
     intro:
-      'Every sealed product currently allocated to Zyphera, across Pokémon, Yu-Gi-Oh!, Magic: The Gathering and One Piece. Nothing here is opened, weighed, searched or resold from a secondary marketplace. Stock comes through authorized distribution and ships in the state it arrived in.',
+      'Every sealed product currently allocated to GoGetCards, across Pokémon, Yu-Gi-Oh!, Magic: The Gathering and One Piece. Nothing here is opened, weighed, searched or resold from a secondary marketplace. Stock comes through authorized distribution and ships in the state it arrived in.',
     guide: {
       title: 'How sealed product is sold',
       body: [

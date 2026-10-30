@@ -1,7 +1,7 @@
 /**
  * Dump every collection to one gzipped file.
  *
- *     node scripts/backup.js                 -> backups/zypheratcg-<date>.ndjson.gz
+ *     node scripts/backup.js                 -> backups/gogetcards-<date>.ndjson.gz
  *     node scripts/backup.js /path/out.gz    -> that file
  *
  * WHY THIS EXISTS RATHER THAN mongodump. mongodump ships in the MongoDB
@@ -50,7 +50,7 @@ async function main() {
   }
 
   const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-  const out = process.argv[2] || path.join(__dirname, '..', 'backups', `zypheratcg-${stamp}.ndjson.gz`);
+  const out = process.argv[2] || path.join(__dirname, '..', 'backups', `gogetcards-${stamp}.ndjson.gz`);
   fs.mkdirSync(path.dirname(out), { recursive: true });
 
   await mongoose.connect(URI, { serverSelectionTimeoutMS: 20000 });

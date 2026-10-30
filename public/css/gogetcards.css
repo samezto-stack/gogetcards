@@ -1,5 +1,5 @@
 /* =========================================
-   ZYPHERA TCG — SHOPIFY THEME CSS v1.0
+   GOGETCARDS — SHOPIFY THEME CSS v1.0
    ========================================= */
 
 /* --- CSS VARIABLES / DESIGN TOKENS --- */
@@ -225,7 +225,7 @@ ul, ol { list-style: none; }
 .section-header.text-center .divider-accent { margin: var(--space-md) auto; }
 
 /* =========================================
-   ZYPHERA MOTIFS
+   GOGETCARDS MOTIFS
    Recurring surface treatments that make a section feel like this
    brand rather than a generic dark card. All of them sit under 5%
    opacity — present, never noticeable on their own.

@@ -102,7 +102,7 @@ function itemXml(p) {
 }
 
 /** A complete RSS 2.0 feed. */
-function toXml(payloads, { title = 'Zyphera TCG', link = feedBuilder.siteOrigin() } = {}) {
+function toXml(payloads, { title = 'GoGetCards', link = feedBuilder.siteOrigin() } = {}) {
   return `<?xml version="1.0" encoding="UTF-8"?>\n`
     + `<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">\n`
     + `<channel>\n`

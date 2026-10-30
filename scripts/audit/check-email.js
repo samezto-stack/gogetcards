@@ -19,7 +19,7 @@
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..', '..');
-process.env.SITE_URL = 'https://zypheratcg.com';
+process.env.SITE_URL = 'https://gogetcards.com';
 
 const templates = require(path.join(ROOT, 'services/mail/templates'));
 const view = require(path.join(ROOT, 'services/mail/view'));
@@ -207,7 +207,7 @@ for (const [label, out] of every()) {
      a tracker pixel or a third-party CTA is how a domain gets a
      reputation it cannot shake. */
   const hrefs = [...html.matchAll(/href="(https?:\/\/[^"]+)"/g)].map((m) => m[1]);
-  const foreign = hrefs.filter((h) => !/^https:\/\/(zypheratcg\.com|tools\.usps\.com|ups\.com|www\.fedex\.com)/.test(h));
+  const foreign = hrefs.filter((h) => !/^https:\/\/(gogetcards\.com|tools\.usps\.com|ups\.com|www\.fedex\.com)/.test(h));
   ok(`${label}: no third-party links`, foreign.length === 0, foreign.join(', '));
   ok(`${label}: link count is modest`, hrefs.length <= 10, `${hrefs.length} links`);
 
@@ -266,12 +266,12 @@ ok('the access link is a path, not a query parameter', !ACCESS.includes('?'));
 
 console.log('configuration');
 {
-  ok('From is a send-only address', /orders@zypheratcg\.com/.test(mailCfg.from()));
-  ok('From carries a display name', /^"Zyphera TCG" </.test(mailCfg.from()));
+  ok('From is a send-only address', /orders@gogetcards\.com/.test(mailCfg.from()));
+  ok('From carries a display name', /^"GoGetCards" </.test(mailCfg.from()));
   /* Replies must reach a human mailbox on Zoho, not the sending
      address. A bouncing Reply-To is a real deliverability penalty. */
   ok('Reply-To is the Zoho support mailbox', mailCfg.REPLY_TO === company.business.supportEmail);
-  ok('Reply-To differs from From', mailCfg.REPLY_TO !== 'orders@zypheratcg.com');
+  ok('Reply-To differs from From', mailCfg.REPLY_TO !== 'orders@gogetcards.com');
   ok('the default host is ZeptoMail', mailCfg.HOST === 'smtp.zeptomail.com');
   ok('retries are bounded', mailCfg.RETRY_DELAYS_MS.length >= 2 && mailCfg.RETRY_DELAYS_MS.length <= 5);
   ok('every template has a label', templates.keys.every((k) => !!templates.LABELS[k]));

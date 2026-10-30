@@ -4,17 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <%
-    var siteOrigin = (typeof canonicalOrigin !== 'undefined' && canonicalOrigin) ? canonicalOrigin : 'https://zypheratcg.com';
+    var siteOrigin = (typeof canonicalOrigin !== 'undefined' && canonicalOrigin) ? canonicalOrigin : 'https://gogetcards.com';
     var defaultDesc = 'Factory-sealed Pokémon, Yu-Gi-Oh!, Magic and One Piece booster boxes, cases and elite trainer boxes. Sourced through authorized distribution, shipped sealed.';
     var desc = (typeof metaDescription !== 'undefined' && metaDescription) ? metaDescription : defaultDesc;
-    var title = (typeof pageTitle !== 'undefined' && pageTitle) ? pageTitle : 'Zyphera TCG';
-    var fullTitle = title.includes('Zyphera') ? title : (title + ' | Zyphera TCG');
+    var title = (typeof pageTitle !== 'undefined' && pageTitle) ? pageTitle : 'GoGetCards';
+    var fullTitle = title.includes('GoGetCards') ? title : (title + ' | GoGetCards');
     var ogImg = (typeof ogImage !== 'undefined' && ogImage) ? ogImage : (siteOrigin + '/images/og-default.jpg');
     if (ogImg.indexOf('http') !== 0) { ogImg = siteOrigin + (ogImg.charAt(0) === '/' ? '' : '/') + ogImg; }
   %>
   <meta name="description" content="<%= desc %>">
   <meta name="robots" content="<%= (typeof robotsOverride !== 'undefined' && robotsOverride) ? robotsOverride : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' %>">
-  <meta property="og:site_name" content="Zyphera TCG">
+  <meta property="og:site_name" content="GoGetCards">
   <meta property="og:locale" content="en_US">
   <meta property="og:title" content="<%= fullTitle %>">
   <meta property="og:description" content="<%= desc %>">
@@ -31,7 +31,7 @@
   <% if (ogImg.indexOf('/images/og-default.jpg') !== -1) { %>
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="Zyphera TCG, factory sealed trading card products">
+    <meta property="og:image:alt" content="GoGetCards, factory sealed trading card products">
   <% } else { %>
     <meta property="og:image:alt" content="<%= fullTitle %>">
   <% } %>
@@ -80,7 +80,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png?v=<%= assetVersion %>">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=<%= assetVersion %>">
   <link rel="manifest" href="/site.webmanifest?v=<%= assetVersion %>">
-  <meta name="theme-color" content="#0B0D12">
+  <meta name="theme-color" content="#0F2A4A">
 
   <%/* Fonts. Two changes, neither of which alters a single glyph on the
        page:
@@ -106,7 +106,7 @@
   <link rel="stylesheet" href="<%= fontHref %>" media="print" onload="this.media='all';this.onload=null;">
   <noscript><link rel="stylesheet" href="<%= fontHref %>"></noscript>
 
-  <link rel="stylesheet" href="/css/zyphera.css?v=<%= assetVersion %>">
+  <link rel="stylesheet" href="/css/gogetcards.css?v=<%= assetVersion %>">
 
   <%/* Sitewide entity graph. None of this existed before: search engines
        and AI answer engines had no Organization to attach the brand to, no
@@ -174,7 +174,7 @@
         '@type': 'WebSite',
         '@id': siteOrigin + '/#website',
         url: siteOrigin,
-        name: 'Zyphera TCG',
+        name: 'GoGetCards',
         description: defaultDesc,
         publisher: { '@id': siteOrigin + '/#organization' },
         inLanguage: 'en-US',
@@ -197,7 +197,7 @@
     <%- include('partials/fx-approx') %>
 </head>
 
-<body id="zyphera-body" class="<%= typeof bodyClass !== 'undefined' ? bodyClass : '' %>">
+<body id="gogetcards-body" class="<%= typeof bodyClass !== 'undefined' ? bodyClass : '' %>">
 
   <a class="skip-link" href="#main-content">Skip to content</a>
 
@@ -233,7 +233,7 @@
   <%- include('partials/chat-widget') %>
   <%- include('partials/cookie-notice') %>
 
-  <script src="/js/zyphera.js?v=<%= assetVersion %>"></script>
+  <script src="/js/gogetcards.js?v=<%= assetVersion %>"></script>
   <%- script %>
 </body>
 </html>

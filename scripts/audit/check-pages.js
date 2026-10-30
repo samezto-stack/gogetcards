@@ -10,7 +10,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const pages = JSON.parse(fs.readFileSync(path.join(require('os').tmpdir(), 'zyphera-rendered.json'), 'utf8'));
+const pages = JSON.parse(fs.readFileSync(path.join(require('os').tmpdir(), 'gogetcards-rendered.json'), 'utf8'));
 
 let fails = 0;
 function check(name, ok, detail) {
@@ -71,9 +71,9 @@ check('footer: each of those pages is still reachable from the columns',
     .every(h => pages.home.includes(h)));
 
 /* ── Business identity ── */
-check('footer: trading name in copyright', /Zyphera TCG\.\s*All rights reserved/.test(pages.home));
+check('footer: trading name in copyright', /GoGetCards\.\s*All rights reserved/.test(pages.home));
 check('footer: trademark disclaimer', /independent retailer/i.test(pages.home));
-check('footer: support email linked', /mailto:support@zypheratcg\.com/.test(pages.home));
+check('footer: support email linked', /mailto:support@gogetcards\.com/.test(pages.home));
 check('footer: currency stated', /Prices in USD/.test(pages.home));
 
 /* ── Contact form ── */

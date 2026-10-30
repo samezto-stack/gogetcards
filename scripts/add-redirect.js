@@ -27,7 +27,7 @@ const Product = require('../models/Product');
 /**
  * Reduces anything you might paste to a bare slug. All of these work:
  *
- *   https://zypheratcg.com/products/foo-bar?utm_source=x
+ *   https://gogetcards.com/products/foo-bar?utm_source=x
  *   /products/foo-bar/
  *   products/foo-bar          <- how Search Console shows it
  *   foo-bar

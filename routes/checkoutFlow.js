@@ -429,7 +429,7 @@ async function preparePayment(req, session, token) {
   /* EMBEDDED, where the partner host supports it.
    *
    * The redirect below hands the customer to another domain. They are on
-   * zypheratcg.com looking at a booster box, they press "Continue to secure
+   * gogetcards.com looking at a booster box, they press "Continue to secure
    * payment", and the address bar changes to a company they have never
    * heard of — which then asks for a card. Checking the address bar before
    * typing a card number is the one habit every bank and every browser has
@@ -676,7 +676,7 @@ function renderStep1(res, ctx) {
      endpoint and reaches the standalone payment page unchanged, so this
      render is a superset of the old step-1 — same context, same fields. */
   return res.render('pages/checkout-token-single', {
-    pageTitle: 'Complete your order | Zyphera TCG',
+    pageTitle: 'Complete your order | GoGetCards',
     layout: false,
     notice: null,
     /* Only ever true for somebody already signed into /admin, so it tells a
@@ -700,7 +700,7 @@ function renderStep1(res, ctx) {
  */
 function renderStep2Embedded(res, ctx) {
   return res.render('pages/checkout-token-step2', {
-    pageTitle: 'Secure payment | Zyphera TCG',
+    pageTitle: 'Secure payment | GoGetCards',
     layout: false,
     ...ctx,
     money: moneyFor(ctx),
@@ -709,7 +709,7 @@ function renderStep2Embedded(res, ctx) {
 
 function renderExpired(res) {
   return res.status(410).render('pages/checkout-token-message', {
-    pageTitle: 'Checkout expired | Zyphera TCG',
+    pageTitle: 'Checkout expired | GoGetCards',
     layout: false,
     heading: 'This checkout has expired',
     message: 'Checkout links stay active for a few days. Nothing was charged, and the product is still available to order.',
@@ -720,7 +720,7 @@ function renderExpired(res) {
 
 function renderComplete(res, session) {
   return res.render('pages/checkout-token-message', {
-    pageTitle: 'Order complete | Zyphera TCG',
+    pageTitle: 'Order complete | GoGetCards',
     layout: false,
     heading: 'Your order has already been completed',
     message: 'This checkout was paid for, so there is nothing left to do here. You will not be charged twice.',
@@ -760,7 +760,7 @@ function renderUnavailable(res, info) {
     const rel = a ? preorderCfg.releaseInfo(a) : null;
     return res.status(409).render('pages/checkout-sold-out', {
       layout: false,
-      pageTitle: 'Sold out | Zyphera TCG',
+      pageTitle: 'Sold out | GoGetCards',
       gone: {
         title: p.title || 'This item',
         image: p.imageUrl || (p.images || [])[0] || '',
@@ -792,7 +792,7 @@ function renderUnavailable(res, info) {
   }
 
   return res.status(409).render('pages/checkout-token-message', {
-    pageTitle: 'Checkout unavailable | Zyphera TCG',
+    pageTitle: 'Checkout unavailable | GoGetCards',
     layout: false,
     heading: 'This checkout cannot be completed',
     message: messages[info.reason] || 'Something changed with this order. Nothing was charged.',

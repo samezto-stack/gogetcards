@@ -370,7 +370,7 @@ router.post('/autofix-all', requireAuth, async (req, res) => {
  * services/distribution/providers/google.js, cron/distributionScheduler.js
  * and the SyncRun model.
  *
- * WHY: Merchant Center fetches https://zypheratcg.com/feed/google.xml on a
+ * WHY: Merchant Center fetches https://gogetcards.com/feed/google.xml on a
  * schedule and that has worked. The push path was a second transport for the
  * identical payload — same feedBuilder, same validators — so it bought
  * immediacy and nothing else, in exchange for an OAuth integration, stored
@@ -402,7 +402,7 @@ router.get('/export.:format', requireAuth, async (req, res) => {
     if (!chosen) return res.status(404).send('Unknown format. Use xml, csv or json.');
 
     res.type(chosen.type);
-    res.setHeader('Content-Disposition', `attachment; filename="zypheratcg-feed.${req.params.format}"`);
+    res.setHeader('Content-Disposition', `attachment; filename="gogetcards-feed.${req.params.format}"`);
     res.send(chosen.body());
   } catch (err) {
     res.status(500).send('Export failed: ' + err.message);

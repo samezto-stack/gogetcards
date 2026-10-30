@@ -87,7 +87,7 @@ function plainText(html, limit = 5000) {
  * The protocol-relative case is handled FIRST and separately. A `//host/x`
  * URL works in a browser, which is why it survives in stored data, but it
  * is not relative to this site — prefixing the site origin produces
- * `https://zypheratcg.com//cdn.shopify.com/x.jpg`, a URL that 404s while
+ * `https://gogetcards.com//cdn.shopify.com/x.jpg`, a URL that 404s while
  * looking perfectly well-formed in the feed. Google fetches image_link with
  * its own crawler, so nothing on the storefront would ever reveal it.
  */

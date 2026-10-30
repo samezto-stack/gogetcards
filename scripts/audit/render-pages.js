@@ -5,8 +5,8 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..', '..');
-const OUT_FILE = path.join(require('os').tmpdir(), 'zyphera-rendered.json');
-process.env.SITE_URL = 'https://zypheratcg.com';
+const OUT_FILE = path.join(require('os').tmpdir(), 'gogetcards-rendered.json');
+process.env.SITE_URL = 'https://gogetcards.com';
 
 const company = require(path.join(ROOT, 'config/company'));
 const payments = require(path.join(ROOT, 'config/payments'));
@@ -59,9 +59,9 @@ const variantDay = {
 
 const base = {
   cart: { items: [], totalItems: 0, totalPrice: 0 },
-  currentPath: '/', currentYear: 2026, pageTitle: 'Zyphera TCG', metaDescription: '',
-  ogType: 'website', ogImage: '', canonicalUrl: 'https://zypheratcg.com/',
-  canonicalOrigin: 'https://zypheratcg.com', jsonLd: null, bodyClass: '',
+  currentPath: '/', currentYear: 2026, pageTitle: 'GoGetCards', metaDescription: '',
+  ogType: 'website', ogImage: '', canonicalUrl: 'https://gogetcards.com/',
+  canonicalOrigin: 'https://gogetcards.com', jsonLd: null, bodyClass: '',
   /* Every local views/partials/analytics.ejs reads. That partial is
      included by layout.ejs, so a missing one here is not a partial-shaped
      failure — it is EVERY page failing to render, which is what this script

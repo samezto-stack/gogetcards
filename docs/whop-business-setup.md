@@ -32,7 +32,7 @@ with the processor. A dispute opened for this reason cannot be won by
 explaining the arrangement afterwards.
 
 It is also the one email in the flow this codebase cannot suppress.
-Everything zypheratcg sends is gated, logged in `EmailLog`, and covered
+Everything gogetcards sends is gated, logged in `EmailLog`, and covered
 by the rule that a customer who has successfully purchased is never
 emailed about an abandoned checkout. Whop's transactional mail obeys none
 of that, because it is not ours: the only control is this switch.

@@ -1,4 +1,4 @@
-# Zyphera TCG — engineering guide
+# GoGetCards — engineering guide
 
 This is a live e-commerce platform handling real customers, orders, payments and
 personal data. **Security is a standing requirement, not a later step.** Every

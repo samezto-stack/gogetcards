@@ -128,13 +128,13 @@ function supportReply(v) {
     ),
   ].join('');
 
-  const subject = 'Re: your message to Zyphera TCG';
+  const subject = 'Re: your message to GoGetCards';
 
   return {
     subject,
     html: L.document({ title: subject, preheader: lede, body }),
     text: L.textDocument([
-      'RE: YOUR MESSAGE TO ZYPHERA TCG',
+      'RE: YOUR MESSAGE TO GOGETCARDS',
       '',
       lede,
       '',

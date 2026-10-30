@@ -183,7 +183,7 @@ for (const market of markets.configured()) {
 
 /* The client-side money formatter must agree with the server's, or the
    mobile buy bar prints one figure and the page above it another. */
-const clientJs = fs.readFileSync(path.join(ROOT, 'public/js/zyphera.js'), 'utf8');
+const clientJs = fs.readFileSync(path.join(ROOT, 'public/js/gogetcards.js'), 'utf8');
 check('the mobile buy bar formats money per currency, not always in dollars',
   /MONEY_PREFIX/.test(clientJs) && !/return '\$' \+ \(cents/.test(clientJs));
 check('and reads the currency from the button',

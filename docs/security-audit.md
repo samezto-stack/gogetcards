@@ -1,4 +1,4 @@
-# Security Audit — Zyphera TCG
+# Security Audit — GoGetCards
 
 **Date:** 2026-10-20
 **Scope:** Full application — frontend, backend, admin dashboard, APIs,
@@ -84,7 +84,7 @@ password-guessing oracle.
 **Files:** `routes/admin.js`.
 
 ### 3.3 Session secret fallback — `HIGH`
-`secret: process.env.SESSION_SECRET || 'zyphera-dev-secret'` — if the env var
+`secret: process.env.SESSION_SECRET || 'gogetcards-dev-secret'` — if the env var
 were ever unset, every cookie would be signed with a value published in this
 repo, allowing admin-session forgery.
 **Fix:** `resolveSessionSecret()` uses the env var, else a strong random

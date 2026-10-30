@@ -32,7 +32,7 @@ module.exports = {
      suspension rather than a request for more detail. */
   business: {
     // The name customers are billed under and the name on this site.
-    tradingName: 'Zyphera TCG',
+    tradingName: 'GoGetCards',
 
     /* Registered legal entity, if one exists. Operating as a sole trader
        is completely acceptable to Google — claiming a limited company
@@ -73,10 +73,10 @@ module.exports = {
     /* Contact routes. Every address here must be one somebody actually
        reads — a published address that bounces is worse than none, and is
        precisely what a reviewer tests. */
-    supportEmail: 'support@zypheratcg.com',
-    ordersEmail: 'support@zypheratcg.com',
-    returnsEmail: 'returns@zypheratcg.com',
-    privacyEmail: 'privacy@zypheratcg.com',
+    supportEmail: 'support@gogetcards.com',
+    ordersEmail: 'support@gogetcards.com',
+    returnsEmail: 'returns@gogetcards.com',
+    privacyEmail: 'privacy@gogetcards.com',
     pressEmail: null,
     phone: null,            // published only if genuinely answered
 
@@ -134,7 +134,7 @@ module.exports = {
        is worse than none — sameAs pointing at a 404 ties the brand entity
        to a dead page. Verify it loads in a logged-out browser after every
        change to the page's username. */
-    facebook: 'https://www.facebook.com/zypheratcg/',
+    facebook: null,
   },
 };
 

@@ -1,5 +1,5 @@
 /**
- * The shell every Zyphera email is built inside, and the small set of
+ * The shell every GoGetCards email is built inside, and the small set of
  * pieces they are built from.
  *
  * WHY IT LOOKS LIKE THIS. A receipt from a shop you trust is quiet. It
@@ -83,7 +83,7 @@ const D = {
   text: '#E4E7EB',
   muted: '#A3ABB7',
   faint: '#78818D',
-  accent: '#7C3AED',
+  accent: '#0F2A4A',
   accentText: '#B49BF5',
   good: '#4ADE80',
   warn: '#FBBF24',
@@ -351,7 +351,7 @@ function document({ title, preheader, body, unsubscribeUrl }) {
   <table role="presentation" class="wrap" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;">
 
     <tr><td class="dm-head" align="left" style="padding:0 0 22px;font-family:${FONT};font-size:17px;font-weight:600;letter-spacing:0.01em;color:${C.heading};">
-      Zyphera<span class="dm-mark" style="color:${C.accentText};">TCG</span>
+      GoGetCards<span class="dm-mark" style="color:${C.accentText};">TCG</span>
     </td></tr>
 
     <tr><td>

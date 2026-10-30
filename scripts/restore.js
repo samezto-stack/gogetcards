@@ -1,7 +1,7 @@
 /**
  * Restore an archive written by scripts/backup.js.
  *
- *     node scripts/restore.js backups/zypheratcg-<date>.ndjson.gz
+ *     node scripts/restore.js backups/gogetcards-<date>.ndjson.gz
  *     node scripts/restore.js <file> --drop        replace, do not merge
  *     node scripts/restore.js <file> --dry-run     read and count, write nothing
  *

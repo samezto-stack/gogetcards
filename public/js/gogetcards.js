@@ -1,5 +1,5 @@
 /* =========================================
-   ZYPHERA TCG — FRONTEND JS v2.0
+   GOGETCARDS — FRONTEND JS v2.0
    (Adapted from Shopify theme for Express)
    ========================================= */
 
@@ -485,7 +485,7 @@
      Both buttons are the same size and weight in the markup. Making
      refusal the harder path is the dark pattern regulators name
      specifically, and it is not worth the extra sessions. */
-  const consent = window.__zypheraConsent;
+  const consent = window.__gogetcardsConsent;
   const notice = document.getElementById('cookie-notice');
   if (consent && notice && !consent.get()) {
     notice.hidden = false;

@@ -845,7 +845,7 @@
       var msg = e.data;
       if (!msg || typeof msg !== 'object') return;
 
-      if (msg.type === 'zyphera:checkout-ready') {
+      if (msg.type === 'gogetcards:checkout-ready') {
         if (settled) return;
         settled = true;
         clearTimeout(giveUp);
@@ -853,12 +853,12 @@
         frame.hidden = false;
         return;
       }
-      if (msg.type === 'zyphera:checkout-height') {
+      if (msg.type === 'gogetcards:checkout-height') {
         var h = parseInt(msg.height, 10);
         if (h > 200 && h < 20000) frame.style.height = h + 'px';
         return;
       }
-      if (msg.type === 'zyphera:checkout-complete' && msg.fields && typeof msg.fields === 'object') {
+      if (msg.type === 'gogetcards:checkout-complete' && msg.fields && typeof msg.fields === 'object') {
         finish(msg);
       }
     }
@@ -913,7 +913,7 @@
     panel.appendChild(wait);
     panel.appendChild(errEl);
 
-    var f = buildHandoffForm(data, 'zypheraPay', false);
+    var f = buildHandoffForm(data, 'gogetcardsPay', false);
 
     mount.appendChild(panel);
     mount.appendChild(f);
@@ -940,7 +940,7 @@
     function openWindow() {
       errEl.hidden = true;
       var features = 'width=520,height=760,menubar=no,toolbar=no,location=yes,status=no,resizable=yes,scrollbars=yes';
-      try { win = window.open('', 'zypheraPay', features); } catch (e) { win = null; }
+      try { win = window.open('', 'gogetcardsPay', features); } catch (e) { win = null; }
       if (!win || win.closed || typeof win.closed === 'undefined') { window.location.assign(FALLBACK_URL); return; }
       try { f.submit(); }
       catch (e) { try { win.close(); } catch (e2) {} window.location.assign(FALLBACK_URL); return; }
@@ -964,8 +964,8 @@
       if (win && e.source !== win) return;
       var msg = e.data;
       if (!msg || typeof msg !== 'object') return;
-      if (msg.type === 'zyphera:checkout-ready') { greeted = true; return; }
-      if (msg.type === 'zyphera:checkout-complete' && msg.fields && typeof msg.fields === 'object') {
+      if (msg.type === 'gogetcards:checkout-ready') { greeted = true; return; }
+      if (msg.type === 'gogetcards:checkout-complete' && msg.fields && typeof msg.fields === 'object') {
         if (watcher) { clearInterval(watcher); watcher = null; }
         finish(msg);
       }

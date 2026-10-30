@@ -71,7 +71,7 @@ const REGION_BY_TZ = {
 
 function body() {
   const snap = fx.snapshot();
-  return `/* Zyphera TCG - approximate local price for the partner payment step.
+  return `/* GoGetCards - approximate local price for the partner payment step.
    Estimate only. The USD figure is what is charged. */
 (function () {
   var FX = ${JSON.stringify(snap.rates || {})};

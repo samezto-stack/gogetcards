@@ -38,7 +38,7 @@ const site = require('../config/site');
 const cfg = require('../config/push');
 const markets = require('../config/markets');
 
-const BRAND = cfg.brand || 'ZypheraTCG';
+const BRAND = cfg.brand || 'GoGetCards';
 const DEFAULT_TIMEOUT_MS = 5000;
 
 /** Money for humans: 389997 -> "$3,899.97". */

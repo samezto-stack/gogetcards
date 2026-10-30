@@ -103,7 +103,7 @@ function gtinProperties(raw) {
 // Direct, ...) for the session about to check out. Deliberately NOT
 // detectSource(req) computed right here — by the time someone clicks Buy
 // they've often browsed the site already, so req's own Referer at this
-// instant is usually just an internal zypheratcg URL, not the ad/search
+// instant is usually just an internal gogetcards URL, not the ad/search
 // result that actually brought them to the site. The session's EARLIEST
 // page_view (recorded by middleware/tracking.js at the moment they first
 // landed, days or minutes earlier) is the honest signal. Falls back to the
@@ -198,7 +198,7 @@ function trackCheckoutReached(req, quantity, destination, productSlug) {
 function renderPage(res, page, data = {}) {
   const layoutData = {
     ogType: 'website',
-    ogImage: 'https://zypheratcg.com/images/og-default.jpg',
+    ogImage: 'https://gogetcards.com/images/og-default.jpg',
     ...res.locals,
     ...data,
   };
@@ -221,7 +221,7 @@ function renderPage(res, page, data = {}) {
 function checkoutUnavailable(res, slug) {
   return res.status(503).render('pages/checkout-token-message', {
     layout: false,
-    pageTitle: 'Checkout unavailable | Zyphera TCG',
+    pageTitle: 'Checkout unavailable | GoGetCards',
     heading: 'We cannot take this order right now',
     message: 'Nothing was charged. This is on our side, not yours — the product is still available, '
       + 'and checkout usually comes back within a few minutes. Contact us if it does not.',
@@ -246,7 +246,7 @@ router.get('/', async (req, res) => {
     const featuredProducts = await Product.find({ featured: true, available: true }).limit(4).lean();
     const preorderProducts = await Product.find({ preorder: true, available: true }).limit(2).lean();
     renderPage(res, 'home', {
-      pageTitle: 'Zyphera TCG — Premium Sealed TCG Marketplace',
+      pageTitle: 'GoGetCards — Premium Sealed TCG Marketplace',
       metaDescription: 'Factory-sealed booster boxes, Master Cases & elite ETBs. Pokémon, Yu-Gi-Oh!, MTG & One Piece TCG. Lock in preorder pricing before allocations run out.',
       featuredProducts,
       preorderProducts,
@@ -795,7 +795,7 @@ router.get('/products/:slug', async (req, res) => {
     const variantTitle = variants.displayTitle(product);
 
     /* Track view. This is now the ONLY place a view_product event is
-     * written; the duplicate client-side fetch in public/js/zyphera.js was
+     * written; the duplicate client-side fetch in public/js/gogetcards.js was
      * removed, so the admin "top products" report no longer counts each
      * real view twice. Crawlers are excluded with the same test the
      * visitor middleware uses, otherwise the surviving server-side write
@@ -918,7 +918,7 @@ router.get('/products/:slug', async (req, res) => {
             : {}),
           image: productImages.length ? productImages : undefined,
           /* Brand is the manufacturer, which is what Google matches
-             against its catalogue. It fell back to "Zyphera TCG" — the
+             against its catalogue. It fell back to "GoGetCards" — the
              shop — whenever vendor was blank, telling Google this store
              manufactures Pokemon booster boxes. */
           brand: { '@type': 'Brand', name: product.brand || product.vendor || undefined },
@@ -971,7 +971,7 @@ router.get('/products/:slug', async (req, res) => {
                `preorderShips` ("Q2 2026") is deliberately not used here —
                it is not a date. */
             ...(isPreorderItem && rel.hasDate ? { availabilityStarts: rel.iso, availabilityDate: rel.iso } : {}),
-            seller: { '@type': 'Organization', '@id': `${origin}/#organization`, name: 'Zyphera TCG' },
+            seller: { '@type': 'Organization', '@id': `${origin}/#organization`, name: 'GoGetCards' },
             // Driven by config/shipping.js, which the announcement bar
             // reads too. Previously hardcoded '0' for every product, so a
             // $20 item advertised free shipping while the site's own copy
@@ -1049,7 +1049,7 @@ router.get('/products/:slug', async (req, res) => {
       /* Said "In Stock." for preorders too, so the snippet Google showed
          for an unreleased product advertised it as available now. The
          description a searcher reads is a product claim like any other. */
-      metaDescription: `Buy ${variantTitle} from Zyphera TCG. ${
+      metaDescription: `Buy ${variantTitle} from GoGetCards. ${
         !product.available ? 'Sold Out.'
           : isPreorderItem ? `${preorderCfg.shortLine(product)}.`
           : 'In Stock.'
@@ -1187,7 +1187,7 @@ router.get('/collection/:handle', async (req, res) => {
           '@id': `${collectionUrl}#collection`,
           url: collectionUrl,
           name: collectionTitle,
-          description: collectionDescription || `Factory-sealed ${collectionTitle} from Zyphera TCG.`,
+          description: collectionDescription || `Factory-sealed ${collectionTitle} from GoGetCards.`,
           isPartOf: { '@id': `${origin}/#website` },
           // The product set itself, so an answer engine can extract what
           // this page actually contains rather than guessing from copy.
@@ -1252,13 +1252,13 @@ router.get('/collection/:handle', async (req, res) => {
 
     renderPage(res, 'collection', {
       pageTitle: isSearch
-        ? `Search results for "${rawQuery}" | Zyphera TCG`
-        : `${collectionTitle}${pageSuffix} | Zyphera TCG`,
+        ? `Search results for "${rawQuery}" | GoGetCards`
+        : `${collectionTitle}${pageSuffix} | GoGetCards`,
       metaDescription: isSearch
-        ? `${totalProducts} factory-sealed product${totalProducts === 1 ? '' : 's'} matching "${rawQuery}" at Zyphera TCG.`
+        ? `${totalProducts} factory-sealed product${totalProducts === 1 ? '' : 's'} matching "${rawQuery}" at GoGetCards.`
         : (collectionDescription
-          ? `${collectionDescription} ${totalProducts} factory-sealed products in stock at Zyphera TCG.`.substring(0, 158)
-          : `Factory-sealed ${collectionTitle} booster boxes, cases and elite trainer boxes, sourced through authorized distribution. ${totalProducts} products at Zyphera TCG.`.substring(0, 158)),
+          ? `${collectionDescription} ${totalProducts} factory-sealed products in stock at GoGetCards.`.substring(0, 158)
+          : `Factory-sealed ${collectionTitle} booster boxes, cases and elite trainer boxes, sourced through authorized distribution. ${totalProducts} products at GoGetCards.`.substring(0, 158)),
       ...(isSearch ? { robotsOverride: 'noindex, follow' } : {}),
       canonicalUrl: isSearch ? collectionUrl : pageUrl,
       paginationLinks: isSearch ? [] : paginationLinks,
@@ -1301,8 +1301,8 @@ router.get('/collections/:handle', (req, res) => res.redirect(301, withQuery(req
 /* ── Cart Page ─────────────────────────────────────────── */
 router.get('/cart', (req, res) => {
   renderPage(res, 'cart', {
-    pageTitle: 'Shopping Cart | Zyphera TCG',
-    metaDescription: 'Review your cart at Zyphera TCG.',
+    pageTitle: 'Shopping Cart | GoGetCards',
+    metaDescription: 'Review your cart at GoGetCards.',
   });
 });
 
@@ -1310,24 +1310,24 @@ router.get('/cart', (req, res) => {
 router.get('/about', (req, res) => {
   const origin = site.origin();
   renderPage(res, 'about', {
-    pageTitle: 'About Us | Zyphera TCG',
+    pageTitle: 'About Us | GoGetCards',
     /* No longer promises a "team" section. That block is config-driven
        and renders nothing until config/company.js is filled in, so the
        old description advertised content a visitor would not find, which
        is the kind of mismatch that costs you the click on the next
        search. */
-    metaDescription: 'How Zyphera TCG sources factory-sealed trading card product through authorized distribution, what we guarantee on every order, and the things we will not do.',
+    metaDescription: 'How GoGetCards sources factory-sealed trading card product through authorized distribution, what we guarantee on every order, and the things we will not do.',
     jsonLd: (function () {
       /* AboutPage on top of the standard breadcrumb + WebPage graph, so the
          page is typed as what it is and points at the Organization entity
          rather than floating unattached. */
       const url = `${origin}/about`;
-      const graph = breadcrumbGraph(origin, url, 'About Zyphera TCG')['@graph'];
+      const graph = breadcrumbGraph(origin, url, 'About GoGetCards')['@graph'];
       graph.push({
         '@type': 'AboutPage',
         '@id': `${url}#aboutpage`,
         url,
-        name: 'About Zyphera TCG',
+        name: 'About GoGetCards',
         mainEntity: { '@id': `${origin}/#organization` },
         isPartOf: { '@id': `${origin}/#website` },
         inLanguage: 'en-US',
@@ -1349,7 +1349,7 @@ router.get('/about', (req, res) => {
  * the visible ones earn a manual action. */
 function contactGraph(origin, url) {
   const b = company.business;
-  const graph = breadcrumbGraph(origin, url, 'Contact Zyphera TCG')['@graph'];
+  const graph = breadcrumbGraph(origin, url, 'Contact GoGetCards')['@graph'];
 
   const contactPoint = {
     '@type': 'ContactPoint',
@@ -1365,7 +1365,7 @@ function contactGraph(origin, url) {
     '@type': 'ContactPage',
     '@id': `${url}#contactpage`,
     url,
-    name: 'Contact Zyphera TCG',
+    name: 'Contact GoGetCards',
     isPartOf: { '@id': `${origin}/#website` },
     about: { '@id': `${origin}/#organization` },
     inLanguage: 'en-US',
@@ -1384,8 +1384,8 @@ function contactGraph(origin, url) {
  * cannot drift into rendering different versions of the same page. */
 function contactLocals(origin, extra = {}) {
   return {
-    pageTitle: 'Contact Us | Zyphera TCG',
-    metaDescription: 'Contact Zyphera TCG about an order, a preorder release date, or stock availability. We reply within one business day.',
+    pageTitle: 'Contact Us | GoGetCards',
+    metaDescription: 'Contact GoGetCards about an order, a preorder release date, or stock availability. We reply within one business day.',
     jsonLd: contactGraph(origin, `${origin}/contact`),
     faqs: faqConfig.faqs(),
     sent: false,
@@ -1538,7 +1538,7 @@ function snippetFromHtml(html, limit = 155) {
 }
 
 /* BreadcrumbList for a simple two-level page. Emitting it is what makes
- * Google show "zypheratcg.com > Privacy Policy" instead of a bare URL,
+ * Google show "gogetcards.com > Privacy Policy" instead of a bare URL,
  * and it is the one piece of structured data these pages can honestly
  * carry. */
 function breadcrumbGraph(origin, url, name) {
@@ -1579,8 +1579,8 @@ router.get('/faq', (req, res) => {
   graph.push(faqConfig.faqSchema(url));
 
   renderPage(res, 'faq', {
-    pageTitle: 'Frequently Asked Questions | Zyphera TCG',
-    metaDescription: 'Answers on authenticity, factory-sealed guarantees, preorders and allocations, free worldwide shipping, returns, payment and support at Zyphera TCG.',
+    pageTitle: 'Frequently Asked Questions | GoGetCards',
+    metaDescription: 'Answers on authenticity, factory-sealed guarantees, preorders and allocations, free worldwide shipping, returns, payment and support at GoGetCards.',
     canonicalUrl: url,
     jsonLd: { '@context': 'https://schema.org', '@graph': graph },
     faqs: faqConfig.faqs(),
@@ -1622,7 +1622,7 @@ router.get('/:slug', (req, res, next) => {
   const jsonLd = breadcrumbGraph(origin, url, page.title);
 
   renderPage(res, 'trust-page', {
-    pageTitle: `${page.title} | Zyphera TCG`,
+    pageTitle: `${page.title} | GoGetCards`,
     metaDescription: page.description,
     canonicalUrl: url,
     jsonLd,
@@ -1650,7 +1650,7 @@ router.get('/:slug', (req, res, next) => {
 router.get('/shipping', (req, res) => {
   const origin = site.origin();
   renderPage(res, 'shipping', {
-    pageTitle: 'Shipping & Delivery | Zyphera TCG',
+    pageTitle: 'Shipping & Delivery | GoGetCards',
     metaDescription: `Tracked, insured worldwide shipping on every order. Rates, delivery estimates and dispatch times by destination, plus how customs and duties work on international orders.`,
     jsonLd: breadcrumbGraph(origin, `${origin}/shipping`, 'Shipping & Delivery'),
   });
@@ -1692,16 +1692,16 @@ router.get('/page/:slug', async (req, res) => {
     const url = `${origin}/page/${page.slug}`;
 
     /* Hand-written description wins; otherwise derive one from the actual
-       content. The old value was `${page.title} — Zyphera TCG policies and
+       content. The old value was `${page.title} — GoGetCards policies and
        information.` on EVERY page: the same sentence five times over, and
        it described none of them. */
     const description =
       (page.metaDescription && page.metaDescription.trim())
       || snippetFromHtml(page.content)
-      || `${page.title} at Zyphera TCG.`;
+      || `${page.title} at GoGetCards.`;
 
     renderPage(res, 'page', {
-      pageTitle: `${page.title} | Zyphera TCG`,
+      pageTitle: `${page.title} | GoGetCards`,
       metaDescription: description,
       ogType: 'article',
       jsonLd: breadcrumbGraph(origin, url, page.title),
@@ -1757,8 +1757,8 @@ router.get('/thank-you', async (req, res) => {
 
   if (!hasToken) {
     return renderPage(res, 'thank-you', {
-      pageTitle: 'Order Confirmed | Zyphera TCG',
-      metaDescription: 'Thank you for your purchase from Zyphera TCG.',
+      pageTitle: 'Order Confirmed | GoGetCards',
+      metaDescription: 'Thank you for your purchase from GoGetCards.',
       order_id: req.query.order_id || null,
       orderRef: req.query.order_id ? orderReference(req.query.order_id) : '',
       account: { customer: null, created: false, signedIn: false },
@@ -1774,8 +1774,8 @@ router.get('/thank-you', async (req, res) => {
   if (!verification.valid) {
     console.warn(`Thank You link failed verification (${verification.reason}) for order_id=${req.query.order_id}`);
     return renderPage(res, 'thank-you', {
-      pageTitle: 'Order Confirmed | Zyphera TCG',
-      metaDescription: 'Thank you for your purchase from Zyphera TCG.',
+      pageTitle: 'Order Confirmed | GoGetCards',
+      metaDescription: 'Thank you for your purchase from GoGetCards.',
       order_id: null,
       orderRef: '',
       account: { customer: null, created: false, signedIn: false },
@@ -1815,8 +1815,8 @@ router.get('/thank-you', async (req, res) => {
       : { customer: null, created: false, signedIn: false };
 
     return renderPage(res, 'thank-you', {
-      pageTitle: 'Order Confirmed | Zyphera TCG',
-      metaDescription: 'Thank you for your purchase from Zyphera TCG.',
+      pageTitle: 'Order Confirmed | GoGetCards',
+      metaDescription: 'Thank you for your purchase from GoGetCards.',
       ...extras,
       account,
       order_id: result.ok ? result.order.orderId : (req.query.order_id || null),
@@ -1829,8 +1829,8 @@ router.get('/thank-you', async (req, res) => {
   } catch (err) {
     console.error('Thank You pipeline error:', err);
     return renderPage(res, 'thank-you', {
-      pageTitle: 'Order Confirmed | Zyphera TCG',
-      metaDescription: 'Thank you for your purchase from Zyphera TCG.',
+      pageTitle: 'Order Confirmed | GoGetCards',
+      metaDescription: 'Thank you for your purchase from GoGetCards.',
       order_id: req.query.order_id || null,
       orderRef: '',
       account: { customer: null, created: false, signedIn: false },
@@ -2099,7 +2099,7 @@ router.get('/checkout/step-1', async (req, res) => {
     }
 
     renderPage(res, 'checkout-step1', {
-      pageTitle: 'Secure Checkout | Zyphera',
+      pageTitle: 'Secure Checkout | GoGetCards',
       cartItems,
       cartTotal,
       query: req.query,
@@ -2239,7 +2239,7 @@ router.get('/checkout/whop', (req, res) => {
 router.get('/checkout/success', async (req, res) => {
   // Logic simplified as session is no longer holding the Order ID
   renderPage(res, 'checkout-success', {
-    pageTitle: 'Order Confirmed | Zyphera'
+    pageTitle: 'Order Confirmed | GoGetCards'
   });
 });
 

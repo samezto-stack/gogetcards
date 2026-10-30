@@ -1,11 +1,11 @@
 {
-  "name": "Zyphera TCG",
-  "short_name": "Zyphera",
+  "name": "GoGetCards",
+  "short_name": "GoGetCards",
   "description": "Factory-sealed Pokemon, Yu-Gi-Oh!, Magic and One Piece booster boxes, cases and elite trainer boxes.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0B0D12",
-  "theme_color": "#0B0D12",
+  "background_color": "#F3F4F7",
+  "theme_color": "#0F2A4A",
   "icons": [
     { "src": "/favicon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/favicon-512.png", "sizes": "512x512", "type": "image/png" },

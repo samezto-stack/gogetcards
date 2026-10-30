@@ -51,7 +51,7 @@ function requireCustomer(req, res, next) {
     /* A POST from an expired session must not be silently redirected into
        a GET — the customer would see a page and assume the action worked. */
     return res.status(401).render('pages/account-signin', {
-      pageTitle: 'Sign in | Zyphera TCG',
+      pageTitle: 'Sign in | GoGetCards',
       metaDescription: '',
       robotsOverride: 'noindex, nofollow',
       sent: false,

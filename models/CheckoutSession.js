@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const crypto = require('crypto');
 
 /**
- * A checkout in progress, owned by Zyphera.
+ * A checkout in progress, owned by GoGetCards.
  *
  * WHY THIS EXISTS AND WHAT IT REPLACES. The old /checkout/whop route
  * addressed a checkout by putting a raw Mongo ObjectId in the URL and then

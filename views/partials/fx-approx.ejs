@@ -190,10 +190,10 @@
   /* The cart drawer and the quantity control rewrite totals after load, so
      re-run on the events this site already fires for that. Guarded by
      data-fx-done, so re-running is free. */
-  ['cart:updated', 'zyphera:price-changed'].forEach(function (evt) {
+  ['cart:updated', 'gogetcards:price-changed'].forEach(function (evt) {
     document.addEventListener(evt, function () { render(document); });
   });
-  window.__zypheraFxRender = render;
+  window.__gogetcardsFxRender = render;
 })();
 </script>
 <% } %>

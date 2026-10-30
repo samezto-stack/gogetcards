@@ -42,8 +42,8 @@ function ok(label, condition, detail = '') {
 /* ── Which addresses open it ────────────────────────────── */
 console.log('the address');
 {
-  ok('the canonical address', testOrder.isTestEmail('test@zypheratcg.com'));
-  ok('case and space tolerant', testOrder.isTestEmail('  TEST@Zypheratcg.COM '));
+  ok('the canonical address', testOrder.isTestEmail('test@gogetcards.com'));
+  ok('case and space tolerant', testOrder.isTestEmail('  TEST@GoGetCardstcg.COM '));
   ok('a plus tag on any domain', testOrder.isTestEmail('samezto+ztest@gmail.com'));
   ok('a plus tag with a mixed-case local part', testOrder.isTestEmail('Sam+ZTest@outlook.com'));
 
@@ -53,8 +53,8 @@ console.log('the address');
   [
     'samezto@gmail.com', 'test@gmail.com', 'ztest@gmail.com',
     'sam+news@gmail.com', 'sam+ztest2@gmail.com', 'sam+ztestx@gmail.com',
-    'sam@ztest.com', 'ztest@zypheratcg.com', 'sam+ztest.foo@gmail.com',
-    'test@zypheratcg.com.evil.example', 'notest@zypheratcg.com',
+    'sam@ztest.com', 'ztest@gogetcards.com', 'sam+ztest.foo@gmail.com',
+    'test@gogetcards.com.evil.example', 'notest@gogetcards.com',
     '', null, undefined, 'not-an-email', 'sam+ztest',
   ].forEach((e) => ok(`refused: ${JSON.stringify(e)}`, !testOrder.isTestEmail(e)));
 

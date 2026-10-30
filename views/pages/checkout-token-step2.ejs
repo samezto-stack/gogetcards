@@ -145,14 +145,14 @@
            WHY NOT INLINE. A bank's 3-D Secure challenge is very often served
            with frame-ancestors 'none', because refusing to be framed is the
            entire point of an anti-fraud page. Inline, the payment sits three
-           frames deep — zypheratcg, the partner, Whop, then the bank — and a
+           frames deep — gogetcards, the partner, Whop, then the bank — and a
            customer whose card challenges gets a blank box instead of a
            payment they can finish. Apple Pay and Google Pay do not survive
            the nesting either.
 
            A window is a TOP-LEVEL browsing context. There is no frame for
            the bank to refuse, and the wallets come back. The customer's own
-           window never leaves zypheratcg: it stays on this page, dimmed,
+           window never leaves gogetcards: it stays on this page, dimmed,
            waiting, and takes over again the moment payment completes.
 
            The window is opened synchronously inside the click, which is what
@@ -180,7 +180,7 @@
         <p class="ck-paywin-err" id="ck-paywin-err" hidden></p>
       </div>
 
-      <form id="ck-embed-form" method="POST" action="<%= paymentAction %>" target="zypheraPay" hidden>
+      <form id="ck-embed-form" method="POST" action="<%= paymentAction %>" target="gogetcardsPay" hidden>
         <input type="hidden" name="<%= partnerTokenParam %>" value="<%= partnerToken %>">
         <%/* This page's own origin, stated rather than left to be inferred.
              The partner needs it as postMessage's targetOrigin, and it used
@@ -345,7 +345,7 @@
          POST body rather than in the window's address bar. */
       var features = 'width=520,height=760,menubar=no,toolbar=no,location=yes,status=no,resizable=yes,scrollbars=yes';
       try {
-        win = window.open('', 'zypheraPay', features);
+        win = window.open('', 'gogetcardsPay', features);
       } catch (e) {
         win = null;
       }
@@ -390,8 +390,8 @@
       if (win && e.source !== win) return;
       var msg = e.data;
       if (!msg || typeof msg !== 'object') return;
-      if (msg.type === 'zyphera:checkout-ready') { greeted = true; return; }
-      if (msg.type === 'zyphera:checkout-complete' && msg.fields && typeof msg.fields === 'object') {
+      if (msg.type === 'gogetcards:checkout-ready') { greeted = true; return; }
+      if (msg.type === 'gogetcards:checkout-complete' && msg.fields && typeof msg.fields === 'object') {
         if (watcher) { clearInterval(watcher); watcher = null; }
         finish(msg);
       }
@@ -427,7 +427,7 @@
       var msg = e.data;
       if (!msg || typeof msg !== 'object') return;
 
-      if (msg.type === 'zyphera:checkout-ready') {
+      if (msg.type === 'gogetcards:checkout-ready') {
         if (settled) return;
         settled = true;
         clearTimeout(giveUp);
@@ -438,13 +438,13 @@
 
       /* The partner reports its own height as Whop's iframe resizes.
          Clamped: a bad number must not draw a page a million pixels tall. */
-      if (msg.type === 'zyphera:checkout-height') {
+      if (msg.type === 'gogetcards:checkout-height') {
         var h = parseInt(msg.height, 10);
         if (h > 200 && h < 20000) frame.style.height = h + 'px';
         return;
       }
 
-      if (msg.type === 'zyphera:checkout-complete' && msg.fields && typeof msg.fields === 'object') {
+      if (msg.type === 'gogetcards:checkout-complete' && msg.fields && typeof msg.fields === 'object') {
         finish(msg);
       }
     });

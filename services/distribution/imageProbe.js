@@ -101,7 +101,7 @@ async function probe(url, { timeoutMs = 8000 } = {}) {
     const res = await fetch(url, {
       signal: controller.signal,
       redirect: 'follow',
-      headers: { Range: 'bytes=0-32767', 'User-Agent': 'ZypheraTCG-FeedValidator/1.0' },
+      headers: { Range: 'bytes=0-32767', 'User-Agent': 'GoGetCards-FeedValidator/1.0' },
     });
     if (!res.ok && res.status !== 206) {
       return { url, ok: false, status: res.status, contentType: res.headers.get('content-type') || '' };

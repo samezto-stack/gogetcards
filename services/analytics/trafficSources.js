@@ -63,7 +63,7 @@ function appChannelExpr(sourceExpr) {
 
 /**
  * @param {object} match  extra $match conditions (date range, etc.)
- * @param {string} siteHost  bare hostname, e.g. "zypheratcg.com"
+ * @param {string} siteHost  bare hostname, e.g. "gogetcards.com"
  * @returns {object[]} aggregation pipeline
  */
 function buildTrafficSourcePipeline(match = {}, siteHost = '') {

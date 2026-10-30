@@ -1,12 +1,12 @@
 /* ============================================================
-   Zyphera TCG — checkout (Step 1 and the payment handoff)
+   GoGetCards — checkout (Step 1 and the payment handoff)
 
    The same stylesheet the partner checkout uses, ported here so the
    customer's information step and their payment step are visibly one
    journey. Ported rather than reimplemented: it has been through several
    accessibility and contrast passes and re-typing it would lose them.
 
-   Tokens are zypheratcg's own, from public/css/zyphera.css, so the
+   Tokens are gogetcards's own, from public/css/gogetcards.css, so the
    checkout is visibly the same business as the store the buyer
    just left. One theme across all nine partner sites.
 
@@ -422,7 +422,7 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
 /* ---------- Trust strip ----------
    Two columns of plain ticks. Not four cards, not four icon circles: the
    claims carry themselves, and every one of them is checkable against
-   zypheratcg's own shipping and refund configuration. */
+   gogetcards's own shipping and refund configuration. */
 
 .ck-trust-row {
   display: grid; grid-template-columns: 1fr; gap: 8px 20px;
@@ -650,7 +650,7 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
    views/partials/fx-approx.ejs.
 
    RESTATED HERE RATHER THAN SHARED. This page renders with layout:false and
-   loads only this stylesheet, so the .fx-approx rules in zyphera.css never
+   loads only this stylesheet, so the .fx-approx rules in gogetcards.css never
    reach it. Without these the chip still renders — it just renders as
    unstyled body text directly beneath a 30px serif total, which reads as a
    second price rather than as a note about the first one.

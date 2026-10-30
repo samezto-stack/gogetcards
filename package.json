@@ -1,7 +1,7 @@
 {
-  "name": "zypheratcg",
+  "name": "gogetcards",
   "version": "1.0.0",
-  "description": "Zyphera TCG — Premium Sealed TCG Marketplace",
+  "description": "GoGetCards — sealed TCG and sports card store",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

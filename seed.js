@@ -1,5 +1,5 @@
 /**
- * Zyphera TCG — Database Seeder
+ * GoGetCards — Database Seeder
  * Seeds products, collections, admin user, settings, and policy pages
  * Run: node seed.js
  */
@@ -173,7 +173,7 @@ const PAGES = [
   {
     title: "Privacy Policy", slug: "privacy-policy", category: "legal",
     content: `<h2>Privacy Policy</h2>
-<p>At Zyphera TCG, we take your privacy seriously. This policy outlines how we collect, use, and protect your personal information when you visit our website and make purchases.</p>
+<p>At GoGetCards, we take your privacy seriously. This policy outlines how we collect, use, and protect your personal information when you visit our website and make purchases.</p>
 <h3>Information We Collect</h3>
 <p>We collect information you provide directly, including your name, email address, shipping address, and payment details when you make a purchase. We also collect browsing data through cookies to improve your shopping experience.</p>
 <h3>How We Use Your Information</h3>
@@ -181,25 +181,25 @@ const PAGES = [
 <h3>Data Protection</h3>
 <p>All payment information is processed securely through our payment providers. We do not store credit card details on our servers. Your data is protected using industry-standard SSL encryption.</p>
 <h3>Contact</h3>
-<p>For privacy-related inquiries, contact us at <a href="mailto:support@zypheratcg.com">support@zypheratcg.com</a>.</p>`
+<p>For privacy-related inquiries, contact us at <a href="mailto:support@gogetcards.com">support@gogetcards.com</a>.</p>`
   },
   {
     title: "Terms of Service", slug: "terms-of-service", category: "legal",
     content: `<h2>Terms of Service</h2>
-<p>By accessing and using the Zyphera TCG website, you agree to be bound by these Terms of Service. Please read them carefully before making a purchase.</p>
+<p>By accessing and using the GoGetCards website, you agree to be bound by these Terms of Service. Please read them carefully before making a purchase.</p>
 <h3>Products</h3>
-<p>All products sold on Zyphera TCG are guaranteed factory sealed. We source directly from licensed distributors and maintain strict chain-of-custody protocols.</p>
+<p>All products sold on GoGetCards are guaranteed factory sealed. We source directly from licensed distributors and maintain strict chain-of-custody protocols.</p>
 <h3>Pricing</h3>
 <p>All prices are listed in USD. Prices are subject to change without notice. Preorder prices are locked at the time of purchase.</p>
 <h3>Preorders</h3>
 <p>Preorder products are not charged until they ship. You may cancel a preorder at any time before dispatch for a full refund.</p>
 <h3>Limitation of Liability</h3>
-<p>Zyphera TCG is not liable for any indirect, incidental, or consequential damages arising from the use of our products or services.</p>`
+<p>GoGetCards is not liable for any indirect, incidental, or consequential damages arising from the use of our products or services.</p>`
   },
   {
     title: "Refund Policy", slug: "refund-policy", category: "legal",
     content: `<h2>Refund Policy</h2>
-<p>We want you to be completely satisfied with your purchase from Zyphera TCG.</p>
+<p>We want you to be completely satisfied with your purchase from GoGetCards.</p>
 <h3>Returns</h3>
 <p>You may return any sealed, unopened product within 14 days of delivery for a full refund. The item must be in its original condition — factory sealed and undamaged.</p>
 <h3>Damaged Items</h3>
@@ -207,7 +207,7 @@ const PAGES = [
 <h3>Preorder Cancellations</h3>
 <p>Preorders may be cancelled at any time before dispatch for a full refund. Once shipped, standard return policy applies.</p>
 <h3>How to Request a Refund</h3>
-<p>Email <a href="mailto:support@zypheratcg.com">support@zypheratcg.com</a> with your order number and reason for return.</p>`
+<p>Email <a href="mailto:support@gogetcards.com">support@gogetcards.com</a> with your order number and reason for return.</p>`
   },
   {
     title: "Shipping & Returns", slug: "shipping-and-returns", category: "legal",
@@ -223,9 +223,9 @@ const PAGES = [
   {
     title: "Disclaimer", slug: "disclaimer", category: "legal",
     content: `<h2>Disclaimer</h2>
-<p>Zyphera TCG does not provide investment, financial, or tax advice. All information on this website is provided for general informational purposes only.</p>
+<p>GoGetCards does not provide investment, financial, or tax advice. All information on this website is provided for general informational purposes only.</p>
 <p>While sealed TCG products may appreciate in value over time, past performance is not indicative of future results. The value of sealed products can go down as well as up.</p>
-<p>Zyphera TCG is not affiliated with, endorsed by, or sponsored by The Pokémon Company, Konami, Wizards of the Coast, Bandai, or any other trading card game manufacturer.</p>
+<p>GoGetCards is not affiliated with, endorsed by, or sponsored by The Pokémon Company, Konami, Wizards of the Coast, Bandai, or any other trading card game manufacturer.</p>
 <p>All trademarks, logos, and brand names are the property of their respective owners.</p>`
   },
 ];
@@ -254,10 +254,10 @@ async function seed() {
 
     // Seed admin user
     await User.create({
-      email: 'admin@zypheratcg.com',
+      email: 'admin@gogetcards.com',
       password: 'changeme123',
     });
-    console.log('👤 Created admin user (admin@zypheratcg.com / changeme123)');
+    console.log('👤 Created admin user (admin@gogetcards.com / changeme123)');
 
     // Seed pages
     await Page.insertMany(PAGES);

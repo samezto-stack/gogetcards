@@ -56,7 +56,7 @@ const { canonicalizeFields } = require('./orderPipeline/signatureVerifier');
 const TEST_TAG = '+ztest';
 
 /** The address to use when you do not want the mail, only the flow. */
-const CANONICAL_TEST_EMAIL = 'test@zypheratcg.com';
+const CANONICAL_TEST_EMAIL = 'test@gogetcards.com';
 
 /** Stored in Order.originalCheckoutMethod. Reporting excludes on it. */
 const MARKER = 'test_order';

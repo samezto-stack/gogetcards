@@ -35,7 +35,7 @@ const TRANSFORMABLE_HOSTS = /(^|\.)(cdn\.shopify\.com|shopifycdn\.com)$/i;
    module for this store.
  *
  * Shopify serves the same assets from the SHOP's own domain as well as from
- * cdn.shopify.com — `zypheratcgg.myshopify.com/cdn/shop/files/x.png?v=…` is
+ * cdn.shopify.com — `gogetcardsg.myshopify.com/cdn/shop/files/x.png?v=…` is
  * what its admin hands you when you copy an image URL, and it is what every
  * product in this catalogue stores. That host does not end in
  * cdn.shopify.com, so isTransformable said no, so every template fell back

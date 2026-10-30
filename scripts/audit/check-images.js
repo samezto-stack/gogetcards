@@ -9,7 +9,7 @@
  * every thumbnail on the site is quietly a full-size original.
  *
  * It happened. The host list matched cdn.shopify.com, and this store's
- * images are served from zypheratcgg.myshopify.com/cdn/shop/files/…, so the
+ * images are served from gogetcardsg.myshopify.com/cdn/shop/files/…, so the
  * module was disabled for the entire catalogue from the day it shipped. No
  * check would have caught it, because every check used a cdn.shopify.com
  * fixture.
@@ -31,7 +31,7 @@ const check = (name, ok, detail) => {
 
 /* The shape Shopify's admin hands you when you copy an image URL: the shop
    domain, the /cdn/shop/ path, a v= cache-buster and a width already on it. */
-const SHOP_DOMAIN = 'https://zypheratcgg.myshopify.com/cdn/shop/files/Untitled_design_22.png?v=1787253161&width=900';
+const SHOP_DOMAIN = 'https://gogetcardsg.myshopify.com/cdn/shop/files/Untitled_design_22.png?v=1787253161&width=900';
 /* The same asset from the CDN domain, which is what older stored values
    look like. */
 const CDN_DOMAIN = 'https://cdn.shopify.com/s/files/1/0001/0001/files/box.png?v=1712345678';

@@ -90,10 +90,10 @@ function resolveSessionSecret() {
 app.set('trust proxy', 1); // Trust exactly one proxy hop (Render's load balancer). Using `true` is unsafe as it allows X-Forwarded-For spoofing.
 
 /* ── One canonical host: www → apex ────────────────────────
-   The store lives on the apex, zypheratcg.com — that is what config/site.js
+   The store lives on the apex, gogetcards.com — that is what config/site.js
    pins as canonical, what the feeds and Merchant Center point at, and what
    every canonical tag already declares. But the DNS also answers on
-   www.zypheratcg.com, and a request that arrives there is served the whole
+   www.gogetcards.com, and a request that arrives there is served the whole
    site on a second hostname. Two live hostnames serving identical pages
    split link equity and reputation across both, and after a stretch of
    competitors reporting this domain, one address to defend is worth more
@@ -310,7 +310,7 @@ async function boot() {
     res.locals.marketPath = (p) => (String(p || '/').startsWith('/') ? String(p || '/') : `/${p}`);
     res.locals.currentPath = req.path;
     res.locals.currentYear = new Date().getFullYear();
-    res.locals.pageTitle = 'Zyphera TCG';
+    res.locals.pageTitle = 'GoGetCards';
     res.locals.metaDescription = '';
     res.locals.ogType = 'website';
     res.locals.ogImage = '';
@@ -543,7 +543,7 @@ async function boot() {
   app.listen(PORT, () => {
     console.log(`
 ╔═══════════════════════════════════════════╗
-║  🔮 Zyphera TCG — Server Running         ║
+║  🔮 GoGetCards — Server Running         ║
 ║  📍 http://localhost:${PORT}                ║
 ║  📦 Admin: http://localhost:${PORT}/admin    ║
 ╚═══════════════════════════════════════════╝

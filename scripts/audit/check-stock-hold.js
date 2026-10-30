@@ -80,7 +80,7 @@ const ok = (n, c, d) => { c ? (pass++, console.log('pass  ' + n)) : (fail++, con
     /* This page is rendered standalone here; on a real request the market
        middleware has already supplied these. */
     ...require('./marketLocals')(),
-    layout: false, pageTitle: 'Sold out | Zyphera TCG', assetVersion: 'test',
+    layout: false, pageTitle: 'Sold out | GoGetCards', assetVersion: 'test',
     formatPrice: require(path.join(ROOT, 'helpers/formatPrice')),
     productImage: require(path.join(ROOT, 'helpers/productImage')),
     gone: { title: 'One Piece OP-17 Booster Box', image: 'https://x.myshopify.com/cdn/shop/f/a.png?width=900' },

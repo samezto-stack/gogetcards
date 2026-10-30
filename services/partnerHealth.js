@@ -201,7 +201,7 @@ async function sweep(config, now = Date.now()) {
 
   /* NEVER SUSPEND THE LAST ONE, and this is not a nicety.
      An empty rotation is not a degraded checkout, it is no checkout:
-     resolvePartnerRedirect returns null, and the buyer gets zypheratcg's
+     resolvePartnerRedirect returns null, and the buyer gets gogetcards's
      own "This checkout cannot be completed" page for every product in the
      catalogue. A dead partner at least shows one broken payment step to
      the people the cursor happens to land on.

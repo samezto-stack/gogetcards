@@ -30,8 +30,8 @@ const company = require('./company');
 /* Overridable so a staging deploy can send from somewhere obvious
    without editing code, but every value has a real default: an unset
    variable must not produce a From header of "undefined". */
-const FROM_NAME = process.env.MAIL_FROM_NAME || 'Zyphera TCG';
-const FROM_ADDRESS = process.env.MAIL_FROM || 'orders@zypheratcg.com';
+const FROM_NAME = process.env.MAIL_FROM_NAME || 'GoGetCards';
+const FROM_ADDRESS = process.env.MAIL_FROM || 'orders@gogetcards.com';
 const REPLY_TO = process.env.MAIL_REPLY_TO || company.business.supportEmail;
 
 /* ZeptoMail's SMTP endpoint. Only the credentials belong in env; the

@@ -163,7 +163,7 @@ gallery thumbnails), `views/partials/cart-drawer.ejs`,
 
 Two details that were easy to get wrong:
 
-- **The gallery thumbnail swap.** `public/js/zyphera.js` set `mainImg.src`
+- **The gallery thumbnail swap.** `public/js/gogetcards.js` set `mainImg.src`
   and nothing else. A `srcset` beats a `src`, so adding responsive images
   would have made every thumbnail click do nothing visible. The handler now
   swaps `srcset` first, from a matching `data-thumb-srcset`.

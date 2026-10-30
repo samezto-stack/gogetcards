@@ -45,7 +45,7 @@ async function database() {
 }
 
 const ROOT = path.join(__dirname, '..', '..');
-process.env.SITE_URL = 'https://zypheratcg.com';
+process.env.SITE_URL = 'https://gogetcards.com';
 process.env.NODE_ENV = 'test';
 
 const Customer = require(path.join(ROOT, 'models/Customer'));
@@ -132,9 +132,9 @@ function buildApp() {
     Object.assign(res.locals, {
       cart: { items: [], totalItems: 0, totalPrice: 0 },
       currentPath: req.path, currentYear: 2026,
-      pageTitle: 'Zyphera TCG', metaDescription: '', ogType: 'website', ogImage: '',
-      canonicalUrl: 'https://zypheratcg.com' + req.path,
-      canonicalOrigin: 'https://zypheratcg.com',
+      pageTitle: 'GoGetCards', metaDescription: '', ogType: 'website', ogImage: '',
+      canonicalUrl: 'https://gogetcards.com' + req.path,
+      canonicalOrigin: 'https://gogetcards.com',
       jsonLd: null, bodyClass: '', metaPixelId: '',
       shippingCopy: shippingCfg.copy,
       company: require(path.join(ROOT, 'config/company')),

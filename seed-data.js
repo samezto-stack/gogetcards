@@ -43,7 +43,7 @@ const PAGES = [
   <h2>Privacy Policy</h2>
   <p class="legal-updated">Last updated: January 15, 2026</p>
 
-  <p>At Zyphera TCG ("we", "our", "us"), your privacy is critically important. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website <strong>zypheratcg.com</strong> and make purchases from our store. Please read this policy carefully.</p>
+  <p>At GoGetCards ("we", "our", "us"), your privacy is critically important. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website <strong>gogetcards.com</strong> and make purchases from our store. Please read this policy carefully.</p>
 
   <h3>1. Information We Collect</h3>
 
@@ -116,7 +116,7 @@ const PAGES = [
     <li>Data portability — receive your data in a structured, machine-readable format</li>
     <li>Withdraw consent for marketing communications at any time</li>
   </ul>
-  <p>To exercise any of these rights, email us at <a href="mailto:privacy@zypheratcg.com">privacy@zypheratcg.com</a>.</p>
+  <p>To exercise any of these rights, email us at <a href="mailto:privacy@gogetcards.com">privacy@gogetcards.com</a>.</p>
 
   <h3>7. Data Retention</h3>
   <p>We retain your personal information for as long as your account is active or as needed to provide services. Order data is retained for 7 years for tax and legal compliance. You may request early deletion by contacting us.</p>
@@ -130,8 +130,8 @@ const PAGES = [
   <h3>10. Contact Us</h3>
   <p>For privacy-related questions or concerns:</p>
   <ul>
-    <li><strong>Email:</strong> <a href="mailto:privacy@zypheratcg.com">privacy@zypheratcg.com</a></li>
-    <li><strong>Mail:</strong> Zyphera TCG, Data Protection Team, London, United Kingdom</li>
+    <li><strong>Email:</strong> <a href="mailto:privacy@gogetcards.com">privacy@gogetcards.com</a></li>
+    <li><strong>Mail:</strong> GoGetCards, Data Protection Team, London, United Kingdom</li>
   </ul>
 </div>`
   },
@@ -142,14 +142,14 @@ const PAGES = [
   <h2>Terms of Service</h2>
   <p class="legal-updated">Last updated: January 15, 2026</p>
 
-  <p>Welcome to Zyphera TCG. By accessing or using our website <strong>zypheratcg.com</strong> (the "Site") and purchasing products from us, you agree to be bound by these Terms of Service ("Terms"). Please read them carefully before making a purchase.</p>
+  <p>Welcome to GoGetCards. By accessing or using our website <strong>gogetcards.com</strong> (the "Site") and purchasing products from us, you agree to be bound by these Terms of Service ("Terms"). Please read them carefully before making a purchase.</p>
 
   <h3>1. Acceptance of Terms</h3>
-  <p>By browsing, registering, or purchasing from Zyphera TCG, you confirm that you are at least 16 years of age and that you agree to comply with and be bound by these Terms. If you do not agree, you must not use our services.</p>
+  <p>By browsing, registering, or purchasing from GoGetCards, you confirm that you are at least 16 years of age and that you agree to comply with and be bound by these Terms. If you do not agree, you must not use our services.</p>
 
   <h3>2. Products & Descriptions</h3>
   <ul>
-    <li>All products sold on Zyphera TCG are <strong>guaranteed factory sealed</strong> and sourced directly from licensed distributors.</li>
+    <li>All products sold on GoGetCards are <strong>guaranteed factory sealed</strong> and sourced directly from licensed distributors.</li>
     <li>We make every effort to ensure product descriptions, images, and prices are accurate. However, we reserve the right to correct errors and update information without prior notice.</li>
     <li>Product images are for illustrative purposes. Actual packaging may differ slightly due to regional variations or manufacturer updates.</li>
   </ul>
@@ -179,7 +179,7 @@ const PAGES = [
   </ul>
 
   <h3>6. Intellectual Property</h3>
-  <p>All content on this website — including logos, text, images, graphics, and software — is the property of Zyphera TCG or its content suppliers and is protected by international copyright laws. You may not reproduce, distribute, or create derivative works without our written permission.</p>
+  <p>All content on this website — including logos, text, images, graphics, and software — is the property of GoGetCards or its content suppliers and is protected by international copyright laws. You may not reproduce, distribute, or create derivative works without our written permission.</p>
 
   <h3>7. User Conduct</h3>
   <p>You agree not to:</p>
@@ -191,13 +191,13 @@ const PAGES = [
   </ul>
 
   <h3>8. Limitation of Liability</h3>
-  <p>To the maximum extent permitted by law, Zyphera TCG shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of our services, even if we have been advised of the possibility of such damages. Our total liability shall not exceed the amount you paid for the specific product(s) giving rise to the claim.</p>
+  <p>To the maximum extent permitted by law, GoGetCards shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of our services, even if we have been advised of the possibility of such damages. Our total liability shall not exceed the amount you paid for the specific product(s) giving rise to the claim.</p>
 
   <h3>9. Governing Law</h3>
   <p>These Terms shall be governed by and construed in accordance with the laws of England and Wales. Any disputes arising from these Terms shall be subject to the exclusive jurisdiction of the courts of England and Wales.</p>
 
   <h3>10. Contact</h3>
-  <p>For questions about these Terms, contact us at <a href="mailto:legal@zypheratcg.com">legal@zypheratcg.com</a>.</p>
+  <p>For questions about these Terms, contact us at <a href="mailto:legal@gogetcards.com">legal@gogetcards.com</a>.</p>
 </div>`
   },
 
@@ -207,7 +207,7 @@ const PAGES = [
   <h2>Refund Policy</h2>
   <p class="legal-updated">Last updated: January 15, 2026</p>
 
-  <p>At Zyphera TCG, we want every customer to be completely satisfied with their purchase. This Refund Policy outlines the terms and conditions for returns, exchanges, and refunds.</p>
+  <p>At GoGetCards, we want every customer to be completely satisfied with their purchase. This Refund Policy outlines the terms and conditions for returns, exchanges, and refunds.</p>
 
   <h3>1. Return Eligibility</h3>
   <p>You may return a product within <strong>14 days</strong> of delivery if:</p>
@@ -242,7 +242,7 @@ const PAGES = [
 
   <h3>4. How to Request a Refund</h3>
   <ol>
-    <li>Email <a href="mailto:returns@zypheratcg.com">returns@zypheratcg.com</a> with your order number and reason for return</li>
+    <li>Email <a href="mailto:returns@gogetcards.com">returns@gogetcards.com</a> with your order number and reason for return</li>
     <li>Our team will respond within <strong>24 hours</strong> with a return authorization and shipping instructions</li>
     <li>Ship the item back using a tracked service (we recommend keeping proof of postage)</li>
     <li>Once we receive and inspect the item, your refund will be processed within <strong>5-7 business days</strong></li>
@@ -263,7 +263,7 @@ const PAGES = [
   </ul>
 
   <h3>7. Contact</h3>
-  <p>For refund-related questions: <a href="mailto:returns@zypheratcg.com">returns@zypheratcg.com</a></p>
+  <p>For refund-related questions: <a href="mailto:returns@gogetcards.com">returns@gogetcards.com</a></p>
 </div>`
   },
 
@@ -329,7 +329,7 @@ const PAGES = [
   </ul>
 
   <h3>Contact</h3>
-  <p>For shipping questions: <a href="mailto:shipping@zypheratcg.com">shipping@zypheratcg.com</a></p>
+  <p>For shipping questions: <a href="mailto:shipping@gogetcards.com">shipping@gogetcards.com</a></p>
 </div>`
   },
 
@@ -340,10 +340,10 @@ const PAGES = [
   <p class="legal-updated">Last updated: January 15, 2026</p>
 
   <h3>General Disclaimer</h3>
-  <p>The information contained on the Zyphera TCG website (<strong>zypheratcg.com</strong>) is provided for general informational purposes only. While we strive to keep the information accurate and up to date, we make no representations or warranties of any kind, express or implied, about the completeness, accuracy, reliability, suitability, or availability of the website or the products we sell.</p>
+  <p>The information contained on the GoGetCards website (<strong>gogetcards.com</strong>) is provided for general informational purposes only. While we strive to keep the information accurate and up to date, we make no representations or warranties of any kind, express or implied, about the completeness, accuracy, reliability, suitability, or availability of the website or the products we sell.</p>
 
   <h3>No Investment Advice</h3>
-  <p><strong>Zyphera TCG does not provide investment, financial, tax, or legal advice.</strong></p>
+  <p><strong>GoGetCards does not provide investment, financial, tax, or legal advice.</strong></p>
   <ul>
     <li>While sealed TCG products <em>may</em> appreciate in value over time, <strong>past performance is not indicative of future results</strong></li>
     <li>The value of sealed products can <strong>go down as well as up</strong></li>
@@ -354,14 +354,14 @@ const PAGES = [
 
   <h3>Product Authenticity</h3>
   <ul>
-    <li>All products sold by Zyphera TCG are sourced through <strong>authorized distribution channels</strong></li>
+    <li>All products sold by GoGetCards are sourced through <strong>authorized distribution channels</strong></li>
     <li>We guarantee every product is <strong>100% authentic and factory sealed</strong></li>
-    <li>Our chain of custody runs directly from manufacturer → licensed distributor → Zyphera TCG → customer</li>
+    <li>Our chain of custody runs directly from manufacturer → licensed distributor → GoGetCards → customer</li>
     <li>We do not purchase products from individual sellers, secondary markets, or unauthorized resellers</li>
   </ul>
 
   <h3>Trademark Notice</h3>
-  <p>Zyphera TCG is <strong>not affiliated with, endorsed by, or sponsored by</strong> any of the following companies or their subsidiaries:</p>
+  <p>GoGetCards is <strong>not affiliated with, endorsed by, or sponsored by</strong> any of the following companies or their subsidiaries:</p>
   <ul>
     <li><strong>The Pokémon Company International</strong> — Pokémon and all related marks are trademarks of Nintendo, Creatures Inc., and GAME FREAK Inc.</li>
     <li><strong>Konami Holdings Corporation</strong> — Yu-Gi-Oh! and all related marks are trademarks of Kazuki Takahashi and Konami</li>
@@ -371,13 +371,13 @@ const PAGES = [
   <p>All trademarks, logos, and brand names mentioned on this website are the property of their respective owners and are used for identification purposes only.</p>
 
   <h3>Limitation of Liability</h3>
-  <p>In no event shall Zyphera TCG, its owners, employees, or partners be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of our website or the purchase of our products, including but not limited to loss of profits, data, or goodwill.</p>
+  <p>In no event shall GoGetCards, its owners, employees, or partners be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of our website or the purchase of our products, including but not limited to loss of profits, data, or goodwill.</p>
 
   <h3>External Links</h3>
   <p>Our website may contain links to external websites. We have no control over the content or practices of these sites and accept no responsibility for them.</p>
 
   <h3>Contact</h3>
-  <p>If you have questions about this disclaimer, contact <a href="mailto:legal@zypheratcg.com">legal@zypheratcg.com</a>.</p>
+  <p>If you have questions about this disclaimer, contact <a href="mailto:legal@gogetcards.com">legal@gogetcards.com</a>.</p>
 </div>`
   },
   {
@@ -400,7 +400,7 @@ const PAGES = [
   <h2>Track Your Order</h2>
   <p>Once your order has been dispatched, you will receive a shipping confirmation email containing your tracking number.</p>
   <p>You can use that tracking number on the respective courier's website (e.g., USPS, UPS, DHL, Royal Mail) to monitor your delivery status.</p>
-  <p>If you have not received a tracking number within 2 business days of your order (for in-stock items), please contact our support team at <a href="mailto:support@zypheratcg.com">support@zypheratcg.com</a>.</p>
+  <p>If you have not received a tracking number within 2 business days of your order (for in-stock items), please contact our support team at <a href="mailto:support@gogetcards.com">support@gogetcards.com</a>.</p>
 </div>`
   }
 ];
@@ -416,6 +416,6 @@ module.exports = async function seedAll() {
 
   const userCount = await User.countDocuments();
   if (userCount === 0) {
-    await User.create({ email: 'admin@zypheratcg.com', password: 'changeme123' });
+    await User.create({ email: 'admin@gogetcards.com', password: 'changeme123' });
   }
 };

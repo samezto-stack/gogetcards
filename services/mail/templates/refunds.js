@@ -101,7 +101,7 @@ function cancellation(v) {
     support(v),
   ].join('');
 
-  const subject = `Your Zyphera TCG order has been cancelled — ${v.reference}`;
+  const subject = `Your GoGetCards order has been cancelled — ${v.reference}`;
 
   return {
     subject,
@@ -194,7 +194,7 @@ function refundCompleted(v) {
     L.section(
       L.label('What to expect')
       + L.paragraph(`${L.strong(L.money(v.refundAmount, v.currency))} has left us and is on its way back to you. How quickly it shows up is up to your bank: most cards post it within 3 to 5 business days, some take up to 10.`)
-      + L.paragraph('It usually appears as a credit from the original payment provider rather than from Zyphera TCG, which is normal and is not a second charge.', { top: 12 }),
+      + L.paragraph('It usually appears as a credit from the original payment provider rather than from GoGetCards, which is normal and is not a second charge.', { top: 12 }),
       { pad: '24px 32px' }
     ),
     L.rule(),
@@ -228,7 +228,7 @@ function refundCompleted(v) {
       `${L.money(v.refundAmount, v.currency)} has left us and is on its way back to you.`,
       'Most cards post it within 3 to 5 business days, some take up to 10.',
       'It usually appears as a credit from the original payment provider rather',
-      'than from Zyphera TCG. That is normal and is not a second charge.',
+      'than from GoGetCards. That is normal and is not a second charge.',
       '',
       `If it has not appeared after 10 business days, reply quoting ${v.reference}.`,
       '',

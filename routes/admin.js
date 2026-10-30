@@ -2135,7 +2135,7 @@ router.post('/settings/2fa/generate', requireAuth, async (req, res) => {
     user.twoFactorSecret = secret;
     await user.save();
     
-    const otpauth = 'otpauth://totp/Zyphera:' + encodeURIComponent(user.email) + '?secret=' + secret + '&issuer=Zyphera';
+    const otpauth = 'otpauth://totp/GoGetCards:' + encodeURIComponent(user.email) + '?secret=' + secret + '&issuer=GoGetCards';
     const qrCodeUrl = await qrcode.toDataURL(otpauth);
     
     res.json({ success: true, secret, qrCodeUrl });

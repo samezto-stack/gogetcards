@@ -82,7 +82,7 @@ const sentEmailSchema = new mongoose.Schema(
 
 const abandonedCheckoutSchema = new mongoose.Schema(
   {
-    /* The correlation id zypheratcg minted for this checkout hop and
+    /* The correlation id gogetcards minted for this checkout hop and
        already writes onto every funnel Event. One id across the whole
        journey means the admin can line up "arrived" and "form_completed"
        against this row without a second join key. */

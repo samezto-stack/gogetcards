@@ -1,6 +1,6 @@
 # Transactional email setup
 
-Zyphera TCG runs **two** mail systems on one domain, and they must not be
+GoGetCards runs **two** mail systems on one domain, and they must not be
 confused with each other.
 
 | | Zoho Mail | ZeptoMail |
@@ -37,7 +37,7 @@ send nothing. New accounts get 10,000 free credits for a month.
 1. Go to **zoho.com/zeptomail** and sign in with the Zoho account you
    already use for Zoho Mail. It is a separate product, not a separate
    login.
-2. Add **zypheratcg.com** as a sending domain.
+2. Add **gogetcards.com** as a sending domain.
 3. ZeptoMail gives you DNS records to add. Do **section 2** before
    continuing — verification will not pass without them.
 
@@ -81,7 +81,7 @@ The selector name ZeptoMail asks for may differ. Use theirs verbatim.
 ```
 Type:  TXT
 Host:  _dmarc
-Value: v=DMARC1; p=none; rua=mailto:dmarc@zypheratcg.com; fo=1; adkim=r; aspf=r
+Value: v=DMARC1; p=none; rua=mailto:dmarc@gogetcards.com; fo=1; adkim=r; aspf=r
 ```
 
 **Start at `p=none` and leave it there for two weeks.** `p=none` asks for
@@ -145,9 +145,9 @@ redeploy, done — the API carries the mail with nothing further to configure.
    *Order confirmation* to a Gmail address and an Outlook address.
 3. In Gmail, open the message → **⋮ → Show original**. You want:
    ```
-   SPF:   PASS   with domain zypheratcg.com
-   DKIM:  PASS   with domain zypheratcg.com
-   DMARC: PASS   with domain zypheratcg.com
+   SPF:   PASS   with domain gogetcards.com
+   DKIM:  PASS   with domain gogetcards.com
+   DMARC: PASS   with domain gogetcards.com
    ```
    Anything other than three PASSes means a DNS record is wrong. Fix it
    before real customers get anything.
@@ -194,7 +194,7 @@ Kept here so they survive the next redesign:
   renders before images load and cannot be blocked.
 - **A real plain-text alternative**, written by hand per template, not
   stripped from the HTML.
-- **No third-party links.** Only zypheratcg.com and the carrier's own
+- **No third-party links.** Only gogetcards.com and the carrier's own
   tracking URL. No tracking pixels, no click wrapping, no analytics.
 - **No open tracking, deliberately, and this one should not be revisited.**
   Open tracking means a 1×1 remote image carrying a per-recipient id.
@@ -275,7 +275,7 @@ records, or ZeptoMail's include is missing. There must be exactly one.
 propagated, or the selector name does not match what ZeptoMail expects.
 
 **Emails arrive in Promotions** — usually a Reply-To that bounces, or too
-many links. Both are already handled; check that `support@zypheratcg.com`
+many links. Both are already handled; check that `support@gogetcards.com`
 actually receives mail.
 
 **A customer says they got nothing** — search /admin/emails by their
@@ -294,7 +294,7 @@ form in.
 
 ### How a checkout gets here
 
-The customer types their email on a PARTNER host, not on zypheratcg. The
+The customer types their email on a PARTNER host, not on gogetcards. The
 funnel beacon (`/api/checkout/confirm-arrival`) deliberately carries no
 personal data, so recovery needs its own channel: `partner.html` posts the
 checkout state to `POST /api/checkout/session`, keyed by the same `zcid`
