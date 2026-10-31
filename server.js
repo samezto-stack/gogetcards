@@ -360,8 +360,12 @@ async function boot() {
        the visitor's browser to anyone, and nothing here can fail a render
        because services/fx.js always returns a table. */
     res.locals.fx = require('./services/fx').snapshot();
-    res.locals.googleAdsId = process.env.GOOGLE_ADS_ID || 'AW-18382200056';
-    res.locals.googleAdsPurchaseLabel = process.env.GOOGLE_ADS_PURCHASE_LABEL || 'IOe_CKPw5eocEPi5qL1E';
+    /* No default. zypheratcg's tag id was hardcoded here as the fallback,
+       and inheriting it would report every GoGetCards purchase into the
+       other store's Google Ads account. Unset means the tag is not
+       rendered at all. */
+    res.locals.googleAdsId = process.env.GOOGLE_ADS_ID || '';
+    res.locals.googleAdsPurchaseLabel = process.env.GOOGLE_ADS_PURCHASE_LABEL || '';
     // Free-shipping copy comes from config/shipping.js, the same module
     // the Product Offer schema uses, so the promise shown to customers
     // and the rate declared to Google can never drift apart.
