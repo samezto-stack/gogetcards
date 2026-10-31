@@ -19,7 +19,7 @@
 }
 .ac__name {
   font-family: var(--font-heading); font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 600;
-  letter-spacing: -0.02em; line-height: 1.1; margin: 0 0 0.25rem; color: var(--color-white);
+  letter-spacing: -0.02em; line-height: 1.1; margin: 0 0 0.25rem; color: var(--color-heading);
 }
 .ac__sub { margin: 0; font-size: 0.86rem; color: var(--color-text-muted); }
 .ac__linkbtn {
@@ -42,7 +42,7 @@
   margin-bottom: -1px; transition: color 0.15s, border-color 0.15s;
 }
 .ac__tab:hover { color: var(--color-text); }
-.ac__tab.is-on { color: var(--color-white); border-bottom-color: var(--color-primary); }
+.ac__tab.is-on { color: var(--color-heading); border-bottom-color: var(--color-primary); }
 .ac__tab--end { margin-left: auto; }
 .ac__tab:focus-visible { outline: 2px solid var(--color-primary-text); outline-offset: -2px; border-radius: 4px; }
 
@@ -54,7 +54,7 @@
 }
 .ac__sheet--accent::before {
   content: ''; position: absolute; inset: 0 0 auto 0; height: 2px;
-  background: linear-gradient(90deg, var(--color-primary), var(--color-cyan));
+  background: var(--color-accent);
 }
 .ac__sheet-head {
   display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.6rem 1rem;
@@ -62,7 +62,7 @@
 }
 .ac__sheet-title {
   font-family: var(--font-heading); font-size: 1rem; font-weight: 600;
-  margin: 0; color: var(--color-white); letter-spacing: -0.01em;
+  margin: 0; color: var(--color-heading); letter-spacing: -0.01em;
 }
 .ac__sheet-more { margin-left: auto; font-size: 0.82rem; color: var(--color-text-muted); text-decoration: none; }
 .ac__sheet-more:hover { color: var(--color-primary-text); }
@@ -78,7 +78,7 @@
 /* ── Order rows ── */
 .ac__order { display: flex; align-items: center; gap: 1rem; padding: 0.95rem 1.4rem; text-decoration: none; }
 .ac__order + .ac__order { border-top: 1px solid var(--color-border-light); }
-.ac__order:hover { background: rgba(255,255,255,0.015); }
+.ac__order:hover { background: rgba(15, 42, 74, 0.015); }
 .ac__thumb {
   width: 58px; height: 58px; flex: none; border-radius: 8px; object-fit: contain;
   background: var(--color-bg-card); border: 1px solid var(--color-border-light); padding: 5px;
@@ -95,7 +95,7 @@ a.ac__order:hover .ac__order-title { color: var(--color-primary-text); }
   font-size: 0.78rem; color: var(--color-text-faint); margin: 0;
 }
 .ac__order-right { text-align: right; flex: none; }
-.ac__price { font-family: var(--font-mono); font-size: 0.94rem; color: var(--color-white); margin: 0 0 0.2rem; }
+.ac__price { font-family: var(--font-mono); font-size: 0.94rem; color: var(--color-heading); margin: 0 0 0.2rem; }
 
 /* Status. Colour is semantic and separate from the brand accent. */
 .ac__status {
@@ -103,7 +103,7 @@ a.ac__order:hover .ac__order-title { color: var(--color-primary-text); }
   padding: 0.13rem 0.48rem; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap;
 }
 .ac__status--good { color: var(--color-accent); background: rgba(34,197,94,0.09); }
-.ac__status--accent { color: var(--color-cyan); background: rgba(6,182,212,0.09); }
+.ac__status--accent { color: var(--color-cyan); background: rgba(29,79,184,0.09); }
 .ac__status--warn { color: var(--color-gold); background: rgba(245,158,11,0.09); }
 .ac__status--neutral { color: var(--color-text-faint); }
 
@@ -126,7 +126,7 @@ a.ac__order:hover .ac__order-title { color: var(--color-primary-text); }
 .ac__row { display: flex; justify-content: space-between; gap: 1rem; font-size: 0.87rem; color: var(--color-text-muted); }
 .ac__row strong { color: var(--color-text); font-weight: 500; }
 .ac__row--total { padding-top: 0.5rem; border-top: 1px solid var(--color-border-light);
-  font-size: 1rem; color: var(--color-white); font-weight: 600; }
+  font-size: 1rem; color: var(--color-heading); font-weight: 600; }
 .ac__free { color: var(--color-accent); font-weight: 600; }
 
 /* ── Timeline ── */

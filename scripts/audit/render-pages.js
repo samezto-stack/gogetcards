@@ -58,6 +58,12 @@ const variantDay = {
 };
 
 const base = {
+  /* Globals server.js registers on app.locals / res.locals for every
+     storefront render. A template that uses one and is missing it here
+     fails this harness while rendering fine in production, which reads as
+     a broken audit rather than a missing local. */
+  catalog: require(path.join(ROOT, 'config/catalog')),
+  jsonForScript: require(path.join(ROOT, 'helpers/jsonForScript')),
   cart: { items: [], totalItems: 0, totalPrice: 0 },
   currentPath: '/', currentYear: 2026, pageTitle: 'GoGetCards', metaDescription: '',
   ogType: 'website', ogImage: '', canonicalUrl: 'https://gogetcards.com/',

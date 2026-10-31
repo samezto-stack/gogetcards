@@ -8,8 +8,8 @@
         <%/* Same mark as the header and every generated icon. See
              views/partials/logomark.ejs. */%>
         <a href="<%= marketPath('/') %>" class="footer__logo">
-          <span style="display:inline-flex;color:var(--color-primary)"><%- include('logomark', { size: 26 }) %></span>
-          GoGet<strong>Cards</strong>
+          <span style="display:inline-flex;color:#FFFFFF"><%- include('logomark', { size: 26 }) %></span>
+          <span>GoGet<strong>Cards</strong></span>
         </a>
         <p class="footer__tagline">Sealed TCG and sports cards for collectors who check the wrap. Factory sealed, photographed before shipping, shipped with care.</p>
 
@@ -83,15 +83,15 @@
              that the pages in the columns above set out in full. */%>
         <ul class="footer__trust-badges">
           <li class="footer__trust-badge">
-            <%- include('icon', { name: 'package', size: 12, color: 'var(--color-accent)' }) %>
+            <%- include('icon', { name: 'package', size: 14, color: '#FFD28A' }) %>
             <%= shippingCopy.short %>
           </li>
           <li class="footer__trust-badge">
-            <%- include('icon', { name: 'check-circle', size: 12, color: 'var(--color-primary)' }) %>
+            <%- include('icon', { name: 'check-circle', size: 14, color: '#FFD28A' }) %>
             Factory-sealed guarantee
           </li>
           <li class="footer__trust-badge">
-            <%- include('icon', { name: 'undo', size: 12, color: 'var(--color-cyan)' }) %>
+            <%- include('icon', { name: 'undo', size: 14, color: '#FFD28A' }) %>
             <%= returnWindowDays %>-day returns
           </li>
         </ul>

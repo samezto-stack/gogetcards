@@ -60,7 +60,7 @@
               </a>
               <div>
                 <p style="font-size:0.65rem;color:var(--color-primary);font-weight:700;font-family:var(--font-heading);text-transform:uppercase;letter-spacing:0.06em"><%= item.vendor %></p>
-                <a href="<%= marketPath('/products/' + (item.slug)) %>" style="font-family:var(--font-heading);font-size:0.9rem;font-weight:700;color:var(--color-white);text-decoration:none;display:block;margin-top:2px"><%= item.title %></a>
+                <a href="<%= marketPath('/products/' + (item.slug)) %>" style="font-family:var(--font-heading);font-size:0.9rem;font-weight:700;color:var(--color-heading);text-decoration:none;display:block;margin-top:2px"><%= item.title %></a>
                 <p style="font-size:0.72rem;color:var(--color-text-faint)"><%= item.productType %></p>
                 <% if (item.preorder) { %>
                   <span class="badge badge--preorder" style="font-size:0.65rem;margin-top:4px">🔔 Preorder</span>
@@ -70,7 +70,7 @@
 
             <!-- Price -->
             <div style="text-align:center">
-              <span style="font-family:var(--font-heading);font-size:0.95rem;font-weight:700;color:var(--color-white)"><%= ctMoney(ctLine(item)) %></span>
+              <span style="font-family:var(--font-heading);font-size:0.95rem;font-weight:700;color:var(--color-heading)"><%= ctMoney(ctLine(item)) %></span>
             </div>
 
             <!-- Quantity -->
@@ -83,14 +83,14 @@
                   class="cart-qty-input"
                   data-cart-qty="<%= item.slug %>"
                   aria-label="Quantity for <%= item.title %>"
-                  style="width:60px;text-align:center;background:transparent;border:none;color:var(--color-white);font-family:var(--font-heading);font-weight:700;padding:0.4rem"
+                  style="width:60px;text-align:center;background:transparent;border:none;color:var(--color-heading);font-family:var(--font-heading);font-weight:700;padding:0.4rem"
                 >
               </div>
             </div>
 
             <!-- Line total + remove -->
             <div style="text-align:right">
-              <span style="font-family:var(--font-heading);font-size:1rem;font-weight:800;color:var(--color-white);display:block"><%= ctMoney(ctLine(item) * item.quantity) %></span>
+              <span style="font-family:var(--font-heading);font-size:1rem;font-weight:800;color:var(--color-heading);display:block"><%= ctMoney(ctLine(item) * item.quantity) %></span>
               <button
                 type="button"
                 class="cart-remove-btn"
@@ -122,7 +122,7 @@
       <!-- Summary -->
       <div>
         <div class="cart-page__summary-box">
-          <h2 style="font-family:var(--font-heading);font-size:1.05rem;font-weight:800;color:var(--color-white);margin-bottom:1.25rem">Order Summary</h2>
+          <h2 style="font-family:var(--font-heading);font-size:1.05rem;font-weight:800;color:var(--color-heading);margin-bottom:1.25rem">Order Summary</h2>
 
           <div style="display:flex;flex-direction:column;gap:0.875rem">
             <div style="display:flex;justify-content:space-between;font-size:0.875rem;color:var(--color-text-muted)">
@@ -146,7 +146,7 @@
                  figure the drawer had just shown them. The hook goes on the
                  amount; fx-approx appends to its parent, which is this row,
                  so the chip lands under the total on its own line. */%>
-            <div style="display:flex;justify-content:space-between;font-family:var(--font-heading);font-size:1.2rem;font-weight:900;color:var(--color-white)">
+            <div style="display:flex;justify-content:space-between;font-family:var(--font-heading);font-size:1.2rem;font-weight:900;color:var(--color-heading)">
               <span>Total</span>
               <span class="cart-total-value"><span data-usd-cents="<%= ctTotal %>" data-usd-label="<%= ctMoney(ctTotal) %>"><%= ctMoney(ctTotal) %></span></span>
             </div>
@@ -163,8 +163,8 @@
           <% } %>
 
           <div style="display:flex;flex-direction:column;gap:0.625rem;margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--color-border-light)">
-            <div style="display:flex;align-items:center;gap:0.625rem;font-size:0.78rem;color:var(--color-text-muted)">🔒 SSL Secure Checkout</div>
-            <div style="display:flex;align-items:center;gap:0.625rem;font-size:0.78rem;color:var(--color-text-muted)">✅ Factory Sealed Guarantee</div>
+            <div style="display:flex;align-items:center;gap:0.625rem;font-size:0.78rem;color:var(--color-text-muted)">Secure checkout</div>
+            <div style="display:flex;align-items:center;gap:0.625rem;font-size:0.78rem;color:var(--color-text-muted)">Factory-sealed guarantee</div>
             <div style="display:flex;align-items:center;gap:0.625rem;font-size:0.78rem;color:var(--color-text-muted)">📦 <%= shippingCopy.medium %></div>
             <div style="display:flex;align-items:center;gap:0.625rem;font-size:0.78rem;color:var(--color-text-muted)">↩️ <%= returnWindowDays %>-Day Return Policy</div>
           </div>
