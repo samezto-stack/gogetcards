@@ -62,6 +62,8 @@ function localsFor(market) {
     settings: {},
     collections: [],
     company: require(path.join(ROOT, 'config/company')),
+    catalog: require(path.join(ROOT, 'config/catalog')),
+    jsonForScript: require(path.join(ROOT, 'helpers/jsonForScript')),
     shippingCopy: require(path.join(ROOT, 'config/shipping')).copy,
     returnWindowDays: require(path.join(ROOT, 'config/faq')).RETURN_WINDOW_DAYS,
     payments: require(path.join(ROOT, 'config/payments')),

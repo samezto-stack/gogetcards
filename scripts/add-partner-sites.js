@@ -34,11 +34,11 @@ const { MARKETS } = require('../config/markets');
 /* The step for each market, in cents. These are the rungs the price grid is
    built from; a site whose unit does not match its plans sells the wrong
    quantity, so they are stated here rather than defaulted. */
-/* GoGetCards: $49.99 steps, twenty-four rungs. The non-US figures keep
-   zypheratcg's proportions and are PLACEHOLDERS until the plan prices are
-   created in each Whop business; a unit that does not equal the plan's
-   price charges the wrong amount, so confirm before --apply. */
-const UNIT_CENTS = { US: 4999, CA: 7299, UK: 3999, EU: 4699 };
+/* GoGetCards: $49.99 steps, twenty-four rungs, US only at launch. Add a
+   market here only together with its entry in config/markets.js and the
+   plans created at exactly these prices in every partner business; a unit
+   that does not equal the plan's price charges the wrong amount. */
+const UNIT_CENTS = { US: 4999 };
 
 /* GoGetCards' own partner batch goes here, one entry per site, in the
    same shape zypheratcg's script used:

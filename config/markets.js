@@ -102,7 +102,10 @@ const MARKETS = [
     id: 'CA', name: 'Canada', flag: '🇨🇦',
     prefix: 'ca', currency: 'CAD', locale: 'en-CA', language: 'en',
     countries: ['CA'], feedLabel: 'CA',
-    enabled: true,
+    /* Off at launch. GoGetCards sells in the US first; switch on only once
+       every active partner site carries this market's full plan ladder and
+       the products carry prices on its grid. */
+    enabled: false,
   },
   {
     /* id UK, country GB. The URL says /uk because that is what people
@@ -115,7 +118,10 @@ const MARKETS = [
        euro area. The stored price is what the customer pays; nothing is
        added at checkout. */
     taxIncluded: true,
-    enabled: true,
+    /* Off at launch. GoGetCards sells in the US first; switch on only once
+       every active partner site carries this market's full plan ladder and
+       the products carry prices on its grid. */
+    enabled: false,
   },
   {
     id: 'EU', name: 'Europe', flag: '🇪🇺',
@@ -126,7 +132,10 @@ const MARKETS = [
        campaign, which is where country targeting belongs. */
     feedLabel: 'EU',
     taxIncluded: true,
-    enabled: true,
+    /* Off at launch. GoGetCards sells in the US first; switch on only once
+       every active partner site carries this market's full plan ladder and
+       the products carry prices on its grid. */
+    enabled: false,
   },
 ];
 

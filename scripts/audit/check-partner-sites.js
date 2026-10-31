@@ -28,11 +28,16 @@ const check = (name, ok, detail) => {
 
 /* Available products only — the settings route filters on available:true,
    because offering to route buyers at something not for sale is a dead end. */
+/* On the store's own grid, read from the service so a ladder change cannot
+   leave this file testing the previous one. */
+const UNIT = rot.DEFAULT_UNIT_CENTS;
+const STEPS = rot.LADDER_STEPS;
+const money = (cents) => '$' + (cents / 100).toFixed(2);
 const PRODUCTS = [
-  { slug: 'one-step', title: 'One Step Product', price: 7499 },
-  { slug: 'three-step', title: 'Three Step Product', price: 22497 },
-  { slug: 'five-step', title: 'Five Step Product', price: 37495 },
-  { slug: 'off-grid', title: 'Off Grid Product', price: 29999 },
+  { slug: 'one-step', title: 'One Step Product', price: UNIT },
+  { slug: 'three-step', title: 'Three Step Product', price: 3 * UNIT },
+  { slug: 'five-step', title: 'Five Step Product', price: 5 * UNIT },
+  { slug: 'off-grid', title: 'Off Grid Product', price: 6 * UNIT + 5 },
 ];
 
 function site(id, over = {}) {
@@ -41,8 +46,8 @@ function site(id, over = {}) {
     name: id.replace(/-/g, ' '),
     url: `https://${id}.onrender.com/services/thing`,
     baseUrl: `https://${id}.onrender.com`,
-    unitCents: 7499,
-    plans: Array.from({ length: 12 }, (_, i) => `plan_${id}_${i + 1}`),
+    unitCents: UNIT,
+    plans: Array.from({ length: STEPS }, (_, i) => `plan_${id}_${i + 1}`),
     enabled: true,
     stats: { orders: 3, lastOrderAt: new Date() },
     ...over,
@@ -57,7 +62,7 @@ const CONFIG = {
     site('award-cycle', { enabled: false }),
     /* A half-filled ladder: rung 6 blank, so it cannot carry two of a
        three-step product. */
-    site('defense-date', { plans: Array.from({ length: 12 }, (_, i) => (i === 5 ? '' : `plan_dd_${i + 1}`)) }),
+    site('defense-date', { plans: Array.from({ length: STEPS }, (_, i) => (i === 5 ? '' : `plan_dd_${i + 1}`)) }),
   ],
   cursor: 'defense-date',
   history: [
@@ -127,16 +132,16 @@ if (html) {
 
   /* ── The mapping ── */
   check('the map lists every product', PRODUCTS.every((p) => html.includes(p.title)));
-  check('a three-step product shows max qty 4', (() => {
+  check(`a three-step product shows max qty ${Math.floor(STEPS / 3)}`, (() => {
     const row = (html.match(/<tr[^>]*>(?:(?!<\/tr>)[\s\S])*Three Step Product[\s\S]*?<\/tr>/) || [''])[0];
-    return row.includes('>3<') && row.includes('>4<');
+    return row.includes('>3<') && row.includes(`>${Math.floor(STEPS / 3)}<`);
   })(), 'steps/max-qty not shown');
-  check('a five-step product shows max qty 2', (() => {
+  check(`a five-step product shows max qty ${Math.floor(STEPS / 5)}`, (() => {
     const row = (html.match(/<tr[^>]*>(?:(?!<\/tr>)[\s\S])*Five Step Product[\s\S]*?<\/tr>/) || [''])[0];
-    return row.includes('>5<') && row.includes('>2<');
+    return row.includes('>5<') && row.includes(`>${Math.floor(STEPS / 5)}<`);
   })());
   check('an off-grid product says why, with the nearest workable prices',
-    html.includes('299.96') && html.includes('374.95'));
+    html.includes((6 * UNIT / 100).toFixed(2)) && html.includes((7 * UNIT / 100).toFixed(2)));
   check('an off-grid product is not shown as served', (() => {
     const row = (html.match(/<tr[^>]*>(?:(?!<\/tr>)[\s\S])*Off Grid Product[\s\S]*?<\/tr>/) || [''])[0];
     return row.includes('px-map__row--out');
@@ -154,8 +159,8 @@ if (html) {
       && !html.includes('name="sitePlan1"');
   })(), String((html.match(/name="sitePlans"/g) || []).length));
   check('the ladder prices are shown beside it',
-    html.includes('$74.99') && html.includes('$899.88'));
-  check('an incomplete ladder is counted on the card', html.includes('11/12 plans'));
+    html.includes(money(UNIT)) && html.includes(money(STEPS * UNIT)));
+  check('an incomplete ladder is counted on the card', html.includes(`${STEPS - 1}/${STEPS} plans`));
   check('the ladder round-trips its ids', html.includes('plan_coverage-desk_1'));
   check('the ladder textarea is not left to the browser default', (() => {
     /* It sits outside .form-group, so without its own rule it renders as a
@@ -184,7 +189,7 @@ if (html) {
   })());
   check('an incomplete ladder is flagged on the row itself', (() => {
     const row = (html.match(/<button type="button" class="px-row[\s\S]*?defense date[\s\S]*?<\/button>/) || [''])[0];
-    return row.includes('11/12 plans');
+    return row.includes(`${STEPS - 1}/${STEPS} plans`);
   })());
   check('the editor for a site is inside its own dialog', (() => {
     const dlg = (html.match(/<dialog class="px-modal" id="px-modal-coverage-desk">[\s\S]*?<\/dialog>/) || [''])[0];
@@ -275,7 +280,7 @@ if (html) {
     groups: [{ id: 'held', name: 'Held', enabled: false }],
     savedSites: [site('only-ca', {
       groupId: 'held',
-      ladders: { CA: { unitCents: 10999, plans: Array.from({ length: 12 }, (_, i) => `plan_ca_${i + 1}`) } },
+      ladders: { CA: { unitCents: 10999, plans: Array.from({ length: STEPS }, (_, i) => `plan_ca_${i + 1}`) } },
     })],
   };
   check('pausing a group withdraws the markets only it could charge',

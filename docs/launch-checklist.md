@@ -98,9 +98,10 @@ is shared: its host list starts empty.
       or allocation, release date for preorders, GTIN/UPC where known, and
       photos (front, back, seal). Spec templates for every line are in the
       admin product form.
-- [ ] **you** — Shipping rates per market in `config/shipping.js`; markets
-      beyond the US need their own Whop plan ladder before they are enabled
-      (`config/markets.js` explains the invariant).
+- [x] **decided** — US only at launch (`config/markets.js`: CA, UK and EU are
+      switched off). Each later market needs its own 24-plan ladder in every
+      partner business, its own prices on every product and its shipping
+      rates in `config/shipping.js` before it is switched on.
 
 ## 7. Before the first real order
 

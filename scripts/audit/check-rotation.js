@@ -5,7 +5,7 @@
  * Whop charges what a plan id is configured for, regardless of what the page
  * displayed. So every arithmetic mistake below ends in a successful payment
  * for the wrong amount: an off-by-one on the grid sells a three-step product
- * at two steps' price, dividing 224.97 by 74.99 in floating point yields
+ * at two steps' price, dividing 149.97 by 49.99 in floating point yields
  * 2.9999999999999996 and floors to 2, and rounding a near-miss undercharges
  * every order by four cents forever. None of them error, none appear in a
  * log, and all of them look like a working checkout.
@@ -28,12 +28,16 @@ const check = (name, ok, detail) => {
   else console.log(`pass  ${name}`);
 };
 
-/* Prices in cents on a $74.99 step — the three shapes the catalogue has. */
-const UNIT = 7499;
-const ONE_STEP = { slug: 'one-step', title: 'One step', price: 7499 };        // max qty 12
-const THREE_STEP = { slug: 'three-step', title: 'Three steps', price: 22497 }; // max qty 4
-const FIVE_STEP = { slug: 'five-step', title: 'Five steps', price: 37495 };    // max qty 2
-const OFF_GRID = { slug: 'off-grid', title: 'Off grid', price: 29999 };        // $299.99
+/* Prices in cents on the store's step — the three shapes the catalogue has.
+   Derived from the service's own constants so the ladder can change length
+   or unit without this file silently testing the previous grid. */
+const UNIT = rot.DEFAULT_UNIT_CENTS;
+const STEPS = rot.LADDER_STEPS;
+const money = (cents) => (cents / 100).toFixed(2);
+const ONE_STEP = { slug: 'one-step', title: 'One step', price: UNIT };            // max qty STEPS
+const THREE_STEP = { slug: 'three-step', title: 'Three steps', price: 3 * UNIT }; // max qty floor(STEPS/3)
+const FIVE_STEP = { slug: 'five-step', title: 'Five steps', price: 5 * UNIT };    // max qty floor(STEPS/5)
+const OFF_GRID = { slug: 'off-grid', title: 'Off grid', price: 6 * UNIT + 5 };    // five cents off rung 6
 
 function site(id, over = {}) {
   return {
@@ -41,7 +45,7 @@ function site(id, over = {}) {
     name: id,
     url: `https://${id}.example/services/x`,
     unitCents: UNIT,
-    plans: Array.from({ length: 12 }, (_, i) => `plan_${id}_${i + 1}`),
+    plans: Array.from({ length: STEPS }, (_, i) => `plan_${id}_${i + 1}`),
     enabled: true,
     stats: { orders: 0, lastOrderAt: null },
     ...over,
@@ -49,72 +53,74 @@ function site(id, over = {}) {
 }
 
 /* ── The grid ── */
-check('a one-step product is 1 unit', rot.unitsFor(site('a'), 7499) === 1);
-check('a three-step product is 3 units', rot.unitsFor(site('a'), 22497) === 3);
-check('a five-step product is 5 units', rot.unitsFor(site('a'), 37495) === 5);
-check('the top of the ladder is 12 units', rot.unitsFor(site('a'), 89988) === 12);
+check('a one-step product is 1 unit', rot.unitsFor(site('a'), UNIT) === 1);
+check('a three-step product is 3 units', rot.unitsFor(site('a'), 3 * UNIT) === 3);
+check('a five-step product is 5 units', rot.unitsFor(site('a'), 5 * UNIT) === 5);
+check(`the top of the ladder is ${STEPS} units`, rot.unitsFor(site('a'), STEPS * UNIT) === STEPS);
 
-/* THE FLOAT TRAP, which is in the MODULO rather than the division. Eight of
-   the twelve prices on a $74.99 ladder give a non-zero float remainder —
-   524.93 % 74.99 is 74.98999999999998 — so a float grid check would reject
+/* THE FLOAT TRAP, which is in the MODULO rather than the division. Many of
+   the prices on a ladder give a non-zero float remainder — 524.93 % 74.99
+   was 74.98999999999998 on the old grid — so a float grid check would reject
    them as mispriced and silently stop them going to partners at all. */
-check('a float modulo would reject 8 of the 12 valid prices', (() => {
-  const prices = [74.99, 149.98, 224.97, 299.96, 374.95, 449.94, 524.93, 599.92, 674.91, 749.90, 824.89, 899.88];
-  const wouldFail = prices.filter((p) => p % 74.99 !== 0).length;
-  return wouldFail === 8;
+check('a float modulo would reject some valid prices', (() => {
+  const prices = Array.from({ length: STEPS }, (_, i) => Number(money((i + 1) * UNIT)));
+  const wouldFail = prices.filter((p) => p % (UNIT / 100) !== 0).length;
+  return wouldFail > 0;
 })(), 'the premise of the next check no longer holds');
 check('every price on the ladder is recognised, in integer cents', (() => {
-  const prices = [7499, 14998, 22497, 29996, 37495, 44994, 52493, 59992, 67491, 74990, 82489, 89988];
+  const prices = Array.from({ length: STEPS }, (_, i) => (i + 1) * UNIT);
   return prices.every((cents, i) => rot.unitsFor(site('a'), cents) === i + 1);
 })());
 
-check('max quantity for a one-step product is 12', rot.maxQuantity(site('a'), 7499) === 12);
-check('max quantity for a three-step product is 4', rot.maxQuantity(site('a'), 22497) === 4);
-check('max quantity for a five-step product is 2', rot.maxQuantity(site('a'), 37495) === 2);
+check(`max quantity for a one-step product is ${STEPS}`, rot.maxQuantity(site('a'), UNIT) === STEPS);
+check(`max quantity for a three-step product is ${Math.floor(STEPS / 3)}`, rot.maxQuantity(site('a'), 3 * UNIT) === Math.floor(STEPS / 3));
+check(`max quantity for a five-step product is ${Math.floor(STEPS / 5)}`, rot.maxQuantity(site('a'), 5 * UNIT) === Math.floor(STEPS / 5));
 
 /* ── Off the grid is refused, never rounded ── */
-check('a price off the grid has no unit count', rot.unitsFor(site('a'), 29999) === null);
+check('a price off the grid has no unit count', rot.unitsFor(site('a'), OFF_GRID.price) === null);
 check('a price off the grid gets no plan, rather than the rung below',
-  rot.planFor(site('a'), 29999, 1) === null);
+  rot.planFor(site('a'), OFF_GRID.price, 1) === null);
 check('the reason names the nearest workable prices', (() => {
   const r = rot.siteForProduct(site('a'), OFF_GRID);
-  return r.reason === 'price-off-grid' && r.detail.includes('299.96') && r.detail.includes('374.95');
+  return r.reason === 'price-off-grid' && r.detail.includes(money(6 * UNIT)) && r.detail.includes(money(7 * UNIT));
 })(), JSON.stringify(rot.siteForProduct(site('a'), OFF_GRID)));
 check('a price above the ladder is refused', (() => {
-  const r = rot.siteForProduct(site('a'), { price: 97487 }); // 13 steps
+  const r = rot.siteForProduct(site('a'), { price: (STEPS + 1) * UNIT }); // one step past the top
   return !r.ok && r.reason === 'above-ladder';
 })());
 
 /* ── Plan selection ── */
-check('a three-step product maps qty 1,2,3,4 to rungs 3,6,9,12',
-  [1, 2, 3, 4].every((q) => {
-    const p = rot.planFor(site('a'), 22497, q);
+const MAX3 = Math.floor(STEPS / 3);
+const MAX5 = Math.floor(STEPS / 5);
+check('a three-step product maps each quantity to rung 3 x quantity',
+  Array.from({ length: MAX3 }, (_, i) => i + 1).every((q) => {
+    const p = rot.planFor(site('a'), 3 * UNIT, q);
     return p && p.step === 3 * q && p.whopPlanId === `plan_a_${3 * q}`;
   }));
-check('a three-step product refuses qty 5', rot.planFor(site('a'), 22497, 5) === null);
+check('a three-step product refuses one quantity past the top', rot.planFor(site('a'), 3 * UNIT, MAX3 + 1) === null);
 check('a five-step product maps qty 1,2 to rungs 5,10', (() => {
-  const a = rot.planFor(site('a'), 37495, 1);
-  const b = rot.planFor(site('a'), 37495, 2);
+  const a = rot.planFor(site('a'), 5 * UNIT, 1);
+  const b = rot.planFor(site('a'), 5 * UNIT, 2);
   return a.step === 5 && b.step === 10;
 })());
-check('a five-step product refuses qty 3', rot.planFor(site('a'), 37495, 3) === null);
+check('a five-step product refuses one quantity past the top', rot.planFor(site('a'), 5 * UNIT, MAX5 + 1) === null);
 check('the price comes from the grid, and agrees with price x quantity', (() => {
-  const p = rot.planFor(site('a'), 22497, 2);
+  const p = rot.planFor(site('a'), 3 * UNIT, 2);
   /* They agree BY CONSTRUCTION — the plan was chosen for charging exactly
      this — which is what stops the displayed and charged figures diverging. */
-  return p.priceCents === 44994 && p.priceCents === 22497 * 2;
+  return p.priceCents === 6 * UNIT && p.priceCents === 3 * UNIT * 2;
 })());
 check('planFor tolerates junk quantities',
-  rot.planFor(site('a'), 7499, 'x').step === 1
-  && rot.planFor(site('a'), 7499, 0).step === 1
-  && rot.planFor(site('a'), 7499, -3).step === 1);
-check('planFor tolerates a missing site', rot.planFor(null, 7499, 1) === null);
+  rot.planFor(site('a'), UNIT, 'x').step === 1
+  && rot.planFor(site('a'), UNIT, 0).step === 1
+  && rot.planFor(site('a'), UNIT, -3).step === 1);
+check('planFor tolerates a missing site', rot.planFor(null, UNIT, 1) === null);
 check('a zero-priced product is refused', rot.planFor(site('a'), 0, 1) === null);
 
 /* ── A gap in the ladder ── */
-const gapped = site('g', { plans: Array.from({ length: 12 }, (_, i) => (i === 5 ? '' : `plan_g_${i + 1}`)) });
+const gapped = site('g', { plans: Array.from({ length: STEPS }, (_, i) => (i === 5 ? '' : `plan_g_${i + 1}`)) });
 check('a missing rung refuses only the quantity that needs it',
-  rot.planFor(gapped, 22497, 1) !== null && rot.planFor(gapped, 22497, 2) === null);
+  rot.planFor(gapped, 3 * UNIT, 1) !== null && rot.planFor(gapped, 3 * UNIT, 2) === null);
 check('a gap that blocks a quantity marks the product unservable', (() => {
   const r = rot.siteForProduct(gapped, THREE_STEP);
   return !r.ok && r.reason === 'missing-plans' && r.detail.includes('6');
@@ -126,7 +132,7 @@ check('a gap that blocks nothing leaves the product servable', (() => {
 })());
 check('ladderStatus counts the filled rungs', (() => {
   const st = rot.ladderStatus(gapped);
-  return st.filled === 11 && st.total === 12 && st.complete === false;
+  return st.filled === STEPS - 1 && st.total === STEPS && st.complete === false;
 })());
 
 /* ── Rotation ── */
@@ -254,7 +260,7 @@ const mapped = rot.mapping(three, [ONE_STEP, THREE_STEP, FIVE_STEP, OFF_GRID]);
 check('mapping covers every product', mapped.length === 4);
 check('mapping reports the right max quantities', (() => {
   const by = Object.fromEntries(mapped.map((m) => [m.slug, m.maxQuantity]));
-  return by['one-step'] === 12 && by['three-step'] === 4 && by['five-step'] === 2 && by['off-grid'] === 0;
+  return by['one-step'] === STEPS && by['three-step'] === MAX3 && by['five-step'] === MAX5 && by['off-grid'] === 0;
 })(), JSON.stringify(mapped.map((m) => [m.slug, m.maxQuantity])));
 check('mapping marks the off-grid product as served by nobody',
   mapped.find((m) => m.slug === 'off-grid').activeCount === 0);
@@ -274,8 +280,8 @@ const migrated = rot.migrate({
     apiKey: 'enc',
     whopPlanId: 'plan_old_1',
     bundlePlans: [
-      { quantity: 2, whopPlanId: 'plan_old_2', price: 149.98 },
-      { quantity: 3, whopPlanId: 'plan_old_3', price: 224.97 },
+      { quantity: 2, whopPlanId: 'plan_old_2', price: Number(money(2 * UNIT)) },
+      { quantity: 3, whopPlanId: 'plan_old_3', price: Number(money(3 * UNIT)) },
     ],
     productSlugs: ['three-step'],
   }],
@@ -284,7 +290,7 @@ const migrated = rot.migrate({
 check('a legacy route becomes a site', migrated.changed && migrated.config.savedSites.length === 1);
 check('recovered plans land on the grid by the price they charged', (() => {
   /* The ids were stored against prices, so the grid is recoverable whatever
-     "quantity" each was labelled: $149.98 is rung 2, $224.97 is rung 3. */
+     "quantity" each was labelled: two units is rung 2, three units is rung 3. */
   const l = rot.ladder(migrated.config.savedSites[0]);
   return l[0] === 'plan_old_1' && l[1] === 'plan_old_2' && l[2] === 'plan_old_3';
 })(), JSON.stringify(rot.ladder(migrated.config.savedSites[0])));
@@ -303,7 +309,7 @@ check('the per-product shape migrates too', (() => {
     routes: [],
     savedSites: [{
       id: 'v2', name: 'v2', url: 'https://v2.example/s', experienceId: 'x',
-      products: [{ slug: 'a', whopPlanId: 'plan_v2_1', bundlePlans: [{ quantity: 2, whopPlanId: 'plan_v2_2', price: 149.98 }] }],
+      products: [{ slug: 'a', whopPlanId: 'plan_v2_1', bundlePlans: [{ quantity: 2, whopPlanId: 'plan_v2_2', price: Number(money(2 * UNIT)) }] }],
     }],
   });
   const l = rot.ladder(m.config.savedSites[0]);
@@ -439,8 +445,8 @@ check('a count already past the setting ends the turn rather than running on', (
       { id: 'fast', name: 'fast', enabled: true, salesPerSite: 3 },
     ],
     savedSites: [
-      { id: 's1', name: 's1', url: 'https://s1/x', enabled: true, groupId: 'slow', unitCents: 7499, plans: Array(12).fill('p') },
-      { id: 'f1', name: 'f1', url: 'https://f1/x', enabled: true, groupId: 'fast', unitCents: 7499, plans: Array(12).fill('p') },
+      { id: 's1', name: 's1', url: 'https://s1/x', enabled: true, groupId: 'slow', unitCents: UNIT, plans: Array(STEPS).fill('p') },
+      { id: 'f1', name: 'f1', url: 'https://f1/x', enabled: true, groupId: 'fast', unitCents: UNIT, plans: Array(STEPS).fill('p') },
     ],
   };
   let c = { ...twoGroups, cursor: 's1', cursorServed: 0 };
@@ -472,10 +478,10 @@ check('the order pipeline persists the count, not just the cursor', (() => {
     groups: [{ id: 'g', name: 'g', enabled: false }],
     savedSites: ['a', 'b'].map((id) => ({
       id, name: id, url: `https://${id}/x`, enabled: true, groupId: 'g',
-      unitCents: 7499, plans: Array(12).fill('p'),
+      unitCents: UNIT, plans: Array(STEPS).fill('p'),
     })),
   };
-  const product = { slug: 'p', price: 3 * 7499 };
+  const product = { slug: 'p', price: 3 * UNIT };
   check('a paused group empties eligibleSites, not just activeSites',
     rot.eligibleSites(paused, product.price, 'US').length === 0,
     `${rot.eligibleSites(paused, product.price, 'US').length} still eligible`);
