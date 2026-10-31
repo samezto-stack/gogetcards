@@ -45,14 +45,14 @@
         <%
           /* Partner Sites.
            *
-           * A partner site sells one ladder of twelve plans in equal steps,
-           * which makes that ladder a PRICE GRID rather than twelve
+           * A partner site sells one ladder of twenty-four plans in equal steps,
+           * which makes that ladder a PRICE GRID rather than twenty-four
            * products. gogetcards is the catalogue, and each product sits at
            * some number of those steps: a $224.97 product is three steps, so
            * one of it is rung 3, two is rung 6, and four is the most the
            * ladder can carry.
            *
-           * NOTHING IS CONFIGURED PER PRODUCT. Twelve ids per site, entered
+           * NOTHING IS CONFIGURED PER PRODUCT. Twenty-four ids per site, entered
            * once. So this screen is a site list plus a read-only map of what
            * the arithmetic decided — and, for anything excluded, why. */
           var pxSites = (partnerExperience.savedSites || []);
@@ -115,7 +115,7 @@
           function pxMoney(c) { return '$' + (Number(c || 0) / 100).toFixed(2); }
           function pxLadderOf(id) {
             for (var i = 0; i < pxLadders.length; i++) if (pxLadders[i].id === id) return pxLadders[i];
-            return { filled: 0, total: 12, complete: false, rungs: [], unitCents: 7499 };
+            return { filled: 0, total: 24, complete: false, rungs: [], unitCents: 4999 };
           }
           function pxLadderText(id) {
             return pxLadderOf(id).rungs.map(function (r) { return r.planId || ''; }).join('\n');
@@ -134,7 +134,7 @@
             <div>
               <h4 class="panel-title" style="font-size:0.98rem;margin:0;">Partner Sites</h4>
               <p class="field-hint" style="margin:0.3rem 0 0;max-width:54rem;">
-                Each site sells twelve plans in equal steps, so its ladder is a price grid. Paste the twelve
+                Each site sells twenty-four plans in equal steps, so its ladder is a price grid. Paste the twenty-four
                 plan ids once and every product maps itself: a <strong>$224.97</strong> product is three
                 steps, so one uses rung 3, two uses rung 6, and four is as high as the ladder goes.
                 Nothing is entered per product.
@@ -259,7 +259,7 @@
                           </span>
                         <% } else { %>
                           <%/* The reason matters more than the fact. "Not a
-                               multiple of 74.99" is a diagnosis; the nearest
+                               multiple of 49.99" is a diagnosis; the nearest
                                workable prices are a fix. */%>
                           <span class="px-map__why"><%= blocked.length ? blocked[0].detail : 'No site configured' %></span>
                         <% } %>
@@ -364,7 +364,7 @@
               </div>
               <div class="form-group">
                 <label>Step price</label>
-                <input type="number" step="0.01" name="siteUnitPrice" value="74.99">
+                <input type="number" step="0.01" name="siteUnitPrice" value="49.99">
               </div>
               <div class="form-group">
                 <label>Group</label>
@@ -376,7 +376,7 @@
                 </select>
               </div>
               <div class="form-group px-grid__full">
-                <label>The twelve plan ids</label>
+                <label>The twenty-four plan ids</label>
                 <textarea name="sitePlans" rows="12" placeholder="plan_xxxxxxxxxxxxx&#10;plan_xxxxxxxxxxxxx&#10;…one per line, step 1 first"></textarea>
                 <small class="field-hint">One per line, lowest first. <code>3:plan_xxx:224.97</code> is accepted too and goes to the step it names.</small>
               </div>
@@ -393,7 +393,7 @@
           <% if (!pxSites.length) { %>
             <div class="px-empty">
               <p><strong>No partner sites yet.</strong></p>
-              <p>Add one and paste its twelve plan ids. Add a second and sales start alternating between them.</p>
+              <p>Add one and paste its twenty-four plan ids. Add a second and sales start alternating between them.</p>
             </div>
           <% } else { %>
             <div class="px-cards">
@@ -472,7 +472,7 @@
                    var orders = (site.stats && site.stats.orders) || 0;
               %>
                 <%/* ONE ROW PER SITE, and everything editable behind it in a
-                     modal. Ten sites each unfolding twelve plan ids inline is
+                     modal. Ten sites each unfolding twenty-four plan ids inline is
                      a page nobody can hold in their head; the row carries the
                      four facts worth scanning — live, next, complete, how
                      many orders — and the dialog carries the rest.
@@ -583,7 +583,7 @@
                     </div>
                   </div>
 
-                  <%/* TABS, NOT A STACK. Four markets x twelve ids is
+                  <%/* TABS, NOT A STACK. Four markets x twenty-four ids is
                        forty-eight fields in one dialog; only one market is
                        ever being edited. Every textarea stays in the DOM and
                        only its panel is hidden, so all four still submit
@@ -602,7 +602,7 @@
                   <div class="px-panel" data-px-panel="<%= site.id %>-US">
                   <div class="px-ladder">
                     <div class="px-ladder__head">
-                      <span><%- include('../partials/flag', { code: 'US', label: 'United States', size: 16 }) %> US &mdash; the twelve plan ids</span>
+                      <span><%- include('../partials/flag', { code: 'US', label: 'United States', size: 16 }) %> US &mdash; the twenty-four plan ids</span>
                       <span class="field-hint" style="margin:0;">One per line, lowest first</span>
                     </div>
                     <div class="px-ladder__body">
@@ -623,7 +623,7 @@
 
                   <%/* ── One ladder per country ──────────────────────────
                        KEYED BY MARKET, NOT CURRENCY. Germany and France both
-                       charge euros and still need their own twelve ids: the
+                       charge euros and still need their own twenty-four ids: the
                        plan id is where the money lands, so sharing one euro
                        ladder would pool the revenue and leave no way to tell
                        which country's campaign produced a sale.

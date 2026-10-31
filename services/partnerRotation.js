@@ -2,8 +2,11 @@
  * Which partner site serves the next checkout, and which of its plans.
  *
  * THE ARRANGEMENT THIS IMPLEMENTS. Each partner site sells one thing on a
- * ladder of twelve plans in equal steps — $74.99, $149.98, … $899.88. That
- * ladder is not twelve products; it is a PRICE GRID in units of $74.99.
+ * ladder of twenty-four plans in equal steps — $49.99, $99.98, … $1,199.76.
+ * That ladder is not twenty-four products; it is a PRICE GRID in units of
+ * $49.99. (zypheratcg runs twelve rungs of $74.99; GoGetCards needs the
+ * longer, finer ladder because sealed cards run from $49.99 bundles to
+ * $1,199 hobby boxes.)
  * gogetcards is the catalogue, and each of its products sits at some number
  * of those units: a $224.97 product is three units, a $374.95 product is
  * five.
@@ -19,7 +22,7 @@
  * step by hand.
  *
  * WHAT THIS REPLACED, AND WHY. Plans used to be entered per product per
- * site: twelve ids for every product on every host, retyped whenever
+ * site: twenty-four ids for every product on every host, retyped whenever
  * anything moved. It was wrong twice over — the work grew with products ×
  * sites, and a product's ladder could silently disagree with its own price.
  * Twelve ids per site, entered once, cannot disagree with anything.
@@ -42,10 +45,10 @@
  */
 
 /** The ladder length every site is expected to carry. */
-const LADDER_STEPS = 12;
+const LADDER_STEPS = 24;
 
 /** Default step, in cents. Stored per site so a future host can differ. */
-const DEFAULT_UNIT_CENTS = 7499;
+const DEFAULT_UNIT_CENTS = 4999;
 
 /**
  * The experience id every partner host answers to.
@@ -137,9 +140,9 @@ function ladder(site, marketId) {
  * How many units a product costs, or null when it is not an exact multiple.
  *
  * INTEGER ARITHMETIC ON CENTS, and the modulo below is where it earns its
- * keep. In floating point, 524.93 % 74.99 is 74.98999999999998 rather than
+ * keep. In floating point, 349.93 % 49.99 is 49.98999999999998 rather than
  * 0 — so a float check rejects a legitimate seven-step price as "off the
- * grid". Eight of the twelve prices on a $74.99 ladder give a non-zero float
+ * grid". Many of the twenty-four prices on a $49.99 ladder give a non-zero float
  * modulo. Every one of them would silently stop going to partners at all,
  * and the settings screen would report them as mispriced. Cents divide and
  * remainder exactly.
@@ -559,7 +562,7 @@ function siteForProduct(site, product) {
   const units = unitsFor(site, price);
 
   if (!units) {
-    /* Name the nearest prices that WOULD work. "Not a multiple of 74.99" is
+    /* Name the nearest prices that WOULD work. "Not a multiple of 49.99" is
        a diagnosis; "price it 299.96 or 374.95" is a fix. */
     const below = Math.floor((price || 0) / unit) * unit;
     const above = below + unit;

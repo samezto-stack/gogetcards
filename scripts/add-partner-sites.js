@@ -34,12 +34,16 @@ const { MARKETS } = require('../config/markets');
 /* The step for each market, in cents. These are the rungs the price grid is
    built from; a site whose unit does not match its plans sells the wrong
    quantity, so they are stated here rather than defaulted. */
-const UNIT_CENTS = { US: 7499, CA: 10999, UK: 5999, EU: 6999 };
+/* GoGetCards: $49.99 steps, twenty-four rungs. The non-US figures keep
+   zypheratcg's proportions and are PLACEHOLDERS until the plan prices are
+   created in each Whop business; a unit that does not equal the plan's
+   price charges the wrong amount, so confirm before --apply. */
+const UNIT_CENTS = { US: 4999, CA: 7299, UK: 3999, EU: 4699 };
 
 /* GoGetCards' own partner batch goes here, one entry per site, in the
    same shape zypheratcg's script used:
 
-     { name, url, plans: [12 US plan ids, one unit upward],
+     { name, url, plans: [24 US plan ids, one unit upward],
        ladders: { CA: { unitCents, plans }, UK: {...}, EU: {...} } }
 
    The list starts EMPTY on purpose. The 1,100 plan ids that were here
@@ -48,10 +52,9 @@ const UNIT_CENTS = { US: 7499, CA: 10999, UK: 5999, EU: 6999 };
 
    BEFORE THE FIRST ENTRY, SETTLE THE UNIT. The partner ladder is a price
    grid: a product is sold only if its price is an exact multiple of the
-   unit, and a twelve-rung ladder tops out at 12 x unit per checkout.
-   zypheratcg's $74.99 unit fits its catalogue; a sealed-card catalogue with
-   $34.99 bundles, $89.99 trainer boxes and $1,199.99 hobby boxes does not
-   fit any single unit under twelve rungs. See docs/launch-checklist.md. */
+   unit, and the ladder tops out at 24 x unit per checkout. The unit is
+   $49.99 (LADDER_STEPS and DEFAULT_UNIT_CENTS in services/partnerRotation.js),
+   so every product price must be a multiple of $49.99, up to $1,199.76. */
 const SITES = [
 ];
 

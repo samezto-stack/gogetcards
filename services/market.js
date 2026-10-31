@@ -139,7 +139,7 @@ function display(priced) {
  * market's currency.
  *
  * Same reasoning as the single-market version it generalises: a ladder
- * has twelve rungs, so a product costing three of them tops out at four.
+ * has twenty-four rungs, so a product costing three of them tops out at four.
  * Asking with the wrong market would read the wrong ladder and offer a
  * quantity that cannot be billed.
  */

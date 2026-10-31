@@ -74,15 +74,11 @@ GoGetCards keeps zypheratcg's partner model but with **its own partner
 sites and its own Whop businesses**. Nothing in `config/embedCheckout.js`
 is shared: its host list starts empty.
 
-- [ ] **you** — **Decide the price unit.** The partner checkout is a price
-      grid: every product price must be an exact multiple of one unit, and
-      a twelve-rung ladder tops out at 12 × unit per checkout (zypheratcg:
-      $74.99, so $899.88). Sealed cards span $34.99 bundles to $1,199.99
-      hobby boxes, which no single unit covers in twelve rungs. The options
-      are a longer ladder (24 rungs of $49.99 reaches $1,199.76 and still
-      sells a $49.99 bundle), pricing the catalogue onto the grid, or two
-      units on two site groups. This decides the plan CSV for every Whop
-      business, so it comes before any site is built.
+- [x] **decided** — **Price unit: $49.99, twenty-four rungs** (`services/partnerRotation.js`).
+      Every product price must be an exact multiple of $49.99, and one
+      checkout tops out at $1,199.76. Each partner business therefore carries
+      24 plans per market: $49.99, $99.98, … $1,199.76. Price the catalogue
+      onto that grid (the admin flags a price that is off it).
 - [ ] **you** — Decide the batch size and create the empty repositories for
       the new partner sites (one per site, as before).
 - [ ] **code** — Each site is built from the partner template with the

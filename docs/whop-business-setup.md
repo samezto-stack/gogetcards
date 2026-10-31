@@ -4,7 +4,7 @@ Every partner host sells through its own Whop business. This is the
 checklist that business has to satisfy, and the reason for each item.
 
 The prompts that drive the setup are generated per batch — they carry the
-forty-eight plan figures, which is the part no one should retype. This
+ninety-six plan figures (twenty-four rungs of $49.99 in four currencies), which is the part no one should retype. This
 file holds the part that does **not** change between batches, so that a
 future batch generated from scratch cannot quietly lose it.
 

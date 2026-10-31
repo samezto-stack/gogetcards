@@ -19,7 +19,7 @@ const PRODUCTS = [
   {
     title: "Pokémon Prismatic Evolutions — Elite Trainer Box",
     slug: "pokemon-prismatic-evolutions-etb",
-    price: 8999, comparePrice: 10400,
+    price: 9998, comparePrice: 10999,
     description: "Nine Prismatic Evolutions booster packs plus 65 sleeves, 45 energy cards, dice, markers and the player's guide. Factory sealed, shrink wrap intact, photographed before it ships.",
     vendor: "The Pokémon Company", productType: "Elite Trainer Box", setCode: "SV8.5",
     specs: [{ label: "Configuration", value: "9 Booster Packs" }, { label: "Cards Per Pack", value: "10" }, { label: "Also Includes", value: "65 Card Sleeves, 45 Energy Cards, Dice & Counters" }, { label: "Language", value: "English" }],
@@ -30,7 +30,7 @@ const PRODUCTS = [
   {
     title: "Magic: The Gathering — Final Fantasy Collector Booster Box",
     slug: "mtg-final-fantasy-collector-booster-box",
-    price: 44999, comparePrice: 47900,
+    price: 44991, comparePrice: 47999,
     description: "Twelve Collector Boosters of the Final Fantasy set, weighted toward foil, extended-art and borderless treatments. Factory sealed from Wizards of the Coast distribution.",
     vendor: "Wizards of the Coast", productType: "Collector Booster Box",
     specs: [{ label: "Configuration", value: "12 Collector Booster Packs" }, { label: "Cards Per Pack", value: "15" }, { label: "Language", value: "English" }],
@@ -41,7 +41,7 @@ const PRODUCTS = [
   {
     title: "One Piece Card Game — OP-11 Booster Box (Japanese)",
     slug: "one-piece-op-11-booster-box-japanese",
-    price: 12999, comparePrice: 13900,
+    price: 14997, comparePrice: 15999,
     description: "Twenty-four packs of twelve cards, Japanese print, in the original Bandai wrap. Set code OP-11.",
     vendor: "Bandai", productType: "Booster Box", language: "Japanese", setCode: "OP-11",
     specs: [{ label: "Configuration", value: "24 Booster Packs" }, { label: "Cards Per Pack", value: "12" }, { label: "Language", value: "Japanese" }],
@@ -52,7 +52,7 @@ const PRODUCTS = [
   {
     title: "Disney Lorcana — Fabled Booster Box",
     slug: "lorcana-fabled-booster-box",
-    price: 13999, comparePrice: 14900,
+    price: 14997, comparePrice: 15499,
     description: "Twenty-four packs of twelve cards from the Fabled set, factory sealed in the original Ravensburger wrap.",
     vendor: "Ravensburger", productType: "Booster Box",
     specs: [{ label: "Configuration", value: "24 Booster Packs" }, { label: "Cards Per Pack", value: "12" }, { label: "Language", value: "English" }],
@@ -63,7 +63,7 @@ const PRODUCTS = [
   {
     title: "2025 Topps Chrome Baseball — Hobby Box",
     slug: "2025-topps-chrome-baseball-hobby-box",
-    price: 29999, comparePrice: 31900,
+    price: 29994, comparePrice: 31999,
     description: "The hobby configuration of 2025 Topps Chrome Baseball, with the guaranteed autographs printed on the box. Factory sealed, bought by the case, never searched.",
     vendor: "Topps", productType: "Hobby Box",
     specs: [{ label: "Configuration", value: "Hobby Box" }, { label: "Packs Per Box", value: "24" }, { label: "Cards Per Pack", value: "4" }, { label: "Guaranteed Hits", value: "2 Autographs" }, { label: "Sport", value: "Baseball" }, { label: "Season", value: "2025" }],
@@ -74,7 +74,7 @@ const PRODUCTS = [
   {
     title: "2024-25 Panini Prizm Basketball — Hobby Box",
     slug: "2024-25-panini-prizm-basketball-hobby-box",
-    price: 119999, comparePrice: 127500,
+    price: 119976, comparePrice: 127500,
     description: "The hobby box of 2024-25 Prizm Basketball, two autographs per box as printed. Factory sealed in the original Panini wrap, photographed before shipping.",
     vendor: "Panini", productType: "Hobby Box",
     specs: [{ label: "Configuration", value: "Hobby Box" }, { label: "Packs Per Box", value: "12" }, { label: "Cards Per Pack", value: "12" }, { label: "Guaranteed Hits", value: "2 Autographs" }, { label: "Sport", value: "Basketball" }, { label: "Season", value: "2024-25" }],
@@ -85,7 +85,7 @@ const PRODUCTS = [
   {
     title: "2025 Panini Select Football — Hobby Box (Preorder)",
     slug: "2025-panini-select-football-hobby-box-preorder",
-    price: 49999,
+    price: 49990,
     description: "Reserve the 2025 Select Football hobby box from our allocation. Charged at checkout, shipped on street date; a short allocation is refunded first.",
     vendor: "Panini", productType: "Hobby Box",
     specs: [{ label: "Configuration", value: "Hobby Box" }, { label: "Packs Per Box", value: "" }, { label: "Cards Per Pack", value: "" }, { label: "Guaranteed Hits", value: "" }, { label: "Sport", value: "Football" }, { label: "Season", value: "2025" }],
@@ -97,7 +97,7 @@ const PRODUCTS = [
   {
     title: "2025 Bowman Baseball — Jumbo Box (Preorder)",
     slug: "2025-bowman-baseball-jumbo-box-preorder",
-    price: 38999,
+    price: 39992,
     description: "Reserve the 2025 Bowman Baseball jumbo box from our allocation. Charged at checkout, shipped on street date.",
     vendor: "Topps", productType: "Jumbo Box",
     specs: [{ label: "Configuration", value: "Jumbo Hobby Box" }, { label: "Packs Per Box", value: "" }, { label: "Cards Per Pack", value: "" }, { label: "Guaranteed Hits", value: "" }, { label: "Sport", value: "Baseball" }, { label: "Season", value: "2025" }],
@@ -109,7 +109,7 @@ const PRODUCTS = [
   {
     title: "Pokémon Destined Rivals — Booster Bundle",
     slug: "pokemon-destined-rivals-booster-bundle",
-    price: 3499, comparePrice: 3900,
+    price: 4999, comparePrice: 5499,
     description: "Six Destined Rivals booster packs in the sealed retail bundle. Factory sealed from Pokémon distribution.",
     vendor: "The Pokémon Company", productType: "Booster Bundle", setCode: "SV10",
     specs: [{ label: "Configuration", value: "6 Booster Packs" }, { label: "Cards Per Pack", value: "10" }, { label: "Language", value: "English" }],

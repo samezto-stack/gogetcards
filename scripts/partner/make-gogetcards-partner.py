@@ -154,6 +154,15 @@ def convert(root: Path):
             ('<script src="https://zypheratcg.com/js/fx-estimate.js" async></script>', f'<script src="{STORE_ORIGIN}/js/fx-estimate.js" async></script>'),
             (WHOP_THEME_OLD, WHOP_THEME_NEW),
             ('<meta name="theme-color" content="#0B0F14">', '<meta name="theme-color" content="#0F2A4A">'),
+            # the template falls back to zypheratcg's own $74.99 plan when no
+            # whopPlanId claim arrives; for GoGetCards there is no safe fallback
+            ('|| "plan_hJoWqq65Z09B2"; // fallback: this site\'s own x1 step ($74.99) if no whopPlanId claim arrives.',
+             '|| ""; // no fallback: a checkout without a whopPlanId claim must fail loudly, never charge another store\'s plan'),
+            # and with no plan id the mount goes straight to the "could not load
+            # the payment form" state (showFallback) instead of asking Whop to
+            # mint a session for an empty plan
+            ('    ensureWhopElements().then(function (WhopElements) {',
+             '    (WHOP_PLAN_ID ? ensureWhopElements() : Promise.reject(new Error("no whopPlanId claim on this visit"))).then(function (WhopElements) {'),
         ], 'partner.html')
         p = retheme_css(p)
         page.write_text(p, encoding='utf-8')

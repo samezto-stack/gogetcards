@@ -119,7 +119,7 @@ async function priceFor(slug, requestedQty, opts = {}) {
  *
  * READ THROUGH THE SAME GRID THE HOP USES, so Step 1 and the payment step
  * can never quote different figures. A partner site sells one ladder of
- * twelve plans in equal steps, which makes it a price grid: a product
+ * twenty-four plans in equal steps, which makes it a price grid: a product
  * costing three steps uses rung 3 for one unit, rung 6 for two. Nothing is
  * configured per product, so there is nothing here that can drift out of
  * step with what resolvePartnerRedirect will actually charge.

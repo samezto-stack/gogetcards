@@ -2,7 +2,7 @@
  * Partner sites and their ladders, read from a CSV.
  *
  * WHY THIS EXISTS. A site with four markets is forty-eight plan ids, and
- * twelve of them are one textarea. Ten sites is four hundred and eighty
+ * twenty-four of them are one textarea. Ten sites is nine hundred and sixty
  * strings typed or pasted into a form by hand, and the failure mode of a
  * mistake is not an error — a rung in the wrong slot charges one price and
  * shows another, and nothing anywhere reports it. Machines are better at
@@ -11,7 +11,7 @@
  * THE FORMAT IS LONG, NOT WIDE. One row per rung:
  *
  *     site,url,market,step,plan_id,unit_price
- *     Term Sheet,https://term-sheet.onrender.com/services/term-sheet-review,US,1,plan_Wxt…,74.99
+ *     Term Sheet,https://term-sheet.onrender.com/services/term-sheet-review,US,1,plan_Wxt…,49.99
  *
  * A wide file — one row per site, fifty-odd columns — is shorter to look at
  * and silently wrong the moment a column is added, removed or reordered:
