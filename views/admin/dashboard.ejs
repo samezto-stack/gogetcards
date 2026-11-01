@@ -7,12 +7,11 @@
        business using, then hardcoding them over the tokens. One less
        request, one typeface set. */%>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
-  <script src="https://unpkg.com/globe.gl@2.27.3/dist/globe.gl.min.js" defer></script>
   <style>
     /* ── Dashboard-only layout ─────────────────────────────────────────
        Everything that is a panel, stat card, table, button, alert or
        modal uses the shared admin.css class. What is left here is the
-       globe, the chart box, the two bar lists and the drill-down table's
+       the two chart boxes, the two bar lists and the drill-down table's
        own cells — layout that is genuinely this page's. */
 
     /* Range picker, in the header's action slot. The custom-dates group
@@ -38,16 +37,11 @@
     .dash-row { margin-bottom: 20px; }
     .dash-row > .admin-panel { margin-bottom: 0; min-width: 0; }
 
-    /* The one deliberate exception to the white surface: the globe canvas
-       is transparent, so it needs a dark ground behind it to read at all.
-       Navy, so it is the same dark the top bar uses. */
-    .dash-globe { height: 380px; background: var(--admin-primary); border-radius: 0 0 var(--admin-r) var(--admin-r); overflow: hidden; }
-    .dash-globe__viz { width: 100%; height: 100%; }
-    .dash-globe canvas { display: block; }
-    .dash-globe__fallback { padding: 32px 24px; text-align: center; color: var(--admin-primary-ink); font-size: 13px; opacity: 0.8; }
-
-    /* Chart.js needs a positioned box with a fixed height to size into. */
-    .dash-chart { position: relative; height: 300px; width: 100%; }
+    /* Chart.js needs a positioned box with a fixed height to size into.
+       The headline figure sits above the line, as a sales dashboard
+       reads: the number first, the shape of it underneath. */
+    .dash-chart { position: relative; height: 240px; width: 100%; }
+    .dash-figure { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; }
 
     /* Tables that live inside a flush panel body: the panel already draws
        the border and the radius, so the wrap draws nothing. */
@@ -234,31 +228,36 @@
       </div>
     </div>
 
-    <!-- Globe + hourly chart -->
+    <!-- Visitors and orders over the range -->
+    <%/* The figure in each head is the range's own count from the stat
+         strip; the line underneath is how it arrived. */%>
     <div class="grid-2 dash-row">
       <div class="admin-panel">
         <div class="admin-panel__head">
-          <h2 class="admin-panel__title">Live traffic globe</h2>
-          <%/* The live count used to be a seventh stat card, sitting beside
-               figures for the selected date range even though it only ever
-               describes right now. It belongs on the globe, which is the
-               thing actually plotting those visitors. */%>
-          <span class="admin-live-count"><span class="live-dot"></span><span id="live-count"><%= liveVisitors.length %></span> live now</span>
+          <div>
+            <h2 class="admin-panel__title">Unique visitors</h2>
+            <p class="admin-panel__sub" id="visitorsChartSub"></p>
+          </div>
+          <div class="dash-figure num"><%= stats.views || 0 %></div>
         </div>
-        <div class="admin-panel__body admin-panel__body--flush">
-          <div class="dash-globe">
-            <div id="globeViz" class="dash-globe__viz"></div>
+        <div class="admin-panel__body">
+          <div class="dash-chart">
+            <canvas id="visitorsChart"></canvas>
           </div>
         </div>
       </div>
 
       <div class="admin-panel">
         <div class="admin-panel__head">
-          <h2 class="admin-panel__title">Hourly unique visitors</h2>
+          <div>
+            <h2 class="admin-panel__title">Orders</h2>
+            <p class="admin-panel__sub" id="ordersChartSub"></p>
+          </div>
+          <div class="dash-figure num"><%= stats.orders || 0 %></div>
         </div>
         <div class="admin-panel__body">
           <div class="dash-chart">
-            <canvas id="hourlyChart"></canvas>
+            <canvas id="ordersChart"></canvas>
           </div>
         </div>
       </div>
@@ -312,8 +311,8 @@
 
       <div class="admin-panel">
         <div class="admin-panel__head">
-          <h2 class="admin-panel__title"><span class="live-dot"></span> Live visitors</h2>
-          <span class="tiny faint">Auto-refreshes every 10s</span>
+          <h2 class="admin-panel__title">Live visitors <span class="admin-live-count"><span class="live-dot"></span><span id="live-count"><%= liveVisitors.length %></span> now</span></h2>
+          <span class="tiny faint">Last 5 minutes. Auto-refreshes every 10s</span>
         </div>
         <div class="admin-panel__body admin-panel__body--flush">
           <div id="live-visitors-container" class="dash-scroll">
@@ -499,69 +498,91 @@
   </main>
 
   <script>
-   // Chart.js & globe.gl load with `defer`, so run everything that touches
-   // them after DOMContentLoaded (deferred scripts finish before that fires).
+   // Chart.js loads with `defer`, so run everything that touches it after
+   // DOMContentLoaded (deferred scripts finish before that fires).
    document.addEventListener('DOMContentLoaded', function () {
     // ── Data from server ──
-    const hourlyData = <%- hourlyChart %>;
+    const visitorsSeries = <%- visitorsChart %>;
+    const ordersSeries = <%- ordersChart %>;
     const trafficSources = <%- trafficSources %>;
-    const globePins = <%- globePins %>;
 
-    // ── Hourly Unique Visitors Chart ──
-    const hourLabels = Array.from({length: 24}, (_, i) => {
-      const h = i % 12 || 12;
-      return h + (i < 12 ? 'AM' : 'PM');
-    });
+    // ── The two lines ──
+    /* Drawn the way a sales dashboard draws them: one thin line, a faint
+       fill beneath it, no points until the cursor is on one, dotted
+       horizontal rules and nothing vertical, a handful of x labels. The
+       fill is a vertical gradient from the line's colour to nothing, built
+       per chart because it needs the chart's own height. */
+    function lineChart(id, series, colour, name) {
+      const el = document.getElementById(id);
+      if (!el || !series) return;
+      const n = series.values.length;
+      /* Label density: about eight across whatever the width. */
+      const every = Math.max(1, Math.ceil(n / 8));
+      const sub = document.getElementById(id + 'Sub');
+      if (sub) sub.textContent = series.unit === 'hour' ? 'By hour' : series.unit === 'day' ? 'By day' : 'By month';
+      const rgba = function (a) { return colour.replace('rgb(', 'rgba(').replace(')', ', ' + a + ')'); };
 
-    new Chart(document.getElementById('hourlyChart'), {
-      type: 'bar',
-      data: {
-        labels: hourLabels,
-        datasets: [{
-          label: 'Unique Visitors',
-          data: hourlyData,
-          /* One flat colour, no outline.
-             These were a brass-to-bordeaux gradient with a lit border, so
-             every bar carried a vertical colour ramp and a bright edge that
-             said nothing about its value — two bars differed by height AND
-             by how much red had crept in, which is a second encoding of
-             nothing. A single tone lets height do the whole job.
-             Navy at 60%, full navy under the cursor: the admin's own ink. */
-          backgroundColor: 'rgba(15, 42, 74, 0.6)',
-          hoverBackgroundColor: '#0F2A4A',
-          borderWidth: 0,
-          borderRadius: 3,
-          borderSkipped: false,
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#F7F8FA',
-            titleColor: '#111827',
-            bodyColor: '#4B5563',
-            borderColor: '#C9D0DA',
-            borderWidth: 1,
-            cornerRadius: 6,
-            padding: 10,
-          }
+      new Chart(el, {
+        type: 'line',
+        data: {
+          labels: series.labels,
+          datasets: [{
+            label: name,
+            data: series.values,
+            borderColor: colour,
+            borderWidth: 2,
+            tension: 0.35,
+            fill: true,
+            backgroundColor: function (ctx) {
+              const area = ctx.chart.chartArea;
+              if (!area) return rgba(0);
+              const g = ctx.chart.ctx.createLinearGradient(0, area.top, 0, area.bottom);
+              g.addColorStop(0, rgba(0.18));
+              g.addColorStop(1, rgba(0));
+              return g;
+            },
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: colour,
+            pointHoverBorderWidth: 2,
+          }]
         },
-        scales: {
-          x: {
-            grid: { display: false },
-            ticks: { color: '#6B7280', font: { size: 10 }, maxRotation: 0 }
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#111827',
+              titleColor: '#fff',
+              bodyColor: '#E5E7EB',
+              displayColors: false,
+              cornerRadius: 6,
+              padding: 10,
+              callbacks: { label: function (c) { return name + ': ' + c.parsed.y.toLocaleString('en-US'); } }
+            }
           },
-          y: {
-            beginAtZero: true,
-            grid: { color: '#E3E6EC' },
-            ticks: { color: '#6B7280', font: { size: 11 }, precision: 0 }
+          scales: {
+            x: {
+              grid: { display: false },
+              border: { color: '#E3E6EC' },
+              ticks: { color: '#6B7280', font: { size: 11 }, maxRotation: 0, autoSkip: false,
+                       callback: function (v, i) { return i % every === 0 ? this.getLabelForValue(v) : ''; } }
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: '#E3E6EC', borderDash: [3, 3] },
+              border: { display: false, dash: [3, 3] },
+              ticks: { color: '#6B7280', font: { size: 11 }, precision: 0, maxTicksLimit: 5, padding: 8 }
+            }
           }
         }
-      }
-    });
+      });
+    }
+    lineChart('visitorsChart', visitorsSeries, 'rgb(29, 79, 184)', 'Visitors');
+    lineChart('ordersChart', ordersSeries, 'rgb(15, 42, 74)', 'Orders');
 
     // ── Traffic Sources ──
     // Navy-family palette so the whole panel stays on the admin's palette.
@@ -739,49 +760,6 @@
       });
     }
     foldPanels();
-
-    // ── 3D Globe ──
-    (function initGlobe() {
-      const container = document.getElementById('globeViz');
-      if (!container) return;
-
-      try {
-        /* The canvas is cleared to a fully transparent navy so the panel's
-           own ground shows through; points, rings and atmosphere are the
-           admin's link blue so they read on it. */
-        const myGlobe = Globe()(container)
-          .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
-          .backgroundColor('rgba(15,42,74,0)')
-          .atmosphereColor('rgba(91,141,239,0.45)')
-          .atmosphereAltitude(0.2)
-          .pointsData(globePins)
-          .pointLat('lat')
-          .pointLng('lng')
-          .pointColor(() => '#7FB0FF')
-          .pointAltitude(d => Math.min(d.count * 0.02, 0.3))
-          .pointRadius(0.4)
-          .pointsMerge(true)
-          .ringsData(globePins.slice(0, 20))
-          .ringLat('lat')
-          .ringLng('lng')
-          .ringColor(() => t => `rgba(127,176,255,${1 - t})`)
-          .ringMaxRadius(3)
-          .ringPropagationSpeed(2)
-          .ringRepeatPeriod(2000);
-
-        // Auto-rotate
-        myGlobe.controls().autoRotate = true;
-        myGlobe.controls().autoRotateSpeed = 0.8;
-        myGlobe.controls().enableZoom = false;
-
-        // Size to container
-        const w = container.clientWidth;
-        const h = container.clientHeight;
-        myGlobe.width(w).height(h);
-      } catch(e) {
-        container.innerHTML = '<p class="dash-globe__fallback">Globe requires WebGL. Your browser may not support it.</p>';
-      }
-    })();
 
     // ── Auto-refresh live visitors ──
     setInterval(async () => {

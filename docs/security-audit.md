@@ -184,7 +184,7 @@ node scripts/clean-xss-events.js --apply  # apply
 
 1. **Strict, nonce-based CSP `script-src` (recommended, needs testing).**
    The app has many inline `<script>` blocks and CDN sources (Chart.js,
-   globe.gl, Google Ads, Meta Pixel, fonts). A strict `script-src` is the
+   Google Ads, Meta Pixel, fonts). A strict `script-src` is the
    strongest XSS containment but will break the storefront if rolled out
    untested. Plan: add a per-request nonce, stamp every inline script/style
    with it, enumerate the CDN hosts, ship first as

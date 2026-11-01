@@ -130,6 +130,63 @@ router.get('/logout', (req, res) => {
  * Behaviour is identical to the inline version it replaces, Monday week
  * start and the custom end-date bump included.
  */
+/**
+ * Buckets for the two dashboard lines, visitors and orders, over the
+ * selected range. One set of buckets for both, so the lines are read
+ * against the same axis: hours for a single day, days for a week or a
+ * month, months for a year or all time. Keys are the strings
+ * $dateToString produces in the site's timezone, so a bucket Mongo
+ * fills and a bucket generated here always agree on which day it is;
+ * the old hourly chart sat one hour to the left until it passed the
+ * timezone explicitly, and this keeps that lesson.
+ */
+function chartSeries(range, startDate, endDate) {
+  const tz = site.timezone();
+  const now = new Date();
+  let unit = 'day';
+  let start = new Date(startDate);
+  let end = new Date(endDate);
+  if (range === 'today' || range === 'yesterday') unit = 'hour';
+  else if (range === 'year') unit = 'month';
+  else if (range === 'all') { unit = 'month'; start = new Date(now.getFullYear(), now.getMonth() - 11, 1); end = now; }
+  else if ((end - start) > 92 * 24 * 3600 * 1000) unit = 'month';
+  if (unit === 'month') start = new Date(start.getFullYear(), start.getMonth(), 1);
+  else if (unit === 'day') start.setHours(0, 0, 0, 0);
+
+  const format = unit === 'hour' ? '%Y-%m-%dT%H' : unit === 'day' ? '%Y-%m-%d' : '%Y-%m';
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23' });
+  const key = (d) => {
+    const o = {};
+    for (const p of parts.formatToParts(d)) o[p.type] = p.value;
+    const h = o.hour === '24' ? '00' : o.hour;
+    return unit === 'hour' ? `${o.year}-${o.month}-${o.day}T${h}` : unit === 'day' ? `${o.year}-${o.month}-${o.day}` : `${o.year}-${o.month}`;
+  };
+  const label = (d) => unit === 'hour'
+    ? d.toLocaleTimeString('en-US', { hour: 'numeric', timeZone: tz })
+    : unit === 'day'
+      ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: tz })
+      : d.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: tz });
+
+  const keys = [];
+  const labels = [];
+  const cursor = new Date(start);
+  let guard = 0;
+  while (cursor < end && guard++ < 400) {
+    keys.push(key(cursor));
+    labels.push(label(cursor));
+    if (unit === 'hour') cursor.setHours(cursor.getHours() + 1);
+    else if (unit === 'day') cursor.setDate(cursor.getDate() + 1);
+    else cursor.setMonth(cursor.getMonth() + 1);
+  }
+  /* Every bucket is present, zero where nothing happened, so the line
+     dips to the axis rather than skipping the quiet hours. */
+  const fill = (rows) => {
+    const by = new Map(rows.map((r) => [r._id, r.count]));
+    return { unit, labels, values: keys.map((k) => by.get(k) || 0) };
+  };
+  return { unit, format, start, end, keys, labels, fill, timezone: tz };
+}
+
 function resolveRange(req) {
   const range = req.query.range || 'today';
   const now = new Date();
@@ -423,22 +480,25 @@ router.get('/', requireAuth, async (req, res) => {
       { $limit: 15 },
     ]);
 
-    /* Hourly unique visitors breakdown (by IP).
-     *
-     * The timezone is passed EXPLICITLY. $hour runs inside MongoDB, which
-     * knows nothing about the process's TZ, so without this every bar sat
-     * one hour to the left of the wall clock: a visitor at 12AM local was
-     * drawn under 11PM. Setting process.env.TZ fixed the timestamps Node
-     * prints and left this untouched. */
-    const hourlyData = await Event.aggregate([
-      { $match: { type: 'page_view', ...query } },
-      { $group: { _id: { $hour: { date: '$createdAt', timezone: site.timezone() } }, ips: { $addToSet: '$ip' } } },
-      { $project: { _id: 1, count: { $size: '$ips' } } },
-      { $sort: { _id: 1 } },
+    /* Visitors and orders over the range, the two lines at the top of the
+       page. See chartSeries for the bucketing; the orders line uses the
+       same exclusions as the Orders figure beside it, so a test purchase
+       never draws a bump the stat card does not count. */
+    const series = chartSeries(range, startDate, endDate);
+    const bucket = { $dateToString: { format: series.format, date: '$createdAt', timezone: series.timezone } };
+    const [visitorBuckets, orderBuckets] = await Promise.all([
+      Event.aggregate([
+        { $match: { type: 'page_view', createdAt: { $gte: series.start, $lt: series.end } } },
+        { $group: { _id: bucket, ips: { $addToSet: '$ip' } } },
+        { $project: { _id: 1, count: { $size: '$ips' } } },
+      ]),
+      Order.aggregate([
+        { $match: { ...testOrder.EXCLUDE_FROM_REPORTING, createdAt: { $gte: series.start, $lt: series.end } } },
+        { $group: { _id: bucket, count: { $sum: 1 } } },
+      ]),
     ]);
-    // Fill all 24 hours (0-23) with 0 if no data
-    const hourlyChart = Array(24).fill(0);
-    hourlyData.forEach(h => { hourlyChart[h._id] = h.count; });
+    const visitorsChart = series.fill(visitorBuckets);
+    const ordersChart = series.fill(orderBuckets);
 
     /* Traffic sources: one row per UNIQUE VISITOR, credited to the channel
      * that actually brought them. The pipeline itself lives in
@@ -476,15 +536,6 @@ router.get('/', requireAuth, async (req, res) => {
     });
     const liveVisitors = Array.from(ipMap.values());
 
-    // Globe data: recent visitors with coordinates (last 5 minutes — matches Live Now)
-    const globePins = await Event.aggregate([
-      { $match: { type: 'page_view', lat: { $ne: null }, lon: { $ne: null }, createdAt: { $gte: fiveMinAgo } } },
-      { $group: { _id: { ip: '$ip', lat: '$lat', lon: '$lon' }, country: { $first: '$country' } } },
-      { $group: { _id: { lat: '$_id.lat', lon: '$_id.lon' }, country: { $first: '$country' }, count: { $sum: 1 } } },
-      { $project: { _id: 0, lat: '$_id.lat', lng: '$_id.lon', country: '$country', count: '$count' } },
-      { $limit: 200 },
-    ]);
-
     res.render('admin/dashboard', {
       directLandings,
       previous,
@@ -504,9 +555,9 @@ router.get('/', requireAuth, async (req, res) => {
       topCountries: topCountries || [],
       liveVisitors,
       formatPrice,
-      hourlyChart: jsonForScript(hourlyChart),
+      visitorsChart: jsonForScript(visitorsChart),
+      ordersChart: jsonForScript(ordersChart),
       trafficSources: jsonForScript(trafficSources),
-      globePins: jsonForScript(globePins),
     }, (err, html) => {
       if (err) {
         // Log the detail server-side; the browser gets a generic 500 so a

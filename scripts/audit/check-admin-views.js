@@ -847,7 +847,6 @@ function distributionProductLocals(p, { probe, selectionMode = 'all', query = {}
 
 /* ── Dashboard (routes/admin.js) ────────────────────────────────────── */
 function dashboardLocals(over = {}) {
-  const hourly = Array.from({ length: 24 }, (_, h) => Math.round(8 + 30 * Math.max(0, Math.sin((h - 6) / 24 * Math.PI * 2))));
   const sources = [{ name: 'Google Ads', count: 1290 }, { name: 'Direct', count: 740 }, { name: 'Facebook', count: 310 }, { name: 'chatgpt.com', count: 88 }, { name: 'trustpilot', count: 40 }, { name: 'Bing', count: 31 }, { name: '</script><img src=x onerror=alert(1)>', count: 1 }];
   const totalSources = sources.reduce((n, s) => n + s.count, 0);
   const revenueBySource = [{ name: 'Google Ads', revenue: 1050000, orders: 48 }, { name: 'Direct', revenue: 640000, orders: 24 }, { name: 'Facebook', revenue: 190000, orders: 11 }, { name: 'Google', revenue: 180000, orders: 9 }, { name: 'Reddit', revenue: 124503, orders: 5 }, { name: 'Bing Ads', revenue: 14997, orders: 1 }];
@@ -868,9 +867,9 @@ function dashboardLocals(over = {}) {
       { page: '/collections/pokemon', ip: '10.0.0.9', country: 'Unknown', countryCode: '', lastSeen: ago(200e3) },
     ],
     formatPrice,
-    hourlyChart: jsonForScript(hourly),
+    visitorsChart: jsonForScript({ unit: 'day', labels: Array.from({ length: 30 }, (_, i) => `Oct ${i + 1}`), values: Array.from({ length: 30 }, (_, i) => Math.round(120 + 80 * Math.sin(i / 4) + (i % 7 === 0 ? 60 : 0))) }),
+    ordersChart: jsonForScript({ unit: 'day', labels: Array.from({ length: 30 }, (_, i) => `Oct ${i + 1}`), values: Array.from({ length: 30 }, (_, i) => Math.max(0, Math.round(3 + 2 * Math.sin(i / 3) + (i % 5 === 0 ? 3 : 0)))) }),
     trafficSources: jsonForScript(sources.map((s) => ({ name: s.name, count: s.count, percent: ((s.count / totalSources) * 100).toFixed(1) }))),
-    globePins: jsonForScript([{ lat: 34.02, lng: -118.49, country: 'United States', count: 3 }, { lat: 52.52, lng: 13.4, country: 'Germany', count: 1 }]),
   }, over);
 }
 
@@ -914,7 +913,7 @@ const FIXTURES = [
   { view: 'dashboard', state: 'populated', path: '/admin', locals: dashboardLocals() },
   { view: 'dashboard', state: 'no-previous', path: '/admin', locals: dashboardLocals({ range: 'all', previous: null, unconfirmedPaymentCount: 0 }) },
   { view: 'dashboard', state: 'custom-range', path: '/admin', locals: dashboardLocals({ range: 'custom', startDate: dayStr(ago(10 * DAY)), endDate: dayStr(new Date(NOW)), previous: { views: 0, checkouts: 0, orders: 0, revenue: 0 } }) },
-  { view: 'dashboard', state: 'empty', path: '/admin', locals: dashboardLocals({ range: 'today', previous: { views: 12, checkouts: 1, orders: 0, revenue: 0 }, directLandings: [], revenueBySource: [], revenueBySourceTotal: 1, topProductsByRevenue: [], unconfirmedPaymentCount: 0, stats: { views: 0, checkouts: 0, orders: 0, revenue: 0, reachedCheckout: 0 }, topProducts: [], topCountries: [], liveVisitors: [], hourlyChart: jsonForScript(Array(24).fill(0)), trafficSources: jsonForScript([]), globePins: jsonForScript([]) }) },
+  { view: 'dashboard', state: 'empty', path: '/admin', locals: dashboardLocals({ range: 'today', previous: { views: 12, checkouts: 1, orders: 0, revenue: 0 }, directLandings: [], revenueBySource: [], revenueBySourceTotal: 1, topProductsByRevenue: [], unconfirmedPaymentCount: 0, stats: { views: 0, checkouts: 0, orders: 0, revenue: 0, reachedCheckout: 0 }, topProducts: [], topCountries: [], liveVisitors: [], visitorsChart: jsonForScript({ unit: 'hour', labels: Array.from({ length: 24 }, (_, h) => `${h % 12 || 12} ${h < 12 ? 'AM' : 'PM'}`), values: Array(24).fill(0) }), ordersChart: jsonForScript({ unit: 'hour', labels: Array.from({ length: 24 }, (_, h) => `${h % 12 || 12} ${h < 12 ? 'AM' : 'PM'}`), values: Array(24).fill(0) }), trafficSources: jsonForScript([]) }) },
 
   /* routes/admin.js GET /orders */
   { view: 'orders', state: 'populated', path: '/admin/orders', locals: ordersLocals(ORDERS.map(orderRow), { unconfirmedPayments: UNCONFIRMED, notice: 'cancelled', query: { recovered: 'whop_pay_Ux3cVb9nQw2E', recoveredNew: '1' }, pages: 4, total: 180, from: 1, to: 50 }) },
