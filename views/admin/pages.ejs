@@ -1,20 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%230F2A4A'/><rect x='190' y='104' width='196' height='272' rx='22' fill='none' stroke='%23ffffff' stroke-width='30' transform='rotate(14 288 240)'/><rect x='126' y='136' width='196' height='272' rx='22' fill='%23ffffff'/></svg>">
-  <meta name="theme-color" content="#0c0c12">
-  <meta name="robots" content="noindex, nofollow">
-  <title><%= pageTitle %> | GoGetCards Admin</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+  <%- include('_head', { title: pageTitle }) %>
 </head>
 <body class="admin-body">
-  <%- include('_sidebar') %>
+  <%- include('_sidebar', { currentPath: '/admin/pages' }) %>
   <main class="admin-main">
     <header class="admin-header">
-      <h1 class="admin-header__title"><%= pageTitle %></h1>
-      <a href="/admin/pages/new" class="admin-btn admin-btn--primary">+ Add Page</a>
+      <div>
+        <h1 class="admin-header__title"><%= pageTitle %> <span class="admin-header__count"><%= pages.length %></span></h1>
+        <p class="admin-header__sub">Policy and information pages served at /page/&lt;slug&gt;.</p>
+      </div>
+      <div class="admin-header__actions">
+        <a href="/admin/pages/new" class="admin-btn admin-btn--primary">Add page</a>
+      </div>
     </header>
     <div class="admin-content">
       <% if (success) { %>
@@ -22,17 +21,20 @@
       <% } %>
       <div class="admin-table-wrap">
         <table class="admin-table">
-          <thead><tr><th>Title</th><th>Slug</th><th>Category</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Title</th><th>Address</th><th>Category</th><th class="num"><span class="sr-only">Actions</span></th></tr></thead>
           <tbody>
+            <% if (!pages.length) { %>
+              <tr><td colspan="4" class="admin-table__empty">No pages yet.</td></tr>
+            <% } %>
             <% pages.forEach(function(p) { %>
               <tr>
-                <td><strong><%= p.title %></strong></td>
-                <td><code style="font-size:0.78rem;color:var(--admin-primary)">/page/<%= p.slug %></code></td>
-                <td><span class="admin-badge"><%= p.category %></span></td>
-                <td style="white-space:nowrap">
+                <td><a href="/admin/pages/<%= p._id %>/edit" class="admin-cell-link"><%= p.title %></a></td>
+                <td><a href="/page/<%= p.slug %>" target="_blank" rel="noopener" class="admin-code">/page/<%= p.slug %></a></td>
+                <td><span class="admin-tag"><%= p.category %></span></td>
+                <td class="num nowrap">
                   <a href="/admin/pages/<%= p._id %>/edit" class="admin-btn admin-btn--sm">Edit</a>
-                  <form method="POST" action="/admin/pages/<%= p._id %>/delete" style="display:inline" onsubmit="return confirm('Delete?')">
-                    <button class="admin-btn admin-btn--sm admin-btn--danger">Del</button>
+                  <form method="POST" action="/admin/pages/<%= p._id %>/delete" style="display:inline" onsubmit="return confirm('Delete this page?')">
+                    <button class="admin-btn admin-btn--sm admin-btn--danger">Delete</button>
                   </form>
                 </td>
               </tr>

@@ -1,42 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%230F2A4A'/><rect x='190' y='104' width='196' height='272' rx='22' fill='none' stroke='%23ffffff' stroke-width='30' transform='rotate(14 288 240)'/><rect x='126' y='136' width='196' height='272' rx='22' fill='%23ffffff'/></svg>">
-  <meta name="theme-color" content="#0c0c12">
-  <meta name="robots" content="noindex, nofollow">
-  <title><%= pageTitle %> | GoGetCards Admin</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+  <%- include('_head', { title: pageTitle }) %>
 </head>
 <body class="admin-body">
-  <%- include('_sidebar') %>
+  <%- include('_sidebar', { currentPath: '/admin/pages' }) %>
   <main class="admin-main">
     <header class="admin-header">
-      <h1 class="admin-header__title"><%= pageTitle %></h1>
-      <a href="/admin/pages" class="admin-btn">← Back</a>
+      <div>
+        <h1 class="admin-header__title"><%= pageTitle %></h1>
+        <% if (page && page.slug) { %><p class="admin-header__sub">/page/<%= page.slug %></p><% } %>
+      </div>
+      <div class="admin-header__actions">
+        <a href="/admin/pages" class="admin-btn admin-btn--ghost">Back to pages</a>
+      </div>
     </header>
-    <div class="admin-content">
+    <div class="admin-content admin-content--narrow">
       <% if (error) { %><div class="admin-alert admin-alert--error"><%= error %></div><% } %>
       <form method="POST" action="<%= page && page._id ? '/admin/pages/' + page._id : '/admin/pages' %>" class="admin-form">
-        <div class="admin-form__row">
-          <div class="form-group"><label>Title</label><input type="text" name="title" value="<%= page ? page.title : '' %>" required></div>
-          <div class="form-group"><label>Slug</label><input type="text" name="slug" value="<%= page ? page.slug : '' %>" required></div>
+        <div class="admin-panel">
+          <div class="admin-panel__head"><h2 class="admin-panel__title">Page</h2></div>
+          <div class="admin-panel__body stack">
+            <div class="admin-form__row">
+              <div class="form-group"><label for="pg-title">Title</label><input id="pg-title" type="text" name="title" value="<%= page ? page.title : '' %>" required></div>
+              <div class="form-group"><label for="pg-slug">Slug</label><input id="pg-slug" type="text" name="slug" value="<%= page ? page.slug : '' %>" required></div>
+            </div>
+            <div class="form-group">
+              <label for="pg-cat">Category</label>
+              <select id="pg-cat" name="category">
+                <option value="legal" <%= page && page.category === 'legal' ? 'selected' : '' %>>Legal</option>
+                <option value="information" <%= page && page.category === 'information' ? 'selected' : '' %>>Information</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="pg-meta">Meta description</label>
+              <textarea id="pg-meta" name="metaDescription" rows="2" maxlength="300" placeholder="One sentence describing this page, as it should read in Google results. Leave blank to derive it from the content."><%= page ? (page.metaDescription || '') : '' %></textarea>
+              <span class="field-hint">Aim for 120 to 158 characters. Left blank, the first sentences of the content are used.</span>
+            </div>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Category</label>
-          <select name="category">
-            <option value="legal" <%= page && page.category === 'legal' ? 'selected' : '' %>>Legal</option>
-            <option value="information" <%= page && page.category === 'information' ? 'selected' : '' %>>Information</option>
-          </select>
+        <div class="admin-panel">
+          <div class="admin-panel__head"><h2 class="admin-panel__title">Content</h2><span class="small muted">HTML</span></div>
+          <div class="admin-panel__body">
+            <div class="form-group"><label for="pg-content" class="sr-only">Content (HTML)</label><textarea id="pg-content" name="content" rows="16" class="mono"><%= page ? page.content : '' %></textarea></div>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Meta Description</label>
-          <textarea name="metaDescription" rows="2" maxlength="300" placeholder="One sentence describing this page, as it should read in Google results. Leave blank to derive it from the content."><%= page ? (page.metaDescription || '') : '' %></textarea>
-          <span class="field-hint">Aim for 120&ndash;158 characters. Left blank, the first sentences of the content are used.</span>
+        <div class="admin-form__actions">
+          <button type="submit" class="admin-btn admin-btn--primary"><%= page && page._id ? 'Save page' : 'Create page' %></button>
+          <a href="/admin/pages" class="admin-btn admin-btn--ghost">Cancel</a>
         </div>
-        <div class="form-group"><label>Content (HTML)</label><textarea name="content" rows="12"><%= page ? page.content : '' %></textarea></div>
-        <button type="submit" class="admin-btn admin-btn--primary"><%= page && page._id ? 'Update Page' : 'Create Page' %></button>
       </form>
     </div>
   </main>

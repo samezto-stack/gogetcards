@@ -1,20 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%230F2A4A'/><rect x='190' y='104' width='196' height='272' rx='22' fill='none' stroke='%23ffffff' stroke-width='30' transform='rotate(14 288 240)'/><rect x='126' y='136' width='196' height='272' rx='22' fill='%23ffffff'/></svg>">
-  <meta name="theme-color" content="#0c0c12">
-  <meta name="robots" content="noindex, nofollow">
-  <title><%= pageTitle %> | GoGetCards Admin</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+  <%- include('_head', { title: pageTitle }) %>
 </head>
 <body class="admin-body">
-  <%- include('_sidebar') %>
+  <%- include('_sidebar', { currentPath: '/admin/products' }) %>
   <main class="admin-main">
     <header class="admin-header">
-      <h1 class="admin-header__title"><%= pageTitle %> <span style="font-size:0.85rem;color:var(--admin-muted);font-weight:400">(<%= products.length %>)</span></h1>
-      <a href="/admin/products/new" class="admin-btn admin-btn--primary">+ Add Product</a>
+      <div>
+        <h1 class="admin-header__title"><%= pageTitle %> <span class="admin-header__count"><%= products.length %></span></h1>
+      </div>
+      <div class="admin-header__actions">
+        <a href="/admin/products/new" class="admin-btn admin-btn--primary">Add product</a>
+      </div>
     </header>
     <div class="admin-content">
 
@@ -22,72 +20,82 @@
         <div class="admin-alert admin-alert--success"><%= success %></div>
       <% } %>
 
-      <!-- Search & Filter Bar -->
       <form method="GET" action="/admin/products" class="admin-filter-bar">
         <div class="admin-filter-bar__search">
-          <input type="text" name="q" value="<%= q %>" placeholder="Search products..." class="admin-search-input">
+          <input type="search" name="q" value="<%= q %>" placeholder="Search products" class="admin-search-input" autocomplete="off">
         </div>
         <select name="collection" class="admin-select">
-          <option value="all" <%= collection === 'all' ? 'selected' : '' %>>All Collections</option>
+          <option value="all" <%= collection === 'all' ? 'selected' : '' %>>All collections</option>
           <% collections.forEach(function(c) { %>
             <option value="<%= c.handle %>" <%= collection === c.handle ? 'selected' : '' %>><%= c.name %></option>
           <% }); %>
         </select>
         <select name="sort" class="admin-select">
-          <option value="newest" <%= sort === 'newest' ? 'selected' : '' %>>Newest</option>
-          <option value="title" <%= sort === 'title' ? 'selected' : '' %>>A-Z</option>
-          <option value="price-asc" <%= sort === 'price-asc' ? 'selected' : '' %>>Price ↑</option>
-          <option value="price-desc" <%= sort === 'price-desc' ? 'selected' : '' %>>Price ↓</option>
-          <option value="stock" <%= sort === 'stock' ? 'selected' : '' %>>Stock ↑</option>
+          <option value="newest" <%= sort === 'newest' ? 'selected' : '' %>>Newest first</option>
+          <option value="title" <%= sort === 'title' ? 'selected' : '' %>>Title A to Z</option>
+          <option value="price-asc" <%= sort === 'price-asc' ? 'selected' : '' %>>Price, low to high</option>
+          <option value="price-desc" <%= sort === 'price-desc' ? 'selected' : '' %>>Price, high to low</option>
+          <option value="stock" <%= sort === 'stock' ? 'selected' : '' %>>Stock, low to high</option>
         </select>
-        <button type="submit" class="admin-btn admin-btn--sm">Filter</button>
+        <button type="submit" class="admin-btn">Filter</button>
         <% if (q || collection !== 'all') { %>
-          <a href="/admin/products" class="admin-btn admin-btn--sm" style="color:var(--admin-muted)">Clear</a>
+          <a href="/admin/products" class="admin-btn admin-btn--ghost">Clear</a>
         <% } %>
       </form>
 
-      <!-- Products Table -->
       <div class="admin-table-wrap">
         <table class="admin-table">
           <thead>
-            <tr><th>Product</th><th>Price</th><th>Stock</th><th>Status</th><th>Badge</th><th>Actions</th></tr>
+            <tr>
+              <th>Product</th>
+              <th class="num">Price</th>
+              <th class="num">Stock</th>
+              <th>Status</th>
+              <th>Badge</th>
+              <th class="num"><span class="sr-only">Actions</span></th>
+            </tr>
           </thead>
           <tbody>
             <% if (products.length === 0) { %>
-              <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--admin-muted)">No products found.</td></tr>
+              <tr><td colspan="6" class="admin-table__empty">No products match.</td></tr>
             <% } %>
             <% products.forEach(function(p) { %>
               <tr id="product-row-<%= p._id %>">
                 <td>
-                  <strong class="admin-product-title"><%= p.title %></strong>
+                  <a href="/admin/products/<%= p._id %>/edit" class="admin-cell-link admin-product-title"><%= p.title %></a>
                   <%/* The version, beside the title rather than folded into
                        it. Two boxes of one product share a base title, so
-                       without this the list shows the same row twice and
-                       the only way to tell which is which is to open both.
+                       without this the list shows the same row twice.
                        Inline quick-edit writes `title`, so the composed
                        title must not be what that field displays. */%>
                   <% if (p.variantName) { %>
-                    <span style="display:inline-block;margin-left:6px;padding:1px 6px;border:1px solid var(--admin-border);border-radius:3px;font-size:0.68rem;color:var(--admin-muted);vertical-align:middle"><%= p.variantName %></span>
+                    <span class="admin-tag" style="margin-left:6px"><%= p.variantName %></span>
                   <% } %>
-                  <div style="font-size:0.72rem;color:var(--admin-faint);margin-top:2px"><%= p.vendor %> — <%= p.productType %></div>
+                  <span class="admin-cell-sub"><%= p.vendor %> &middot; <%= p.productType %></span>
                 </td>
-                <td>
-                  <span class="admin-editable" data-product-id="<%= p._id %>" data-field="price" data-current="<%= (p.price / 100).toFixed(2) %>" title="Click to edit">
+                <td class="num">
+                  <span class="admin-editable" data-product-id="<%= p._id %>" data-field="price" data-current="<%= (p.price / 100).toFixed(2) %>" title="Double-click to edit">
                     $<%= formatPrice(p.price) %>
                   </span>
                 </td>
-                <td>
-                  <span class="admin-editable" data-product-id="<%= p._id %>" data-field="stock" data-current="<%= p.stock %>" title="Click to edit"
-                    style="<%= p.stock <= 3 ? 'color:#FC8181' : p.stock <= 10 ? 'color:#F59E0B' : '' %>">
+                <td class="num">
+                  <span class="admin-editable <%= p.stock <= 3 ? 'crit' : p.stock <= 10 ? 'warn' : '' %>" data-product-id="<%= p._id %>" data-field="stock" data-current="<%= p.stock %>" title="Double-click to edit">
                     <%= p.stock %>
                   </span>
                 </td>
-                <td><%= p.available ? '✅' : '❌' %> <%= p.preorder ? '🔔' : '' %></td>
-                <td><%= p.badge || '—' %></td>
-                <td style="white-space:nowrap">
+                <td>
+                  <% if (p.available) { %>
+                    <span class="admin-tag admin-tag--ok">Available</span>
+                  <% } else { %>
+                    <span class="admin-tag">Hidden</span>
+                  <% } %>
+                  <% if (p.preorder) { %> <span class="admin-tag admin-tag--info">Preorder</span><% } %>
+                </td>
+                <td><%= p.badge || '' %></td>
+                <td class="num nowrap">
                   <a href="/admin/products/<%= p._id %>/edit" class="admin-btn admin-btn--sm">Edit</a>
                   <form method="POST" action="/admin/products/<%= p._id %>/delete" style="display:inline" onsubmit="return confirm('Delete this product?')">
-                    <button type="submit" class="admin-btn admin-btn--sm admin-btn--danger">Del</button>
+                    <button type="submit" class="admin-btn admin-btn--sm admin-btn--danger">Delete</button>
                   </form>
                 </td>
               </tr>
@@ -95,6 +103,7 @@
           </tbody>
         </table>
       </div>
+      <p class="tiny faint">Double-click a price or a stock figure to change it in place.</p>
     </div>
   </main>
 

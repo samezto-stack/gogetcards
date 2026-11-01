@@ -1,60 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%230F2A4A'/><rect x='190' y='104' width='196' height='272' rx='22' fill='none' stroke='%23ffffff' stroke-width='30' transform='rotate(14 288 240)'/><rect x='126' y='136' width='196' height='272' rx='22' fill='%23ffffff'/></svg>">
-  <meta name="theme-color" content="#0c0c12">
-  <meta name="robots" content="noindex, nofollow">
-  <title><%= pageTitle %> | GoGetCards Admin</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+  <%- include('_head', { title: pageTitle }) %>
 </head>
 <body class="admin-body">
-  <%- include('_sidebar') %>
+  <%- include('_sidebar', { currentPath: '/admin/products' }) %>
   <main class="admin-main">
     <header class="admin-header">
-      <h1 class="admin-header__title"><%= pageTitle %></h1>
-      <a href="/admin/products" class="admin-btn">← Back</a>
+      <div>
+        <h1 class="admin-header__title"><%= pageTitle %></h1>
+        <% if (product && product.slug) { %><p class="admin-header__sub">/products/<%= product.slug %></p><% } %>
+      </div>
+      <div class="admin-header__actions">
+        <a href="/admin/products" class="admin-btn admin-btn--ghost">Back to products</a>
+        <button type="submit" form="product-form" class="admin-btn admin-btn--primary"><%= product && product._id ? 'Save product' : 'Create product' %></button>
+      </div>
     </header>
-    <div class="admin-content">
+    <div class="admin-content admin-content--narrow">
       <% if (error) { %>
         <div class="admin-alert admin-alert--error"><%= error %></div>
       <% } %>
-      <form method="POST" action="<%= product && product._id ? '/admin/products/' + product._id : '/admin/products' %>" class="admin-form">
-        <div class="admin-form__row">
-          <div class="form-group"><label>Title *</label><input type="text" name="title" value="<%= product ? product.title : '' %>" required></div>
-          <div class="form-group"><label>Slug</label><input type="text" name="slug" value="<%= product ? product.slug : '' %>" placeholder="auto-generated"></div>
+      <form id="product-form" method="POST" action="<%= product && product._id ? '/admin/products/' + product._id : '/admin/products' %>" class="admin-form">
+
+        <div class="admin-panel">
+          <div class="admin-panel__head"><h2 class="admin-panel__title">Listing</h2></div>
+          <div class="admin-panel__body stack">
+            <div class="admin-form__row">
+              <div class="form-group"><label>Title</label><input type="text" name="title" value="<%= product ? product.title : '' %>" required></div>
+              <div class="form-group"><label>Slug</label><input type="text" name="slug" value="<%= product ? product.slug : '' %>" placeholder="auto-generated"></div>
+            </div>
+            <div class="admin-form__row">
+              <div class="form-group"><label>Price (USD)</label><input type="number" step="0.01" name="price" value="<%= product ? (product.price >= 100 ? (product.price / 100).toFixed(2) : product.price) : '' %>" required></div>
+              <div class="form-group"><label>Compare-at price (USD)</label><input type="number" step="0.01" name="comparePrice" value="<%= product && product.comparePrice ? (product.comparePrice >= 100 ? (product.comparePrice / 100).toFixed(2) : product.comparePrice) : '' %>"></div>
+            </div>
+            <div class="admin-form__row">
+              <div class="form-group"><label>Vendor</label><input type="text" name="vendor" value="<%= product ? product.vendor : '' %>"></div>
+              <div class="form-group"><label>Product type</label><input type="text" name="productType" value="<%= product ? product.productType : '' %>"></div>
+            </div>
+            <div class="admin-form__row">
+              <div class="form-group"><label>Image URL</label><input type="text" name="imageUrl" value="<%= product ? product.imageUrl : '' %>" placeholder="https://..."></div>
+              <div class="form-group">
+                <label>Badge</label>
+                <select name="badge">
+                  <option value="">None</option>
+                  <% ['Hot', 'Limited', 'Preorder', 'Rare', 'New'].forEach(function(b) { %>
+                    <option value="<%= b %>" <%= product && product.badge === b ? 'selected' : '' %>><%= b %></option>
+                  <% }); %>
+                </select>
+              </div>
+            </div>
+            <div class="form-group"><label>Additional images (one URL per line)</label><textarea name="images" rows="3"><%= product && product.images ? product.images.join('\n') : '' %></textarea></div>
+            <div class="form-group"><label>Description (HTML)</label><textarea name="description" rows="6"><%= product ? product.description : '' %></textarea></div>
+            <%
+              /* On a validation-error re-render, `product` is the raw req.body, so
+                 `specs` arrives as the textarea string rather than a parsed array.
+                 Handle both so the admin never loses what they typed. */
+              var specsValue = '';
+              if (product && product.specs) {
+                specsValue = Array.isArray(product.specs)
+                  ? product.specs.map(function (s) { return s.label + ': ' + s.value; }).join('\n')
+                  : String(product.specs);
+              }
+            %>
+            <div class="form-group">
+              <label>Specifications (one "Label: Value" per line)</label>
+              <select id="spec-template-picker" class="admin-select" style="max-width:320px">
+                <option value="">Start from a template…</option>
+                <% (typeof specTemplates !== 'undefined' ? specTemplates : []).forEach(function (t) { %>
+                  <option value="<%= t.id %>"><%= t.label %></option>
+                <% }); %>
+              </select>
+              <textarea id="spec-textarea" name="specs" rows="5" placeholder="Configuration: 24 Booster Packs&#10;Cards Per Pack: 12&#10;Language: English"><%= specsValue %></textarea>
+              <small>Templates only prefill these rows. Edit them freely afterwards, and always check pack counts against the distributor sheet, since publishers vary them per set.</small>
+            </div>
+            <script>
+              (function () {
+                var TEMPLATES = <%- jsonForScript(typeof specTemplates !== 'undefined' ? specTemplates : []) %>;
+                var picker = document.getElementById('spec-template-picker');
+                var box = document.getElementById('spec-textarea');
+                if (!picker || !box) return;
+                picker.addEventListener('change', function () {
+                  var tpl = TEMPLATES.filter(function (t) { return t.id === picker.value; })[0];
+                  if (!tpl) return;
+                  if (box.value.trim() && !window.confirm('Replace the current specifications with the "' + tpl.label + '" template?')) {
+                    picker.value = '';
+                    return;
+                  }
+                  box.value = tpl.specs.map(function (s) { return s.label + ': ' + s.value; }).join('\n');
+                  picker.value = '';
+                });
+              })();
+            </script>
+            <div class="admin-form__row">
+              <div class="form-group"><label>Collections (comma-separated)</label><input type="text" name="collections" value="<%= product && product.collections ? product.collections.join(', ') : '' %>"></div>
+              <div class="form-group"><label>Tags (comma-separated)</label><input type="text" name="tags" value="<%= product && product.tags ? product.tags.join(', ') : '' %>"></div>
+            </div>
+          </div>
         </div>
-        <div class="admin-form__row">
-          <div class="form-group"><label>Price (USD) *</label><input type="number" step="0.01" name="price" value="<%= product ? (product.price >= 100 ? (product.price / 100).toFixed(2) : product.price) : '' %>" required></div>
-          <div class="form-group"><label>Compare Price (USD)</label><input type="number" step="0.01" name="comparePrice" value="<%= product && product.comparePrice ? (product.comparePrice >= 100 ? (product.comparePrice / 100).toFixed(2) : product.comparePrice) : '' %>"></div>
+
+        <div class="admin-panel">
+          <div class="admin-panel__head">
+            <div>
+              <h2 class="admin-panel__title">Stock and availability</h2>
+            </div>
+          </div>
+          <div class="admin-panel__body stack">
+            <div class="admin-form__row">
+              <div class="form-group"><label>Stock</label><input type="number" name="stock" value="<%= product ? product.stock : 0 %>"></div>
+              <div class="form-group"><label>Allocation limit (0 = unlimited)</label><input type="number" name="allocationLimit" value="<%= product ? (product.allocationLimit || 0) : 0 %>"></div>
+            </div>
+            <div class="admin-form__row">
+              <div class="form-group"><label>Preorder ships (display text)</label><input type="text" name="preorderShips" value="<%= product ? (product.preorderShips || '') : '' %>" placeholder="Q2 2026"></div>
+              <%/* The real release date, as a date. "Q2 2026" is fine for a
+                   shopper and useless to a crawler, so schema.org
+                   availabilityDate is built from THIS field and never from the
+                   free text. Merchant Center accepts a preorder only when the
+                   listing says when the item becomes available. */%>
+              <div class="form-group">
+                <label>Release date (preorders)</label>
+                <input type="date" name="releaseDate" value="<%= product && product.releaseDate ? new Date(product.releaseDate).toISOString().split('T')[0] : '' %>">
+                <small>Drives the release date shown on the page and Google's availabilityDate. Set it on every preorder.</small>
+              </div>
+            </div>
+            <div class="admin-form__checks">
+              <label><input type="checkbox" name="available" <%= product && product.available ? 'checked' : '' %>> Available</label>
+              <label><input type="checkbox" name="preorder" <%= product && product.preorder ? 'checked' : '' %>> Preorder</label>
+              <label><input type="checkbox" name="featured" <%= product && product.featured ? 'checked' : '' %>> Featured on the home page</label>
+            </div>
+          </div>
         </div>
-        <div class="admin-form__row">
-          <div class="form-group"><label>Vendor</label><input type="text" name="vendor" value="<%= product ? product.vendor : '' %>"></div>
-          <div class="form-group"><label>Product Type</label><input type="text" name="productType" value="<%= product ? product.productType : '' %>"></div>
+
+        <%/* ── Listed but unbuyable ──────────────────────────────────
+             Deliberately its own panel rather than another checkbox above,
+             because it is not the same kind of switch: it keeps a page
+             advertising an item the checkout will refuse, and the buyer
+             only finds out after typing their address. The warning is on
+             the screen so nobody turns it on thinking it means "sold out". */%>
+        <div class="admin-panel admin-panel--warn">
+          <div class="admin-panel__head">
+            <label class="check" style="font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;margin:0;cursor:pointer">
+              <input type="checkbox" name="stockHold" <%= product && product.stockHold ? 'checked' : '' %>>
+              Stock hold: keep listed as available, refuse at the payment step
+            </label>
+          </div>
+          <div class="admin-panel__body stack">
+            <p class="small muted">
+              The page, the structured data <em>and the Google feed</em> keep saying in stock; the
+              buyer is stopped one step before payment and offered the replacement below. Nothing
+              is charged. Because the feed still advertises it, expect Merchant Center to treat this
+              as an availability misrepresentation if it notices.
+              <strong>To genuinely sell out an item, untick Available instead.</strong> That reports
+              out of stock to Google, refuses at the start of checkout, and is what the sold-out
+              badge reads.
+            </p>
+            <div class="form-group">
+              <label>Replace with (slug)</label>
+              <input type="text" name="supersededBy" placeholder="one-piece-card-game-op-18-booster-box-24-packs-factory-sealed-english"
+                     value="<%= product ? (product.supersededBy || '') : '' %>">
+              <small>Offered by name at the refusal. Must be available and not itself held, or the buyer is sent to the catalogue instead.</small>
+            </div>
+          </div>
         </div>
+
         <%/* Google Shopping identifiers. All optional and all safe to
              leave blank — every one is omitted from the page and the
              Product schema when empty. Do NOT guess a GTIN: Google
              validates the check digit and resolves it against the real
              product, so a wrong one is a Misrepresentation finding rather
              than a missing field. Copy it off the barcode on the case. */%>
-        <fieldset style="border:1px solid var(--admin-border);border-radius:8px;padding:1rem;margin:1rem 0">
-          <legend style="font-size:0.78rem;font-weight:700;padding:0 0.4rem;color:var(--admin-muted)">Google Shopping identifiers (optional)</legend>
-          <div class="admin-form__row">
-            <div class="form-group"><label>SKU (your own code)</label><input type="text" name="sku" value="<%= product ? (product.sku || '') : '' %>" placeholder="ZTCG-OP17-BB"></div>
-            <div class="form-group"><label>GTIN / barcode</label><input type="text" name="gtin" value="<%= product ? (product.gtin || '') : '' %>" placeholder="Copy off the barcode. Leave blank if unknown."></div>
+        <div class="admin-panel">
+          <div class="admin-panel__head">
+            <div>
+              <h2 class="admin-panel__title">Google Shopping identifiers</h2>
+              <p class="admin-panel__sub">All optional. Copy the GTIN off the barcode; never guess one.</p>
+            </div>
           </div>
-          <div class="admin-form__row">
-            <div class="form-group"><label>MPN (manufacturer part no.)</label><input type="text" name="mpn" value="<%= product ? (product.mpn || '') : '' %>"></div>
-            <div class="form-group"><label>Brand (manufacturer)</label><input type="text" name="brand" value="<%= product ? (product.brand || '') : '' %>" placeholder="Defaults to Vendor"></div>
+          <div class="admin-panel__body stack">
+            <div class="admin-form__row">
+              <div class="form-group"><label>SKU (your own code)</label><input type="text" name="sku" value="<%= product ? (product.sku || '') : '' %>" placeholder="GGC-OP17-BB"></div>
+              <div class="form-group"><label>GTIN / barcode</label><input type="text" name="gtin" value="<%= product ? (product.gtin || '') : '' %>" placeholder="Leave blank if unknown"></div>
+            </div>
+            <div class="admin-form__row">
+              <div class="form-group"><label>MPN (manufacturer part number)</label><input type="text" name="mpn" value="<%= product ? (product.mpn || '') : '' %>"></div>
+              <div class="form-group"><label>Brand (manufacturer)</label><input type="text" name="brand" value="<%= product ? (product.brand || '') : '' %>" placeholder="Defaults to vendor"></div>
+            </div>
+            <div class="admin-form__row">
+              <div class="form-group"><label>Language</label><input type="text" name="language" value="<%= product ? (product.language === undefined ? 'English' : product.language) : 'English' %>" placeholder="English"></div>
+              <div class="form-group"><label>Edition</label><input type="text" name="edition" value="<%= product ? (product.edition || '') : '' %>" placeholder="1st Edition"></div>
+            </div>
+            <div class="admin-form__row">
+              <div class="form-group"><label>Set code</label><input type="text" name="setCode" value="<%= product ? (product.setCode || '') : '' %>" placeholder="OP-17"></div>
+            </div>
           </div>
-          <div class="admin-form__row">
-            <div class="form-group"><label>Language</label><input type="text" name="language" value="<%= product ? (product.language === undefined ? 'English' : product.language) : 'English' %>" placeholder="English"></div>
-            <div class="form-group"><label>Edition</label><input type="text" name="edition" value="<%= product ? (product.edition || '') : '' %>" placeholder="1st Edition"></div>
-          </div>
-          <div class="form-group"><label>Set code</label><input type="text" name="setCode" value="<%= product ? (product.setCode || '') : '' %>" placeholder="OP-17"></div>
-        </fieldset>
+        </div>
+
         <%/* Variant grouping. One manufactured item that arrives as two or
              more boxes — Day and Night, an alternate cover, a regional
              printing.
@@ -63,100 +202,96 @@
              them the SAME group id and DIFFERENT names, and the storefront
              grows a Version chooser between them while the feed sends them
              to Google as variants of one item rather than as two listings
-             fighting over the same barcode.
+             fighting over the same barcode. */%>
+        <div class="admin-panel">
+          <div class="admin-panel__head">
+            <div>
+              <h2 class="admin-panel__title">Variant group</h2>
+              <p class="admin-panel__sub">For one product sold as several boxes. Create a product per box, give every one the <strong>same group id</strong> and a <strong>different version name</strong>. The name is added to the title automatically; type the base title only.</p>
+            </div>
+          </div>
+          <div class="admin-panel__body stack">
+            <div class="admin-form__row">
+              <div class="form-group">
+                <label>Group id</label>
+                <input type="text" name="variantGroup" maxlength="50" value="<%= product ? (product.variantGroup || '') : '' %>" placeholder="10-10448-120">
+                <small>Any stable string, identical across the group. The manufacturer's item number is the natural choice.</small>
+              </div>
+              <div class="form-group">
+                <label>Version name</label>
+                <input type="text" name="variantName" maxlength="100" value="<%= product ? (product.variantName || '') : '' %>" placeholder="Night (Umbreon ex)">
+                <small>Appended to the title as “Base — Night (Umbreon ex)”. Must differ from every other box in the group.</small>
+              </div>
+            </div>
+            <div class="admin-form__row">
+              <div class="form-group">
+                <label>Tells the versions apart by</label>
+                <select name="variantAxis">
+                  <% (typeof variantAxes !== 'undefined' ? variantAxes : []).forEach(function (a) { %>
+                  <%/* A NEW product has no `product` at all, so the check has
+                       to fall back to the default axis rather than to false —
+                       otherwise the form opens with nothing selected and the
+                       browser silently submits the first option. */%>
+                    <option value="<%= a.id %>" <%= ((product && product.variantAxis) || 'color') === a.id ? 'selected' : '' %>><%= a.label %></option>
+                  <% }); %>
+                </select>
+                <small>Google reads a fixed set of attributes here. Every box in a group must use the same one.</small>
+              </div>
+              <div class="form-group">
+                <label>Order in the chooser</label>
+                <input type="number" name="variantOrder" value="<%= product ? (product.variantOrder || 0) : 0 %>">
+                <small>Lowest first. Ties fall back to the version name.</small>
+              </div>
+            </div>
+          </div>
+        </div>
 
-             That last part is the reason this exists: two boxes of one
-             item share a GTIN and an MPN, and Google reads two ungrouped
-             offers with the same GTIN as the same listing sent twice — it
-             keeps one and drops the other. */%>
-        <fieldset style="border:1px solid var(--admin-border);border-radius:8px;padding:1rem;margin:1rem 0">
-          <legend style="font-size:0.78rem;font-weight:700;padding:0 0.4rem;color:var(--admin-muted)">Variant group (optional)</legend>
-          <p style="margin:0 0 0.75rem;font-size:0.74rem;color:var(--admin-muted);line-height:1.5">
-            For one product sold as several boxes. Create a product per box, give every one the
-            <strong>same group id</strong> and a <strong>different version name</strong>. The name is added
-            to the title automatically — type the base title only.
-          </p>
-          <div class="admin-form__row">
-            <div class="form-group">
-              <label>Group id</label>
-              <input type="text" name="variantGroup" maxlength="50" value="<%= product ? (product.variantGroup || '') : '' %>" placeholder="10-10448-120">
-              <small style="color:var(--admin-muted);font-size:0.72rem">Any stable string, identical across the group. The manufacturer's item number is the natural choice.</small>
-            </div>
-            <div class="form-group">
-              <label>Version name</label>
-              <input type="text" name="variantName" maxlength="100" value="<%= product ? (product.variantName || '') : '' %>" placeholder="Night (Umbreon ex)">
-              <small style="color:var(--admin-muted);font-size:0.72rem">Appended to the title as “Base — Night (Umbreon ex)”. Must differ from every other box in the group.</small>
+        <%/* ── Prices in other markets ────────────────────────────────
+             One row per market. A BLANK ROW MEANS NOT SOLD THERE — not
+             "convert it", not "use the US price". The market's URL 404s,
+             the market's feed omits the product, and nothing anywhere
+             quotes a number the checkout cannot charge. Filling one in is
+             what opens the product in that market. */%>
+        <% var _otherMarkets = (typeof allMarkets !== 'undefined' ? allMarkets : []).filter(function (m) { return !m.isDefault; }); %>
+        <% if (_otherMarkets.length) { %>
+        <div class="admin-panel">
+          <div class="admin-panel__head">
+            <div>
+              <h2 class="admin-panel__title">Prices in other markets</h2>
+              <p class="admin-panel__sub">
+                Leave blank to not sell this product in that market. Enter the price the way you would
+                write it, <strong>179.99</strong> not 17999, and it is what the customer is charged: the same
+                figure goes on the page, in the structured data and in that market's Google feed. UK and EU
+                prices include VAT, because consumer prices there must.
+              </p>
             </div>
           </div>
-          <div class="admin-form__row">
-            <div class="form-group">
-              <label>Tells the versions apart by</label>
-              <select name="variantAxis">
-                <% (typeof variantAxes !== 'undefined' ? variantAxes : []).forEach(function (a) { %>
-                <%/* A NEW product has no `product` at all, so the check has
-                     to fall back to the default axis rather than to false —
-                     otherwise the form opens with nothing selected, the
-                     browser silently submits the first option, and which
-                     axis that is depends on the order of the list. */%>
-                  <option value="<%= a.id %>" <%= ((product && product.variantAxis) || 'color') === a.id ? 'selected' : '' %>><%= a.label %></option>
-                <% }); %>
-              </select>
-              <small style="color:var(--admin-muted);font-size:0.72rem">Google reads a fixed set of attributes here. Every box in a group must use the same one.</small>
-            </div>
-            <div class="form-group">
-              <label>Order in the chooser</label>
-              <input type="number" name="variantOrder" value="<%= product ? (product.variantOrder || 0) : 0 %>">
-              <small style="color:var(--admin-muted);font-size:0.72rem">Lowest first. Ties fall back to the version name.</small>
-            </div>
-          </div>
-        </fieldset>
-        <div class="form-group"><label>Image URL</label><input type="text" name="imageUrl" value="<%= product ? product.imageUrl : '' %>" placeholder="https://..."></div>
-        <div class="form-group"><label>Additional Images (one URL per line)</label><textarea name="images" rows="3"><%= product && product.images ? product.images.join('\n') : '' %></textarea></div>
-        <div class="form-group"><label>Description (HTML)</label><textarea name="description" rows="6"><%= product ? product.description : '' %></textarea></div>
-        <%
-          /* On a validation-error re-render, `product` is the raw req.body, so
-             `specs` arrives as the textarea string rather than a parsed array.
-             Handle both so the admin never loses what they typed. */
-          var specsValue = '';
-          if (product && product.specs) {
-            specsValue = Array.isArray(product.specs)
-              ? product.specs.map(function (s) { return s.label + ': ' + s.value; }).join('\n')
-              : String(product.specs);
-          }
-        %>
-        <div class="form-group">
-          <label>Specifications (one "Label: Value" per line)</label>
-          <select id="spec-template-picker" style="margin-bottom:8px">
-            <option value="">Start from a template…</option>
-            <% (typeof specTemplates !== 'undefined' ? specTemplates : []).forEach(function (t) { %>
-              <option value="<%= t.id %>"><%= t.label %></option>
+          <div class="admin-panel__body stack">
+            <% _otherMarkets.forEach(function (m) { %>
+              <% var _row = ((product && product.marketPrices) || []).find(function (r) { return String(r.market).toUpperCase() === m.id; }) || {}; %>
+              <div class="admin-form__row" style="grid-template-columns:9rem 9rem 1fr;align-items:end">
+                <div class="form-group">
+                  <label><%- include('../partials/flag', { code: m.id, label: m.name, size: 16 }) %> <%= m.id %> price <span class="faint">(<%= m.currency %>)</span></label>
+                  <input type="number" min="0" step="0.01" name="mp_<%= m.id %>_amount"
+                         value="<%= _row.amount ? (_row.amount / 100).toFixed(2) : '' %>" placeholder="not sold">
+                </div>
+                <div class="form-group">
+                  <label>Compare at</label>
+                  <input type="number" min="0" step="0.01" name="mp_<%= m.id %>_compare"
+                         value="<%= _row.compareAmount ? (_row.compareAmount / 100).toFixed(2) : '' %>">
+                </div>
+                <div class="form-group" style="padding-bottom:8px">
+                  <label class="check">
+                    <input type="checkbox" name="mp_<%= m.id %>_available" <%= _row.available === false ? '' : 'checked' %>>
+                    On sale in <%= m.id %>
+                  </label>
+                </div>
+              </div>
             <% }); %>
-          </select>
-          <textarea id="spec-textarea" name="specs" rows="5" placeholder="Configuration: 24 Booster Packs&#10;Cards Per Pack: 12&#10;Language: English"><%= specsValue %></textarea>
-          <small style="display:block;margin-top:6px;opacity:0.6">Templates only prefill these rows — edit them freely afterwards, and always check pack counts against the distributor sheet, since publishers vary them per set.</small>
+          </div>
         </div>
-        <script>
-          (function () {
-            var TEMPLATES = <%- jsonForScript(typeof specTemplates !== 'undefined' ? specTemplates : []) %>;
-            var picker = document.getElementById('spec-template-picker');
-            var box = document.getElementById('spec-textarea');
-            if (!picker || !box) return;
-            picker.addEventListener('change', function () {
-              var tpl = TEMPLATES.filter(function (t) { return t.id === picker.value; })[0];
-              if (!tpl) return;
-              if (box.value.trim() && !window.confirm('Replace the current specifications with the "' + tpl.label + '" template?')) {
-                picker.value = '';
-                return;
-              }
-              box.value = tpl.specs.map(function (s) { return s.label + ': ' + s.value; }).join('\n');
-              picker.value = '';
-            });
-          })();
-        </script>
-        <div class="admin-form__row">
-          <div class="form-group"><label>Collections (comma-separated)</label><input type="text" name="collections" value="<%= product && product.collections ? product.collections.join(', ') : '' %>"></div>
-          <div class="form-group"><label>Tags (comma-separated)</label><input type="text" name="tags" value="<%= product && product.tags ? product.tags.join(', ') : '' %>"></div>
-        </div>
+        <% } %>
+
 <%/* Shopify Variant ID and Custom Checkout URL used to sit here. Both are
      gone from the form: the variant id was only ever a manual seed for the
      rotator, which resolves variants itself, and the checkout URL override
@@ -166,119 +301,10 @@
      plain object to findByIdAndUpdate, which mongoose treats as $set,
      removing them here leaves existing values untouched rather than
      silently blanking them. */%>
-        <div class="admin-form__row">
-          <div class="form-group"><label>Stock</label><input type="number" name="stock" value="<%= product ? product.stock : 0 %>"></div>
-          <div class="form-group">
-            <label>Badge</label>
-            <select name="badge">
-              <option value="">None</option>
-              <% ['Hot', 'Limited', 'Preorder', 'Rare', 'New'].forEach(function(b) { %>
-                <option value="<%= b %>" <%= product && product.badge === b ? 'selected' : '' %>><%= b %></option>
-              <% }); %>
-            </select>
-          </div>
+        <div class="admin-form__actions">
+          <button type="submit" class="admin-btn admin-btn--primary"><%= product && product._id ? 'Save product' : 'Create product' %></button>
+          <a href="/admin/products" class="admin-btn admin-btn--ghost">Cancel</a>
         </div>
-        <div class="admin-form__row">
-          <div class="form-group"><label>Allocation Limit (0=unlimited)</label><input type="number" name="allocationLimit" value="<%= product ? (product.allocationLimit || 0) : 0 %>"></div>
-          <div class="form-group"><label>Preorder Ships (display text)</label><input type="text" name="preorderShips" value="<%= product ? (product.preorderShips || '') : '' %>" placeholder="Q2 2026"></div>
-        </div>
-        <%/* The real release date, as a date. "Q2 2026" is fine for a
-             shopper and useless to a crawler, so schema.org
-             availabilityDate is built from THIS field and never from the
-             free text above. Merchant Center accepts a preorder only when
-             the listing says when the item becomes available, so a
-             preorder without this competes as though it were mislabelled
-             in-stock product. */%>
-        <div class="admin-form__row">
-          <div class="form-group">
-            <label>Release date (preorders)</label>
-            <input type="date" name="releaseDate" value="<%= product && product.releaseDate ? new Date(product.releaseDate).toISOString().split('T')[0] : '' %>">
-            <small style="color:var(--admin-muted);font-size:0.72rem">Drives the release date shown on the page and Google's availabilityDate. Set it on every preorder.</small>
-          </div>
-          <div class="form-group"></div>
-        </div>
-        <%/* ── Prices in other markets ────────────────────────────────
-             One row per market. A BLANK ROW MEANS NOT SOLD THERE — not
-             "convert it", not "use the US price". That is the whole rule:
-             the market's URL 404s, the market's feed omits the product,
-             and nothing anywhere quotes a number the checkout cannot
-             charge. Filling one in is what opens the product in that
-             market.
-
-             Enter the amount the customer pays, in that currency's
-             smallest unit: cents for CAD and EUR, pence for GBP, whole
-             yen for JPY. UK and EU prices include VAT, because consumer
-             prices there must. */%>
-        <% var _otherMarkets = (typeof allMarkets !== 'undefined' ? allMarkets : []).filter(function (m) { return !m.isDefault; }); %>
-        <% if (_otherMarkets.length) { %>
-        <fieldset style="border:1px solid var(--admin-border);border-radius:8px;padding:1rem;margin:1rem 0">
-          <legend style="font-size:0.78rem;font-weight:700;padding:0 0.4rem;color:var(--admin-muted)">Prices in other markets</legend>
-          <p style="font-size:0.72rem;color:var(--admin-muted);margin:0 0 0.85rem;line-height:1.6">
-            Leave blank to not sell this product in that market. Enter the price the way you would
-            write it &mdash; <strong>179.99</strong>, not 17999 &mdash; and it is what the customer is
-            charged: the same figure goes on the page, in the structured data and in that market's
-            Google feed. UK and EU prices include VAT, because consumer prices there must.
-          </p>
-          <% _otherMarkets.forEach(function (m) { %>
-            <% var _row = ((product && product.marketPrices) || []).find(function (r) { return String(r.market).toUpperCase() === m.id; }) || {}; %>
-            <div class="admin-form__row" style="align-items:flex-end">
-              <div class="form-group" style="max-width:9rem">
-                <label><%- include('../partials/flag', { code: m.id, label: m.name, size: 16 }) %> <%= m.id %> price <span style="color:var(--admin-muted)">(<%= m.currency %>)</span></label>
-                <input type="number" min="0" step="0.01" name="mp_<%= m.id %>_amount"
-                       value="<%= _row.amount ? (_row.amount / 100).toFixed(2) : '' %>" placeholder="blank = not sold">
-              </div>
-              <div class="form-group" style="max-width:9rem">
-                <label>Compare at</label>
-                <input type="number" min="0" step="0.01" name="mp_<%= m.id %>_compare"
-                       value="<%= _row.compareAmount ? (_row.compareAmount / 100).toFixed(2) : '' %>">
-              </div>
-              <div class="form-group">
-                <label style="display:flex;align-items:center;gap:0.45rem;margin-top:1.4rem">
-                  <input type="checkbox" name="mp_<%= m.id %>_available" <%= _row.available === false ? '' : 'checked' %>>
-                  On sale in <%= m.id %>
-                </label>
-              </div>
-            </div>
-          <% }); %>
-        </fieldset>
-        <% } %>
-
-        <%/* ── Listed but unbuyable ──────────────────────────────────
-             Deliberately its own block rather than another checkbox in the
-             row below, because it is not the same kind of switch: it keeps
-             a page advertising an item the checkout will refuse, and the
-             buyer only finds out after typing their address. The warning
-             is on the screen so nobody turns it on thinking it means
-             "sold out". */%>
-        <div class="form-group" style="border:1px solid var(--admin-border-2);border-radius:10px;padding:1rem 1.1rem;margin:1.25rem 0;">
-          <label style="display:flex;align-items:center;gap:0.55rem;margin:0;">
-            <input type="checkbox" name="stockHold" <%= product && product.stockHold ? 'checked' : '' %>>
-            Stock hold — keep listed as available, refuse at the payment step
-          </label>
-          <small style="display:block;color:var(--admin-muted);font-size:0.72rem;margin-top:0.5rem;line-height:1.6">
-            The page, the structured data <em>and the Google feed</em> keep saying in stock; the
-            buyer is stopped one step before payment and offered the replacement below. Nothing
-            is charged. Because the feed still advertises it, expect Merchant Center to treat this
-            as an availability misrepresentation if it notices — that is an action against the
-            account, not the listing.
-            <strong>To genuinely sell out an item, untick Available instead</strong> — that reports
-            out of stock to Google, refuses at the start of checkout, and is what the sold-out
-            badge reads.
-          </small>
-          <label style="display:block;margin-top:0.85rem;">Replace with (slug)</label>
-          <input type="text" name="supersededBy" placeholder="one-piece-card-game-op-18-booster-box-24-packs-factory-sealed-english"
-                 value="<%= product ? (product.supersededBy || '') : '' %>">
-          <small style="color:var(--admin-muted);font-size:0.72rem">
-            Offered by name at the refusal. Must be available and not itself held, or the buyer
-            is sent to the catalogue instead.
-          </small>
-        </div>
-        <div class="admin-form__checks">
-          <label><input type="checkbox" name="available" <%= product && product.available ? 'checked' : '' %>> Available</label>
-          <label><input type="checkbox" name="preorder" <%= product && product.preorder ? 'checked' : '' %>> Preorder</label>
-          <label><input type="checkbox" name="featured" <%= product && product.featured ? 'checked' : '' %>> Featured</label>
-        </div>
-        <button type="submit" class="admin-btn admin-btn--primary"><%= product && product._id ? 'Update Product' : 'Create Product' %></button>
       </form>
     </div>
   </main>
