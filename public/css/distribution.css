@@ -72,7 +72,7 @@ a.dh-channel:hover { border-color: var(--admin-border-2); background: var(--admi
 .dh-form { display: flex; flex-direction: column; gap: 14px; }
 .dh-form__row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; align-items: end; }
 .dh-form__row--single { grid-template-columns: 1fr; }
-.dh-form .form-group label.check { font-weight: 500; min-height: 36px; }
+.dh-form__row .form-group > label.check { min-height: 36px; }
 .dh-check { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 500; cursor: pointer; }
 .dh-check input { width: 15px; height: 15px; }
 /* A multi-select is a list, not a dropdown: undo the chevron and the
