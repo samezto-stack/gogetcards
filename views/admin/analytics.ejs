@@ -1,70 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%230F2A4A'/><rect x='190' y='104' width='196' height='272' rx='22' fill='none' stroke='%23ffffff' stroke-width='30' transform='rotate(14 288 240)'/><rect x='126' y='136' width='196' height='272' rx='22' fill='%23ffffff'/></svg>">
-  <meta name="theme-color" content="#0c0c12">
-  <meta name="robots" content="noindex, nofollow">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Analytics | GoGetCards Admin</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+  <%- include('_head', { title: 'Analytics' }) %>
   <style>
     /* Dense on purpose. This page is read, not glanced at. */
-    .an-bar { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
-    .an-bar select, .an-bar input[type="date"] { background: var(--admin-surface); color: var(--admin-text);
-      border: 1px solid var(--admin-border); border-radius: 6px; padding: 0.4rem 0.7rem; font: inherit; font-size: 0.82rem; }
-    .an-bar__spacer { margin-left: auto; }
-    .an-dl { font-size: 0.72rem; color: var(--admin-faint); text-decoration: none; border: 1px solid var(--admin-border);
-      border-radius: 6px; padding: 0.35rem 0.7rem; }
-    .an-dl:hover { color: var(--admin-text); border-color: var(--admin-accent); }
+    .an-range { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .an-range .admin-input[type="date"] { width: 150px; }
 
-    .an-note { background: rgba(251,191,36,0.06); border: 1px solid rgba(251,191,36,0.3); color: #FCD34D;
-      border-radius: 10px; padding: 0.8rem 1.1rem; font-size: 0.8rem; line-height: 1.55; margin-bottom: 1.25rem; }
+    /* CSV exports: one menu instead of eight links in the toolbar. The
+       only shadow on the page, as the system allows for menus. */
+    .an-exports { position: relative; }
+    .an-exports > summary { list-style: none; }
+    .an-exports > summary::-webkit-details-marker { display: none; }
+    .an-exports__menu {
+      position: absolute; right: 0; top: calc(100% + 6px); z-index: 50; min-width: 240px; padding: 6px;
+      background: var(--admin-card); border: 1px solid var(--admin-border); border-radius: var(--admin-r);
+      box-shadow: var(--admin-shadow-pop); display: flex; flex-direction: column; gap: 1px;
+    }
+    .an-exports__menu a { display: block; padding: 7px 10px; border-radius: var(--admin-r-sm); font-family: var(--admin-font-mono); font-size: 12px; color: var(--admin-text); }
+    .an-exports__menu a:hover { background: var(--admin-panel-2); text-decoration: none; }
 
-    .an-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 0.75rem; margin-bottom: 2rem; }
-    .an-card { background: var(--admin-card); border: 1px solid var(--admin-border); border-radius: 10px; padding: 0.9rem 1rem; }
-    .an-card .k { font-family: var(--admin-font-mono); font-size: 0.58rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--admin-faint); }
-    .an-card .v { font-size: 1.35rem; font-weight: 700; margin-top: 0.3rem; font-variant-numeric: tabular-nums; }
-    .an-card .d { font-size: 0.68rem; margin-top: 0.2rem; font-variant-numeric: tabular-nums; }
-    .up { color: #4ADE80; } .down { color: #F87171; } .flat { color: var(--admin-faint); }
-
-    .an-sec { background: var(--admin-card); border: 1px solid var(--admin-border); border-radius: 12px;
-      padding: 1.2rem 1.4rem; margin-bottom: 1.5rem; }
-    .an-sec > h2 { font-size: 0.95rem; font-weight: 700; margin: 0 0 0.3rem; }
-    .an-sec > .sub { font-size: 0.76rem; color: var(--admin-faint); margin: 0 0 1rem; line-height: 1.55; max-width: 78ch; }
+    /* Tables sit flush in their panel; the panel body scrolls sideways. */
+    .an-scroll { overflow-x: auto; }
+    .an-table td.rev { color: var(--admin-accent); font-weight: 600; }
+    .an-table tfoot td { border-top: 1px solid var(--admin-border-2); border-bottom: 0; background: var(--admin-panel-2); font-weight: 600; }
+    .an-slug { display: block; font-size: 11.5px; color: var(--admin-faint); font-family: var(--admin-font-mono); font-weight: 400; }
+    .an-pair { display: grid; grid-template-columns: 1fr 1fr; }
+    .an-pair > table + table { border-left: 1px solid var(--admin-border); }
+    .an-stats-inset { border: 0; border-radius: 0; margin: 0; grid-template-columns: repeat(2, 1fr); }
+    .an-panel--headonly .admin-panel__head { border-bottom: 0; }
 
     /* Funnel: the bar length is the share of the top of the funnel, so the
        collapse between stages is visible without reading the numbers. */
-    .fn-row { display: grid; grid-template-columns: 150px 1fr 210px; gap: 0.8rem; align-items: center; padding: 0.45rem 0; }
-    .fn-name { font-size: 0.8rem; }
-    .fn-track { background: rgba(255,255,255,0.05); border-radius: 4px; height: 22px; overflow: hidden; }
-    .fn-fill { height: 100%; background: linear-gradient(90deg, var(--admin-primary), var(--admin-bordeaux)); }
-    .fn-meta { font-size: 0.72rem; color: var(--admin-muted); text-align: right; font-variant-numeric: tabular-nums; }
-    .fn-drop { color: #F87171; }
+    .fn-row { display: grid; grid-template-columns: 160px 1fr 270px; gap: 12px; align-items: center; padding: 6px 0; }
+    .fn-name { font-size: 13px; font-weight: 500; }
+    .fn-track { height: 20px; background: var(--admin-panel-3); border-radius: 4px; overflow: hidden; }
+    .fn-fill { height: 100%; background: var(--admin-primary); border-radius: 4px; }
+    .fn-meta { font-size: 12px; color: var(--admin-muted); text-align: right; font-variant-numeric: tabular-nums; }
+    .fn-meta strong { color: var(--admin-text); }
+    .fn-drop { color: var(--admin-crit); font-weight: 600; }
+    @media (max-width: 900px) { .fn-row { grid-template-columns: 110px 1fr; } .fn-meta { grid-column: 1 / -1; text-align: left; } }
 
-    .an-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
-    .an-table th { text-align: left; font-family: var(--admin-font-mono); font-size: 0.58rem; letter-spacing: 0.09em;
-      text-transform: uppercase; color: var(--admin-faint); font-weight: 500; padding: 0.55rem 0.5rem;
-      border-bottom: 1px solid var(--admin-border); white-space: nowrap; }
-    .an-table td { padding: 0.55rem 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
-    .an-table td.n { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--admin-font-mono); }
-    .an-table td.rev { color: var(--admin-accent); font-weight: 700; }
-    .an-table tr:hover td { background: rgba(255,255,255,0.02); }
-    .an-table tfoot td { border-top: 1px solid var(--admin-border); border-bottom: 0; padding-top: 0.7rem; }
-    .an-slug { display: block; font-size: 0.66rem; color: var(--admin-faint); font-family: var(--admin-font-mono); }
-    .an-why { background: rgba(255,255,255,0.02); border: 1px solid var(--admin-border);
-      border-radius: 8px; padding: 0.7rem 1rem; margin-top: 1rem; font-size: 0.78rem; }
+    .an-why { margin-top: 14px; padding: 10px 14px; background: var(--admin-panel-2); border: 1px solid var(--admin-border); border-radius: var(--admin-r-sm); font-size: 13px; }
     .an-why summary { cursor: pointer; color: var(--admin-primary-soft); font-weight: 600; }
-    .an-why p { color: var(--admin-muted); line-height: 1.6; margin: 0.7rem 0 0; max-width: 82ch; }
-    .an-empty { padding: 1.5rem 0.5rem; text-align: center; color: var(--admin-faint); font-size: 0.8rem; }
-    .an-two { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-    @media (max-width: 900px) { .an-two { grid-template-columns: 1fr; } .fn-row { grid-template-columns: 110px 1fr; } .fn-meta { grid-column: 1 / -1; text-align: left; } }
+    .an-why p { color: var(--admin-muted); line-height: 1.6; margin: 10px 0 0; max-width: 82ch; }
 
     /* A bar drawn in the cell, so a table reads as a chart without one. */
     .mini { position: relative; }
-    .mini::before { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--w, 0%);
-      background: rgba(124,58,237,0.16); border-radius: 3px; }
+    .mini::before { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--w, 0%); background: var(--admin-primary-tint); border-radius: 3px; }
     .mini > span { position: relative; }
   </style>
 </head>
@@ -77,10 +60,10 @@
       const num = (n) => Number(n || 0).toLocaleString('en-US');
       const pc = (n) => (n === null || n === undefined) ? '—' : Number(n).toFixed(1) + '%';
       const dl = (d) => {
-        if (d === null || d === undefined) return '<span class="d flat">no prior data</span>';
-        const cls = d > 0.05 ? 'up' : d < -0.05 ? 'down' : 'flat';
+        if (d === null || d === undefined) return '<span class="admin-stat-card__delta is-neutral">no prior data</span>';
+        const cls = d > 0.05 ? 'is-good' : d < -0.05 ? 'is-bad' : 'is-neutral';
         const sign = d > 0 ? '↑ +' : d < 0 ? '↓ ' : '';
-        return `<span class="d ${cls}">${sign}${d.toFixed(1)}% vs previous</span>`;
+        return `<span class="admin-stat-card__delta ${cls}">${sign}${d.toFixed(1)}% vs previous</span>`;
       };
       const qs = new URLSearchParams(Object.entries(query || {}).filter(([k]) => k !== 'range')).toString();
     %>
@@ -95,456 +78,528 @@
           &middot; compared with the previous equal period
         </p>
       </div>
+      <div class="admin-header__actions">
+        <form method="GET" action="/admin/analytics" class="an-range">
+          <select name="range" class="admin-select" onchange="this.form.submit()">
+            <% ranges.forEach(function (r) { %>
+              <option value="<%= r.key %>" <%= range === r.key ? 'selected' : '' %>><%= r.label %></option>
+            <% }); %>
+          </select>
+          <% if (range === 'custom') { %>
+            <input type="date" name="start" class="admin-input" value="<%= query.start || '' %>">
+            <input type="date" name="end" class="admin-input" value="<%= query.end || '' %>">
+            <button type="submit" class="admin-btn">Apply</button>
+          <% } %>
+          <select name="bucket" class="admin-select" onchange="this.form.submit()">
+            <% ['hour','day','week','month'].forEach(function (b) { %>
+              <option value="<%= b %>" <%= bucket === b ? 'selected' : '' %>><%= b.charAt(0).toUpperCase() + b.slice(1) %>ly</option>
+            <% }); %>
+          </select>
+          <details class="an-exports">
+            <summary class="admin-btn">Export CSV</summary>
+            <div class="an-exports__menu">
+              <% ['products','countries','sources','campaigns','checkouts-by-product','checkouts-by-country','channel-grid','timeseries'].forEach(function (w) { %>
+                <a href="/admin/analytics/export/<%= w %>.csv?<%= qs %>&range=<%= range %>&bucket=<%= bucket %>">
+                  <%= w %>.csv
+                </a>
+              <% }); %>
+            </div>
+          </details>
+        </form>
+      </div>
     </header>
 
-    <form method="GET" action="/admin/analytics" class="an-bar">
-      <select name="range" onchange="this.form.submit()">
-        <% ranges.forEach(function (r) { %>
-          <option value="<%= r.key %>" <%= range === r.key ? 'selected' : '' %>><%= r.label %></option>
-        <% }); %>
-      </select>
-      <% if (range === 'custom') { %>
-        <input type="date" name="start" value="<%= query.start || '' %>">
-        <input type="date" name="end" value="<%= query.end || '' %>">
-        <button type="submit" class="admin-btn admin-btn--sm">Apply</button>
+    <div class="admin-content">
+
+      <%/* Two limits the numbers cannot express on their own. Stated where
+           they apply rather than in documentation nobody opens. */%>
+      <% if (win.partialEvents) { %>
+        <div class="admin-alert admin-alert--warn">
+          <div>
+            <strong>This window reaches past the event retention of <%= win.retentionDays %> days.</strong>
+            Orders and revenue are complete for the whole range, but visitors, product views and every
+            funnel stage only exist for the most recent <%= win.retentionDays %> days — so the rates
+            below understate conversion for the earlier part of this window.
+          </div>
+        </div>
       <% } %>
-      <select name="bucket" onchange="this.form.submit()">
-        <% ['hour','day','week','month'].forEach(function (b) { %>
-          <option value="<%= b %>" <%= bucket === b ? 'selected' : '' %>><%= b.charAt(0).toUpperCase() + b.slice(1) %>ly</option>
-        <% }); %>
-      </select>
-      <span class="an-bar__spacer"></span>
-      <% ['products','countries','sources','campaigns','checkouts-by-product','checkouts-by-country','channel-grid','timeseries'].forEach(function (w) { %>
-        <a class="an-dl" href="/admin/analytics/export/<%= w %>.csv?<%= qs %>&range=<%= range %>&bucket=<%= bucket %>">
-          <%= w %>.csv
-        </a>
-      <% }); %>
-    </form>
 
-    <%/* Two limits the numbers cannot express on their own. Stated where
-         they apply rather than in documentation nobody opens. */%>
-    <% if (win.partialEvents) { %>
-      <div class="an-note">
-        <strong>This window reaches past the event retention of <%= win.retentionDays %> days.</strong>
-        Orders and revenue are complete for the whole range, but visitors, product views and every
-        funnel stage only exist for the most recent <%= win.retentionDays %> days — so the rates
-        below understate conversion for the earlier part of this window.
+      <%/* ── Overview ── */%>
+      <section class="admin-stats-grid">
+        <div class="admin-stat-card"><div class="admin-stat-card__num"><%= num(overview.visitors) %></div><div class="admin-stat-card__label">Visitors</div><%- dl(deltas.visitors) %></div>
+        <div class="admin-stat-card"><div class="admin-stat-card__num"><%= num(overview.totalPageViews) %></div><div class="admin-stat-card__label">Page views</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-card__num"><%= num(overview.productViews) %></div><div class="admin-stat-card__label">Product views</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-card__num"><%= num(overview.uniqueProductViewers) %></div><div class="admin-stat-card__label">Unique viewers</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-card__num"><%= num(overview.started) %></div><div class="admin-stat-card__label">Checkouts started</div><%- dl(deltas.started) %></div>
+        <div class="admin-stat-card"><div class="admin-stat-card__num"><%= num(overview.step1) %></div><div class="admin-stat-card__label">Reached step 1</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-card__num"><%= num(overview.step2) %></div><div class="admin-stat-card__label">Reached step 2</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-card__num"><%= num(overview.orders) %></div><div class="admin-stat-card__label">Orders</div><%- dl(deltas.orders) %></div>
+        <div class="admin-stat-card admin-stat-card--accent"><div class="admin-stat-card__num"><%= money(overview.revenue) %></div><div class="admin-stat-card__label">Revenue</div><%- dl(deltas.revenue) %></div>
+        <div class="admin-stat-card"><div class="admin-stat-card__num"><%= money(overview.aov) %></div><div class="admin-stat-card__label">Avg order value</div><%- dl(deltas.aov) %></div>
+        <div class="admin-stat-card"><div class="admin-stat-card__num"><%= pc(overview.conversionRate) %></div><div class="admin-stat-card__label">Conversion rate</div><%- dl(deltas.conversionRate) %></div>
+        <div class="admin-stat-card"><div class="admin-stat-card__num"><%= pc(overview.checkoutConversionRate) %></div><div class="admin-stat-card__label">Checkout conv.</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-card__num"><%= pc(overview.checkoutAbandonmentRate) %></div><div class="admin-stat-card__label">Abandonment</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-card__num"><%= pc(overview.productToCheckoutRate) %></div><div class="admin-stat-card__label">View &rarr; checkout</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-card__num"><%= money(overview.revenuePerVisitor) %></div><div class="admin-stat-card__label">Revenue / visitor</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-card__num"><%= num(overview.units) %></div><div class="admin-stat-card__label">Units sold</div></div>
+      </section>
+
+      <%/* ── Funnel ── */%>
+      <section class="admin-panel">
+        <div class="admin-panel__head">
+          <div>
+            <h2 class="admin-panel__title">Checkout funnel</h2>
+            <p class="admin-panel__sub">
+              Each stage counted by distinct session or distinct checkout, never by raw events — one person
+              clicking Buy three times is one checkout. <strong>% of prev</strong> is the one that identifies
+              a broken step; <strong>% of visitors</strong> is the business number.
+            </p>
+          </div>
+        </div>
+        <div class="admin-panel__body">
+          <% funnel.forEach(function (s) { %>
+            <div class="fn-row">
+              <div class="fn-name"><%= s.label %></div>
+              <div class="fn-track"><div class="fn-fill" style="width:<%= Math.max(0.5, s.ofTotal).toFixed(2) %>%"></div></div>
+              <div class="fn-meta">
+                <strong><%= num(s.users) %></strong> &middot; <%= pc(s.ofTotal) %> of visitors
+                <% if (s.fromPrev !== null) { %>
+                  &middot; <%= pc(s.fromPrev) %> of prev
+                  &middot; <span class="fn-drop">&minus;<%= num(s.dropCount) %></span>
+                <% } %>
+              </div>
+            </div>
+          <% }); %>
+          <%/* The gap that looks wrong until you know where each event is
+               raised. Stated on the page because it is asked every time. */%>
+          <details class="an-why">
+            <summary>Why is "Checkout started" so much larger than "Step 1"?</summary>
+            <p>
+              They are recorded in different places, and only one of them can fail.
+              <strong>Checkout started</strong> is written by this server the moment the Buy
+              request arrives &mdash; nothing can stop it. <strong>Step 1</strong> is a beacon
+              fired by the checkout page in the customer's browser after it loads on the
+              payment host.
+            </p>
+            <p>
+              So the gap is everyone who asked to check out and never got a working page: the
+              hop to the payment host failed, the tab was closed mid-redirect, the page loaded
+              but its JavaScript did not, or an ad blocker or privacy extension ate the beacon.
+              That last one means <em>some of this gap is measurement, not lost customers</em> &mdash;
+              they arrived and we never heard about it.
+            </p>
+            <p>
+              <strong>The one number in that gap that is definitely real</strong> is the
+              server-side token failure below: the payment host itself refused the handoff.
+              Those are genuinely lost, and they are the ones worth chasing.
+            </p>
+          </details>
+        </div>
+        <% if (funnel.length && (funnel[0].tokenFailed || funnel[0].paymentFailed)) { %>
+          <div class="admin-panel__foot">
+            <p class="small muted">
+              Of those, <strong><%= num(funnel[0].tokenFailed) %></strong> never reached the checkout page at all
+              (server-side token failure — a technical loss, not a customer decision), and
+              <strong><%= num(funnel[0].paymentFailed) %></strong> had the payment form fail to load.
+            </p>
+          </div>
+        <% } %>
+      </section>
+
+      <%/* ── Products ── */%>
+      <section class="admin-panel">
+        <div class="admin-panel__head">
+          <div>
+            <h2 class="admin-panel__title">Product performance</h2>
+            <p class="admin-panel__sub">Ranked by revenue. A high view count beside a low order count is the signal worth acting on.</p>
+          </div>
+        </div>
+        <div class="admin-panel__body admin-panel__body--flush an-scroll">
+          <table class="admin-table an-table">
+            <thead><tr>
+              <th>Product</th><th class="num">Views</th><th class="num">Viewers</th>
+              <th class="num">Checkouts</th><th class="num">Step 2</th>
+              <th class="num">Orders</th><th class="num">Units</th>
+              <th class="num">Revenue</th><th class="num">View&rarr;CO</th>
+              <th class="num">CO&rarr;Buy</th><th class="num">Refunds</th>
+            </tr></thead>
+            <tbody>
+              <% if (!products.length) { %>
+                <tr><td colspan="11" class="admin-table__empty">No product activity in this range.</td></tr>
+              <% } %>
+              <% const maxViews = Math.max(1, ...products.map(p => p.views)); %>
+              <% products.slice(0, 40).forEach(function (p) { %>
+                <tr>
+                  <td><%= p.name || p.slug %><% if (p.name) { %><span class="an-slug"><%= p.slug %></span><% } %></td>
+                  <td class="num mini" style="--w:<%= (p.views / maxViews * 100).toFixed(1) %>%"><span><%= num(p.views) %></span></td>
+                  <td class="num"><%= num(p.viewers) %></td>
+                  <td class="num"><%= num(p.checkouts) %></td>
+                  <td class="num"><%= num(p.step2) %></td>
+                  <td class="num"><%= num(p.orders) %></td>
+                  <td class="num"><%= num(p.units) %></td>
+                  <td class="num rev"><%= money(p.revenue) %></td>
+                  <td class="num"><%= pc(p.viewToCheckout) %></td>
+                  <td class="num"><%= pc(p.checkoutToPurchase) %></td>
+                  <td class="num"><%= p.refunds ? num(p.refunds) + ' / ' + money(p.refundAmount) : '—' %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <%/* ── Checkout starts by product and country ── */%>
+      <div class="grid-2">
+        <section class="admin-panel">
+          <div class="admin-panel__head">
+            <div>
+              <h2 class="admin-panel__title">Checkouts started, by product</h2>
+              <p class="admin-panel__sub">
+                What people actually try to buy, and how far each one gets. The product is
+                recorded on the server at the moment of the Buy click; the later stages inherit it
+                by sharing that checkout's id.
+              </p>
+            </div>
+          </div>
+          <div class="admin-panel__body admin-panel__body--flush an-scroll">
+            <table class="admin-table an-table">
+              <thead><tr><th>Product</th><th class="num">Started</th><th class="num">Step 1</th><th class="num">Step 2</th><th class="num">&rarr;1</th><th class="num">&rarr;2</th><th class="num">Refused</th></tr></thead>
+              <tbody>
+                <% if (!coProduct.length) { %><tr><td colspan="7" class="admin-table__empty">No checkouts started in this range.</td></tr><% } %>
+                <% coProduct.slice(0, 30).forEach(function (r) { %>
+                  <tr>
+                    <td>
+                      <% if (r.slug) { %><%= r.name || r.slug %><% if (r.name) { %><span class="an-slug"><%= r.slug %></span><% } %>
+                      <% } else { %><em>Not recorded</em><span class="an-slug">started before the product was captured</span><% } %>
+                    </td>
+                    <td class="num"><%= num(r.starts) %></td>
+                    <td class="num"><%= num(r.step1) %></td>
+                    <td class="num"><%= num(r.step2) %></td>
+                    <td class="num"><%= pc(r.step1Rate) %></td>
+                    <td class="num"><%= pc(r.step2Rate) %></td>
+                    <td class="num"><%= r.tokenFailed ? num(r.tokenFailed) : '—' %></td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="admin-panel">
+          <div class="admin-panel__head">
+            <div>
+              <h2 class="admin-panel__title">Checkouts started, by country</h2>
+              <p class="admin-panel__sub">
+                Geolocated at the Buy click, so it follows the same checkout through every stage
+                rather than being re-derived per beacon. <strong>Refused</strong> is the payment
+                host rejecting the handoff &mdash; a technical loss, not a decision.
+              </p>
+            </div>
+          </div>
+          <div class="admin-panel__body admin-panel__body--flush an-scroll">
+            <table class="admin-table an-table">
+              <thead><tr><th>Country</th><th class="num">Started</th><th class="num">Step 1</th><th class="num">Step 2</th><th class="num">&rarr;1</th><th class="num">&rarr;2</th><th class="num">Refused</th></tr></thead>
+              <tbody>
+                <% if (!coCountry.length) { %><tr><td colspan="7" class="admin-table__empty">No checkouts started in this range.</td></tr><% } %>
+                <% coCountry.slice(0, 30).forEach(function (r) { %>
+                  <tr>
+                    <td><%= r.country || '<em>Not recorded</em>' %></td>
+                    <td class="num"><%= num(r.starts) %></td>
+                    <td class="num"><%= num(r.step1) %></td>
+                    <td class="num"><%= num(r.step2) %></td>
+                    <td class="num"><%= pc(r.step1Rate) %></td>
+                    <td class="num"><%= pc(r.step2Rate) %></td>
+                    <td class="num"><%= r.tokenFailed ? num(r.tokenFailed) : '—' %></td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
-    <% } %>
 
-    <%/* ── Overview ── */%>
-    <section class="an-cards">
-      <div class="an-card"><div class="k">Visitors</div><div class="v"><%= num(overview.visitors) %></div><%- dl(deltas.visitors) %></div>
-      <div class="an-card"><div class="k">Page views</div><div class="v"><%= num(overview.totalPageViews) %></div></div>
-      <div class="an-card"><div class="k">Product views</div><div class="v"><%= num(overview.productViews) %></div></div>
-      <div class="an-card"><div class="k">Unique viewers</div><div class="v"><%= num(overview.uniqueProductViewers) %></div></div>
-      <div class="an-card"><div class="k">Checkouts started</div><div class="v"><%= num(overview.started) %></div><%- dl(deltas.started) %></div>
-      <div class="an-card"><div class="k">Reached step 1</div><div class="v"><%= num(overview.step1) %></div></div>
-      <div class="an-card"><div class="k">Reached step 2</div><div class="v"><%= num(overview.step2) %></div></div>
-      <div class="an-card"><div class="k">Orders</div><div class="v"><%= num(overview.orders) %></div><%- dl(deltas.orders) %></div>
-      <div class="an-card"><div class="k">Revenue</div><div class="v" style="color:var(--admin-accent)"><%= money(overview.revenue) %></div><%- dl(deltas.revenue) %></div>
-      <div class="an-card"><div class="k">Avg order value</div><div class="v"><%= money(overview.aov) %></div><%- dl(deltas.aov) %></div>
-      <div class="an-card"><div class="k">Conversion rate</div><div class="v"><%= pc(overview.conversionRate) %></div><%- dl(deltas.conversionRate) %></div>
-      <div class="an-card"><div class="k">Checkout conv.</div><div class="v"><%= pc(overview.checkoutConversionRate) %></div></div>
-      <div class="an-card"><div class="k">Abandonment</div><div class="v"><%= pc(overview.checkoutAbandonmentRate) %></div></div>
-      <div class="an-card"><div class="k">View &rarr; checkout</div><div class="v"><%= pc(overview.productToCheckoutRate) %></div></div>
-      <div class="an-card"><div class="k">Revenue / visitor</div><div class="v"><%= money(overview.revenuePerVisitor) %></div></div>
-      <div class="an-card"><div class="k">Units sold</div><div class="v"><%= num(overview.units) %></div></div>
-    </section>
+      <div class="grid-2">
+        <%/* ── Countries ── */%>
+        <section class="admin-panel">
+          <div class="admin-panel__head">
+            <div>
+              <h2 class="admin-panel__title">Countries</h2>
+              <p class="admin-panel__sub">Traffic is matched on the visitor's country code; orders on the country on the order.</p>
+            </div>
+          </div>
+          <div class="admin-panel__body admin-panel__body--flush an-scroll">
+            <table class="admin-table an-table">
+              <thead><tr><th>Country</th><th class="num">Visitors</th><th class="num">Checkouts</th><th class="num">Orders</th><th class="num">Revenue</th><th class="num">Conv.</th></tr></thead>
+              <tbody>
+                <% if (!countries.length) { %><tr><td colspan="6" class="admin-table__empty">No country data in this range.</td></tr><% } %>
+                <% countries.slice(0, 25).forEach(function (c) { %>
+                  <tr>
+                    <td><%= c.key %></td>
+                    <td class="num"><%= num(c.visitors) %></td>
+                    <td class="num"><%= num(c.starts) %></td>
+                    <td class="num"><%= num(c.orders) %></td>
+                    <td class="num rev"><%= money(c.revenue) %></td>
+                    <td class="num"><%= pc(c.conversionRate) %></td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        </section>
 
-    <%/* ── Funnel ── */%>
-    <section class="an-sec">
-      <h2>Checkout funnel</h2>
-      <p class="sub">
-        Each stage counted by distinct session or distinct checkout, never by raw events — one person
-        clicking Buy three times is one checkout. <strong>% of prev</strong> is the one that identifies
-        a broken step; <strong>% of visitors</strong> is the business number.
-      </p>
-      <% funnel.forEach(function (s) { %>
-        <div class="fn-row">
-          <div class="fn-name"><%= s.label %></div>
-          <div class="fn-track"><div class="fn-fill" style="width:<%= Math.max(0.5, s.ofTotal).toFixed(2) %>%"></div></div>
-          <div class="fn-meta">
-            <strong><%= num(s.users) %></strong> &middot; <%= pc(s.ofTotal) %> of visitors
-            <% if (s.fromPrev !== null) { %>
-              &middot; <%= pc(s.fromPrev) %> of prev
-              &middot; <span class="fn-drop">&minus;<%= num(s.dropCount) %></span>
+        <%/* ── Sources ── */%>
+        <section class="admin-panel">
+          <div class="admin-panel__head">
+            <div>
+              <h2 class="admin-panel__title">Traffic sources</h2>
+              <p class="admin-panel__sub">Which channel sends people, and which one actually makes money.</p>
+            </div>
+          </div>
+          <div class="admin-panel__body admin-panel__body--flush an-scroll">
+            <table class="admin-table an-table">
+              <thead><tr><th>Source</th><th class="num">Visitors</th><th class="num">Checkouts</th><th class="num">Orders</th><th class="num">Revenue</th><th class="num">Rev/visitor</th></tr></thead>
+              <tbody>
+                <% if (!sources.length) { %><tr><td colspan="6" class="admin-table__empty">No source data in this range.</td></tr><% } %>
+                <% sources.slice(0, 25).forEach(function (s) { %>
+                  <tr>
+                    <td><%= s.key %></td>
+                    <td class="num"><%= num(s.visitors) %></td>
+                    <td class="num"><%= num(s.starts) %></td>
+                    <td class="num"><%= num(s.orders) %></td>
+                    <td class="num rev"><%= money(s.revenue) %></td>
+                    <td class="num"><%= money(s.revenuePerVisitor) %></td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <div class="grid-2">
+        <%/* ── Devices ── */%>
+        <section class="admin-panel">
+          <div class="admin-panel__head">
+            <div>
+              <h2 class="admin-panel__title">Devices</h2>
+              <p class="admin-panel__sub">
+                Classified from the User-Agent already stored on every event, so the whole history is
+                covered. Orders carry no user agent, so this reports reach and drop-off by device rather
+                than revenue it cannot attribute.
+              </p>
+            </div>
+          </div>
+          <div class="admin-panel__body admin-panel__body--flush an-scroll">
+            <table class="admin-table an-table">
+              <thead><tr><th>Device</th><th class="num">Visitors</th><th class="num">Checkouts</th><th class="num">Step 2</th><th class="num">Drop after start</th></tr></thead>
+              <tbody>
+                <% if (!devices.rows.length) { %><tr><td colspan="5" class="admin-table__empty">No device data in this range.</td></tr><% } %>
+                <% devices.rows.forEach(function (d) { %>
+                  <tr>
+                    <td><%= d.key %></td>
+                    <td class="num"><%= num(d.visitors) %></td>
+                    <td class="num"><%= num(d.starts) %></td>
+                    <td class="num"><%= num(d.step2) %></td>
+                    <td class="num"><%= pc(d.dropAfterStart) %></td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <%/* ── Browser / OS ── */%>
+        <section class="admin-panel">
+          <div class="admin-panel__head">
+            <div>
+              <h2 class="admin-panel__title">Browser &amp; OS</h2>
+              <p class="admin-panel__sub">Visitors by browser family and operating system.</p>
+            </div>
+          </div>
+          <div class="admin-panel__body admin-panel__body--flush an-pair">
+            <table class="admin-table an-table">
+              <thead><tr><th>Browser</th><th class="num">Visitors</th></tr></thead>
+              <tbody>
+                <% technical.browsers.slice(0, 8).forEach(function (b) { %>
+                  <tr><td><%= b.key %></td><td class="num"><%= num(b.visitors) %></td></tr>
+                <% }); %>
+              </tbody>
+            </table>
+            <table class="admin-table an-table">
+              <thead><tr><th>OS</th><th class="num">Visitors</th></tr></thead>
+              <tbody>
+                <% technical.oses.slice(0, 8).forEach(function (o) { %>
+                  <tr><td><%= o.key %></td><td class="num"><%= num(o.visitors) %></td></tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <%/* ── Campaigns ── */%>
+      <section class="admin-panel <%= campaigns.length ? '' : 'an-panel--headonly' %>">
+        <div class="admin-panel__head">
+          <div>
+            <h2 class="admin-panel__title">Campaigns (UTM)</h2>
+            <% if (!campaigns.length) { %>
+              <p class="admin-panel__sub">
+                <strong>Nothing yet, and that is expected.</strong> Campaign tags were not recorded before
+                this feature shipped, and nothing backfills them. Rows appear here once tagged traffic
+                arrives — add <code>?utm_source=…&amp;utm_medium=…&amp;utm_campaign=…</code> to your ad links.
+              </p>
+            <% } else { %>
+              <p class="admin-panel__sub">Tags exactly as they arrived. Traffic Sources above stays the authority on channel — a
+                mistagged campaign shows here as mistagged rather than rewriting the channel.</p>
             <% } %>
           </div>
         </div>
-      <% }); %>
-      <%/* The gap that looks wrong until you know where each event is
-           raised. Stated on the page because it is asked every time. */%>
-      <details class="an-why">
-        <summary>Why is "Checkout started" so much larger than "Step 1"?</summary>
-        <p>
-          They are recorded in different places, and only one of them can fail.
-          <strong>Checkout started</strong> is written by this server the moment the Buy
-          request arrives &mdash; nothing can stop it. <strong>Step 1</strong> is a beacon
-          fired by the checkout page in the customer's browser after it loads on the
-          payment host.
-        </p>
-        <p>
-          So the gap is everyone who asked to check out and never got a working page: the
-          hop to the payment host failed, the tab was closed mid-redirect, the page loaded
-          but its JavaScript did not, or an ad blocker or privacy extension ate the beacon.
-          That last one means <em>some of this gap is measurement, not lost customers</em> &mdash;
-          they arrived and we never heard about it.
-        </p>
-        <p>
-          <strong>The one number in that gap that is definitely real</strong> is the
-          server-side token failure below: the payment host itself refused the handoff.
-          Those are genuinely lost, and they are the ones worth chasing.
-        </p>
-      </details>
-      <% if (funnel.length && (funnel[0].tokenFailed || funnel[0].paymentFailed)) { %>
-        <p class="sub" style="margin-top:1rem">
-          Of those, <strong><%= num(funnel[0].tokenFailed) %></strong> never reached the checkout page at all
-          (server-side token failure — a technical loss, not a customer decision), and
-          <strong><%= num(funnel[0].paymentFailed) %></strong> had the payment form fail to load.
-        </p>
-      <% } %>
-    </section>
-
-    <%/* ── Products ── */%>
-    <section class="an-sec">
-      <h2>Product performance</h2>
-      <p class="sub">Ranked by revenue. A high view count beside a low order count is the signal worth acting on.</p>
-      <div class="admin-table-wrap">
-        <table class="an-table">
-          <thead><tr>
-            <th>Product</th><th style="text-align:right">Views</th><th style="text-align:right">Viewers</th>
-            <th style="text-align:right">Checkouts</th><th style="text-align:right">Step 2</th>
-            <th style="text-align:right">Orders</th><th style="text-align:right">Units</th>
-            <th style="text-align:right">Revenue</th><th style="text-align:right">View&rarr;CO</th>
-            <th style="text-align:right">CO&rarr;Buy</th><th style="text-align:right">Refunds</th>
-          </tr></thead>
-          <tbody>
-            <% if (!products.length) { %>
-              <tr><td colspan="11" class="an-empty">No product activity in this range.</td></tr>
-            <% } %>
-            <% const maxViews = Math.max(1, ...products.map(p => p.views)); %>
-            <% products.slice(0, 40).forEach(function (p) { %>
-              <tr>
-                <td><%= p.name || p.slug %><% if (p.name) { %><span class="an-slug"><%= p.slug %></span><% } %></td>
-                <td class="n mini" style="--w:<%= (p.views / maxViews * 100).toFixed(1) %>%"><span><%= num(p.views) %></span></td>
-                <td class="n"><%= num(p.viewers) %></td>
-                <td class="n"><%= num(p.checkouts) %></td>
-                <td class="n"><%= num(p.step2) %></td>
-                <td class="n"><%= num(p.orders) %></td>
-                <td class="n"><%= num(p.units) %></td>
-                <td class="n rev"><%= money(p.revenue) %></td>
-                <td class="n"><%= pc(p.viewToCheckout) %></td>
-                <td class="n"><%= pc(p.checkoutToPurchase) %></td>
-                <td class="n"><%= p.refunds ? num(p.refunds) + ' / ' + money(p.refundAmount) : '—' %></td>
-              </tr>
-            <% }); %>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <%/* ── Checkout starts by product and country ── */%>
-    <div class="an-two">
-      <section class="an-sec">
-        <h2>Checkouts started, by product</h2>
-        <p class="sub">
-          What people actually try to buy, and how far each one gets. The product is
-          recorded on the server at the moment of the Buy click; the later stages inherit it
-          by sharing that checkout's id.
-        </p>
-        <div class="admin-table-wrap">
-          <table class="an-table">
-            <thead><tr><th>Product</th><th style="text-align:right">Started</th><th style="text-align:right">Step 1</th><th style="text-align:right">Step 2</th><th style="text-align:right">&rarr;1</th><th style="text-align:right">&rarr;2</th><th style="text-align:right">Refused</th></tr></thead>
-            <tbody>
-              <% if (!coProduct.length) { %><tr><td colspan="7" class="an-empty">No checkouts started in this range.</td></tr><% } %>
-              <% coProduct.slice(0, 30).forEach(function (r) { %>
-                <tr>
-                  <td>
-                    <% if (r.slug) { %><%= r.name || r.slug %><% if (r.name) { %><span class="an-slug"><%= r.slug %></span><% } %>
-                    <% } else { %><em>Not recorded</em><span class="an-slug">started before the product was captured</span><% } %>
-                  </td>
-                  <td class="n"><%= num(r.starts) %></td>
-                  <td class="n"><%= num(r.step1) %></td>
-                  <td class="n"><%= num(r.step2) %></td>
-                  <td class="n"><%= pc(r.step1Rate) %></td>
-                  <td class="n"><%= pc(r.step2Rate) %></td>
-                  <td class="n"><%= r.tokenFailed ? num(r.tokenFailed) : '—' %></td>
-                </tr>
-              <% }); %>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="an-sec">
-        <h2>Checkouts started, by country</h2>
-        <p class="sub">
-          Geolocated at the Buy click, so it follows the same checkout through every stage
-          rather than being re-derived per beacon. <strong>Refused</strong> is the payment
-          host rejecting the handoff &mdash; a technical loss, not a decision.
-        </p>
-        <div class="admin-table-wrap">
-          <table class="an-table">
-            <thead><tr><th>Country</th><th style="text-align:right">Started</th><th style="text-align:right">Step 1</th><th style="text-align:right">Step 2</th><th style="text-align:right">&rarr;1</th><th style="text-align:right">&rarr;2</th><th style="text-align:right">Refused</th></tr></thead>
-            <tbody>
-              <% if (!coCountry.length) { %><tr><td colspan="7" class="an-empty">No checkouts started in this range.</td></tr><% } %>
-              <% coCountry.slice(0, 30).forEach(function (r) { %>
-                <tr>
-                  <td><%= r.country || '<em>Not recorded</em>' %></td>
-                  <td class="n"><%= num(r.starts) %></td>
-                  <td class="n"><%= num(r.step1) %></td>
-                  <td class="n"><%= num(r.step2) %></td>
-                  <td class="n"><%= pc(r.step1Rate) %></td>
-                  <td class="n"><%= pc(r.step2Rate) %></td>
-                  <td class="n"><%= r.tokenFailed ? num(r.tokenFailed) : '—' %></td>
-                </tr>
-              <% }); %>
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </div>
-
-    <div class="an-two">
-      <%/* ── Countries ── */%>
-      <section class="an-sec">
-        <h2>Countries</h2>
-        <p class="sub">Traffic is matched on the visitor's country code; orders on the country on the order.</p>
-        <div class="admin-table-wrap">
-          <table class="an-table">
-            <thead><tr><th>Country</th><th style="text-align:right">Visitors</th><th style="text-align:right">Checkouts</th><th style="text-align:right">Orders</th><th style="text-align:right">Revenue</th><th style="text-align:right">Conv.</th></tr></thead>
-            <tbody>
-              <% if (!countries.length) { %><tr><td colspan="6" class="an-empty">No country data in this range.</td></tr><% } %>
-              <% countries.slice(0, 25).forEach(function (c) { %>
-                <tr>
-                  <td><%= c.key %></td>
-                  <td class="n"><%= num(c.visitors) %></td>
-                  <td class="n"><%= num(c.starts) %></td>
-                  <td class="n"><%= num(c.orders) %></td>
-                  <td class="n rev"><%= money(c.revenue) %></td>
-                  <td class="n"><%= pc(c.conversionRate) %></td>
-                </tr>
-              <% }); %>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <%/* ── Sources ── */%>
-      <section class="an-sec">
-        <h2>Traffic sources</h2>
-        <p class="sub">Which channel sends people, and which one actually makes money.</p>
-        <div class="admin-table-wrap">
-          <table class="an-table">
-            <thead><tr><th>Source</th><th style="text-align:right">Visitors</th><th style="text-align:right">Checkouts</th><th style="text-align:right">Orders</th><th style="text-align:right">Revenue</th><th style="text-align:right">Rev/visitor</th></tr></thead>
-            <tbody>
-              <% if (!sources.length) { %><tr><td colspan="6" class="an-empty">No source data in this range.</td></tr><% } %>
-              <% sources.slice(0, 25).forEach(function (s) { %>
-                <tr>
-                  <td><%= s.key %></td>
-                  <td class="n"><%= num(s.visitors) %></td>
-                  <td class="n"><%= num(s.starts) %></td>
-                  <td class="n"><%= num(s.orders) %></td>
-                  <td class="n rev"><%= money(s.revenue) %></td>
-                  <td class="n"><%= money(s.revenuePerVisitor) %></td>
-                </tr>
-              <% }); %>
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </div>
-
-    <div class="an-two">
-      <%/* ── Devices ── */%>
-      <section class="an-sec">
-        <h2>Devices</h2>
-        <p class="sub">
-          Classified from the User-Agent already stored on every event, so the whole history is
-          covered. Orders carry no user agent, so this reports reach and drop-off by device rather
-          than revenue it cannot attribute.
-        </p>
-        <div class="admin-table-wrap">
-          <table class="an-table">
-            <thead><tr><th>Device</th><th style="text-align:right">Visitors</th><th style="text-align:right">Checkouts</th><th style="text-align:right">Step 2</th><th style="text-align:right">Drop after start</th></tr></thead>
-            <tbody>
-              <% if (!devices.rows.length) { %><tr><td colspan="5" class="an-empty">No device data in this range.</td></tr><% } %>
-              <% devices.rows.forEach(function (d) { %>
-                <tr>
-                  <td><%= d.key %></td>
-                  <td class="n"><%= num(d.visitors) %></td>
-                  <td class="n"><%= num(d.starts) %></td>
-                  <td class="n"><%= num(d.step2) %></td>
-                  <td class="n"><%= pc(d.dropAfterStart) %></td>
-                </tr>
-              <% }); %>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <%/* ── Browser / OS ── */%>
-      <section class="an-sec">
-        <h2>Browser &amp; OS</h2>
-        <p class="sub">Visitors by browser family and operating system.</p>
-        <div class="an-two" style="gap:1rem">
-          <table class="an-table">
-            <thead><tr><th>Browser</th><th style="text-align:right">Visitors</th></tr></thead>
-            <tbody>
-              <% technical.browsers.slice(0, 8).forEach(function (b) { %>
-                <tr><td><%= b.key %></td><td class="n"><%= num(b.visitors) %></td></tr>
-              <% }); %>
-            </tbody>
-          </table>
-          <table class="an-table">
-            <thead><tr><th>OS</th><th style="text-align:right">Visitors</th></tr></thead>
-            <tbody>
-              <% technical.oses.slice(0, 8).forEach(function (o) { %>
-                <tr><td><%= o.key %></td><td class="n"><%= num(o.visitors) %></td></tr>
-              <% }); %>
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </div>
-
-    <%/* ── Campaigns ── */%>
-    <section class="an-sec">
-      <h2>Campaigns (UTM)</h2>
-      <% if (!campaigns.length) { %>
-        <p class="sub">
-          <strong>Nothing yet, and that is expected.</strong> Campaign tags were not recorded before
-          this feature shipped, and nothing backfills them. Rows appear here once tagged traffic
-          arrives — add <code>?utm_source=…&amp;utm_medium=…&amp;utm_campaign=…</code> to your ad links.
-        </p>
-      <% } else { %>
-        <p class="sub">Tags exactly as they arrived. Traffic Sources above stays the authority on channel — a
-          mistagged campaign shows here as mistagged rather than rewriting the channel.</p>
-        <div class="admin-table-wrap">
-          <table class="an-table">
-            <thead><tr><th>Source</th><th>Medium</th><th>Campaign</th><th style="text-align:right">Visitors</th></tr></thead>
-            <tbody>
-              <% campaigns.slice(0, 30).forEach(function (c) { %>
-                <tr><td><%= c.source %></td><td><%= c.medium || '—' %></td><td><%= c.campaign || '—' %></td><td class="n"><%= num(c.visitors) %></td></tr>
-              <% }); %>
-            </tbody>
-          </table>
-        </div>
-      <% } %>
-    </section>
-
-    <%/* ── Source x product ── */%>
-    <section class="an-sec">
-      <h2>Which channel sells which product</h2>
-      <p class="sub">
-        Orders per product, split by the channel that acquired the buyer. One row per
-        product so a product's whole channel mix reads across a single line &mdash; the
-        pair-per-row version said the same thing in ten times the space.
-        Channels are the top <%= sourceProduct.columns.filter(c => c !== 'Other').length %> by revenue;
-        anything smaller is summed into <strong>Other</strong>, so the row totals still reconcile.
-      </p>
-      <div class="admin-table-wrap">
-        <table class="an-table">
-          <thead>
-            <tr>
-              <th>Product</th>
-              <% sourceProduct.columns.forEach(function (c) { %>
-                <th style="text-align:right"><%= c %></th>
-              <% }); %>
-              <th style="text-align:right">Total</th>
-              <th style="text-align:right">Revenue</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% if (!sourceProduct.rows.length) { %>
-              <tr><td colspan="<%= sourceProduct.columns.length + 3 %>" class="an-empty">No orders in this range.</td></tr>
-            <% } %>
-            <% sourceProduct.rows.slice(0, 30).forEach(function (r) { %>
-              <tr>
-                <td><%= r.name || r.slug %><% if (r.name) { %><span class="an-slug"><%= r.slug %></span><% } %></td>
-                <% sourceProduct.columns.forEach(function (c) {
-                     const cell = r.cells[c];
-                     /* A channel that sold none of THIS product is a dash, not a
-                        zero: a grid of zeroes is unreadable, and the eye needs the
-                        cells that carry a number to stand out. */ %>
-                  <td class="n" <% if (cell) { %>title="<%= money(cell.revenue) %>"<% } %>>
-                    <%= cell ? num(cell.orders) : '·' %>
-                  </td>
+        <% if (campaigns.length) { %>
+          <div class="admin-panel__body admin-panel__body--flush an-scroll">
+            <table class="admin-table an-table">
+              <thead><tr><th>Source</th><th>Medium</th><th>Campaign</th><th class="num">Visitors</th></tr></thead>
+              <tbody>
+                <% campaigns.slice(0, 30).forEach(function (c) { %>
+                  <tr><td><%= c.source %></td><td><%= c.medium || '—' %></td><td><%= c.campaign || '—' %></td><td class="num"><%= num(c.visitors) %></td></tr>
                 <% }); %>
-                <td class="n"><strong><%= num(r.orders) %></strong></td>
-                <td class="n rev"><%= money(r.revenue) %></td>
-              </tr>
-            <% }); %>
-          </tbody>
-          <% if (sourceProduct.rows.length) { %>
-            <tfoot>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </section>
+
+      <%/* ── Source x product ── */%>
+      <section class="admin-panel">
+        <div class="admin-panel__head">
+          <div>
+            <h2 class="admin-panel__title">Which channel sells which product</h2>
+            <p class="admin-panel__sub">
+              Orders per product, split by the channel that acquired the buyer. One row per
+              product so a product's whole channel mix reads across a single line &mdash; the
+              pair-per-row version said the same thing in ten times the space.
+              Channels are the top <%= sourceProduct.columns.filter(c => c !== 'Other').length %> by revenue;
+              anything smaller is summed into <strong>Other</strong>, so the row totals still reconcile.
+            </p>
+          </div>
+        </div>
+        <div class="admin-panel__body admin-panel__body--flush an-scroll">
+          <table class="admin-table an-table">
+            <thead>
               <tr>
-                <td><strong>All products</strong></td>
+                <th>Product</th>
                 <% sourceProduct.columns.forEach(function (c) { %>
-                  <td class="n"><strong><%= sourceProduct.totals[c] ? num(sourceProduct.totals[c]) : '·' %></strong></td>
+                  <th class="num"><%= c %></th>
                 <% }); %>
-                <td class="n"><strong><%= num(sourceProduct.grandOrders) %></strong></td>
-                <td class="n rev"><%= money(sourceProduct.grandRevenue) %></td>
+                <th class="num">Total</th>
+                <th class="num">Revenue</th>
               </tr>
-            </tfoot>
-          <% } %>
-        </table>
-      </div>
-    </section>
-
-    <div class="an-two">
-      <%/* ── Abandonment ── */%>
-      <section class="an-sec">
-        <h2>Abandoned checkouts</h2>
-        <p class="sub">From the recovery collection, by the state each sequence ended in.</p>
-        <table class="an-table">
-          <thead><tr><th>Status</th><th style="text-align:right">Count</th><th style="text-align:right">Value</th></tr></thead>
-          <tbody>
-            <% if (!abandonment.length) { %><tr><td colspan="3" class="an-empty">Nothing recorded in this range.</td></tr><% } %>
-            <% abandonment.forEach(function (a) { %>
-              <tr><td><%= a.status %></td><td class="n"><%= num(a.count) %></td><td class="n"><%= money(a.value) %></td></tr>
-            <% }); %>
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              <% if (!sourceProduct.rows.length) { %>
+                <tr><td colspan="<%= sourceProduct.columns.length + 3 %>" class="admin-table__empty">No orders in this range.</td></tr>
+              <% } %>
+              <% sourceProduct.rows.slice(0, 30).forEach(function (r) { %>
+                <tr>
+                  <td><%= r.name || r.slug %><% if (r.name) { %><span class="an-slug"><%= r.slug %></span><% } %></td>
+                  <% sourceProduct.columns.forEach(function (c) {
+                       const cell = r.cells[c];
+                       /* A channel that sold none of THIS product is a dash, not a
+                          zero: a grid of zeroes is unreadable, and the eye needs the
+                          cells that carry a number to stand out. */ %>
+                    <td class="num" <% if (cell) { %>title="<%= money(cell.revenue) %>"<% } %>>
+                      <%= cell ? num(cell.orders) : '·' %>
+                    </td>
+                  <% }); %>
+                  <td class="num"><strong><%= num(r.orders) %></strong></td>
+                  <td class="num rev"><%= money(r.revenue) %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+            <% if (sourceProduct.rows.length) { %>
+              <tfoot>
+                <tr>
+                  <td><strong>All products</strong></td>
+                  <% sourceProduct.columns.forEach(function (c) { %>
+                    <td class="num"><strong><%= sourceProduct.totals[c] ? num(sourceProduct.totals[c]) : '·' %></strong></td>
+                  <% }); %>
+                  <td class="num"><strong><%= num(sourceProduct.grandOrders) %></strong></td>
+                  <td class="num rev"><%= money(sourceProduct.grandRevenue) %></td>
+                </tr>
+              </tfoot>
+            <% } %>
+          </table>
+        </div>
       </section>
 
-      <%/* ── Customers ── */%>
-      <section class="an-sec">
-        <h2>Customers</h2>
-        <p class="sub">Grouped by email within this window. A "repeat" customer is one with more than one order <em>in this range</em>.</p>
-        <div class="an-cards" style="grid-template-columns:repeat(2,1fr);margin-bottom:1rem">
-          <div class="an-card"><div class="k">Customers</div><div class="v"><%= num(customers.customers) %></div></div>
-          <div class="an-card"><div class="k">Repeat rate</div><div class="v"><%= pc(customers.repeatRate) %></div></div>
-          <div class="an-card"><div class="k">Avg orders each</div><div class="v"><%= customers.avgOrdersPerCustomer.toFixed(2) %></div></div>
-          <div class="an-card"><div class="k">Avg value</div><div class="v"><%= money(customers.avgCustomerValue) %></div></div>
+      <div class="grid-2">
+        <%/* ── Abandonment ── */%>
+        <section class="admin-panel">
+          <div class="admin-panel__head">
+            <div>
+              <h2 class="admin-panel__title">Abandoned checkouts</h2>
+              <p class="admin-panel__sub">From the recovery collection, by the state each sequence ended in.</p>
+            </div>
+          </div>
+          <div class="admin-panel__body admin-panel__body--flush an-scroll">
+            <table class="admin-table an-table">
+              <thead><tr><th>Status</th><th class="num">Count</th><th class="num">Value</th></tr></thead>
+              <tbody>
+                <% if (!abandonment.length) { %><tr><td colspan="3" class="admin-table__empty">Nothing recorded in this range.</td></tr><% } %>
+                <% abandonment.forEach(function (a) { %>
+                  <tr><td><%= a.status %></td><td class="num"><%= num(a.count) %></td><td class="num"><%= money(a.value) %></td></tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <%/* ── Customers ── */%>
+        <section class="admin-panel">
+          <div class="admin-panel__head">
+            <div>
+              <h2 class="admin-panel__title">Customers</h2>
+              <p class="admin-panel__sub">Grouped by email within this window. A "repeat" customer is one with more than one order <em>in this range</em>.</p>
+            </div>
+          </div>
+          <div class="admin-panel__body admin-panel__body--flush">
+            <div class="admin-stats-grid an-stats-inset">
+              <div class="admin-stat-card"><div class="admin-stat-card__num"><%= num(customers.customers) %></div><div class="admin-stat-card__label">Customers</div></div>
+              <div class="admin-stat-card"><div class="admin-stat-card__num"><%= pc(customers.repeatRate) %></div><div class="admin-stat-card__label">Repeat rate</div></div>
+              <div class="admin-stat-card"><div class="admin-stat-card__num"><%= customers.avgOrdersPerCustomer.toFixed(2) %></div><div class="admin-stat-card__label">Avg orders each</div></div>
+              <div class="admin-stat-card"><div class="admin-stat-card__num"><%= money(customers.avgCustomerValue) %></div><div class="admin-stat-card__label">Avg value</div></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <%/* ── Over time ── */%>
+      <section class="admin-panel">
+        <div class="admin-panel__head">
+          <div>
+            <h2 class="admin-panel__title">Over time</h2>
+            <p class="admin-panel__sub">Bucketed <%= bucket %>ly, in <%= win.retentionDays %>-day event retention.</p>
+          </div>
+        </div>
+        <div class="admin-panel__body admin-panel__body--flush an-scroll">
+          <table class="admin-table an-table">
+            <thead><tr><th>Period</th><th class="num">Visitors</th><th class="num">Checkouts</th><th class="num">Orders</th><th class="num">Revenue</th></tr></thead>
+            <tbody>
+              <% if (!series.length) { %><tr><td colspan="5" class="admin-table__empty">No activity in this range.</td></tr><% } %>
+              <% const maxV = Math.max(1, ...series.map(s => s.visitors)); %>
+              <% series.slice(-60).forEach(function (s) { %>
+                <tr>
+                  <td><%= s.bucket %></td>
+                  <td class="num mini" style="--w:<%= (s.visitors / maxV * 100).toFixed(1) %>%"><span><%= num(s.visitors) %></span></td>
+                  <td class="num"><%= num(s.starts) %></td>
+                  <td class="num"><%= num(s.orders) %></td>
+                  <td class="num rev"><%= money(s.revenue) %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
         </div>
       </section>
     </div>
-
-    <%/* ── Over time ── */%>
-    <section class="an-sec">
-      <h2>Over time</h2>
-      <p class="sub">Bucketed <%= bucket %>ly, in <%= win.retentionDays %>-day event retention.</p>
-      <div class="admin-table-wrap">
-        <table class="an-table">
-          <thead><tr><th>Period</th><th style="text-align:right">Visitors</th><th style="text-align:right">Checkouts</th><th style="text-align:right">Orders</th><th style="text-align:right">Revenue</th></tr></thead>
-          <tbody>
-            <% if (!series.length) { %><tr><td colspan="5" class="an-empty">No activity in this range.</td></tr><% } %>
-            <% const maxV = Math.max(1, ...series.map(s => s.visitors)); %>
-            <% series.slice(-60).forEach(function (s) { %>
-              <tr>
-                <td><%= s.bucket %></td>
-                <td class="n mini" style="--w:<%= (s.visitors / maxV * 100).toFixed(1) %>%"><span><%= num(s.visitors) %></span></td>
-                <td class="n"><%= num(s.starts) %></td>
-                <td class="n"><%= num(s.orders) %></td>
-                <td class="n rev"><%= money(s.revenue) %></td>
-              </tr>
-            <% }); %>
-          </tbody>
-        </table>
-      </div>
-    </section>
   </main>
 </body>
 </html>

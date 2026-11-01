@@ -1,14 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%230F2A4A'/><rect x='190' y='104' width='196' height='272' rx='22' fill='none' stroke='%23ffffff' stroke-width='30' transform='rotate(14 288 240)'/><rect x='126' y='136' width='196' height='272' rx='22' fill='%23ffffff'/></svg>">
-  <meta name="theme-color" content="#0c0c12">
-  <meta name="robots" content="noindex, nofollow">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Product Distribution | GoGetCards Admin</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+  <%- include('_head', { title: 'Distribution' }) %>
   <link rel="stylesheet" href="/css/distribution.css?v=<%= assetVersion %>">
 </head>
 <body class="admin-body">
@@ -17,11 +10,11 @@
   <main class="admin-main">
     <header class="admin-header">
       <div>
-        <h1 class="admin-header__title">Product Distribution</h1>
-        <p class="dh-sub">Everything that leaves this site for an external sales channel, validated before it goes.</p>
+        <h1 class="admin-header__title">Distribution <span class="admin-header__count"><%= rows.length %></span></h1>
+        <p class="admin-header__sub">Everything that leaves this site for an external sales channel, validated before it goes.</p>
       </div>
-      <div style="display:flex;gap:0.5rem;align-items:center">
-        <a class="admin-btn admin-btn--outline" href="/admin/distribution?probe=1">
+      <div class="admin-header__actions">
+        <a class="admin-btn" href="/admin/distribution?probe=1">
           <%= probed ? 'Re-check images' : 'Check every image' %>
         </a>
       </div>
@@ -31,45 +24,49 @@
 
       <%/* Flash messages, driven by the redirect query rather than session
            state so a refresh clears them naturally. */%>
-      <% if (query.error) { %><div class="dh-flash dh-flash--err"><%= query.error %></div><% } %>
-      <% if (query.saved) { %><div class="dh-flash dh-flash--ok">Saved.</div><% } %>
+      <% if (query.error) { %><div class="admin-alert admin-alert--error"><%= query.error %></div><% } %>
+      <% if (query.saved) { %><div class="admin-alert admin-alert--success">Saved.</div><% } %>
       <% if (query.fixed !== undefined) { %>
-        <div class="dh-flash dh-flash--ok">
+        <div class="admin-alert admin-alert--success">
           <%= Number(query.fixed) === 0 ? 'Nothing needed fixing.' : `Applied safe fixes to ${query.fixed} product${Number(query.fixed) === 1 ? '' : 's'}.` %>
         </div>
       <% } %>
       <% if (query.bulk !== undefined) { %>
-        <div class="dh-flash dh-flash--ok">
-          <%= query.bulk %> product<%= Number(query.bulk) === 1 ? '' : 's' %>
-          <%= query.action === 'send' ? 'will now be sent to Google.' : 'will be held back from Google.' %>
-          <% if (query.action !== 'send') { %>
-            Any of them already listed will be removed on the next sync.
-          <% } %>
+        <div class="admin-alert admin-alert--success">
+          <span>
+            <%= query.bulk %> product<%= Number(query.bulk) === 1 ? '' : 's' %>
+            <%= query.action === 'send' ? 'will now be sent to Google.' : 'will be held back from Google.' %>
+            <% if (query.action !== 'send') { %>
+              Any of them already listed will be removed on the next sync.
+            <% } %>
+          </span>
         </div>
       <% } %>
 
       <!-- ── Channels ── -->
-      <section class="dh-panel">
-        <h2 class="dh-panel__title">Channels</h2>
-        <div class="dh-channels">
-          <% available.forEach(function (c) { %>
-            <a class="dh-channel <%= c.id === channel ? 'is-active' : '' %>" href="/admin/distribution?channel=<%= c.id %>">
-              <span class="dh-channel__name"><%= c.name %></span>
-              <%/* No connection state to show any more: the feed is a URL
-                   Google fetches, so there is nothing on this side that can
-                   be connected or disconnected. */%>
-              <span class="dh-pill dh-pill--idle"><%= c.id === 'google' ? 'Feed' : 'No account needed' %></span>
-            </a>
-          <% }); %>
-          <%/* Declared but not built. Shown greyed rather than hidden so the
-               architecture is visible and nobody wonders whether Meta is a
-               setting they failed to find. */%>
-          <% planned.forEach(function (c) { %>
-            <span class="dh-channel is-planned" title="Architecture is in place; the provider is not built yet">
-              <span class="dh-channel__name"><%= c.name %></span>
-              <span class="dh-pill dh-pill--muted">Planned</span>
-            </span>
-          <% }); %>
+      <section class="admin-panel">
+        <div class="admin-panel__head"><h2 class="admin-panel__title">Channels</h2></div>
+        <div class="admin-panel__body">
+          <div class="dh-channels">
+            <% available.forEach(function (c) { %>
+              <a class="dh-channel <%= c.id === channel ? 'is-active' : '' %>" href="/admin/distribution?channel=<%= c.id %>">
+                <span class="dh-channel__name"><%= c.name %></span>
+                <%/* No connection state to show any more: the feed is a URL
+                     Google fetches, so there is nothing on this side that can
+                     be connected or disconnected. */%>
+                <span class="dh-pill dh-pill--idle"><%= c.id === 'google' ? 'Feed' : 'No account needed' %></span>
+              </a>
+            <% }); %>
+            <%/* Declared but not built. Shown greyed rather than hidden so the
+                 architecture is visible and nobody wonders whether Meta is a
+                 setting they failed to find. */%>
+            <% planned.forEach(function (c) { %>
+              <span class="dh-channel is-planned" title="Architecture is in place; the provider is not built yet">
+                <span class="dh-channel__name"><%= c.name %></span>
+                <span class="dh-pill dh-pill--muted">Planned</span>
+              </span>
+            <% }); %>
+          </div>
         </div>
       </section>
 
@@ -82,139 +79,150 @@
           && r.product.merchant.included[channel])).length;
         const selectedCount = rows.length - wouldBeHeld;
       %>
-      <section class="dh-panel">
-        <h2 class="dh-panel__title">Which products go to <%= channel === 'google' ? 'Google' : channel %></h2>
+      <section class="admin-panel">
+        <div class="admin-panel__head">
+          <h2 class="admin-panel__title">Which products go to <%= channel === 'google' ? 'Google' : channel %></h2>
+        </div>
 
         <form method="POST" action="/admin/distribution/selection-mode">
           <input type="hidden" name="channel" value="<%= channel %>">
-          <div class="dh-modes">
-            <label class="dh-mode <%= selectionMode === 'all' ? 'is-active' : '' %>">
-              <input type="radio" name="selectionMode" value="all" <%= selectionMode === 'all' ? 'checked' : '' %>>
-              <span class="dh-mode__body">
-                <strong>Send everything, except what I exclude</strong>
-                <span class="dh-hint">
-                  A new product is advertised as soon as it passes validation. Right when the whole
-                  catalogue should be listed.
+          <div class="admin-panel__body">
+            <div class="dh-modes">
+              <label class="dh-mode <%= selectionMode === 'all' ? 'is-active' : '' %>">
+                <input type="radio" name="selectionMode" value="all" <%= selectionMode === 'all' ? 'checked' : '' %>>
+                <span class="dh-mode__body">
+                  <strong>Send everything, except what I exclude</strong>
+                  <span class="dh-hint">
+                    A new product is advertised as soon as it passes validation. Right when the whole
+                    catalogue should be listed.
+                  </span>
                 </span>
-              </span>
-            </label>
+              </label>
 
-            <label class="dh-mode <%= selectionMode === 'selected' ? 'is-active' : '' %>">
-              <input type="radio" name="selectionMode" value="selected" <%= selectionMode === 'selected' ? 'checked' : '' %>>
-              <span class="dh-mode__body">
-                <strong>Send only the products I choose</strong>
-                <span class="dh-hint">
-                  Nothing is advertised until it is ticked, including new products. Right when only part
-                  of the catalogue should be visible on Google — allocation-limited lines, or anything
-                  held back on purpose.
+              <label class="dh-mode <%= selectionMode === 'selected' ? 'is-active' : '' %>">
+                <input type="radio" name="selectionMode" value="selected" <%= selectionMode === 'selected' ? 'checked' : '' %>>
+                <span class="dh-mode__body">
+                  <strong>Send only the products I choose</strong>
+                  <span class="dh-hint">
+                    Nothing is advertised until it is ticked, including new products. Right when only part
+                    of the catalogue should be visible on Google — allocation-limited lines, or anything
+                    held back on purpose.
+                  </span>
                 </span>
-              </span>
-            </label>
+              </label>
+            </div>
+
+            <%/* The consequence, stated before the button rather than after
+                 the sync. Switching to "only what I choose" with nothing
+                 chosen means the next run deletes the entire live feed, and
+                 that should never be a surprise. */%>
+            <% if (selectionMode === 'all' && wouldBeHeld) { %>
+              <p class="dh-warn-text">
+                Switching to “only the products I choose” would hold back <%= wouldBeHeld %> of
+                <%= rows.length %> products, because nothing has been ticked yet. They would drop
+                out of the feed at Google's next fetch, and out of Shopping shortly after.
+                Tick what you want listed first, then switch.
+              </p>
+            <% } %>
           </div>
 
-          <%/* The consequence, stated before the button rather than after
-               the sync. Switching to "only what I choose" with nothing
-               chosen means the next run deletes the entire live feed, and
-               that should never be a surprise. */%>
-          <% if (selectionMode === 'all' && wouldBeHeld) { %>
-            <p class="dh-warn-text">
-              Switching to “only the products I choose” would hold back <%= wouldBeHeld %> of
-              <%= rows.length %> products, because nothing has been ticked yet. They would drop
-              out of the feed at Google's next fetch, and out of Shopping shortly after.
-              Tick what you want listed first, then switch.
-            </p>
-          <% } %>
-
-          <button class="admin-btn admin-btn--outline" style="margin-top:0.9rem">Save mode</button>
+          <div class="admin-panel__foot">
+            <button class="admin-btn admin-btn--primary">Save mode</button>
+            <% if (selectionMode === 'selected') { %>
+              <span class="small muted">
+                <strong><%= selectedCount %></strong> of <%= rows.length %> products are selected.
+                The rest are stocked and sellable on the site as normal — this only controls what leaves
+                for Google.
+              </span>
+            <% } %>
+          </div>
         </form>
-
-        <% if (selectionMode === 'selected') { %>
-          <p class="dh-hint" style="margin-top:0.9rem">
-            <strong><%= selectedCount %></strong> of <%= rows.length %> products are selected.
-            The rest are stocked and sellable on the site as normal — this only controls what leaves
-            for Google.
-          </p>
-        <% } %>
       </section>
 
       <!-- ── Catalogue summary ── -->
-      <section class="dh-panel">
-        <h2 class="dh-panel__title">Catalogue</h2>
-        <div class="dh-stats">
-          <div class="dh-stat dh-stat--ok"><span class="dh-stat__n"><%= summary.ready %></span><span class="dh-stat__l">Ready</span></div>
-          <div class="dh-stat dh-stat--warn"><span class="dh-stat__n"><%= summary.warning %></span><span class="dh-stat__l">With warnings</span></div>
-          <div class="dh-stat dh-stat--err"><span class="dh-stat__n"><%= summary.error %></span><span class="dh-stat__l">Blocked</span></div>
-          <div class="dh-stat"><span class="dh-stat__n"><%= summary.excluded %></span><span class="dh-stat__l"><%= selectionMode === 'selected' ? 'Not selected' : 'Held back' %></span></div>
-          <div class="dh-stat dh-stat--ok"><span class="dh-stat__n"><%= summary.inFeed %></span><span class="dh-stat__l">In the feed</span></div>
-        </div>
+      <section class="admin-panel">
+        <div class="admin-panel__head"><h2 class="admin-panel__title">Catalogue</h2></div>
+        <div class="admin-panel__body">
+          <div class="admin-stats-grid">
+            <div class="admin-stat-card"><div class="admin-stat-card__num ok"><%= summary.ready %></div><div class="admin-stat-card__label">Ready</div></div>
+            <div class="admin-stat-card"><div class="admin-stat-card__num warn"><%= summary.warning %></div><div class="admin-stat-card__label">With warnings</div></div>
+            <div class="admin-stat-card"><div class="admin-stat-card__num crit"><%= summary.error %></div><div class="admin-stat-card__label">Blocked</div></div>
+            <div class="admin-stat-card"><div class="admin-stat-card__num"><%= summary.excluded %></div><div class="admin-stat-card__label"><%= selectionMode === 'selected' ? 'Not selected' : 'Held back' %></div></div>
+            <div class="admin-stat-card admin-stat-card--accent"><div class="admin-stat-card__num"><%= summary.inFeed %></div><div class="admin-stat-card__label">In the feed</div></div>
+          </div>
 
-        <div class="dh-actions">
-          <form method="POST" action="/admin/distribution/autofix-all" style="margin:0"
-                onsubmit="return confirm('Apply every safe repair across the catalogue?')">
-            <button class="admin-btn admin-btn--outline">Apply safe fixes to all</button>
-          </form>
-          <a class="admin-btn admin-btn--outline" href="/admin/distribution/export.xml">Download XML</a>
-          <a class="admin-btn admin-btn--outline" href="/admin/distribution/export.csv">CSV</a>
-          <a class="admin-btn admin-btn--outline" href="/admin/distribution/export.json">JSON</a>
-          <span class="dh-hint">Downloads contain only products that pass validation.</span>
-        </div>
+          <div class="admin-btn-row">
+            <form method="POST" action="/admin/distribution/autofix-all"
+                  onsubmit="return confirm('Apply every safe repair across the catalogue?')">
+              <button class="admin-btn">Apply safe fixes to all</button>
+            </form>
+            <a class="admin-btn" href="/admin/distribution/export.xml">Download XML</a>
+            <a class="admin-btn" href="/admin/distribution/export.csv">CSV</a>
+            <a class="admin-btn" href="/admin/distribution/export.json">JSON</a>
+            <span class="small muted">Downloads contain only products that pass validation.</span>
+          </div>
 
-        <%/* The scheduled-fetch address. Merchant Center will pull this on
-             its own schedule with no OAuth involved, which is the way in
-             when the API connection is not cooperating. Same builder, same
-             validation, same payload — only the transport differs. */%>
-        <div class="dh-note" style="margin-top:1rem">
-          <p><strong>Or let Merchant Center fetch it.</strong> One feed per storefront &mdash; which is
-          one per currency. Paste each into Merchant Center &rarr; Data sources &rarr;
-          &ldquo;Enter a link to your file&rdquo;:</p>
+          <%/* The scheduled-fetch address. Merchant Center will pull this on
+               its own schedule with no OAuth involved, which is the way in
+               when the API connection is not cooperating. Same builder, same
+               validation, same payload — only the transport differs. */%>
+          <div class="dh-note">
+            <p><strong>Or let Merchant Center fetch it.</strong> One feed per storefront &mdash; which is
+            one per currency. Paste each into Merchant Center &rarr; Data sources &rarr;
+            &ldquo;Enter a link to your file&rdquo;:</p>
 
-          <%/* ONE FEED CAN SERVE SEVERAL COUNTRIES, so the countries column is
-               not decoration: it is what the feed declares shipping for, and a
-               country missing from it will not run. Country targeting itself is
-               a CAMPAIGN setting, so one feed still supports one campaign per
-               country with its own budget. */%>
-          <table class="dh-feeds">
-            <thead>
-              <tr><th>Storefront</th><th>Feed label</th><th>Countries</th><th>Products priced</th><th>Feed URL</th></tr>
-            </thead>
-            <tbody>
-              <% (typeof feedRows !== 'undefined' ? feedRows : []).forEach(function (f) { %>
-                <tr class="<%= f.open ? '' : 'is-shut' %>">
-                  <td>
-                    <%- include('../partials/flag', { code: f.id, label: f.name, size: 18 }) %> <%= f.name %>
-                    <span class="dh-feeds__cur"><%= f.currency %></span>
-                    <% if (!f.open && !f.isDefault) { %>
-                      <span class="dh-feeds__shut" title="Configured off, or no plan ladder in this currency">not open</span>
-                    <% } %>
-                  </td>
-                  <td><code><%= f.label %></code></td>
-                  <td class="dh-feeds__cc"><%= f.countries.join(', ') %></td>
-                  <td>
-                    <%= f.priced %>
-                    <% if (f.priced === 0) { %>
-                      <span class="dh-feeds__warn" title="Google reads an empty feed as a merchant that sells nothing and removes the listings">empty</span>
-                    <% } %>
-                  </td>
-                  <td><code class="dh-code dh-code--sm"><%= siteOrigin %><%= f.url %></code></td>
-                </tr>
-              <% }); %>
-            </tbody>
-          </table>
+            <%/* ONE FEED CAN SERVE SEVERAL COUNTRIES, so the countries column is
+                 not decoration: it is what the feed declares shipping for, and a
+                 country missing from it will not run. Country targeting itself is
+                 a CAMPAIGN setting, so one feed still supports one campaign per
+                 country with its own budget. */%>
+            <div class="dh-table-wrap">
+            <table class="dh-feeds">
+              <thead>
+                <tr><th>Storefront</th><th>Feed label</th><th>Countries</th><th>Products priced</th><th>Feed URL</th></tr>
+              </thead>
+              <tbody>
+                <% (typeof feedRows !== 'undefined' ? feedRows : []).forEach(function (f) { %>
+                  <tr class="<%= f.open ? '' : 'is-shut' %>">
+                    <td>
+                      <%- include('../partials/flag', { code: f.id, label: f.name, size: 18 }) %> <%= f.name %>
+                      <span class="dh-feeds__cur"><%= f.currency %></span>
+                      <% if (!f.open && !f.isDefault) { %>
+                        <span class="dh-feeds__shut" title="Configured off, or no plan ladder in this currency">not open</span>
+                      <% } %>
+                    </td>
+                    <td><code><%= f.label %></code></td>
+                    <td class="dh-feeds__cc"><%= f.countries.join(', ') %></td>
+                    <td>
+                      <%= f.priced %>
+                      <% if (f.priced === 0) { %>
+                        <span class="dh-feeds__warn" title="Google reads an empty feed as a merchant that sells nothing and removes the listings">empty</span>
+                      <% } %>
+                    </td>
+                    <td><code class="dh-code dh-code--sm"><%= siteOrigin %><%= f.url %></code></td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+            </div>
 
-          <p class="dh-note__small">
-            Public and unauthenticated, because Google's fetcher cannot log in. They carry nothing
-            that is not already on your product pages. Set each schedule to daily &mdash; Google expires a
-            product about 30 days after it last saw it. A storefront marked <em>not open</em> serves a
-            404 rather than a feed, because publishing prices nothing can charge is worse than
-            publishing none.
-          </p>
+            <p class="dh-note__small">
+              Public and unauthenticated, because Google's fetcher cannot log in. They carry nothing
+              that is not already on your product pages. Set each schedule to daily &mdash; Google expires a
+              product about 30 days after it last saw it. A storefront marked <em>not open</em> serves a
+              404 rather than a feed, because publishing prices nothing can charge is worse than
+              publishing none.
+            </p>
+          </div>
         </div>
         <% if (!probed) { %>
-          <p class="dh-hint">
-            Image reachability is not checked on this view because it costs one request per image.
-            Use “Check every image” above. An image that 404s for Google's crawler disapproves the item
-            and is invisible from the storefront if your browser has it cached.
-          </p>
+          <div class="admin-panel__foot">
+            <p class="small muted">
+              Image reachability is not checked on this view because it costs one request per image.
+              Use “Check every image” above. An image that 404s for Google's crawler disapproves the item
+              and is invisible from the storefront if your browser has it cached.
+            </p>
+          </div>
         <% } %>
       </section>
 
@@ -229,52 +237,56 @@
            clear it, noise on every other visit. The headline count stays
            visible so collapsing it never hides the fact that something is
            wrong. */%>
-      <section class="dh-panel">
+      <section class="admin-panel">
         <details class="dh-collapse" id="dh-issues-panel">
-          <summary class="dh-collapse__head">
-            <h2 class="dh-panel__title" style="margin:0">What is wrong, most severe first</h2>
+          <summary class="dh-collapse__head admin-panel__head">
+            <h2 class="admin-panel__title">What is wrong, most severe first</h2>
             <span class="dh-collapse__meta">
-              <% if (issueErrors) { %><span class="dh-chip dh-chip--err"><%= issueErrors %> blocking</span><% } %>
-              <% if (issueWarnings) { %><span class="dh-chip dh-chip--warn"><%= issueWarnings %> warning</span><% } %>
-              <% if (!issueErrors && !issueWarnings) { %><span class="dh-chip">nothing blocking</span><% } %>
+              <% if (issueErrors) { %><span class="admin-tag admin-tag--crit"><%= issueErrors %> blocking</span><% } %>
+              <% if (issueWarnings) { %><span class="admin-tag admin-tag--warn"><%= issueWarnings %> warning</span><% } %>
+              <% if (!issueErrors && !issueWarnings) { %><span class="admin-tag">nothing blocking</span><% } %>
             </span>
             <span class="dh-collapse__toggle" aria-hidden="true"></span>
           </summary>
 
-          <p class="dh-hint" style="margin:0.9rem 0">
-            Counts only products that are going to this channel.
-            <% if (uncountedIssueProducts) { %>
-              <%= uncountedIssueProducts %>
-              <%= selectionMode === 'selected' ? 'unselected' : 'held-back' %>
-              product<%= uncountedIssueProducts === 1 ? ' is' : 's are' %> not counted — their issues are
-              still on their own pages.
-            <% } %>
-          </p>
+          <div class="admin-panel__body stack">
+            <p class="small muted">
+              Counts only products that are going to this channel.
+              <% if (uncountedIssueProducts) { %>
+                <%= uncountedIssueProducts %>
+                <%= selectionMode === 'selected' ? 'unselected' : 'held-back' %>
+                product<%= uncountedIssueProducts === 1 ? ' is' : 's are' %> not counted — their issues are
+                still on their own pages.
+              <% } %>
+            </p>
 
-        <ul class="dh-issues">
-          <% topIssues.forEach(function (i) { %>
-            <li class="dh-issue dh-issue--<%= i.severity %>">
-              <div class="dh-issue__head">
-                <span class="dh-issue__badge"><%= i.severity %></span>
-                <strong><%= i.message %></strong>
-                <span class="dh-issue__count"><%= i.count %> product<%= i.count === 1 ? '' : 's' %></span>
-              </div>
-              <p class="dh-issue__why"><span>Why Google cares.</span> <%= i.why %></p>
-              <p class="dh-issue__fix"><span>How to fix it.</span> <%= i.fix %></p>
-              <p class="dh-issue__slugs">
-                <% i.slugs.forEach(function (s) { %><a href="/admin/distribution/product/<%= s %>"><%= s %></a><% }); %>
-                <% if (i.count > i.slugs.length) { %><span class="dh-hint">and <%= i.count - i.slugs.length %> more</span><% } %>
-              </p>
-            </li>
-          <% }); %>
-        </ul>
+            <ul class="dh-issues">
+              <% topIssues.forEach(function (i) { %>
+                <li class="dh-issue dh-issue--<%= i.severity %>">
+                  <div class="dh-issue__head">
+                    <span class="dh-issue__badge"><%= i.severity %></span>
+                    <strong><%= i.message %></strong>
+                    <span class="dh-issue__count"><%= i.count %> product<%= i.count === 1 ? '' : 's' %></span>
+                  </div>
+                  <p class="dh-issue__why"><span>Why Google cares.</span> <%= i.why %></p>
+                  <p class="dh-issue__fix"><span>How to fix it.</span> <%= i.fix %></p>
+                  <p class="dh-issue__slugs">
+                    <% i.slugs.forEach(function (s) { %><a href="/admin/distribution/product/<%= s %>"><%= s %></a><% }); %>
+                    <% if (i.count > i.slugs.length) { %><span class="tiny faint">and <%= i.count - i.slugs.length %> more</span><% } %>
+                  </p>
+                </li>
+              <% }); %>
+            </ul>
+          </div>
         </details>
       </section>
       <% } %>
 
       <!-- ── Products ── -->
-      <section class="dh-panel">
-        <h2 class="dh-panel__title">Products</h2>
+      <section class="admin-panel">
+        <div class="admin-panel__head">
+          <h2 class="admin-panel__title">Products <span class="admin-header__count"><%= rows.length %></span></h2>
+        </div>
 
         <form method="POST" action="/admin/distribution/bulk" id="dh-bulk">
         <input type="hidden" name="channel" value="<%= channel %>">
@@ -283,76 +295,87 @@
              list to write, so the labels can say what happens rather than
              which field it lands in. */%>
         <div class="dh-bulkbar">
-          <span class="dh-hint"><span id="dh-count">0</span> selected</span>
-          <button class="admin-btn admin-btn--outline dh-btn-sm" name="action" value="send">Send to Google</button>
-          <button class="admin-btn admin-btn--outline dh-btn-sm" name="action" value="hold"
+          <span class="small muted"><span id="dh-count">0</span> selected</span>
+          <button class="admin-btn admin-btn--sm" name="action" value="send">Send to Google</button>
+          <button class="admin-btn admin-btn--sm" name="action" value="hold"
                   onclick="return confirm('Hold these back? Any already listed will be removed from Google on the next sync.')">Hold back</button>
-          <span class="dh-hint">
+          <span class="tiny faint">
             Holding a product back never touches the storefront. It stays live, in stock and sellable here.
           </span>
         </div>
 
-        <div class="dh-table-wrap">
-          <table class="dh-table">
-            <thead>
-              <tr>
-                <th class="dh-cb"><input type="checkbox" id="dh-all" aria-label="Select all products"></th>
-                <th>Product</th><th>Type</th><th>Google</th><th>Status</th><th>Score</th><th>Issues</th><th>Last sync</th><th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <% rows.forEach(function (r) { %>
-                <% const sending = !r.result.excluded; %>
+        <div class="admin-panel__body admin-panel__body--flush">
+          <div class="dh-table-wrap">
+            <table class="admin-table">
+              <thead>
                 <tr>
-                  <td class="dh-cb"><input type="checkbox" class="dh-row-cb" name="slugs" value="<%= r.product.slug %>" aria-label="Select <%= r.product.title %>"></td>
-                  <td>
-                    <a class="dh-title" href="/admin/distribution/product/<%= r.product.slug %>"><%= r.product.title %></a>
-                    <span class="dh-mono dh-hint"><%= r.result.payload.offerId %></span>
-                  </td>
-                  <td><%= r.result.tcgType ? r.result.tcgType.label : '—' %></td>
-                  <%/* The one column that answers "is this going out?"
-                       without reading the status pill, which also carries
-                       validation state and would otherwise be two facts in
-                       one word. */%>
-                  <td>
-                    <% if (sending) { %>
-                      <span class="dh-pill dh-pill--ok">sending</span>
-                    <% } else { %>
-                      <span class="dh-pill dh-pill--muted"><%= selectionMode === 'selected' ? 'not selected' : 'held back' %></span>
-                    <% } %>
-                  </td>
-                  <td><span class="dh-pill dh-pill--<%= r.status %>"><%= r.status %></span></td>
-                  <td><span class="dh-score" style="--score:<%= r.result.score %>"><%= r.result.score %></span></td>
-                  <td>
-                    <% if (r.result.errors) { %><span class="dh-chip dh-chip--err"><%= r.result.errors %> error</span><% } %>
-                    <% if (r.result.warnings) { %><span class="dh-chip dh-chip--warn"><%= r.result.warnings %> warning</span><% } %>
-                    <% if (!r.result.errors && !r.result.warnings) { %><span class="dh-hint">none</span><% } %>
-                  </td>
-                  <td>
-                    <% if (r.product.merchant && r.product.merchant.lastSyncedAt) { %>
-                      <span class="dh-hint"><%= new Date(r.product.merchant.lastSyncedAt).toLocaleDateString('en-US') %></span>
-                      <% if (r.unchanged) { %><span class="dh-chip">unchanged</span><% } %>
-                    <% } else { %><span class="dh-hint">never</span><% } %>
-                  </td>
-                  <td><a class="admin-btn admin-btn--outline dh-btn-sm" href="/admin/distribution/product/<%= r.product.slug %>">Open</a></td>
+                  <th class="dh-cb"><input type="checkbox" id="dh-all" aria-label="Select all products"></th>
+                  <th>Product</th><th>Type</th><th>Google</th><th>Status</th><th>Score</th><th>Issues</th><th>Last sync</th><th class="num"><span class="sr-only">Open</span></th>
                 </tr>
-              <% }); %>
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                <% if (!rows.length) { %>
+                  <tr><td colspan="9" class="admin-table__empty">No products to distribute.</td></tr>
+                <% } %>
+                <% rows.forEach(function (r) { %>
+                  <% const sending = !r.result.excluded; %>
+                  <tr>
+                    <td class="dh-cb"><input type="checkbox" class="dh-row-cb" name="slugs" value="<%= r.product.slug %>" aria-label="Select <%= r.product.title %>"></td>
+                    <td>
+                      <a class="dh-title" href="/admin/distribution/product/<%= r.product.slug %>"><%= r.product.title %></a>
+                      <span class="admin-cell-sub mono"><%= r.result.payload.offerId %></span>
+                    </td>
+                    <td><%= r.result.tcgType ? r.result.tcgType.label : '—' %></td>
+                    <%/* The one column that answers "is this going out?"
+                         without reading the status pill, which also carries
+                         validation state and would otherwise be two facts in
+                         one word. */%>
+                    <td>
+                      <% if (sending) { %>
+                        <span class="dh-pill dh-pill--ok">sending</span>
+                      <% } else { %>
+                        <span class="dh-pill dh-pill--muted"><%= selectionMode === 'selected' ? 'not selected' : 'held back' %></span>
+                      <% } %>
+                    </td>
+                    <td><span class="dh-pill dh-pill--<%= r.status %>"><%= r.status %></span></td>
+                    <td><span class="dh-score" style="--score:<%= r.result.score %>"><%= r.result.score %></span></td>
+                    <td class="nowrap">
+                      <% if (r.result.errors) { %><span class="admin-tag admin-tag--crit"><%= r.result.errors %> error</span><% } %>
+                      <% if (r.result.warnings) { %><span class="admin-tag admin-tag--warn"><%= r.result.warnings %> warning</span><% } %>
+                      <% if (!r.result.errors && !r.result.warnings) { %><span class="faint">none</span><% } %>
+                    </td>
+                    <td class="nowrap">
+                      <% if (r.product.merchant && r.product.merchant.lastSyncedAt) { %>
+                        <span class="muted"><%= new Date(r.product.merchant.lastSyncedAt).toLocaleDateString('en-US') %></span>
+                        <% if (r.unchanged) { %><span class="admin-tag">unchanged</span><% } %>
+                      <% } else { %><span class="faint">never</span><% } %>
+                    </td>
+                    <td class="num"><a class="admin-btn admin-btn--sm" href="/admin/distribution/product/<%= r.product.slug %>">Open</a></td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
         </div>
         </form>
       </section>
 
 
       <!-- ── What automatic fixes will not do ── -->
-      <section class="dh-panel">
-        <h2 class="dh-panel__title">What the automatic fixes will not do</h2>
-        <p class="dh-hint">Stated so the absence is a policy rather than a gap you assume is a bug.</p>
-        <ul class="dh-refused">
-          <% refused.forEach(function (r) { %>
-            <li><strong><%= r.what %>.</strong> <%= r.why %></li>
-          <% }); %>
-        </ul>
+      <section class="admin-panel">
+        <div class="admin-panel__head">
+          <div>
+            <h2 class="admin-panel__title">What the automatic fixes will not do</h2>
+            <p class="admin-panel__sub">Stated so the absence is a policy rather than a gap you assume is a bug.</p>
+          </div>
+        </div>
+        <div class="admin-panel__body">
+          <ul class="dh-refused">
+            <% refused.forEach(function (r) { %>
+              <li><strong><%= r.what %>.</strong> <%= r.why %></li>
+            <% }); %>
+          </ul>
+        </div>
       </section>
 
     </div>

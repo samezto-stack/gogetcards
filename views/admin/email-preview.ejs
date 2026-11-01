@@ -1,25 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%230F2A4A'/><rect x='190' y='104' width='196' height='272' rx='22' fill='none' stroke='%23ffffff' stroke-width='30' transform='rotate(14 288 240)'/><rect x='126' y='136' width='196' height='272' rx='22' fill='%23ffffff'/></svg>">
-  <meta name="theme-color" content="#0c0c12">
-  <meta name="robots" content="noindex, nofollow">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Email templates | GoGetCards Admin</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+  <%- include('_head', { title: 'Email templates' }) %>
   <style>
-    .ep { display:grid; grid-template-columns: 280px 1fr; gap:1.25rem; align-items:start; }
-    .ep__list { background:var(--admin-surface); border:1px solid var(--admin-border); border-radius:10px; overflow:hidden; }
-    .ep__t { padding:0.7rem 1rem; border-bottom:1px solid var(--admin-border); }
-    .ep__t:last-child { border-bottom:0; }
-    .ep__t h3 { margin:0 0 0.4rem; font-size:0.82rem; font-weight:600; }
-    .ep__s { display:block; font-size:0.74rem; color:var(--admin-muted); text-decoration:none; padding:0.18rem 0; }
-    .ep__s:hover { color:var(--admin-primary); }
-    .ep__frame { background:var(--admin-surface); border:1px solid var(--admin-border); border-radius:10px; overflow:hidden; }
-    .ep__bar { display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center; padding:0.7rem 1rem; border-bottom:1px solid var(--admin-border); }
-    .ep__w { border:0; width:100%; height:78vh; background:#080B10; display:block; }
+    /* Template list on the left, the message on the right. */
+    .ep { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 20px; align-items: start; }
+    .ep__list { margin-bottom: 0; }
+    .ep__t { padding: 10px 10px 12px; border-bottom: 1px solid var(--admin-border); }
+    .ep__t:last-child { border-bottom: 0; }
+    .ep__t h3 { font-size: 13px; font-weight: 600; padding: 0 8px; margin-bottom: 4px; }
+    .ep__s { display: flex; align-items: center; height: 28px; padding: 0 8px; border-radius: var(--admin-r-sm);
+             font-size: 13px; color: var(--admin-muted); text-decoration: none; }
+    .ep__s:hover { background: var(--admin-panel-2); color: var(--admin-text); text-decoration: none; }
+    .ep__s--none { color: var(--admin-crit); }
+    .ep__frame { margin-bottom: 0; }
+    .ep__bar { align-items: center; }
+    .ep__bar .admin-panel__title { min-width: 0; }
+    .ep__bar .admin-btn-row { margin-left: auto; }
+    /* The stage is a quieter inset so the white message reads as a sheet
+       sitting on it, framed by a hairline. */
+    .ep__stage { display: flex; justify-content: center; padding: 16px;
+                 background: var(--admin-panel-2); border-radius: 0 0 var(--admin-r) var(--admin-r); }
+    .ep__w { border: 1px solid var(--admin-border); width: 100%; max-width: 100%; height: 78vh;
+             background: var(--admin-card); display: block; }
     @media (max-width: 1000px) { .ep { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -28,50 +31,57 @@
 
   <main class="admin-main">
     <header class="admin-header">
-      <h1 class="admin-header__title">Email templates</h1>
-      <a class="admin-btn" href="/admin/emails">&larr; Email log</a>
+      <div>
+        <h1 class="admin-header__title">Email templates</h1>
+        <p class="admin-header__sub">Every template, in every state that changes what it says. Nothing on this page sends anything.</p>
+      </div>
+      <div class="admin-header__actions">
+        <a class="admin-btn" href="/admin/emails">Back to email</a>
+      </div>
     </header>
 
     <div class="admin-content">
-      <p style="font-size:0.82rem;color:var(--admin-muted);margin:0 0 1.25rem;line-height:1.6;max-width:70ch">
-        Every template, in every state that changes what it says. These render against the same
-        fixtures <code style="font-family:var(--admin-font-mono)">scripts/audit/check-email.js</code>
-        asserts on, so what you look at here and what the audit checks cannot drift apart.
-        Nothing on this page sends anything.
-      </p>
+      <div class="admin-alert admin-alert--info">
+        <span>
+          These render against the same fixtures <span class="admin-code">scripts/audit/check-email.js</span>
+          asserts on, so what you look at here and what the audit checks cannot drift apart.
+        </span>
+      </div>
 
       <div class="ep">
-        <div class="ep__list">
+        <div class="admin-panel ep__list">
           <% types.forEach(function (t) { %>
             <div class="ep__t">
               <h3><%= labels[t] %></h3>
               <% (cases[t] || []).forEach(function (state) { %>
                 <a class="ep__s" href="#" onclick="return show('<%= t %>','<%= state.replace(/'/g, "\\'") %>')">
-                  &rarr; <%= state %>
+                  <%= state %>
                 </a>
               <% }); %>
               <% if (!(cases[t] || []).length) { %>
-                <span class="ep__s" style="color:var(--admin-crit)">no sample data</span>
+                <span class="ep__s ep__s--none">no sample data</span>
               <% } %>
             </div>
           <% }); %>
         </div>
 
-        <div class="ep__frame">
-          <div class="ep__bar">
-            <strong id="epTitle" style="font-size:0.82rem">Pick a template</strong>
-            <span id="epSubject" style="font-size:0.74rem;color:var(--admin-muted)"></span>
-            <span style="margin-left:auto;display:flex;gap:0.4rem">
+        <div class="admin-panel ep__frame">
+          <div class="admin-panel__head ep__bar">
+            <div>
+              <h2 class="admin-panel__title" id="epTitle">Pick a template</h2>
+              <p class="admin-panel__sub" id="epSubject"></p>
+            </div>
+            <div class="admin-btn-row">
               <button class="admin-btn admin-btn--sm" onclick="setWidth(600)">Desktop</button>
               <button class="admin-btn admin-btn--sm" onclick="setWidth(375)">Phone</button>
               <a class="admin-btn admin-btn--sm" id="epText" href="#" target="_blank" rel="noopener">Plain text</a>
               <a class="admin-btn admin-btn--sm" id="epRaw" href="#" target="_blank" rel="noopener">Open</a>
-            </span>
+            </div>
           </div>
           <%/* An iframe at an exact pixel width is the only truthful way
                to check a 600px email against a 375px phone. Resizing the
                browser tests the admin page, not the message. */%>
-          <div style="padding:1rem;background:#05070A;display:flex;justify-content:center">
+          <div class="admin-panel__body admin-panel__body--flush ep__stage">
             <iframe class="ep__w" id="epFrame" style="width:600px" title="Email preview"></iframe>
           </div>
         </div>
