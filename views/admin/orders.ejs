@@ -383,7 +383,7 @@
                     <% } else { %>
                       <div class="ot-ship" title="<%= order.shippingAddress %>"><%= order.shippingAddress %></div>
                     <% } %>
-                    <button type="button" class="admin-btn admin-btn--xs copy-addr-btn" onclick="copyAddr(this, '<%= order.shippingAddress.replace(/'/g, "&apos;") %>')">Copy</button>
+                    <button class="admin-btn admin-btn--xs copy-addr-btn" onclick="copyAddr(this, '<%= order.shippingAddress.replace(/'/g, "&apos;") %>')">Copy</button>
                   <% } else { %>
                     <span class="ot-sub">&mdash;</span>
                   <% } %>
