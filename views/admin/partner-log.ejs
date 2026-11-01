@@ -1,45 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%230F2A4A'/><rect x='190' y='104' width='196' height='272' rx='22' fill='none' stroke='%23ffffff' stroke-width='30' transform='rotate(14 288 240)'/><rect x='126' y='136' width='196' height='272' rx='22' fill='%23ffffff'/></svg>">
-  <meta name="theme-color" content="#0c0c12">
-  <meta name="robots" content="noindex, nofollow">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Brokered orders | GoGetCards Admin</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+  <%- include('_head', { title: pageTitle }) %>
   <style>
-    .pl-heading {
-      font-size: .8rem; text-transform: uppercase; letter-spacing: .09em;
-      opacity: .6; margin: 1.4rem 0 .5rem; font-weight: 600;
-    }
-    .pl-totals { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
-      gap: 0.7rem; margin-bottom: 1.5rem; }
-    .pl-total { background: var(--admin-surface); border: 1px solid var(--admin-border);
-      border-radius: 10px; padding: 0.9rem 1rem; }
-    .pl-total__name { font-size: 0.88rem; font-weight: 600; color: var(--admin-text); }
-    .pl-total__sub { font-size: 0.75rem; color: var(--admin-muted); margin-top: 0.15rem; }
-    .pl-total__sum { font-family: var(--admin-font-mono); font-size: 0.95rem;
-      color: var(--admin-text); margin-top: 0.5rem; }
-    .pl-total__warn { font-size: 0.72rem; color: var(--admin-warn); margin-top: 0.3rem; }
-
-    .pl-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
-    .pl-table th { text-align: left; font-size: 0.68rem; text-transform: uppercase;
-      letter-spacing: 0.09em; color: var(--admin-muted); font-weight: 600;
-      padding: 0.55rem 0.7rem; border-bottom: 1px solid var(--admin-border); }
-    .pl-table td { padding: 0.6rem 0.7rem; border-bottom: 1px solid var(--admin-border);
-      color: var(--admin-text); vertical-align: top; }
-    .pl-table tr:hover td { background: rgba(255,255,255,0.02); }
-    .pl-num { text-align: right; font-family: var(--admin-font-mono); white-space: nowrap; }
-    .pl-mono { font-family: var(--admin-font-mono); font-size: 0.76rem; color: var(--admin-muted); }
-    .pl-when { color: var(--admin-muted); white-space: nowrap; }
+    /* A per-account total can carry one sum per currency, so it wraps
+       instead of clipping like a single figure would. */
+    .pl-sum { font-size: 18px; white-space: normal; overflow: visible; }
     .pl-slug { word-break: break-all; }
-    .pl-missing { color: var(--admin-warn); font-family: var(--admin-font-mono); }
-    .pl-empty { background: var(--admin-surface); border: 1px solid var(--admin-border);
-      border-radius: 10px; padding: 2rem; text-align: center; color: var(--admin-muted); }
-    .pl-wrap { background: var(--admin-surface); border: 1px solid var(--admin-border);
-      border-radius: 10px; overflow-x: auto; }
   </style>
 </head>
 <body class="admin-body">
@@ -47,15 +14,20 @@
 
   <main class="admin-main">
     <header class="admin-header">
-      <h1 class="admin-header__title">Brokered orders</h1>
-      <a class="admin-btn" href="/admin/settings">Checkout settings</a>
+      <div>
+        <h1 class="admin-header__title"><%= pageTitle %></h1>
+        <p class="admin-header__sub">Where each order went in the rotation, and what it was worth.</p>
+      </div>
+      <div class="admin-header__actions">
+        <a class="admin-btn" href="/admin/settings">Checkout settings</a>
+      </div>
     </header>
 
     <div class="admin-content">
 
       <% if (!rows.length) { %>
-        <div class="pl-empty">
-          <p><strong>No brokered orders yet.</strong></p>
+        <div class="admin-empty">
+          <p>No brokered orders yet.</p>
           <p>Every order handed to a partner site appears here, with the amount it was charged.</p>
         </div>
       <% } else { %>
@@ -66,64 +38,72 @@
              useful for "is the split even right now", misleading if read
              as a total. */%>
         <% if (typeof lifetime !== 'undefined' && lifetime.length) { %>
-          <h3 class="pl-heading">Lifetime, per account</h3>
-          <div class="pl-totals">
-            <% lifetime.forEach(function (t) { %>
-              <div class="pl-total">
-                <div class="pl-total__name"><%= t.name %></div>
-                <div class="pl-total__sub"><%= t.orders %> <%= t.orders === 1 ? 'order' : 'orders' %></div>
-                <div class="pl-total__sum"><%= t.sums.length ? t.sums.join(' · ') : '—' %></div>
-              </div>
-            <% }); %>
-          </div>
+          <section class="admin-section">
+            <h2 class="admin-section__title">Lifetime, per account</h2>
+            <div class="admin-stats-grid mb-0">
+              <% lifetime.forEach(function (t) { %>
+                <div class="admin-stat-card">
+                  <div class="admin-stat-card__num pl-sum"><%= t.sums.length ? t.sums.join(' · ') : '—' %></div>
+                  <div class="admin-stat-card__label"><strong><%= t.name %></strong> &middot; <%= t.orders %> <%= t.orders === 1 ? 'order' : 'orders' %></div>
+                </div>
+              <% }); %>
+            </div>
+          </section>
         <% } %>
 
         <%/* Per-site totals for the orders still in the log. The log answers
              "what happened"; this answers "is the split even", which is the
              question the rotation exists to make true and the one nobody can
              eyeball from rows. */%>
-        <h3 class="pl-heading">Recent, across the last <%= rows.length %> order<%= rows.length === 1 ? '' : 's' %></h3>
-        <div class="pl-totals">
-          <% siteTotals.forEach(function (t) { %>
-            <div class="pl-total">
-              <div class="pl-total__name"><%= t.name %></div>
-              <div class="pl-total__sub"><%= t.orders %> <%= t.orders === 1 ? 'order' : 'orders' %></div>
-              <div class="pl-total__sum"><%= t.sums.length ? t.sums.join(' · ') : '—' %></div>
-              <% if (t.unknown) { %>
-                <div class="pl-total__warn"><%= t.unknown %> with no matching order</div>
-              <% } %>
+        <section class="admin-section">
+          <h2 class="admin-section__title">Recent, across the last <%= rows.length %> order<%= rows.length === 1 ? '' : 's' %></h2>
+          <% const missing = siteTotals.filter(function (t) { return t.unknown; }); %>
+          <% if (missing.length) { %>
+            <div class="admin-alert admin-alert--warn">
+              <span>
+                Some entries in the log have no order in the database and are not counted below:
+                <% missing.forEach(function (t, i) { %><%= i ? ', ' : '' %><strong><%= t.name %></strong> <%= t.unknown %> with no matching order<% }); %>.
+              </span>
             </div>
-          <% }); %>
-        </div>
+          <% } %>
+          <div class="admin-stats-grid mb-0">
+            <% siteTotals.forEach(function (t) { %>
+              <div class="admin-stat-card">
+                <div class="admin-stat-card__num pl-sum"><%= t.sums.length ? t.sums.join(' · ') : '—' %></div>
+                <div class="admin-stat-card__label"><strong><%= t.name %></strong> &middot; <%= t.orders %> <%= t.orders === 1 ? 'order' : 'orders' %></div>
+              </div>
+            <% }); %>
+          </div>
+        </section>
 
-        <div class="pl-wrap">
-          <table class="pl-table">
+        <div class="admin-table-wrap">
+          <table class="admin-table">
             <thead>
               <tr>
                 <th>When</th>
                 <th>Site</th>
                 <th>Product</th>
                 <th>Order</th>
-                <th class="pl-num">Amount</th>
+                <th class="num">Amount</th>
               </tr>
             </thead>
             <tbody>
               <% rows.forEach(function (r) { %>
                 <tr>
-                  <td class="pl-when"><%= r.at ? new Date(r.at).toLocaleString() : '—' %></td>
+                  <td class="nowrap muted"><%= r.at ? new Date(r.at).toLocaleString() : '—' %></td>
                   <td><%= r.siteName %></td>
                   <td class="pl-slug"><%= r.productSlug %></td>
-                  <td class="pl-mono">
+                  <td class="mono">
                     <% if (r.orderId) { %>
-                      <a href="/admin/orders?q=<%= encodeURIComponent(r.orderId) %>" style="color:inherit;"><%= r.orderId %></a>
+                      <a href="/admin/orders?q=<%= encodeURIComponent(r.orderId) %>" class="admin-cell-link"><%= r.orderId %></a>
                     <% } else { %>—<% } %>
                   </td>
                   <%/* A row whose order is not in the database says so rather
                        than printing a zero, which would read as a free order
                        and hide the fact that something did not land. */%>
-                  <td class="pl-num">
+                  <td class="num mono nowrap">
                     <% if (r.amount == null) { %>
-                      <span class="pl-missing">not found</span>
+                      <span class="warn">not found</span>
                     <% } else { %>
                       <%= money(r.amount, r.currency) %>
                     <% } %>
@@ -134,7 +114,7 @@
           </table>
         </div>
 
-        <p class="field-hint" style="margin-top:0.9rem;">
+        <p class="small faint">
           The log keeps the most recent entries only. Amounts are read from the order itself, so a
           corrected or refunded order shows its current value rather than what it was worth when it
           was brokered.

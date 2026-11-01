@@ -1,81 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%230F2A4A'/><rect x='190' y='104' width='196' height='272' rx='22' fill='none' stroke='%23ffffff' stroke-width='30' transform='rotate(14 288 240)'/><rect x='126' y='136' width='196' height='272' rx='22' fill='%23ffffff'/></svg>">
-  <meta name="theme-color" content="#161009">
-  <meta name="robots" content="noindex, nofollow">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= pageTitle %> | GoGetCards Admin</title>
-  <%/* No Outfit/Inter link. admin.css already imports the three fonts this
-       admin is actually built from — Fraunces, Hanken Grotesk, IBM Plex Mono
-       — and this page was loading two more it had no business using, then
-       hardcoding them over the tokens. One less request, one typeface set. */%>
-  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+  <%- include('_head', { title: pageTitle }) %>
+  <%/* No Outfit/Inter link. _head.ejs carries the one typeface this admin
+       is actually built from, and this page was loading two more it had no
+       business using, then hardcoding them over the tokens. One less
+       request, one typeface set. */%>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
   <script src="https://unpkg.com/globe.gl@2.27.3/dist/globe.gl.min.js" defer></script>
   <style>
-    /* ── One surface, stated once ──────────────────────────────────────
-       Every box on this page — stat card, globe, chart, table panel — is
-       the same object at the same depth, so they get the same background,
-       the same border and the same radius. They had drifted into three
-       backgrounds and two radii, which read as a hierarchy that does not
-       exist and was the main reason the page looked busy. */
-    :root {
-      --dash-surface: rgba(255,255,255,0.025);
-      --dash-line: rgba(255,255,255,0.06);
-      --dash-radius: 14px;
-    }
+    /* ── Dashboard-only layout ─────────────────────────────────────────
+       Everything that is a panel, stat card, table, button, alert or
+       modal uses the shared admin.css class. What is left here is the
+       globe, the chart box, the two bar lists and the drill-down table's
+       own cells — layout that is genuinely this page's. */
 
-    .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-    .analytics-card { background: var(--dash-surface); border: 1px solid var(--dash-line); border-radius: var(--dash-radius); padding: 1.25rem 1.5rem; transition: border-color 0.2s ease; position: relative; overflow: hidden; }
-    /* Border only. The cards used to lift and lighten on hover, which moved
-       numbers under the cursor while they were being read. */
-    .analytics-card:hover { border-color: rgba(198,154,69,0.28); }
-    .analytics-card__value { font-family: var(--admin-font-display, 'Fraunces', serif); font-size: 2rem; font-weight: 400; letter-spacing: -0.02em; color: var(--admin-text); line-height: 1; margin-bottom: 0.35rem; font-variant-numeric: tabular-nums; }
-    .analytics-card__label { font-family: var(--admin-font-mono, monospace); font-size: 0.62rem; color: var(--admin-faint); font-weight: 500; text-transform: uppercase; letter-spacing: 0.12em; }
-    /* Revenue is the one figure worth finding first, so it keeps an accent —
-       but as a single flat tint, not the two-hue diagonal gradient it had. */
-    .analytics-card--accent { border-color: rgba(198,154,69,0.28); background: rgba(198,154,69,0.06); }
-    .analytics-card--accent .analytics-card__value { color: var(--admin-primary-soft); }
+    /* Range picker, in the header's action slot. The custom-dates group
+       is shown and hidden by the select's own onchange (inline display),
+       so this only sets how it lays out once it is visible. */
+    .dash-range { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0; }
+    .dash-range__custom { gap: 8px; align-items: center; }
+    .dash-range__custom .admin-input { width: auto; }
 
-    /* Globe container */
-    .globe-section { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
-    /* The one deliberate exception to the shared surface: the globe canvas
-       is transparent, so it needs a darker ground behind it to read at all.
-       Border and radius still match everything else. */
-    .globe-wrap { background: rgba(0,0,0,0.28); border: 1px solid var(--dash-line); border-radius: var(--dash-radius); overflow: hidden; position: relative; height: 380px; display: flex; align-items: center; justify-content: center; }
-    .globe-wrap canvas { border-radius: var(--dash-radius); }
-    .globe-label { position: absolute; top: 1rem; left: 1.5rem; z-index: 10; }
-    .globe-label h3 { font-family: var(--admin-font-display, 'Fraunces', serif); color: var(--admin-text); margin: 0 0 0.25rem 0; font-size: 1.05rem; font-weight: 400; letter-spacing: -0.01em; }
-    .globe-label span { font-size: 0.78rem; color: var(--admin-muted); }
+    /* Unconfirmed-payment alert: the whole bar is the link. */
+    .dash-unconfirmed { align-items: center; text-decoration: none; }
+    .dash-unconfirmed:hover { text-decoration: none; }
+    .dash-unconfirmed:hover .dash-unconfirmed__cta { text-decoration: underline; text-underline-offset: 2px; }
+    .dash-unconfirmed__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--admin-crit); flex: none; animation: livePulse 1.5s infinite; }
+    .dash-unconfirmed__cta { margin-left: auto; font-weight: 600; white-space: nowrap; }
 
-    /* Chart card. Was on a 7px radius while its neighbours were on 14 and
-       16 — three radii in one row of boxes. */
-    .chart-card { background: var(--dash-surface); border: 1px solid var(--dash-line); border-radius: var(--dash-radius); padding: 1.5rem; }
-    .chart-card h3 { font-family: var(--admin-font-display, 'Fraunces', serif); color: var(--admin-text); margin: 0 0 1rem 0; font-size: 1.05rem; font-weight: 400; letter-spacing: -0.01em; }
+    /* Period-over-period deltas: colour comes from is-good/is-bad/is-neutral
+       in admin.css; the "vs previous" tail is quieter than the figure. */
+    .delta-vs { color: var(--admin-faint); font-weight: 500; }
 
-    /* Traffic sources */
-    .source-list { display: flex; flex-direction: column; gap: 0.6rem; }
-    .source-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0; }
-    .source-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; flex-shrink: 0; }
+    /* A row of two panels. The panel's own bottom margin is dropped
+       inside the grid so the gap is the only spacing. */
+    .dash-row { margin-bottom: 20px; }
+    .dash-row > .admin-panel { margin-bottom: 0; min-width: 0; }
+
+    /* The one deliberate exception to the white surface: the globe canvas
+       is transparent, so it needs a dark ground behind it to read at all.
+       Navy, so it is the same dark the top bar uses. */
+    .dash-globe { height: 380px; background: var(--admin-primary); border-radius: 0 0 var(--admin-r) var(--admin-r); overflow: hidden; }
+    .dash-globe__viz { width: 100%; height: 100%; }
+    .dash-globe canvas { display: block; }
+    .dash-globe__fallback { padding: 32px 24px; text-align: center; color: var(--admin-primary-ink); font-size: 13px; opacity: 0.8; }
+
+    /* Chart.js needs a positioned box with a fixed height to size into. */
+    .dash-chart { position: relative; height: 300px; width: 100%; }
+
+    /* Tables that live inside a flush panel body: the panel already draws
+       the border and the radius, so the wrap draws nothing. */
+    .admin-panel__body--flush .admin-table-wrap { border: 0; border-radius: 0; margin: 0; }
+    .dash-scroll { max-height: 300px; overflow-y: auto; }
+    .dash-empty { margin: 0; padding: 18px; font-size: 13px; color: var(--admin-faint); }
+    .dash-flag { display: inline-block; vertical-align: middle; margin-right: 6px; }
+    .dash-share-col { width: 40%; }
+    .dash-share { display: flex; align-items: center; gap: 8px; }
+    .dash-share .admin-bar { flex: 1; }
+    .dash-share__pct { min-width: 40px; text-align: right; font-size: 12px; color: var(--admin-muted); }
+
+    /* Traffic sources: one row per channel, divided by hairlines. */
+    .source-list { display: flex; flex-direction: column; }
+    .source-item { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid var(--admin-border); }
+    .source-item:first-child { border-top: 0; padding-top: 0; }
+    .source-icon { width: 32px; height: 32px; border-radius: var(--admin-r-sm); display: flex; align-items: center; justify-content: center; flex: none; }
     .source-info { flex: 1; min-width: 0; }
-    .source-name { font-family: var(--admin-font-ui); font-size: 0.88rem; color: var(--admin-text); font-weight: 500; }
-    .source-bar-wrap { height: 6px; background: rgba(255,255,255,0.06); border-radius: 4px; margin-top: 4px; overflow: hidden; }
-    .source-bar { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
-    .source-stats { text-align: right; flex-shrink: 0; }
-    .source-count { font-family: var(--admin-font-display); font-size: 1rem; font-weight: 500; color: var(--admin-text); font-variant-numeric: tabular-nums; }
-    .source-pct { font-size: 0.72rem; color: var(--admin-muted); font-family: var(--admin-font-mono); }
+    .source-name { font-size: 13.5px; font-weight: 500; color: var(--admin-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .source-bar-wrap { height: 6px; background: var(--admin-panel-3); border-radius: 3px; margin-top: 5px; overflow: hidden; }
+    .source-bar { height: 100%; border-radius: 3px; background: var(--admin-primary); transition: width 0.6s ease; }
+    .source-stats { text-align: right; flex: none; }
+    .source-count { font-size: 14px; font-weight: 600; color: var(--admin-text); font-variant-numeric: tabular-nums; }
+    .source-pct { font-size: 12px; color: var(--admin-faint); font-variant-numeric: tabular-nums; }
+    .source-note { font-size: 12.5px; color: var(--admin-muted); line-height: 1.5; margin: 0; }
+    .source-note--inset { margin: 8px 0 10px; }
 
-    /* Panel subtitles. Every list panel opens the same way now — serif
-       title, one quiet line of explanation — where they had each been
-       doing their own spacing, which is most of why five panels built the
-       same way did not look like a set.
-
-       Left as normal flow rather than flexing the h3: that heading also
-       carries the Live Visitors pulse dot, an empty 8px span that a
-       baseline-aligned flex row drops below the text. */
-    .source-note { font-size: 0.74rem; color: var(--admin-faint); line-height: 1.55; margin: -0.4rem 0 1.1rem; }
+    /* What Direct is made of: a fold under the source list. */
+    .direct-breakdown { margin-top: 16px; border-top: 1px solid var(--admin-border); padding-top: 12px; }
+    .direct-breakdown summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--admin-muted); display: flex; align-items: center; gap: 8px; list-style: none; }
+    .direct-breakdown summary::-webkit-details-marker { display: none; }
+    .direct-breakdown summary::before { content: '+'; color: var(--admin-primary); font-size: 15px; line-height: 1; }
+    .direct-breakdown[open] summary::before { content: '\2212'; }
+    .direct-breakdown summary:hover { color: var(--admin-text); }
+    .direct-count { margin-left: auto; font-family: var(--admin-font-mono); font-size: 12px; color: var(--admin-primary); }
+    .direct-list { list-style: none; margin: 0; padding: 0; }
+    .direct-list li { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 6px 0; border-top: 1px solid var(--admin-border); font-size: 12.5px; }
+    .direct-page { color: var(--admin-muted); font-family: var(--admin-font-mono); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .direct-n { color: var(--admin-text); font-weight: 600; flex: none; font-variant-numeric: tabular-nums; }
 
     /* ── Folded lists ─────────────────────────────────────────────────
        Long panels show their first five and keep the rest one click away.
@@ -86,58 +97,57 @@
        and needs no second request, and "show all" is the truth rather than
        a link to somewhere else. */
     .is-folded { display: none !important; }
-    .fold-btn {
-      display: block; width: 100%; margin-top: 0.9rem; padding: 0.55rem;
-      background: transparent; border: 1px solid var(--dash-line); border-radius: 8px;
-      color: var(--admin-muted); font-family: var(--admin-font-mono);
-      font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase;
-      cursor: pointer; transition: border-color 0.2s ease, color 0.2s ease;
-    }
-    .fold-btn:hover { border-color: rgba(198,154,69,0.35); color: var(--admin-primary-soft); }
+    .dash-fold-btn { margin-top: 12px; }
 
-    /* Bottom grid */
-    .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem; }
-    @media (max-width: 900px) {
-      .globe-section, .bottom-grid { grid-template-columns: 1fr; }
-    }
+    /* Revenue by channel */
+    .rev-row { padding: 10px 0; border-top: 1px solid var(--admin-border); }
+    .rev-row:first-child { border-top: 0; padding-top: 0; }
+    .rev-row__top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+    .rev-row__name { font-weight: 500; font-size: 13.5px; color: var(--admin-text); }
+    .rev-row__amount { font-weight: 600; color: var(--admin-text); font-variant-numeric: tabular-nums; }
+    .rev-row__bar { margin: 6px 0 5px; }
+    .rev-row__meta { font-size: 12px; color: var(--admin-muted); font-variant-numeric: tabular-nums; }
 
-    /* Live dot */
-    .live-pulse { width: 8px; height: 8px; background: var(--admin-ok, #6FA07A); border-radius: 50%; display: inline-block; margin-right: 6px; animation: livePulse 1.5s infinite; }
-    @keyframes livePulse { 0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(111,160,122,0.6); } 50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(111,160,122,0); } }
+    /* ── Channel drill-down ── */
+    .rev-drill { background: none; border: 0; padding: 0; font: inherit; color: var(--admin-primary-soft);
+                 cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
+                 font-variant-numeric: tabular-nums; }
+    .rev-drill:hover { color: var(--admin-primary); }
+    .cd-table td.rev { font-weight: 600; }
+    .cd-slug { display: block; font-size: 11.5px; color: var(--admin-faint); font-family: var(--admin-font-mono); }
+    .cd-state { padding: 28px 8px; text-align: center; color: var(--admin-muted); font-size: 13px; }
   </style>
 </head>
 <body class="admin-body">
-  <%- include('_sidebar') %>
+  <%- include('_sidebar', { currentPath: '/admin' }) %>
 
   <main class="admin-main">
-    <header class="admin-header" style="justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
-      <div style="display:flex; flex-direction:column; gap:0.5rem">
-        <div style="display:flex;align-items:center;gap:1rem">
-          <h1 class="admin-header__title"><%= pageTitle %></h1>
-          <span style="font-size:0.78rem;color:var(--admin-muted)">Last updated: <%= new Date().toLocaleTimeString() %></span>
-        </div>
-        <div style="display:flex; gap: 0.5rem; align-items: center;">
-          <form action="/admin" method="GET" id="rangeForm" style="margin: 0; display: flex; gap: 0.5rem;">
-            <select name="range" class="admin-input" onchange="if(this.value !== 'custom') this.form.submit(); else document.getElementById('customDates').style.display='flex';" style="padding: 0.4rem 0.8rem; background: var(--admin-surface); color: var(--admin-text); border: 1px solid var(--admin-border); border-radius: 6px; font-size: 0.85rem;">
-              <option value="today" <%= range === 'today' ? 'selected' : '' %>>Today</option>
-              <option value="yesterday" <%= range === 'yesterday' ? 'selected' : '' %>>Yesterday</option>
-              <option value="week" <%= range === 'week' ? 'selected' : '' %>>This Week</option>
-              <option value="month" <%= range === 'month' ? 'selected' : '' %>>This Month</option>
-              <option value="year" <%= range === 'year' ? 'selected' : '' %>>This Year</option>
-              <option value="all" <%= range === 'all' ? 'selected' : '' %>>All Time</option>
-              <option value="custom" <%= range === 'custom' ? 'selected' : '' %>>Custom Range</option>
-            </select>
-            
-            <div id="customDates" style="display: <%= range === 'custom' ? 'flex' : 'none' %>; gap: 0.5rem; align-items: center;">
-              <input type="date" name="start" value="<%= typeof startDate !== 'undefined' ? startDate : '' %>" class="admin-input" style="padding: 0.3rem; border-radius: 4px; border: 1px solid var(--admin-border); background: var(--admin-surface); color: white; font-size: 0.8rem;">
-              <span style="color: var(--admin-muted)">to</span>
-              <input type="date" name="end" value="<%= typeof endDate !== 'undefined' ? endDate : '' %>" class="admin-input" style="padding: 0.3rem; border-radius: 4px; border: 1px solid var(--admin-border); background: var(--admin-surface); color: white; font-size: 0.8rem;">
-              <button type="submit" class="admin-btn admin-btn--primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">Apply</button>
-            </div>
-          </form>
-        </div>
+    <header class="admin-header">
+      <div>
+        <h1 class="admin-header__title"><%= pageTitle %></h1>
+        <p class="admin-header__sub">Last updated: <%= new Date().toLocaleTimeString() %></p>
       </div>
-      
+      <div class="admin-header__actions">
+        <form action="/admin" method="GET" id="rangeForm" class="dash-range">
+          <select name="range" class="admin-select" onchange="if(this.value !== 'custom') this.form.submit(); else document.getElementById('customDates').style.display='flex';">
+            <option value="today" <%= range === 'today' ? 'selected' : '' %>>Today</option>
+            <option value="yesterday" <%= range === 'yesterday' ? 'selected' : '' %>>Yesterday</option>
+            <option value="week" <%= range === 'week' ? 'selected' : '' %>>This week</option>
+            <option value="month" <%= range === 'month' ? 'selected' : '' %>>This month</option>
+            <option value="year" <%= range === 'year' ? 'selected' : '' %>>This year</option>
+            <option value="all" <%= range === 'all' ? 'selected' : '' %>>All time</option>
+            <option value="custom" <%= range === 'custom' ? 'selected' : '' %>>Custom range</option>
+          </select>
+          <%/* display is inline on purpose: the select's onchange above
+               flips it, so it has to be the inline property it writes. */%>
+          <div id="customDates" class="dash-range__custom" style="display: <%= range === 'custom' ? 'flex' : 'none' %>">
+            <input type="date" name="start" value="<%= typeof startDate !== 'undefined' ? startDate : '' %>" class="admin-input">
+            <span class="small faint">to</span>
+            <input type="date" name="end" value="<%= typeof endDate !== 'undefined' ? endDate : '' %>" class="admin-input">
+            <button type="submit" class="admin-btn admin-btn--primary admin-btn--sm">Apply</button>
+          </div>
+        </form>
+      </div>
     </header>
     <div class="admin-content">
 
@@ -146,7 +156,11 @@
          comparable previous window (all-time range) or when the previous
          value was zero — "+100%" against a zero baseline reads as growth
          when it really means "the first one". Direction is stated in words
-         for screen readers, not only by colour. */
+         for screen readers, not only by colour.
+
+         deltaHtml is printed with the raw tag: every character it emits is
+         its own literal markup or a number it computed; nothing from a
+         request or a record goes through it. */
       function delta(current, prev) {
         if (!previous || prev === undefined || prev === null) return null;
         if (prev === 0) return current > 0 ? { text: 'new', up: true, neutral: true } : null;
@@ -158,8 +172,8 @@
         const d = delta(current, prev);
         if (!d) return '';
         var cls = d.neutral ? 'is-neutral' : ((d.up === (higherIsBetter !== false)) ? 'is-good' : 'is-bad');
-        var arrow = d.up === null ? '' : (d.up ? '\u2191' : '\u2193');
-        return '<div class="analytics-card__delta ' + cls + '">' + arrow + ' ' + d.text +
+        var arrow = d.up === null ? '' : (d.up ? '↑' : '↓');
+        return '<div class="admin-stat-card__delta ' + cls + '">' + arrow + ' ' + d.text +
                ' <span class="delta-vs">vs previous</span></div>';
       }
     %>
@@ -171,186 +185,209 @@
          scoped to the date range: an unresolved payment is a problem
          whichever window is selected. */%>
     <% if ((typeof unconfirmedPaymentCount !== 'undefined') && unconfirmedPaymentCount > 0) { %>
-      <a href="/admin/orders" class="unconfirmed-alert" role="alert">
-        <span class="unconfirmed-alert__dot" aria-hidden="true"></span>
+      <a href="/admin/orders" class="admin-alert admin-alert--error dash-unconfirmed" role="alert">
+        <span class="dash-unconfirmed__dot" aria-hidden="true"></span>
         <strong><%= unconfirmedPaymentCount %></strong>
         payment<%= unconfirmedPaymentCount === 1 ? '' : 's' %> taken but never confirmed
-        <span class="unconfirmed-alert__cta">Review on Orders &rarr;</span>
+        <span class="dash-unconfirmed__cta">Review on Orders &rarr;</span>
       </a>
     <% } %>
 
-    <!-- Stats Grid -->
-    <div class="analytics-grid">
-      <div class="analytics-card">
-        <div class="analytics-card__value"><%= stats.views || 0 %></div>
-        <div class="analytics-card__label">Unique Visitors</div>
+    <!-- Stats -->
+    <div class="admin-stats-grid">
+      <div class="admin-stat-card">
+        <div class="admin-stat-card__num"><%= stats.views || 0 %></div>
+        <div class="admin-stat-card__label">Unique visitors</div>
         <%- deltaHtml(stats.views || 0, previous && previous.views, true) %>
       </div>
-      <div class="analytics-card">
-        <div class="analytics-card__value"><%= stats.checkouts || 0 %></div>
-        <div class="analytics-card__label">Checkouts</div>
+      <div class="admin-stat-card">
+        <div class="admin-stat-card__num"><%= stats.checkouts || 0 %></div>
+        <div class="admin-stat-card__label">Checkouts</div>
         <%- deltaHtml(stats.checkouts || 0, previous && previous.checkouts, true) %>
       </div>
       <%/* Confirmed Arrivals used to sit here and reported the same number
            as Checkouts in practice, so it told you nothing. This is a real
            later step: the payment iframe actually rendered for these
            people. Buyers are included, so it is not styled as a warning. */%>
-      <div class="analytics-card" title="Filled the checkout form and got as far as Whop's payment step. Includes the ones who went on to pay.">
-        <div class="analytics-card__value"><%= stats.reachedCheckout || 0 %></div>
-        <div class="analytics-card__label">Reached Checkout</div>
+      <div class="admin-stat-card" title="Filled the checkout form and got as far as Whop's payment step. Includes the ones who went on to pay.">
+        <div class="admin-stat-card__num"><%= stats.reachedCheckout || 0 %></div>
+        <div class="admin-stat-card__label">Reached checkout</div>
       </div>
-      <div class="analytics-card">
-        <div class="analytics-card__value"><%= stats.orders || 0 %></div>
-        <div class="analytics-card__label">Orders</div>
+      <div class="admin-stat-card">
+        <div class="admin-stat-card__num"><%= stats.orders || 0 %></div>
+        <div class="admin-stat-card__label">Orders</div>
         <%- deltaHtml(stats.orders || 0, previous && previous.orders, true) %>
       </div>
       <%/* totalPrice is stored in cents, so formatPrice does the divide and
            the thousands separator in one place rather than each view
-           inventing its own. */%>
-      <div class="analytics-card analytics-card--accent">
-        <div class="analytics-card__value">$<%= formatPrice(stats.revenue || 0) %></div>
-        <div class="analytics-card__label">Revenue</div>
+           inventing its own. Revenue is the one figure worth finding
+           first, so it is the page's accent card. */%>
+      <div class="admin-stat-card admin-stat-card--accent">
+        <div class="admin-stat-card__num">$<%= formatPrice(stats.revenue || 0) %></div>
+        <div class="admin-stat-card__label">Revenue</div>
         <%- deltaHtml(stats.revenue || 0, previous && previous.revenue, true) %>
       </div>
-      <div class="analytics-card">
+      <div class="admin-stat-card">
         <% const conversionRate = stats.views > 0 ? ((stats.orders / stats.views) * 100).toFixed(1) : 0; %>
-        <div class="analytics-card__value"><%= conversionRate %>%</div>
-        <div class="analytics-card__label">Conversion Rate</div>
+        <div class="admin-stat-card__num"><%= conversionRate %>%</div>
+        <div class="admin-stat-card__label">Conversion rate</div>
       </div>
     </div>
 
-    <!-- Globe + Hourly Chart Row -->
-    <div class="globe-section">
-      <!-- 3D Globe -->
-      <div class="globe-wrap">
-        <%/* The live count used to be a seventh stat card, sitting beside
-             figures for the selected date range even though it only ever
-             describes right now. It belongs on the globe, which is the
-             thing actually plotting those visitors. */%>
-        <div class="globe-label">
-          <h3>Live Traffic Globe</h3>
-          <span class="globe-live"><span class="live-pulse"></span><span id="live-count"><%= liveVisitors.length %></span> live now</span>
+    <!-- Globe + hourly chart -->
+    <div class="grid-2 dash-row">
+      <div class="admin-panel">
+        <div class="admin-panel__head">
+          <h2 class="admin-panel__title">Live traffic globe</h2>
+          <%/* The live count used to be a seventh stat card, sitting beside
+               figures for the selected date range even though it only ever
+               describes right now. It belongs on the globe, which is the
+               thing actually plotting those visitors. */%>
+          <span class="admin-live-count"><span class="live-dot"></span><span id="live-count"><%= liveVisitors.length %></span> live now</span>
         </div>
-        <div id="globeViz" style="width:100%;height:100%;"></div>
+        <div class="admin-panel__body admin-panel__body--flush">
+          <div class="dash-globe">
+            <div id="globeViz" class="dash-globe__viz"></div>
+          </div>
+        </div>
       </div>
 
-      <!-- Hourly Unique Visitors Chart -->
-      <div class="chart-card" style="display:flex;flex-direction:column;">
-        <h3>Hourly Unique Visitors</h3>
-        <div style="position:relative;height:300px;width:100%;flex:1;min-height:0;">
-          <canvas id="hourlyChart"></canvas>
+      <div class="admin-panel">
+        <div class="admin-panel__head">
+          <h2 class="admin-panel__title">Hourly unique visitors</h2>
+        </div>
+        <div class="admin-panel__body">
+          <div class="dash-chart">
+            <canvas id="hourlyChart"></canvas>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Traffic Sources + Live Visitors -->
-    <div class="bottom-grid">
-      <!-- Traffic Sources -->
-      <div class="chart-card">
-        <h3>Traffic Sources</h3>
-        <p class="source-note">Unique visitors, each credited to the channel that first brought them.</p>
-        <div class="source-list" id="sourceList" data-collapse="5"></div>
-
-        <%
-          /* What is left in Direct after in-app browsers are recovered,
-             broken down by the page each visitor landed on. Landing on "/"
-             suggests a typed address or a bookmark; landing straight on a
-             product URL means a link from somewhere that stripped the
-             referrer (messaging app, email, QR code, privacy setting). */
-          var dl = (typeof directLandings !== 'undefined' && directLandings) || [];
-          var dlTotal = dl.reduce(function (n, r) { return n + r.count; }, 0);
-        %>
-        <% if (dlTotal > 0) { %>
-          <details class="direct-breakdown">
-            <summary>What Direct is made of <span class="direct-count"><%= dlTotal %></span></summary>
-            <p class="source-note" style="margin:0.6rem 0 0.75rem">
-              These arrived with no referrer and no in-app browser signature. The page they
-              landed on is the best remaining clue: the homepage suggests a typed address or a
-              bookmark, a deep product URL means a link from somewhere that strips referrers.
-            </p>
-            <ul class="direct-list">
-              <% dl.forEach(function (r) { %>
-                <li>
-                  <span class="direct-page"><%= r._id %></span>
-                  <span class="direct-n"><%= r.count %></span>
-                </li>
-              <% }); %>
-            </ul>
-          </details>
-        <% } %>
-      </div>
-
-      <!-- Live Visitors -->
-      <div class="chart-card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
-          <h3 style="margin:0"><span class="live-pulse"></span> Live Visitors</h3>
-          <span style="font-size:0.72rem;color:rgba(240,232,216,0.55)">Auto-refreshes every 10s</span>
+    <%/* `chart-card` on a panel body is a hook, not a style: the fold
+         script below appends its "Show all" button to the nearest
+         .chart-card so the button lands after the list rather than inside
+         a <table>. */%>
+    <!-- Traffic sources + live visitors -->
+    <div class="grid-2 dash-row">
+      <div class="admin-panel">
+        <div class="admin-panel__head">
+          <div>
+            <h2 class="admin-panel__title">Traffic sources</h2>
+            <p class="admin-panel__sub">Unique visitors, each credited to the channel that first brought them.</p>
+          </div>
         </div>
-        <div id="live-visitors-container" style="max-height:300px;overflow-y:auto">
-          <% if (liveVisitors.length === 0) { %>
-            <p style="color:rgba(240,232,216,0.55);font-size:0.85rem;padding:1rem 0">No active visitors right now.</p>
-          <% } else { %>
-            <div class="admin-table-wrap">
-              <table class="admin-table">
-                <thead><tr><th>Page</th><th>IP</th><th>Country</th><th>Last Seen</th></tr></thead>
-                <tbody>
-                  <% liveVisitors.forEach(function(v) { %>
-                    <tr>
-                      <td><code style="font-size:0.78rem;color:var(--admin-primary)"><%= v.page %></code></td>
-                      <td style="font-size:0.78rem"><%= v.ip %></td>
-                      <td>
-                        <% if (v.countryCode) { %>
-                          <img src="https://flagcdn.com/w20/<%= v.countryCode.toLowerCase() %>.png" width="16" height="12" style="vertical-align:middle;margin-right:4px" alt="<%= v.country %>">
-                        <% } %>
-                        <%= v.country || 'Unknown' %>
-                      </td>
-                      <td style="font-size:0.75rem;color:var(--admin-muted)"><%= new Date(v.lastSeen).toLocaleTimeString() %></td>
-                    </tr>
-                  <% }); %>
-                </tbody>
-              </table>
-            </div>
+        <div class="admin-panel__body chart-card">
+          <div class="source-list" id="sourceList" data-collapse="5"></div>
+
+          <%
+            /* What is left in Direct after in-app browsers are recovered,
+               broken down by the page each visitor landed on. Landing on "/"
+               suggests a typed address or a bookmark; landing straight on a
+               product URL means a link from somewhere that stripped the
+               referrer (messaging app, email, QR code, privacy setting). */
+            var dl = (typeof directLandings !== 'undefined' && directLandings) || [];
+            var dlTotal = dl.reduce(function (n, r) { return n + r.count; }, 0);
+          %>
+          <% if (dlTotal > 0) { %>
+            <details class="direct-breakdown">
+              <summary>What Direct is made of <span class="direct-count"><%= dlTotal %></span></summary>
+              <p class="source-note source-note--inset">
+                These arrived with no referrer and no in-app browser signature. The page they
+                landed on is the best remaining clue: the homepage suggests a typed address or a
+                bookmark, a deep product URL means a link from somewhere that strips referrers.
+              </p>
+              <ul class="direct-list">
+                <% dl.forEach(function (r) { %>
+                  <li>
+                    <span class="direct-page"><%= r._id %></span>
+                    <span class="direct-n"><%= r.count %></span>
+                  </li>
+                <% }); %>
+              </ul>
+            </details>
           <% } %>
         </div>
       </div>
+
+      <div class="admin-panel">
+        <div class="admin-panel__head">
+          <h2 class="admin-panel__title"><span class="live-dot"></span> Live visitors</h2>
+          <span class="tiny faint">Auto-refreshes every 10s</span>
+        </div>
+        <div class="admin-panel__body admin-panel__body--flush">
+          <div id="live-visitors-container" class="dash-scroll">
+            <% if (liveVisitors.length === 0) { %>
+              <p class="dash-empty">No active visitors right now.</p>
+            <% } else { %>
+              <div class="admin-table-wrap">
+                <table class="admin-table">
+                  <thead><tr><th>Page</th><th>IP</th><th>Country</th><th>Last seen</th></tr></thead>
+                  <tbody>
+                    <% liveVisitors.forEach(function(v) { %>
+                      <tr>
+                        <td><code><%= v.page %></code></td>
+                        <td class="mono"><%= v.ip %></td>
+                        <td>
+                          <% if (v.countryCode) { %>
+                            <img src="https://flagcdn.com/w20/<%= v.countryCode.toLowerCase() %>.png" width="16" height="12" class="dash-flag" alt="<%= v.country %>">
+                          <% } %>
+                          <%= v.country || 'Unknown' %>
+                        </td>
+                        <td class="muted nowrap"><%= new Date(v.lastSeen).toLocaleTimeString() %></td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Revenue by Channel + Top Products by Revenue -->
-    <div class="bottom-grid" style="margin-top:1.5rem">
+    <!-- Revenue by channel + top products by revenue -->
+    <div class="grid-2 dash-row">
       <%/* Traffic Sources counts VISITORS per channel, which answers who
            shows up but not who pays, and the two routinely disagree by an
            order of magnitude. This is the panel that decides where ad
            money goes. */%>
       <% if ((typeof revenueBySource !== 'undefined') && revenueBySource.length) { %>
-        <div class="chart-card">
-          <h3>Revenue by Channel</h3>
-          <p class="source-note">Where the money actually came from, by each buyer's first-touch channel.</p>
-          <div class="source-list" data-collapse="5">
-            <% revenueBySource.forEach(function (r) {
-                 var pct = ((r.revenue / revenueBySourceTotal) * 100); %>
-              <div class="rev-row">
-                <div class="rev-row__top">
-                  <span class="rev-row__name"><%= r.name %></span>
-                  <span class="rev-row__amount">$<%= formatPrice(r.revenue) %></span>
+        <div class="admin-panel">
+          <div class="admin-panel__head">
+            <div>
+              <h2 class="admin-panel__title">Revenue by channel</h2>
+              <p class="admin-panel__sub">Where the money actually came from, by each buyer's first-touch channel.</p>
+            </div>
+          </div>
+          <div class="admin-panel__body chart-card">
+            <div class="source-list" data-collapse="5">
+              <% revenueBySource.forEach(function (r) {
+                   var pct = ((r.revenue / revenueBySourceTotal) * 100); %>
+                <div class="rev-row">
+                  <div class="rev-row__top">
+                    <span class="rev-row__name"><%= r.name %></span>
+                    <span class="rev-row__amount">$<%= formatPrice(r.revenue) %></span>
+                  </div>
+                  <div class="admin-bar rev-row__bar"><div class="admin-bar__fill rev-row__fill" style="width:<%= pct.toFixed(1) %>%"></div></div>
+                  <div class="rev-row__meta">
+                    <%= pct.toFixed(1) %>% of revenue
+                    &middot;
+                    <%/* The order count opens what is behind it. Which channel
+                         earns is only half the question; which PRODUCTS it
+                         earns from is the half that decides where ad money
+                         goes. A real <button> so it is keyboard-reachable and
+                         announced as clickable rather than looking like text
+                         that happens to respond. */%>
+                    <button type="button" class="rev-drill" data-source="<%= r.name %>"
+                            title="Show the products sold through <%= r.name %>">
+                      <%= r.orders %> order<%= r.orders === 1 ? '' : 's' %>
+                    </button>
+                    &middot; $<%= formatPrice(Math.round(r.revenue / r.orders)) %> avg
+                  </div>
                 </div>
-                <div class="rev-row__bar"><div class="rev-row__fill" style="width:<%= pct.toFixed(1) %>%"></div></div>
-                <div class="rev-row__meta">
-                  <%= pct.toFixed(1) %>% of revenue
-                  &middot;
-                  <%/* The order count opens what is behind it. Which channel
-                       earns is only half the question; which PRODUCTS it
-                       earns from is the half that decides where ad money
-                       goes. A real <button> so it is keyboard-reachable and
-                       announced as clickable rather than looking like text
-                       that happens to respond. */%>
-                  <button type="button" class="rev-drill" data-source="<%= r.name %>"
-                          title="Show the products sold through <%= r.name %>">
-                    <%= r.orders %> order<%= r.orders === 1 ? '' : 's' %>
-                  </button>
-                  &middot; $<%= formatPrice(Math.round(r.revenue / r.orders)) %> avg
-                </div>
-              </div>
-            <% }); %>
+              <% }); %>
+            </div>
           </div>
         </div>
       <% } %>
@@ -359,94 +396,104 @@
            item that gets browsed a lot above an expensive one that
            actually sells, which is backwards for restocking decisions. */%>
       <% if ((typeof topProductsByRevenue !== 'undefined') && topProductsByRevenue.length) { %>
-        <div class="chart-card">
-          <h3>Top Products by Revenue</h3>
-          <p class="source-note">What sold, ranked by money rather than by page views.</p>
-          <div class="admin-table-wrap">
-            <table class="admin-table">
-              <thead><tr><th>#</th><th>Product</th><th>Units</th><th>Revenue</th></tr></thead>
-              <tbody data-collapse="5">
-                <% topProductsByRevenue.forEach(function (tp, i) { %>
-                  <tr>
-                    <td><%= i + 1 %></td>
-                    <td><%= tp._id %></td>
-                    <td><%= tp.units %></td>
-                    <td style="font-weight:700;color:var(--admin-accent)">$<%= formatPrice(tp.revenue) %></td>
-                  </tr>
-                <% }); %>
-              </tbody>
-            </table>
+        <div class="admin-panel">
+          <div class="admin-panel__head">
+            <div>
+              <h2 class="admin-panel__title">Top products by revenue</h2>
+              <p class="admin-panel__sub">What sold, ranked by money rather than by page views.</p>
+            </div>
+          </div>
+          <div class="admin-panel__body admin-panel__body--flush chart-card">
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead><tr><th class="num">#</th><th>Product</th><th class="num">Units</th><th class="num">Revenue</th></tr></thead>
+                <tbody data-collapse="5">
+                  <% topProductsByRevenue.forEach(function (tp, i) { %>
+                    <tr>
+                      <td class="num faint"><%= i + 1 %></td>
+                      <td><%= tp._id %></td>
+                      <td class="num"><%= tp.units %></td>
+                      <td class="num"><strong>$<%= formatPrice(tp.revenue) %></strong></td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       <% } %>
     </div>
 
-    <!-- Top Products + Top Countries -->
-    <div class="bottom-grid" style="margin-top:1.5rem">
-      <!-- Top Products -->
+    <!-- Most viewed products + top countries -->
+    <div class="grid-2 dash-row">
       <% if (topProducts && topProducts.length > 0) { %>
-        <div class="chart-card">
-          <h3>Most Viewed Products</h3>
-          <p class="source-note">Interest, not sales. Compare with Revenue above to spot what gets looked at but not bought.</p>
-          <div class="admin-table-wrap">
-            <table class="admin-table">
-              <thead><tr><th>#</th><th>Product</th><th>Views</th></tr></thead>
-              <tbody data-collapse="5">
-                <% topProducts.forEach(function(tp, idx) { %>
-                  <tr><td><%= idx + 1 %></td><td><%= tp._id %></td><td><%= tp.views %></td></tr>
-                <% }); %>
-              </tbody>
-            </table>
+        <div class="admin-panel">
+          <div class="admin-panel__head">
+            <div>
+              <h2 class="admin-panel__title">Most viewed products</h2>
+              <p class="admin-panel__sub">Interest, not sales. Compare with Revenue above to spot what gets looked at but not bought.</p>
+            </div>
+          </div>
+          <div class="admin-panel__body admin-panel__body--flush chart-card">
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead><tr><th class="num">#</th><th>Product</th><th class="num">Views</th></tr></thead>
+                <tbody data-collapse="5">
+                  <% topProducts.forEach(function(tp, idx) { %>
+                    <tr><td class="num faint"><%= idx + 1 %></td><td><%= tp._id %></td><td class="num"><%= tp.views %></td></tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       <% } %>
 
-      <!-- Top Countries -->
       <% if (typeof topCountries !== 'undefined' && topCountries && topCountries.length > 0) { %>
-        <div class="chart-card">
-          <h3>Top Countries</h3>
+        <div class="admin-panel">
+          <div class="admin-panel__head">
+            <h2 class="admin-panel__title">Top countries</h2>
+          </div>
           <%/* Was a 350px scroll box, which hides its own length: you cannot
                tell from the outside whether there are six countries or sixty,
                and a nested scrollbar inside a page that already scrolls is a
                trap for a trackpad. Folded like the rest. */%>
-          <div class="admin-table-wrap">
-            <table class="admin-table">
-              <thead><tr><th>#</th><th>Country</th><th>Visitors</th><th style="width:40%">Share</th></tr></thead>
-              <tbody data-collapse="5">
-                <% 
-                  const totalCountryViews = topCountries.reduce((s, c) => s + c.views, 0);
-                  topCountries.forEach(function(c, idx) { 
-                    const pct = totalCountryViews > 0 ? ((c.views / totalCountryViews) * 100).toFixed(1) : 0;
-                %>
-                  <tr>
-                    <td><%= idx + 1 %></td>
-                    <td>
-                      <% if (c._id) { %>
-                        <img src="https://flagcdn.com/w20/<%= c._id.toLowerCase() %>.png" width="16" height="12" style="vertical-align:middle;margin-right:6px" alt="<%= c._id %>" onerror="this.style.display='none'">
-                        <%= c._id %>
-                      <% } else { %>
-                        Unknown
-                      <% } %>
-                    </td>
-                    <td><%= c.views %></td>
-                    <td>
-                      <div style="display:flex;align-items:center;gap:8px">
-                        <div style="flex:1;background:rgba(255,255,255,0.06);border-radius:4px;height:8px;overflow:hidden">
-                          <div style="width:<%= pct %>%;height:100%;background:linear-gradient(90deg,var(--admin-primary),var(--admin-bordeaux));border-radius:4px;transition:width 0.3s"></div>
+          <div class="admin-panel__body admin-panel__body--flush chart-card">
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead><tr><th class="num">#</th><th>Country</th><th class="num">Visitors</th><th class="dash-share-col">Share</th></tr></thead>
+                <tbody data-collapse="5">
+                  <%
+                    const totalCountryViews = topCountries.reduce((s, c) => s + c.views, 0);
+                    topCountries.forEach(function(c, idx) {
+                      const pct = totalCountryViews > 0 ? ((c.views / totalCountryViews) * 100).toFixed(1) : 0;
+                  %>
+                    <tr>
+                      <td class="num faint"><%= idx + 1 %></td>
+                      <td>
+                        <% if (c._id) { %>
+                          <img src="https://flagcdn.com/w20/<%= c._id.toLowerCase() %>.png" width="16" height="12" class="dash-flag" alt="<%= c._id %>" onerror="this.style.display='none'">
+                          <%= c._id %>
+                        <% } else { %>
+                          Unknown
+                        <% } %>
+                      </td>
+                      <td class="num"><%= c.views %></td>
+                      <td>
+                        <div class="dash-share">
+                          <div class="admin-bar"><div class="admin-bar__fill" style="width:<%= pct %>%"></div></div>
+                          <span class="dash-share__pct"><%= pct %>%</span>
                         </div>
-                        <span style="font-size:0.75rem;color:var(--admin-muted);min-width:40px;text-align:right"><%= pct %>%</span>
-                      </div>
-                    </td>
-                  </tr>
-                <% }); %>
-              </tbody>
-            </table>
+                      </td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       <% } %>
-
     </div>
-
 
     </div>
   </main>
@@ -478,9 +525,10 @@
              every bar carried a vertical colour ramp and a bright edge that
              said nothing about its value — two bars differed by height AND
              by how much red had crept in, which is a second encoding of
-             nothing. A single tone lets height do the whole job. */
-          backgroundColor: 'rgba(198, 154, 69, 0.55)',
-          hoverBackgroundColor: 'rgba(216, 180, 95, 0.85)',
+             nothing. A single tone lets height do the whole job.
+             Navy at 60%, full navy under the cursor: the admin's own ink. */
+          backgroundColor: 'rgba(15, 42, 74, 0.6)',
+          hoverBackgroundColor: '#0F2A4A',
           borderWidth: 0,
           borderRadius: 3,
           borderSkipped: false,
@@ -492,34 +540,34 @@
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: 'rgba(22, 16, 9, 0.95)',
-            titleColor: '#D8B45F',
-            bodyColor: '#F0E8D8',
-            borderColor: 'rgba(198,154,69,0.3)',
+            backgroundColor: '#F7F8FA',
+            titleColor: '#111827',
+            bodyColor: '#4B5563',
+            borderColor: '#C9D0DA',
             borderWidth: 1,
-            cornerRadius: 8,
+            cornerRadius: 6,
             padding: 10,
           }
         },
         scales: {
           x: {
             grid: { display: false },
-            ticks: { color: 'rgba(240,232,216,0.42)', font: { size: 10 }, maxRotation: 0 }
+            ticks: { color: '#6B7280', font: { size: 10 }, maxRotation: 0 }
           },
           y: {
             beginAtZero: true,
-            grid: { color: 'rgba(255,255,255,0.04)' },
-            ticks: { color: 'rgba(240,232,216,0.42)', font: { size: 11 }, precision: 0 }
+            grid: { color: '#E3E6EC' },
+            ticks: { color: '#6B7280', font: { size: 11 }, precision: 0 }
           }
         }
       }
     });
 
     // ── Traffic Sources ──
-    // Warm brass-family palette so the whole panel stays on-theme.
-    // Icons keep their brand glyph; bars are tinted brass/bordeaux/sage/slate.
-    const BAR = { brass: '#C69A45', brassSoft: '#D8B45F', bordeaux: '#C4485C', sage: '#6FA07A', slate: '#7E93A8', muted: '#9A8F7C' };
-    const chip = () => 'rgba(240,232,216,0.06)';
+    // Navy-family palette so the whole panel stays on the admin's palette.
+    // Icons keep their brand glyph; bars are tinted navy/blue/slate.
+    const BAR = { navy: '#0F2A4A', blue: '#1D4FB8', steel: '#5B7FB5', green: '#15803D', slate: '#6B7280', muted: '#9AA3B2' };
+    const chip = () => 'var(--admin-primary-tint)';
 
     /* ── Source marks ──────────────────────────────────────────────────
      *
@@ -532,7 +580,7 @@
      * bar colour as the row. Monochrome on purpose — an approximated
      * four-colour Google mark is a worse, and more misleading, thing to
      * ship than the brand's own geometry in one ink, and it would fight
-     * the brass palette the rest of the panel is built from.
+     * the navy palette the rest of the panel is built from.
      *
      * viewBox is 24x24 for every one of them so they optically match at
      * 18px without per-icon nudging. */
@@ -571,23 +619,23 @@
     };
 
     const sourceColors = {
-      'Facebook':    { bg: chip(), bar: BAR.slate,     icon: MARK.facebook },
-      'Google':      { bg: chip(), bar: BAR.bordeaux,  icon: MARK.google },
-      'Google Ads':  { bg: chip(), bar: BAR.brassSoft, icon: MARK.googleAds },
-      'Bing':        { bg: chip(), bar: BAR.slate,     icon: MARK.bing },
-      'Bing Ads':    { bg: chip(), bar: BAR.slate,     icon: MARK.bing },
-      'Yahoo':       { bg: chip(), bar: BAR.muted,     icon: MARK.yahoo },
-      'DuckDuckGo':  { bg: chip(), bar: BAR.sage,      icon: MARK.duckduckgo },
-      'ChatGPT':     { bg: chip(), bar: BAR.sage,      icon: MARK.chatgpt },
-      'Trustpilot':  { bg: chip(), bar: BAR.sage,      icon: MARK.trustpilot },
-      'Reddit':      { bg: chip(), bar: BAR.bordeaux,  icon: MARK.reddit },
-      'TikTok':      { bg: chip(), bar: BAR.muted,     icon: MARK.tiktok },
-      'Twitter/X':   { bg: chip(), bar: BAR.slate,     icon: MARK.twitter },
-      'YouTube':     { bg: chip(), bar: BAR.bordeaux,  icon: MARK.youtube },
-      'Snapchat':    { bg: chip(), bar: BAR.brassSoft, icon: MARK.snapchat },
-      'Pinterest':   { bg: chip(), bar: BAR.bordeaux,  icon: MARK.pinterest },
-      'Direct':      { bg: chip(), bar: BAR.brass,     icon: MARK.direct },
-      'Other':       { bg: chip(), bar: BAR.muted,     icon: MARK.other },
+      'Facebook':    { bg: chip(), bar: BAR.steel,  icon: MARK.facebook },
+      'Google':      { bg: chip(), bar: BAR.blue,   icon: MARK.google },
+      'Google Ads':  { bg: chip(), bar: BAR.navy,   icon: MARK.googleAds },
+      'Bing':        { bg: chip(), bar: BAR.blue,   icon: MARK.bing },
+      'Bing Ads':    { bg: chip(), bar: BAR.navy,   icon: MARK.bing },
+      'Yahoo':       { bg: chip(), bar: BAR.slate,  icon: MARK.yahoo },
+      'DuckDuckGo':  { bg: chip(), bar: BAR.green,  icon: MARK.duckduckgo },
+      'ChatGPT':     { bg: chip(), bar: BAR.green,  icon: MARK.chatgpt },
+      'Trustpilot':  { bg: chip(), bar: BAR.green,  icon: MARK.trustpilot },
+      'Reddit':      { bg: chip(), bar: BAR.steel,  icon: MARK.reddit },
+      'TikTok':      { bg: chip(), bar: BAR.slate,  icon: MARK.tiktok },
+      'Twitter/X':   { bg: chip(), bar: BAR.steel,  icon: MARK.twitter },
+      'YouTube':     { bg: chip(), bar: BAR.steel,  icon: MARK.youtube },
+      'Snapchat':    { bg: chip(), bar: BAR.slate,  icon: MARK.snapchat },
+      'Pinterest':   { bg: chip(), bar: BAR.steel,  icon: MARK.pinterest },
+      'Direct':      { bg: chip(), bar: BAR.navy,   icon: MARK.direct },
+      'Other':       { bg: chip(), bar: BAR.muted,  icon: MARK.other },
     };
 
     /* An unrecognised utm_source is passed through raw by
@@ -617,7 +665,7 @@
 
     const sourceList = document.getElementById('sourceList');
     if (trafficSources.length === 0) {
-      sourceList.innerHTML = '<p style="color:rgba(240,232,216,0.55);font-size:0.85rem;padding:1rem 0">No traffic data yet for this period.</p>';
+      sourceList.innerHTML = '<p class="dash-empty">No traffic data yet for this period.</p>';
     } else {
       /* s.name is an un-trusted traffic-source label (an unknown utm_source is
          stored raw), so it is HTML-escaped before it goes anywhere near
@@ -680,7 +728,7 @@
         };
         var btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'fold-btn';
+        btn.className = 'admin-btn admin-btn--ghost admin-btn--sm admin-btn--block dash-fold-btn';
         btn.addEventListener('click', function () { open = !open; fold(); });
         fold();
 
@@ -696,24 +744,27 @@
     (function initGlobe() {
       const container = document.getElementById('globeViz');
       if (!container) return;
-      
+
       try {
+        /* The canvas is cleared to a fully transparent navy so the panel's
+           own ground shows through; points, rings and atmosphere are the
+           admin's link blue so they read on it. */
         const myGlobe = Globe()(container)
           .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
-          .backgroundColor('rgba(0,0,0,0)')
-          .atmosphereColor('rgba(198,154,69,0.3)')
+          .backgroundColor('rgba(15,42,74,0)')
+          .atmosphereColor('rgba(91,141,239,0.45)')
           .atmosphereAltitude(0.2)
           .pointsData(globePins)
           .pointLat('lat')
           .pointLng('lng')
-          .pointColor(() => '#D8B45F')
+          .pointColor(() => '#7FB0FF')
           .pointAltitude(d => Math.min(d.count * 0.02, 0.3))
           .pointRadius(0.4)
           .pointsMerge(true)
           .ringsData(globePins.slice(0, 20))
           .ringLat('lat')
           .ringLng('lng')
-          .ringColor(() => t => `rgba(216,180,95,${1 - t})`)
+          .ringColor(() => t => `rgba(127,176,255,${1 - t})`)
           .ringMaxRadius(3)
           .ringPropagationSpeed(2)
           .ringRepeatPeriod(2000);
@@ -728,7 +779,7 @@
         const h = container.clientHeight;
         myGlobe.width(w).height(h);
       } catch(e) {
-        container.innerHTML = '<p style="color:rgba(240,232,216,0.55);text-align:center;padding:2rem">Globe requires WebGL. Your browser may not support it.</p>';
+        container.innerHTML = '<p class="dash-globe__fallback">Globe requires WebGL. Your browser may not support it.</p>';
       }
     })();
 
@@ -742,93 +793,23 @@
     }, 10000);
    }); // end DOMContentLoaded
   </script>
-<style>
-  .source-note { font-size: 0.78rem; color: var(--admin-muted); margin: -0.35rem 0 1rem; }
-  .direct-breakdown { margin-top: 1.25rem; border-top: 1px solid var(--admin-border); padding-top: 0.9rem; }
-  .direct-breakdown summary { cursor: pointer; font-size: 0.82rem; font-weight: 600; color: var(--admin-muted); display: flex; align-items: center; gap: 0.5rem; list-style: none; }
-  .direct-breakdown summary::-webkit-details-marker { display: none; }
-  .direct-breakdown summary::before { content: '+'; color: var(--admin-primary); font-size: 1rem; }
-  .direct-breakdown[open] summary::before { content: '\2212'; }
-  .direct-breakdown summary:hover { color: #fff; }
-  .direct-count { margin-left: auto; font-family: var(--admin-font-mono); color: var(--admin-primary); }
-  .direct-list { list-style: none; margin: 0; padding: 0; }
-  .direct-list li { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.4rem 0; border-top: 1px solid rgba(255,255,255,0.04); font-size: 0.8rem; }
-  .direct-page { color: var(--admin-muted); font-family: var(--admin-font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .direct-n { color: #fff; font-weight: 600; flex-shrink: 0; }
-</style>
-<style>
-  .globe-live { display: inline-flex; align-items: center; gap: 0.4rem; color: #4ade80; font-weight: 600; font-variant-numeric: tabular-nums; }
-</style>
-<style>
-  /* Period-over-period deltas */
-  .analytics-card__delta { margin-top: 0.35rem; font-size: 0.72rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
-  .analytics-card__delta.is-good { color: #4ade80; }
-  .analytics-card__delta.is-bad { color: #f87171; }
-  .analytics-card__delta.is-neutral { color: var(--admin-muted); }
-  .delta-vs { color: var(--admin-muted); font-weight: 500; }
-
-  /* Unconfirmed-payment alert */
-  .unconfirmed-alert { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.5rem; padding: 0.9rem 1.25rem; border: 1px solid rgba(239,68,68,0.35); background: rgba(239,68,68,0.07); border-radius: 10px; color: #FCA5A5; font-size: 0.88rem; text-decoration: none; transition: background 0.2s; }
-  .unconfirmed-alert:hover { background: rgba(239,68,68,0.12); }
-  .unconfirmed-alert strong { color: #fff; font-size: 1.05rem; }
-  .unconfirmed-alert__dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; flex-shrink: 0; animation: livePulse 1.5s infinite; }
-  .unconfirmed-alert__cta { margin-left: auto; font-weight: 600; color: #fff; }
-
-  /* Revenue by channel */
-  .rev-row { padding: 0.6rem 0; border-top: 1px solid rgba(255,255,255,0.05); }
-  .rev-row:first-child { border-top: none; }
-  .rev-row__top { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
-  .rev-row__name { font-weight: 600; color: #fff; font-size: 0.9rem; }
-  .rev-row__amount { font-family: var(--admin-font-mono); font-weight: 700; color: var(--admin-accent); font-variant-numeric: tabular-nums; }
-  .rev-row__bar { height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; margin: 0.4rem 0 0.3rem; }
-  .rev-row__fill { height: 100%; background: linear-gradient(90deg, var(--admin-primary), var(--admin-bordeaux)); border-radius: 3px; }
-  .rev-row__meta { font-size: 0.72rem; color: var(--admin-muted); font-variant-numeric: tabular-nums; }
-
-  /* ── Channel drill-down ── */
-  .rev-drill { background: none; border: 0; padding: 0; font: inherit; color: var(--admin-accent);
-               cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
-               font-variant-numeric: tabular-nums; }
-  .rev-drill:hover { filter: brightness(1.25); }
-  .rev-drill:focus-visible { outline: 2px solid var(--admin-accent); outline-offset: 2px; border-radius: 3px; }
-
-  .cd-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(2px);
-                 display: flex; align-items: center; justify-content: center; padding: 1.5rem; z-index: 200; }
-  .cd-backdrop[hidden] { display: none; }
-  .cd-modal { background: var(--admin-card, #15151d); border: 1px solid var(--admin-border);
-              border-radius: 14px; width: min(720px, 100%); max-height: 82vh; display: flex; flex-direction: column;
-              box-shadow: 0 40px 80px -20px rgba(0,0,0,0.7); }
-  .cd-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
-             padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--admin-border); }
-  .cd-title { margin: 0; font-size: 1rem; font-weight: 700; color: #fff; }
-  .cd-sub { margin: 0.25rem 0 0; font-size: 0.75rem; color: var(--admin-muted); }
-  .cd-close { background: none; border: 0; color: var(--admin-muted); font-size: 1.5rem; line-height: 1;
-              cursor: pointer; padding: 0 0.25rem; }
-  .cd-close:hover { color: #fff; }
-  .cd-body { overflow-y: auto; padding: 0.5rem 1.5rem 1.5rem; }
-  .cd-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-  .cd-table th { text-align: left; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase;
-                 color: var(--admin-faint); font-weight: 500; padding: 0.7rem 0.5rem; border-bottom: 1px solid var(--admin-border); }
-  .cd-table td { padding: 0.7rem 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--admin-text); }
-  .cd-table td.num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--admin-font-mono); }
-  .cd-table td.rev { color: var(--admin-accent); font-weight: 700; }
-  .cd-slug { display: block; font-size: 0.68rem; color: var(--admin-faint); font-family: var(--admin-font-mono); }
-  .cd-state { padding: 2rem 0.5rem; text-align: center; color: var(--admin-muted); font-size: 0.85rem; }
-</style>
 
 <%/* Channel drill-down. One dialog reused for every row — the content is
      fetched on open rather than rendered for all channels up front, which
      would mean querying every channel's products on every dashboard load
-     to populate popups that mostly never get opened. */%>
-<div class="cd-backdrop" id="cdBackdrop" hidden role="dialog" aria-modal="true" aria-labelledby="cdTitle">
-  <div class="cd-modal">
-    <div class="cd-head">
+     to populate popups that mostly never get opened. The cd-* classes stay
+     beside the shared modal classes because the script below writes
+     cd-state, cd-slug and cd-table into the body. */%>
+<div class="admin-modal-backdrop cd-backdrop" id="cdBackdrop" hidden role="dialog" aria-modal="true" aria-labelledby="cdTitle">
+  <div class="admin-modal cd-modal">
+    <div class="admin-modal__head cd-head">
       <div>
-        <h3 class="cd-title" id="cdTitle">Products sold</h3>
-        <p class="cd-sub" id="cdSub"></p>
+        <h3 class="admin-modal__title cd-title" id="cdTitle">Products sold</h3>
+        <p class="admin-modal__sub cd-sub" id="cdSub"></p>
       </div>
-      <button type="button" class="cd-close" id="cdClose" aria-label="Close">&times;</button>
+      <button type="button" class="admin-modal__close cd-close" id="cdClose" aria-label="Close">&times;</button>
     </div>
-    <div class="cd-body" id="cdBody"></div>
+    <div class="admin-modal__body cd-body" id="cdBody"></div>
   </div>
 </div>
 
@@ -878,9 +859,9 @@
           + ' · ' + data.totals.units + ' unit' + (data.totals.units === 1 ? '' : 's')
           + ' · ' + money(data.totals.revenue) + ' total';
 
-        var html = '<table class="cd-table"><thead><tr>'
-          + '<th>Product</th><th style="text-align:right">Orders</th>'
-          + '<th style="text-align:right">Units</th><th style="text-align:right">Revenue</th>'
+        var html = '<table class="admin-table cd-table"><thead><tr>'
+          + '<th>Product</th><th class="num">Orders</th>'
+          + '<th class="num">Units</th><th class="num">Revenue</th>'
           + '</tr></thead><tbody>';
         data.rows.forEach(function (r) {
           /* An order whose productSlug never got set still represents real

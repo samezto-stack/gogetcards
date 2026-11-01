@@ -1,14 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%230F2A4A'/><rect x='190' y='104' width='196' height='272' rx='22' fill='none' stroke='%23ffffff' stroke-width='30' transform='rotate(14 288 240)'/><rect x='126' y='136' width='196' height='272' rx='22' fill='%23ffffff'/></svg>">
-  <meta name="theme-color" content="#0c0c12">
-  <meta name="robots" content="noindex, nofollow">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= pageTitle %> | GoGetCards Admin</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+  <%- include('_head', { title: pageTitle }) %>
+  <style>
+    /* A date is not a number: drop it to body size so the stat cell does
+       not clip "November 20, 2026" to an ellipsis. */
+    .po-stat-text { font-size: 16px; padding-top: 4px; white-space: normal; }
+    /* The release-day panels: two side by side, each ending in its own
+       one-line form. */
+    .po-steps { gap: 12px; margin-bottom: 12px; }
+    .po-step .admin-panel__body p + p { margin-top: 10px; }
+    .po-step form { margin-top: 14px; align-items: flex-end; }
+    .po-field { width: 190px; }
+    .po-field--sm { width: 110px; }
+    .po-ref { font-family: var(--admin-font-mono); font-size: 13px; color: var(--admin-primary); font-weight: 600; }
+    .po-ship { font-size: 12.5px; color: var(--admin-muted); max-width: 220px; }
+  </style>
 </head>
 <body class="admin-body">
   <%- include('_sidebar', { currentPath: '/admin/preorders' }) %>
@@ -24,13 +31,18 @@
     %>
 
     <header class="admin-header">
-      <h1 class="admin-header__title"><%= product.title %></h1>
-      <a class="admin-btn" href="/admin/preorders">&larr; All preorders</a>
+      <div>
+        <h1 class="admin-header__title"><%= product.title %> <span class="admin-header__count"><%= rows.length %></span></h1>
+        <p class="admin-header__sub">Everyone waiting on this set, oldest order first.</p>
+      </div>
+      <div class="admin-header__actions">
+        <a class="admin-btn" href="/admin/preorders">&larr; All preorders</a>
+      </div>
     </header>
 
     <div class="admin-content">
 
-      <div class="admin-stats-grid" style="margin-bottom:1.5rem">
+      <div class="admin-stats-grid">
         <div class="admin-stat-card">
           <div class="admin-stat-card__num"><%= units %></div>
           <div class="admin-stat-card__label">Units to source</div>
@@ -39,12 +51,12 @@
           <div class="admin-stat-card__num"><%= rows.length %></div>
           <div class="admin-stat-card__label">Open orders</div>
         </div>
-        <div class="admin-stat-card">
+        <div class="admin-stat-card admin-stat-card--accent">
           <div class="admin-stat-card__num"><%= money(taken) %></div>
           <div class="admin-stat-card__label">Taken in advance</div>
         </div>
         <div class="admin-stat-card">
-          <div class="admin-stat-card__num" style="font-size:1.15rem;padding-top:0.5rem">
+          <div class="admin-stat-card__num po-stat-text">
             <%= release.hasDate ? release.display : (release.window || 'Unannounced') %>
           </div>
           <div class="admin-stat-card__label">Release</div>
@@ -65,14 +77,18 @@
       %>
       <% if (sent && sent.startsWith('ready_')) { %>
         <div class="admin-alert admin-alert--success">
-          &ldquo;Your preorder is here&rdquo; queued for <%= p[1] %> customer<%= p[1] === '1' ? '' : 's' %> holding
-          <%= p[2] %> open order<%= p[2] === '1' ? '' : 's' %>. It goes out one message at a time from now.
+          <span>
+            &ldquo;Your preorder is here&rdquo; queued for <%= p[1] %> customer<%= p[1] === '1' ? '' : 's' %> holding
+            <%= p[2] %> open order<%= p[2] === '1' ? '' : 's' %>. It goes out one message at a time from now.
+          </span>
         </div>
       <% } else if (sent && sent.startsWith('offer_')) { %>
         <div class="admin-alert admin-alert--success">
-          Keep-or-refund offer queued for <%= p[1] %> customer<%= p[1] === '1' ? '' : 's' %> with
-          <%= p[2] %> cancelled order<%= p[2] === '1' ? '' : 's' %>. <strong>Do not issue those refunds until the deadline has passed</strong>
-          &mdash; the orders list marks them.
+          <span>
+            Keep-or-refund offer queued for <%= p[1] %> customer<%= p[1] === '1' ? '' : 's' %> with
+            <%= p[2] %> cancelled order<%= p[2] === '1' ? '' : 's' %>. <strong>Do not issue those refunds until the deadline has passed</strong>
+            &mdash; the orders list marks them.
+          </span>
         </div>
       <% } else if (sent && sent.startsWith('stopped_')) { %>
         <div class="admin-alert admin-alert--success">Stopped: <%= p[1] %> unsent message<%= p[1] === '1' ? '' : 's' %> dropped. Anything already sent is sent.</div>
@@ -82,75 +98,89 @@
       <% } %>
 
       <% if (rd) { %>
-      <section class="admin-section" style="margin-bottom:1.75rem">
+      <section class="admin-section">
         <h2 class="admin-section__title">Release day</h2>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:0.85rem">
+        <div class="grid-2 po-steps">
 
-          <div style="background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:10px;padding:1.15rem 1.25rem">
-            <h3 style="font-size:0.95rem;font-weight:600;margin:0 0 0.4rem">1. &ldquo;Your preorder is here&rdquo;</h3>
-            <p style="font-size:0.8rem;color:var(--admin-muted);margin:0 0 0.85rem;line-height:1.6">
-              To everyone still holding an open order: the set has landed, it is being dispatched in the order it
-              was placed, expect it within the window below, tracking follows by email. One message per customer.
-            </p>
-            <p style="font-size:0.8rem;margin:0 0 0.85rem">
-              Will reach <strong><%= rd.ready.customers %></strong> customer<%= rd.ready.customers === 1 ? '' : 's' %>
-              holding <strong><%= rd.ready.orders %></strong> order<%= rd.ready.orders === 1 ? '' : 's' %>.
-              <% if (rd.ready.skipped.alreadySent) { %><span style="color:var(--admin-faint)"><%= rd.ready.skipped.alreadySent %> already told.</span><% } %>
-              <% if (rd.ready.skipped.suppressed) { %><span style="color:var(--admin-faint)"><%= rd.ready.skipped.suppressed %> suppressed.</span><% } %>
-              <% if (rd.ready.finishesAt && rd.ready.customers) { %><span style="color:var(--admin-faint)">Finishes around <%= when(rd.ready.finishesAt) %>.</span><% } %>
-            </p>
-            <form method="POST" action="/admin/preorders/<%= product.slug %>/release-ready" style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center">
-              <label style="font-size:0.75rem;color:var(--admin-faint)">Delivery window</label>
-              <input class="admin-search-input" style="width:190px" name="deliveryWindow" value="5 to 7 business days" maxlength="60">
-              <button class="admin-btn admin-btn--sm admin-btn--danger" type="submit" <%= rd.ready.customers ? '' : 'disabled' %>
-                      onclick="return confirm('Queue the release-day email to <%= rd.ready.customers %> customers? It cannot be unsent once it starts going out.')">
-                Queue to <%= rd.ready.customers %>
-              </button>
-            </form>
+          <div class="admin-panel po-step mb-0">
+            <div class="admin-panel__head">
+              <h3 class="admin-panel__title">1. &ldquo;Your preorder is here&rdquo;</h3>
+            </div>
+            <div class="admin-panel__body">
+              <p class="small muted">
+                To everyone still holding an open order: the set has landed, it is being dispatched in the order it
+                was placed, expect it within the window below, tracking follows by email. One message per customer.
+              </p>
+              <p class="small">
+                Will reach <strong><%= rd.ready.customers %></strong> customer<%= rd.ready.customers === 1 ? '' : 's' %>
+                holding <strong><%= rd.ready.orders %></strong> order<%= rd.ready.orders === 1 ? '' : 's' %>.
+                <% if (rd.ready.skipped.alreadySent) { %><span class="faint"><%= rd.ready.skipped.alreadySent %> already told.</span><% } %>
+                <% if (rd.ready.skipped.suppressed) { %><span class="faint"><%= rd.ready.skipped.suppressed %> suppressed.</span><% } %>
+                <% if (rd.ready.finishesAt && rd.ready.customers) { %><span class="faint">Finishes around <%= when(rd.ready.finishesAt) %>.</span><% } %>
+              </p>
+              <form method="POST" action="/admin/preorders/<%= product.slug %>/release-ready" class="row">
+                <div class="form-group po-field">
+                  <label>Delivery window</label>
+                  <input class="admin-input" name="deliveryWindow" value="5 to 7 business days" maxlength="60">
+                </div>
+                <button class="admin-btn admin-btn--danger" type="submit" <%= rd.ready.customers ? '' : 'disabled' %>
+                        onclick="return confirm('Queue the release-day email to <%= rd.ready.customers %> customers? It cannot be unsent once it starts going out.')">
+                  Queue to <%= rd.ready.customers %>
+                </button>
+              </form>
+            </div>
           </div>
 
-          <div style="background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:10px;padding:1.15rem 1.25rem">
-            <h3 style="font-size:0.95rem;font-weight:600;margin:0 0 0.4rem">2. Keep it, or take the refund?</h3>
-            <p style="font-size:0.8rem;color:var(--admin-muted);margin:0 0 0.85rem;line-height:1.6">
-              To everyone who cancelled and has <strong>not yet been refunded</strong>: the set is here; press the button
-              before the deadline to keep the original order at the price already paid, or do nothing and the refund
-              goes ahead. Asked once, no follow-up. Nothing is reinstated unless they click.
-            </p>
-            <p style="font-size:0.8rem;margin:0 0 0.85rem">
-              Will reach <strong><%= rd.offer.customers %></strong> customer<%= rd.offer.customers === 1 ? '' : 's' %>
-              with <strong><%= rd.offer.orders %></strong> cancelled order<%= rd.offer.orders === 1 ? '' : 's' %> awaiting refund
-              (<%= rd.cancelledPending %> in total<% if (rd.offersOpen) { %>, <%= rd.offersOpen %> with an offer already open<% } %>).
-              <% if (rd.reinstated) { %><span style="color:#8fc79c"><%= rd.reinstated %> reinstated so far.</span><% } %>
-              <% if (rd.offer.skipped.alreadySent) { %><span style="color:var(--admin-faint)"><%= rd.offer.skipped.alreadySent %> already asked.</span><% } %>
-            </p>
-            <form method="POST" action="/admin/preorders/<%= product.slug %>/reinstate-offer" style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center">
-              <label style="font-size:0.75rem;color:var(--admin-faint)">Delivery window</label>
-              <input class="admin-search-input" style="width:170px" name="deliveryWindow" value="5 to 7 business days" maxlength="60">
-              <label style="font-size:0.75rem;color:var(--admin-faint)">Reply within</label>
-              <select name="days" class="admin-select" style="min-width:90px">
-                <% [2,3,4,5,7].forEach(function (d) { %><option value="<%= d %>" <%= d === 3 ? 'selected' : '' %>><%= d %> days</option><% }); %>
-              </select>
-              <button class="admin-btn admin-btn--sm admin-btn--danger" type="submit" <%= rd.offer.customers ? '' : 'disabled' %>
-                      onclick="return confirm('Queue the keep-or-refund offer to <%= rd.offer.customers %> customers?\n\nYou must then HOLD those refunds until the deadline passes. The orders list will mark them.')">
-                Queue to <%= rd.offer.customers %>
-              </button>
-            </form>
+          <div class="admin-panel po-step mb-0">
+            <div class="admin-panel__head">
+              <h3 class="admin-panel__title">2. Keep it, or take the refund?</h3>
+            </div>
+            <div class="admin-panel__body">
+              <p class="small muted">
+                To everyone who cancelled and has <strong>not yet been refunded</strong>: the set is here; press the button
+                before the deadline to keep the original order at the price already paid, or do nothing and the refund
+                goes ahead. Asked once, no follow-up. Nothing is reinstated unless they click.
+              </p>
+              <p class="small">
+                Will reach <strong><%= rd.offer.customers %></strong> customer<%= rd.offer.customers === 1 ? '' : 's' %>
+                with <strong><%= rd.offer.orders %></strong> cancelled order<%= rd.offer.orders === 1 ? '' : 's' %> awaiting refund
+                (<%= rd.cancelledPending %> in total<% if (rd.offersOpen) { %>, <%= rd.offersOpen %> with an offer already open<% } %>).
+                <% if (rd.reinstated) { %><span class="ok"><%= rd.reinstated %> reinstated so far.</span><% } %>
+                <% if (rd.offer.skipped.alreadySent) { %><span class="faint"><%= rd.offer.skipped.alreadySent %> already asked.</span><% } %>
+              </p>
+              <form method="POST" action="/admin/preorders/<%= product.slug %>/reinstate-offer" class="row">
+                <div class="form-group po-field">
+                  <label>Delivery window</label>
+                  <input class="admin-input" name="deliveryWindow" value="5 to 7 business days" maxlength="60">
+                </div>
+                <div class="form-group po-field--sm">
+                  <label>Reply within</label>
+                  <select name="days" class="admin-select">
+                    <% [2,3,4,5,7].forEach(function (d) { %><option value="<%= d %>" <%= d === 3 ? 'selected' : '' %>><%= d %> days</option><% }); %>
+                  </select>
+                </div>
+                <button class="admin-btn admin-btn--danger" type="submit" <%= rd.offer.customers ? '' : 'disabled' %>
+                        onclick="return confirm('Queue the keep-or-refund offer to <%= rd.offer.customers %> customers?\n\nYou must then HOLD those refunds until the deadline passes. The orders list will mark them.')">
+                  Queue to <%= rd.offer.customers %>
+                </button>
+              </form>
+            </div>
           </div>
         </div>
 
         <% if (rd.campaigns.length) { %>
-          <div class="admin-table-wrap" style="margin-top:0.85rem">
+          <div class="admin-table-wrap mb-sm">
             <table class="admin-table">
-              <thead><tr><th>Run</th><th>Queued</th><th>Sent</th><th>Failed</th><th>Skipped</th><th>Finishes</th><th></th></tr></thead>
+              <thead><tr><th>Run</th><th class="num">Queued</th><th class="num">Sent</th><th class="num">Failed</th><th class="num">Skipped</th><th>Finishes</th><th><span class="sr-only">Actions</span></th></tr></thead>
               <tbody>
                 <% rd.campaigns.forEach(function (c) { %>
                   <tr>
-                    <td style="font-family:var(--admin-font-mono);font-size:0.72rem"><%= c.kind %><div style="color:var(--admin-faint)"><%= c.campaign %></div></td>
-                    <td><%= c.queued || 0 %></td>
-                    <td style="color:#8fc79c"><%= c.sent || 0 %></td>
-                    <td style="color:#e07487"><%= c.failed || 0 %></td>
-                    <td style="color:var(--admin-faint)"><%= c.skipped || 0 %></td>
-                    <td style="font-size:0.78rem;color:var(--admin-muted)"><%= c.queued ? when(c.finishesAt) : '—' %></td>
+                    <td class="mono"><%= c.kind %><span class="admin-cell-sub mono"><%= c.campaign %></span></td>
+                    <td class="num"><%= c.queued || 0 %></td>
+                    <td class="num ok"><%= c.sent || 0 %></td>
+                    <td class="num crit"><%= c.failed || 0 %></td>
+                    <td class="num faint"><%= c.skipped || 0 %></td>
+                    <td class="small muted"><%= c.queued ? when(c.finishesAt) : '—' %></td>
                     <td>
                       <% if (c.queued) { %>
                         <form method="POST" action="/admin/preorders/<%= product.slug %>/broadcast/stop"
@@ -166,9 +196,9 @@
             </table>
           </div>
         <% } %>
-        <p style="font-size:0.74rem;color:var(--admin-faint);margin:0.6rem 0 0;line-height:1.6;max-width:80ch">
+        <p class="tiny faint">
           Messages go out <%= rd.gap %> apart, one per customer, from the same address as the order confirmations.
-          Failures land in <a href="/admin/emails?status=failed" style="color:var(--admin-primary)">the email log</a> with a Retry button.
+          Failures land in <a href="/admin/emails?status=failed">the email log</a> with a Retry button.
         </p>
       </section>
       <% } %>
@@ -177,41 +207,41 @@
            the fair way to decide who gets one is who committed first,
            and the list should not make you sort it yourself to see
            that. */%>
-      <p style="font-size:0.8rem;color:var(--admin-faint);margin:0 0 0.85rem;line-height:1.6;max-width:70ch">
+      <p class="small faint mb-sm">
         Oldest order first. If the allocation comes up short, this is the order people committed in.
       </p>
 
       <% if (!rows.length) { %>
-        <div style="background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:10px;padding:3rem;text-align:center;color:var(--admin-muted);font-size:0.9rem">
-          Nobody is waiting on this set.
+        <div class="admin-empty">
+          <p>Nobody is waiting on this set.</p>
         </div>
       <% } else { %>
         <div class="admin-table-wrap">
           <table class="admin-table">
             <thead>
-              <tr><th>Order</th><th>Placed</th><th>Customer</th><th>Qty</th><th>Paid</th><th>Status</th><th>Ship to</th></tr>
+              <tr><th>Order</th><th>Placed</th><th>Customer</th><th class="num">Qty</th><th class="num">Paid</th><th>Status</th><th>Ship to</th></tr>
             </thead>
             <tbody>
               <% rows.forEach(function (r) { const o = r.order; %>
                 <tr>
-                  <td style="font-family:var(--admin-font-mono);font-size:0.8rem;color:var(--admin-primary);font-weight:600"><%= r.reference %></td>
-                  <td style="white-space:nowrap;color:var(--admin-muted);font-size:0.8rem"><%= day(o.createdAt) %></td>
+                  <td class="po-ref"><%= r.reference %></td>
+                  <td class="nowrap muted"><%= day(o.createdAt) %></td>
                   <td>
                     <% if (r.customerId) { %>
-                      <a href="/admin/customers/<%= r.customerId %>" style="color:var(--admin-text);text-decoration:none;font-weight:500"><%= o.customerName || 'Guest' %></a>
+                      <a href="/admin/customers/<%= r.customerId %>" class="admin-cell-link"><%= o.customerName || 'Guest' %></a>
                     <% } else { %>
-                      <span style="font-weight:500"><%= o.customerName || 'Guest' %></span>
+                      <span class="admin-cell-title"><%= o.customerName || 'Guest' %></span>
                     <% } %>
-                    <div style="font-size:0.72rem;color:var(--admin-faint)"><%= o.customerEmail %></div>
+                    <span class="admin-cell-sub"><%= o.customerEmail %></span>
                   </td>
-                  <td style="font-variant-numeric:tabular-nums"><%= o.quantity || 1 %></td>
-                  <td style="font-family:var(--admin-font-mono);font-size:0.82rem"><%= money(o.totalPrice, o.currency) %></td>
+                  <td class="num"><%= o.quantity || 1 %></td>
+                  <td class="num mono"><%= money(o.totalPrice, o.currency) %></td>
                   <td>
                     <span class="status-pill status-pill--<%= tone[r.status.tone] || 'neutral' %>">
                       <span class="status-pill__dot"></span><%= r.status.label %>
                     </span>
                   </td>
-                  <td style="font-size:0.76rem;color:var(--admin-muted);max-width:220px"><%= o.shippingAddress || '—' %></td>
+                  <td class="po-ship"><%= o.shippingAddress || '—' %></td>
                 </tr>
               <% }); %>
             </tbody>
