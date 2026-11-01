@@ -18,6 +18,14 @@ process.env.SITE_URL = 'https://gogetcards.com';
    at the end so the two cannot drift. */
 const mirroredLocals = new Set();
 
+/* Titles are rendered through <%= %>, so "Refund & Return Policy" reaches
+   the browser as "Refund &amp; Return Policy". Comparing the raw config
+   string against the HTML flagged a correctly escaped page as missing its
+   title; the comparison has to escape the same way EJS does. */
+const escapeHtml = (s) => String(s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&#34;').replace(/'/g, '&#39;');
+
 const app = express();
 app.set('view engine', 'ejs');
 app.set('views', path.join(ROOT, 'views'));
@@ -80,6 +88,13 @@ app.use((req, res, next) => {
        rather than a missing local. */
     productImage: require(path.join(ROOT, 'helpers/productImage')),
     testOrder: require(path.join(ROOT, 'services/testOrder')),
+    /* jsonForScript is how every inline <script> in the layout serialises
+       data (the sitewide JSON-LD graph included), so without it here the
+       layout throws and every page is a 500 before a single assertion
+       runs. catalog is set per-request in server.js for the storefront
+       nav and collection pages. */
+    jsonForScript: require(path.join(ROOT, 'helpers/jsonForScript')),
+    catalog: require(path.join(ROOT, 'config/catalog')),
     script: '',
   });
   Object.keys(res.locals).forEach((k) => mirroredLocals.add(k));
@@ -370,13 +385,13 @@ const server = app.listen(0, async () => {
     const page = trustPages.bySlug(slug);
     const canonical = `rel="canonical" href="https://gogetcards.com/${slug}"`;
     const ok = r.status === 200
-      && r.body.includes(page.title)
+      && r.body.includes(escapeHtml(page.title))
       && /name="description" content="[^"]{60,}"/.test(r.body)
       && r.body.includes(canonical)
       && (r.body.match(/<h1[\s>]/g) || []).length === 1;
     if (!ok) {
       trustFails++;
-      console.log(`        /${slug}: status=${r.status} title=${r.body.includes(page.title)} `
+      console.log(`        /${slug}: status=${r.status} title=${r.body.includes(escapeHtml(page.title))} `
         + `desc=${/name="description" content="[^"]{60,}"/.test(r.body)} `
         + `canonical=${r.body.includes(canonical)} h1=${(r.body.match(/<h1[\s>]/g) || []).length}`);
     }

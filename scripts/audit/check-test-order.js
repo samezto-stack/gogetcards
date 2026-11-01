@@ -43,7 +43,7 @@ function ok(label, condition, detail = '') {
 console.log('the address');
 {
   ok('the canonical address', testOrder.isTestEmail('test@gogetcards.com'));
-  ok('case and space tolerant', testOrder.isTestEmail('  TEST@GoGetCardstcg.COM '));
+  ok('case and space tolerant', testOrder.isTestEmail('  TEST@GoGetCards.COM '));
   ok('a plus tag on any domain', testOrder.isTestEmail('samezto+ztest@gmail.com'));
   ok('a plus tag with a mixed-case local part', testOrder.isTestEmail('Sam+ZTest@outlook.com'));
 

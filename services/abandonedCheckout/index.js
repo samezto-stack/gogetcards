@@ -123,9 +123,19 @@ async function capture(payload = {}) {
     } catch { /* a missing source must never cost us the capture */ }
   }
 
+  /* MongoDB refuses an update that names the same path in $set and
+     $setOnInsert (ConflictingUpdateOperators) — and it refuses it up front,
+     whether or not the upsert would actually insert. The reset branch
+     above puts `status` in $set, so for a customer returning to an
+     abandoned checkout this call used to throw and the partner page's
+     capture POST 500'd on every keystroke-batch. `status` goes in
+     $setOnInsert only when $set is not already carrying it. */
+  const setOnInsert = { checkoutId };
+  if (!('status' in set)) setOnInsert.status = 'active';
+
   const doc = await AbandonedCheckout.findOneAndUpdate(
     { checkoutId },
-    { $set: set, $setOnInsert: { checkoutId, status: 'active' } },
+    { $set: set, $setOnInsert: setOnInsert },
     { upsert: true, new: true, setDefaultsOnInsert: true }
   );
 
@@ -183,11 +193,19 @@ async function sweepToAbandoned() {
       continue;
     }
 
-    const now = new Date();
+    /* The checkout was abandoned when the customer went quiet, not when
+       this sweep happened to notice. The schedule's first step is "30
+       minutes after abandonment" and INACTIVITY_MINUTES is the same 30
+       minutes, so anchoring abandonedAt at `now` pushed the first email
+       out to an hour after they left and every later step with it. Set
+       the anchor at the last activity and the first reminder is due the
+       moment the row is promoted — the send phase of this same sweep
+       picks it up. */
+    const abandonedAt = doc.lastActivityAt || new Date();
     doc.status = 'abandoned';
-    doc.abandonedAt = now;
+    doc.abandonedAt = abandonedAt;
     doc.recoveryStep = 0;
-    doc.nextEmailAt = new Date(now.getTime() + RECOVERY_SCHEDULE[0].afterMinutes * 60 * 1000);
+    doc.nextEmailAt = nextEmailTime(abandonedAt, RECOVERY_SCHEDULE[0].step);
     if (!doc.recoveryTokenHash) doc.issueRecoveryToken();
     await doc.save();
     results.abandoned++;

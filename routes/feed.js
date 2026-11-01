@@ -124,10 +124,6 @@ async function serveFeed(req, res, market) {
 
 /* The default market keeps the bare URL it already has in Merchant
    Center. Declared first so `google.xml` never matches the :prefix route. */
-/* The default market keeps the bare URL it already has in Merchant
-   Center. Declared first so `google.xml` never matches the :country route. */
-/* The default market keeps the bare URL it already has in Merchant
-   Center. Declared first so `google.xml` never matches the :prefix route. */
 router.get('/google.:format', (req, res) => serveFeed(req, res, markets.defaultMarket()));
 
 router.get('/:prefix/google.:format', async (req, res) => {
