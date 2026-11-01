@@ -939,6 +939,9 @@ const FIXTURES = [
   { view: 'products', state: 'populated', path: '/admin/products', locals: { layout: false, pageTitle: 'Products', products: PRODUCTS, collections: COLLECTIONS, q: '', collection: 'all', sort: 'newest', formatPrice, success: 'Product updated successfully' } },
   { view: 'products', state: 'filtered-empty', path: '/admin/products', locals: { layout: false, pageTitle: 'Products', products: [], collections: COLLECTIONS, q: 'yugioh', collection: 'sports', sort: 'price-asc', formatPrice, success: null } },
 
+  /* routes/admin.js GET /products/import */
+  { view: 'product-import', state: 'default', path: '/admin/products/import', locals: { layout: false, columns: require(path.join(ROOT, 'services/productCsv')).COLUMNS } },
+
   /* routes/admin.js GET /products/new, GET /products/:id/edit, POST error paths */
   { view: 'product-form', state: 'new', path: '/admin/products', locals: { ...PRODUCT_FORM_COMMON, pageTitle: 'Add Product', product: null, error: null } },
   { view: 'product-form', state: 'edit', path: '/admin/products', locals: { ...PRODUCT_FORM_COMMON, pageTitle: 'Edit Product', product: op17Box, error: null } },

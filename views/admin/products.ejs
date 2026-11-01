@@ -11,6 +11,8 @@
         <h1 class="admin-header__title"><%= pageTitle %> <span class="admin-header__count"><%= products.length %></span></h1>
       </div>
       <div class="admin-header__actions">
+        <a href="/admin/products/export.csv" class="admin-btn admin-btn--ghost">Export CSV</a>
+        <a href="/admin/products/import" class="admin-btn">Import CSV</a>
         <a href="/admin/products/new" class="admin-btn admin-btn--primary">Add product</a>
       </div>
     </header>

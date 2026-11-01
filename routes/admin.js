@@ -54,6 +54,7 @@ const partnerHealth = require('../services/partnerHealth');
 const ChatMessage = require('../models/ChatMessage');
 const ContactMessage = require('../models/ContactMessage');
 const formatPrice = require('../helpers/formatPrice');
+const productCsv = require('../services/productCsv');
 const markets = require('../config/markets');
 
 /* Safe serialiser for data embedded in an inline <script> via <%- %>.
@@ -1179,6 +1180,105 @@ router.get('/products', requireAuth, async (req, res) => {
     formatPrice,
     success: req.query.success || null,
   });
+});
+
+/* ── Products by CSV ───────────────────────────────────────────────────
+   Declared before the /products/:id routes so "import" and "export.csv"
+   are never read as an id. The page, the template and the export are
+   plain GETs; preview and import take the CSV as text/csv so the
+   app-wide 100kb form limit does not apply to a catalogue of a few
+   hundred rows. See docs/product-csv.md. */
+const csvBody = express.text({ type: ['text/csv', 'text/plain', 'application/csv'], limit: '8mb' });
+
+router.get('/products/import', requireAuth, (req, res) => {
+  res.render('admin/product-import', { layout: false, columns: productCsv.COLUMNS });
+});
+
+router.get('/products/import/template.csv', requireAuth, (req, res) => {
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="gogetcards-products-template.csv"');
+  res.send('﻿' + productCsv.template());
+});
+
+router.get('/products/export.csv', requireAuth, async (req, res) => {
+  try {
+    const products = await Product.find().sort({ createdAt: -1 }).lean();
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="gogetcards-products-${new Date().toISOString().slice(0, 10)}.csv"`);
+    res.send('﻿' + productCsv.toCsv(products));
+  } catch (err) {
+    console.error('[admin] product export failed:', err.message);
+    res.status(500).send('Export failed.');
+  }
+});
+
+/* The catalogue, loaded once per request, as the planner's lookup. */
+async function csvLookup() {
+  const all = await Product.find().select('_id slug sku title price available collections tags images specs marketPrices imageUrl description vendor productType comparePrice stock preorder preorderShips releaseDate featured badge gtin mpn brand language edition setCode variantGroup variantName variantAxis variantOrder allocationLimit stockHold supersededBy').lean();
+  const bySlug = new Map(all.map((p) => [p.slug, p]));
+  const bySku = new Map(all.filter((p) => p.sku).map((p) => [p.sku, p]));
+  const lookup = ({ slug, sku }) => (slug && bySlug.get(slug)) || (sku && bySku.get(sku)) || null;
+  const knownCollections = new Set((await Collection.find().select('handle').lean()).map((c) => c.handle));
+  return { lookup, knownCollections };
+}
+
+router.post('/products/import/preview', requireAuth, csvBody, async (req, res) => {
+  try {
+    const text = typeof req.body === 'string' ? req.body : '';
+    if (!text.trim()) return res.status(400).json({ error: 'The file is empty.' });
+    const { lookup, knownCollections } = await csvLookup();
+    const out = productCsv.plan(text, { lookup, knownCollections });
+    /* Bodies are not sent back: the page shows the plan, not the data. */
+    res.json({ ...out, rows: out.rows.map(({ body, ...r }) => r) });
+  } catch (err) {
+    console.error('[admin] product csv preview failed:', err.message);
+    res.status(500).json({ error: 'The file could not be read.' });
+  }
+});
+
+/* The import itself. Plans again from the text it is sent rather than
+   trusting anything the browser held, saves row by row through the same
+   parseProductBody as the form, and reports each row Mongo refused
+   (a duplicate slug that appeared since the preview, a validation
+   failure) instead of stopping at the first. */
+router.post('/products/import', requireAuth, csvBody, async (req, res) => {
+  try {
+    const text = typeof req.body === 'string' ? req.body : '';
+    if (!text.trim()) return res.status(400).json({ error: 'The file is empty.' });
+    const { lookup, knownCollections } = await csvLookup();
+    const out = productCsv.plan(text, { lookup, knownCollections });
+    if (out.headerError) return res.status(400).json({ error: out.headerError });
+
+    const result = { created: 0, updated: 0, skipped: 0, failed: [] };
+    for (const row of out.rows) {
+      if (row.action === 'error') { result.skipped++; continue; }
+      try {
+        const data = parseProductBody(row.body);
+        if (row.action === 'update') {
+          await Product.findByIdAndUpdate(row.existingId, data, { runValidators: true });
+          result.updated++;
+        } else {
+          await Product.create(data);
+          result.created++;
+        }
+      } catch (err) {
+        const msg = /E11000/.test(err.message) ? `handle "${row.handle}" already exists` : (err.message || 'could not be saved').slice(0, 300);
+        result.failed.push({ line: row.line, handle: row.handle, title: row.title, error: msg });
+      }
+    }
+    console.log(`[admin] product csv import: ${result.created} created, ${result.updated} updated, ${result.skipped} skipped, ${result.failed.length} failed`);
+    res.json(result);
+  } catch (err) {
+    console.error('[admin] product csv import failed:', err.message);
+    res.status(500).json({ error: 'The import could not run. Nothing after the failure was written.' });
+  }
+});
+
+router.post('/products/import/draft', requireAuth, csvBody, (req, res) => {
+  const text = typeof req.body === 'string' ? req.body : '';
+  const draft = productCsv.draftFromImageUrls(text);
+  if (!draft.urls) return res.status(400).json({ error: 'No image links found. Paste one http(s) URL per line.' });
+  res.json(draft);
 });
 
 router.get('/products/new', requireAuth, (req, res) => {

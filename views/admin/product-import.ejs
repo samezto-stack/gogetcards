@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('_head', { title: 'Import products' }) %>
+  <style>
+    .pi-drop { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .pi-drop input[type=file] { font-size: 13px; }
+    .pi-csv { width: 100%; min-height: 160px; font-family: var(--admin-font-mono); font-size: 12px; line-height: 1.55; white-space: pre; overflow: auto; }
+    .pi-result { display: none; }
+    .pi-result.is-shown { display: block; }
+    .pi-counts { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; }
+    .pi-counts b { font-weight: 600; }
+    .pi-rows td { vertical-align: top; }
+    .pi-rows .pi-msg { display: block; font-size: 12.5px; line-height: 1.5; }
+    .pi-rows .pi-msg--err { color: var(--admin-crit); }
+    .pi-rows .pi-msg--warn { color: var(--admin-warn); }
+    .pi-cols { columns: 2; column-gap: 24px; font-size: 12.5px; }
+    .pi-cols dt { font-family: var(--admin-font-mono); font-weight: 600; break-after: avoid; }
+    .pi-cols dd { color: var(--admin-muted); margin: 0 0 8px; }
+    .pi-urls { width: 100%; min-height: 110px; font-family: var(--admin-font-mono); font-size: 12px; line-height: 1.55; }
+    @media (max-width: 720px) { .pi-cols { columns: 1; } }
+  </style>
+</head>
+<body class="admin-body">
+  <%- include('_sidebar', { currentPath: '/admin/products' }) %>
+  <main class="admin-main">
+    <header class="admin-header">
+      <div>
+        <h1 class="admin-header__title">Import products</h1>
+        <p class="admin-header__sub">One CSV, one row per product. A row whose handle or SKU already exists updates that product; any other row creates one.</p>
+      </div>
+      <div class="admin-header__actions">
+        <a href="/admin/products/import/template.csv" class="admin-btn">Download template</a>
+        <a href="/admin/products/export.csv" class="admin-btn">Export current products</a>
+        <a href="/admin/products" class="admin-btn admin-btn--ghost">Back to products</a>
+      </div>
+    </header>
+
+    <div class="admin-content">
+
+      <%/* Step 1: the file. Read in the browser and dropped into the
+           textarea, so the same box takes a chosen file, a pasted sheet,
+           or a draft built from image links below. Nothing is sent until
+           Preview. */%>
+      <div class="admin-panel">
+        <div class="admin-panel__head">
+          <div>
+            <h2 class="admin-panel__title">1. The file</h2>
+            <p class="admin-panel__sub">Choose a CSV or paste the rows. The template has every column with an example filled in; a file exported from Shopify works too. Column order does not matter, and a column you leave out is left untouched on products that already exist.</p>
+          </div>
+        </div>
+        <div class="admin-panel__body stack">
+          <div class="pi-drop">
+            <input type="file" id="piFile" accept=".csv,text/csv">
+            <span class="small faint">or paste below</span>
+          </div>
+          <textarea id="piCsv" class="admin-input pi-csv" spellcheck="false" placeholder="handle,title,vendor,product_type,price,stock,available,collections,image_url,…"></textarea>
+          <div class="admin-btn-row">
+            <button type="button" class="admin-btn admin-btn--primary" id="piPreview">Preview</button>
+            <span class="small muted" id="piStatus"></span>
+          </div>
+        </div>
+      </div>
+
+      <%/* Step 2: what would happen, row by row. Nothing has been written
+           yet. Rows with errors are skipped by the import; rows with only
+           warnings go through. */%>
+      <div class="admin-panel pi-result" id="piResult">
+        <div class="admin-panel__head">
+          <div>
+            <h2 class="admin-panel__title">2. Check the preview</h2>
+            <p class="admin-panel__sub">Nothing is saved yet. Rows marked <span class="admin-tag admin-tag--crit">error</span> are skipped; rows with warnings are imported as they are, so read them.</p>
+          </div>
+          <div class="pi-counts" id="piCounts"></div>
+        </div>
+        <div class="admin-panel__body admin-panel__body--flush">
+          <table class="admin-table pi-rows">
+            <thead><tr><th class="num">Row</th><th>Action</th><th>Handle</th><th>Title</th><th>Notes</th></tr></thead>
+            <tbody id="piRows"></tbody>
+          </table>
+        </div>
+        <div class="admin-panel__foot">
+          <button type="button" class="admin-btn admin-btn--primary" id="piApply" disabled>Import</button>
+          <span class="small muted" id="piApplyNote"></span>
+        </div>
+      </div>
+
+      <div class="admin-alert admin-alert--success pi-result" id="piDone"></div>
+
+      <%/* A draft from image links. The operator has the photos long before
+           the spreadsheet; this writes the spreadsheet's skeleton from them
+           so the typing left is the price and the facts. */%>
+      <div class="admin-panel">
+        <div class="admin-panel__head">
+          <div>
+            <h2 class="admin-panel__title">Start from image links</h2>
+            <p class="admin-panel__sub">Paste one image URL per line. Each product becomes a row with its handle, title, line and photos filled in from the file name; several photos of one product (…-front, …-back) fold into one row. Prices are never guessed, so the preview will ask for them.</p>
+          </div>
+        </div>
+        <div class="admin-panel__body stack">
+          <textarea id="piUrls" class="admin-input pi-urls" spellcheck="false" placeholder="https://cdn.example.com/pokemon-prismatic-evolutions-etb-front.jpg&#10;https://cdn.example.com/pokemon-prismatic-evolutions-etb-back.jpg"></textarea>
+          <div class="admin-btn-row">
+            <button type="button" class="admin-btn" id="piDraft">Build a draft CSV</button>
+            <span class="small muted" id="piDraftNote"></span>
+          </div>
+        </div>
+      </div>
+
+      <details class="admin-panel">
+        <summary class="admin-panel__head"><h2 class="admin-panel__title">Every column</h2></summary>
+        <div class="admin-panel__body">
+          <dl class="pi-cols">
+            <% columns.forEach(function (c) { %>
+              <dt><%= c.header %><% if (c.required) { %> <span class="admin-tag admin-tag--navy">required</span><% } %></dt>
+              <dd><%= c.hint %></dd>
+            <% }); %>
+          </dl>
+          <p class="small muted" style="margin-top:10px">Lists inside a cell (images, specs, collections, tags) are separated by a vertical bar <code class="admin-code">|</code>. true/false cells also accept yes/no and 1/0. Prices are written the way you would say them: 149.97, not 14997.</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      var csvBox = document.getElementById('piCsv');
+      var fileInput = document.getElementById('piFile');
+      var status = document.getElementById('piStatus');
+      var result = document.getElementById('piResult');
+      var rowsEl = document.getElementById('piRows');
+      var counts = document.getElementById('piCounts');
+      var applyBtn = document.getElementById('piApply');
+      var applyNote = document.getElementById('piApplyNote');
+      var done = document.getElementById('piDone');
+      var plan = null;
+
+      fileInput.addEventListener('change', function () {
+        var f = fileInput.files && fileInput.files[0];
+        if (!f) return;
+        var reader = new FileReader();
+        reader.onload = function () { csvBox.value = String(reader.result || ''); status.textContent = f.name + ' loaded (' + Math.round(f.size / 1024) + ' KB). Press Preview.'; };
+        reader.readAsText(f);
+      });
+
+      /* Everything rendered below is built with textContent: titles and
+         notes come from the file the operator uploaded, which is still
+         untrusted text as far as this page is concerned. */
+      function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+      function tagFor(action) {
+        var map = { create: 'admin-tag admin-tag--ok', update: 'admin-tag admin-tag--info', error: 'admin-tag admin-tag--crit' };
+        return el('span', map[action] || 'admin-tag', action);
+      }
+
+      function render(p) {
+        rowsEl.textContent = '';
+        counts.textContent = '';
+        done.classList.remove('is-shown');
+        if (p.headerError) {
+          var tr0 = el('tr'); var td0 = el('td', 'admin-table__empty', p.headerError); td0.colSpan = 5; tr0.appendChild(td0); rowsEl.appendChild(tr0);
+          applyBtn.disabled = true; applyNote.textContent = '';
+          result.classList.add('is-shown');
+          return;
+        }
+        [['create', 'to create'], ['update', 'to update'], ['error', 'with errors']].forEach(function (pair) {
+          var s = el('span'); s.appendChild(el('b', null, String(p.summary[pair[0]]))); s.appendChild(document.createTextNode(' ' + pair[1])); counts.appendChild(s);
+        });
+        if (p.unknownColumns && p.unknownColumns.length) {
+          var s2 = el('span', 'warn', 'ignored columns: ' + p.unknownColumns.join(', ')); counts.appendChild(s2);
+        }
+        p.rows.forEach(function (r) {
+          var tr = el('tr');
+          tr.appendChild(el('td', 'num', String(r.line)));
+          var ta = el('td'); ta.appendChild(tagFor(r.action)); tr.appendChild(ta);
+          tr.appendChild(el('td', 'mono', r.handle || ''));
+          tr.appendChild(el('td', null, r.title || ''));
+          var notes = el('td');
+          r.errors.forEach(function (m) { notes.appendChild(el('span', 'pi-msg pi-msg--err', m)); });
+          r.warnings.forEach(function (m) { notes.appendChild(el('span', 'pi-msg pi-msg--warn', m)); });
+          if (!r.errors.length && !r.warnings.length) notes.appendChild(el('span', 'pi-msg faint', 'ok'));
+          tr.appendChild(notes);
+          rowsEl.appendChild(tr);
+        });
+        var importable = p.summary.create + p.summary.update;
+        applyBtn.disabled = importable === 0;
+        applyNote.textContent = importable === 0 ? 'Nothing to import yet.' : 'Imports ' + importable + ' row' + (importable === 1 ? '' : 's') + '; ' + p.summary.error + ' with errors will be skipped.';
+        result.classList.add('is-shown');
+      }
+
+      async function post(url, body, type) {
+        var res = await fetch(url, { method: 'POST', headers: { 'Content-Type': type || 'text/csv' }, body: body, credentials: 'same-origin' });
+        var text = await res.text();
+        var data; try { data = JSON.parse(text); } catch (e) { data = { ok: false, error: 'The server did not answer with JSON (' + res.status + ').' }; }
+        if (!res.ok && !data.error) data.error = 'Request failed (' + res.status + ').';
+        return data;
+      }
+
+      document.getElementById('piPreview').addEventListener('click', async function () {
+        var text = csvBox.value;
+        if (!text.trim()) { status.textContent = 'Choose a file or paste rows first.'; return; }
+        status.textContent = 'Checking…';
+        var data = await post('/admin/products/import/preview', text);
+        if (data.error && !data.rows) { status.textContent = data.error; return; }
+        plan = data; status.textContent = ''; render(data);
+      });
+
+      applyBtn.addEventListener('click', async function () {
+        if (!plan) return;
+        var n = plan.summary.create + plan.summary.update;
+        if (!window.confirm('Import ' + n + ' row' + (n === 1 ? '' : 's') + ' now? Existing products matched by handle or SKU will be overwritten by the columns in the file.')) return;
+        applyBtn.disabled = true; applyNote.textContent = 'Importing…';
+        var data = await post('/admin/products/import', csvBox.value);
+        if (data.error && data.created == null) { applyNote.textContent = data.error; applyBtn.disabled = false; return; }
+        var parts = [data.created + ' created', data.updated + ' updated'];
+        if (data.skipped) parts.push(data.skipped + ' skipped');
+        if (data.failed && data.failed.length) parts.push(data.failed.length + ' failed');
+        done.textContent = 'Done: ' + parts.join(', ') + '.';
+        done.classList.add('is-shown');
+        applyNote.textContent = '';
+        if (data.failed && data.failed.length) {
+          rowsEl.textContent = '';
+          data.failed.forEach(function (f) {
+            var tr = el('tr');
+            tr.appendChild(el('td', 'num', String(f.line)));
+            var ta = el('td'); ta.appendChild(tagFor('error')); tr.appendChild(ta);
+            tr.appendChild(el('td', 'mono', f.handle || ''));
+            tr.appendChild(el('td', null, f.title || ''));
+            var notes = el('td'); notes.appendChild(el('span', 'pi-msg pi-msg--err', f.error)); tr.appendChild(notes);
+            rowsEl.appendChild(tr);
+          });
+          counts.textContent = 'Rows that could not be saved';
+        } else {
+          result.classList.remove('is-shown');
+        }
+        plan = null;
+      });
+
+      document.getElementById('piDraft').addEventListener('click', async function () {
+        var urls = document.getElementById('piUrls').value;
+        var note = document.getElementById('piDraftNote');
+        if (!urls.trim()) { note.textContent = 'Paste some image links first.'; return; }
+        note.textContent = 'Building…';
+        var data = await post('/admin/products/import/draft', urls, 'text/plain');
+        if (data.error) { note.textContent = data.error; return; }
+        csvBox.value = data.csv;
+        note.textContent = data.count + ' product' + (data.count === 1 ? '' : 's') + ' from ' + data.urls + ' link' + (data.urls === 1 ? '' : 's') + '. Fill in the prices in the box above, then Preview.';
+        csvBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    })();
+  </script>
+</body>
+</html>
