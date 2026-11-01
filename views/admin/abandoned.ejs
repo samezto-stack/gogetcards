@@ -3,6 +3,8 @@
 <head>
   <%- include('_head', { title: pageTitle }) %>
   <style>
+    .ab-list { min-width: 1120px; }
+    .ab-list td:nth-child(4) { min-width: 260px; }
     /* Metric notes sit under the figure as a sentence, which the shared
        delta line (bold, short) is not built for. */
     .ab-metric__note { font-size: 12px; line-height: 1.45; color: var(--admin-faint); margin-top: 4px; }
@@ -268,7 +270,7 @@
     <% } %>
 
     <div class="admin-table-wrap">
-      <table class="admin-table">
+      <table class="admin-table ab-list">
         <thead>
           <tr>
             <th>Customer</th><th>Source</th><th>Country</th><th>Product</th><th class="num">Total</th>

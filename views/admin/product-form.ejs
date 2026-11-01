@@ -2,6 +2,10 @@
 <html lang="en">
 <head>
   <%- include('_head', { title: pageTitle }) %>
+  <style>
+    .pf-market-row { grid-template-columns: 9rem 9rem 1fr; align-items: end; }
+    @media (max-width: 640px) { .pf-market-row { grid-template-columns: 1fr 1fr; } .pf-market-row > :last-child { grid-column: 1 / -1; } }
+  </style>
 </head>
 <body class="admin-body">
   <%- include('_sidebar', { currentPath: '/admin/products' }) %>
@@ -49,7 +53,7 @@
                 </select>
               </div>
             </div>
-            <div class="form-group"><label>Additional images (one URL per line)</label><textarea name="images" rows="3"><%= product && product.images ? product.images.join('\n') : '' %></textarea></div>
+            <div class="form-group"><label>Additional images (one URL per line)</label><textarea name="images" rows="3"><%= product && product.images ? (Array.isArray(product.images) ? product.images.join('\n') : product.images) : '' %></textarea></div>
             <div class="form-group"><label>Description (HTML)</label><textarea name="description" rows="6"><%= product ? product.description : '' %></textarea></div>
             <%
               /* On a validation-error re-render, `product` is the raw req.body, so
@@ -92,8 +96,8 @@
               })();
             </script>
             <div class="admin-form__row">
-              <div class="form-group"><label>Collections (comma-separated)</label><input type="text" name="collections" value="<%= product && product.collections ? product.collections.join(', ') : '' %>"></div>
-              <div class="form-group"><label>Tags (comma-separated)</label><input type="text" name="tags" value="<%= product && product.tags ? product.tags.join(', ') : '' %>"></div>
+              <div class="form-group"><label>Collections (comma-separated)</label><input type="text" name="collections" value="<%= product && product.collections ? (Array.isArray(product.collections) ? product.collections.join(', ') : product.collections) : '' %>"></div>
+              <div class="form-group"><label>Tags (comma-separated)</label><input type="text" name="tags" value="<%= product && product.tags ? (Array.isArray(product.tags) ? product.tags.join(', ') : product.tags) : '' %>"></div>
             </div>
           </div>
         </div>
@@ -269,7 +273,7 @@
           <div class="admin-panel__body stack">
             <% _otherMarkets.forEach(function (m) { %>
               <% var _row = ((product && product.marketPrices) || []).find(function (r) { return String(r.market).toUpperCase() === m.id; }) || {}; %>
-              <div class="admin-form__row" style="grid-template-columns:9rem 9rem 1fr;align-items:end">
+              <div class="admin-form__row pf-market-row">
                 <div class="form-group">
                   <label><%- include('../partials/flag', { code: m.id, label: m.name, size: 16 }) %> <%= m.id %> price <span class="faint">(<%= m.currency %>)</span></label>
                   <input type="number" min="0" step="0.01" name="mp_<%= m.id %>_amount"

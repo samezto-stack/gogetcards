@@ -12,7 +12,8 @@
     .ap-table tfoot td { border-top: 1px solid var(--admin-border-2); border-bottom: 0; background: var(--admin-panel-2); font-weight: 600; }
     .ap-mkt { font-weight: 600; white-space: nowrap; }
     .ap-approx { display: block; font-size: 11.5px; font-weight: 400; color: var(--admin-faint); }
-    .ap-top { font-size: 12px; color: var(--admin-muted); line-height: 1.5; max-width: 26ch; }
+    .ap-table { min-width: 1180px; }
+    .ap-top { font-size: 12px; color: var(--admin-muted); line-height: 1.5; min-width: 240px; max-width: 340px; }
     .ap-spend { width: 96px; height: 30px; text-align: right; font-variant-numeric: tabular-nums; }
     .ap-roas { font-weight: 600; }
     .ap-roas.good { color: var(--admin-ok); } .ap-roas.mid { color: var(--admin-warn); } .ap-roas.bad { color: var(--admin-crit); }
@@ -40,7 +41,8 @@
       .ap-table td::before { content: attr(data-l); color: var(--admin-faint); font-size: 12px; font-weight: 600; }
       .ap-table td.num { text-align: right; }
       .ap-table tfoot td { border-top: 0; }
-      .ap-top { max-width: none; text-align: right; }
+      .ap-table { min-width: 0; }
+      .ap-top { min-width: 0; max-width: none; text-align: right; }
     }
   </style>
 </head>

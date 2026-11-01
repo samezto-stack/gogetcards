@@ -96,7 +96,7 @@
                   <div class="ch-msg <%= msg.sender === 'user' ? 'ch-msg--user' : 'ch-msg--admin' %>">
                     <div class="ch-bubble"><%= msg.message %></div>
                     <span class="ch-when">
-                      <%= msg.sender === 'user' ? 'Customer' : 'You' %> &middot;
+                      <%= msg.sender === 'user' ? 'Customer' : 'Admin' %> &middot;
                       <%= new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) %>
                     </span>
                   </div>

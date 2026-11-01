@@ -1,14 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%230F2A4A'/><rect x='190' y='104' width='196' height='272' rx='22' fill='none' stroke='%23ffffff' stroke-width='30' transform='rotate(14 288 240)'/><rect x='126' y='136' width='196' height='272' rx='22' fill='%23ffffff'/></svg>">
-  <meta name="theme-color" content="#0c0c12">
-  <meta name="robots" content="noindex, nofollow">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= pageTitle %> | GoGetCards Admin</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
+  <%- include('_head', { title: pageTitle }) %>
+  <style>
+    /* Customer detail. Each order is one table row followed by its own
+       tools row, so the fulfilment and refund forms stay beside the order
+       they act on without the table turning into a stack of cards. */
+    .cu-scroll { overflow-x: auto; }
+    .admin-table tbody tr.cu-tools, .admin-table tbody tr.cu-tools:hover { background: var(--admin-panel-2); }
+    .cu-tools td { padding: 12px 14px 14px; }
+    .cu-tools form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .cu-tools form + form { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--admin-border); }
+    .cu-tools__label { font-size: 12px; font-weight: 600; color: var(--admin-muted); min-width: 72px; }
+    .cu-w-sm { width: 150px; } .cu-w-md { width: 180px; } .cu-w-lg { width: 220px; }
+    .cu-line { flex-basis: 100%; }
+    .cu-ua { max-width: 280px; }
+  </style>
 </head>
 <body class="admin-body">
   <%- include('_sidebar', { currentPath: '/admin/customers' }) %>
@@ -36,30 +43,38 @@
     %>
 
     <header class="admin-header">
-      <h1 class="admin-header__title"><%= name || (customer.displayEmail || customer.email) %></h1>
-      <a class="admin-btn" href="/admin/customers">&larr; All customers</a>
+      <div>
+        <h1 class="admin-header__title">
+          <%= name || (customer.displayEmail || customer.email) %>
+          <% if (customer.status === 'closed') { %><span class="admin-tag admin-tag--crit">Closed</span><% } %>
+        </h1>
+        <p class="admin-header__sub">Customer since <%= day(customer.createdAt) %> &middot; <span class="mono"><%= customer.displayEmail || customer.email %></span></p>
+      </div>
+      <div class="admin-header__actions">
+        <a class="admin-btn admin-btn--ghost" href="/admin/customers">All customers</a>
+      </div>
     </header>
 
     <div class="admin-content">
       <% if (saved && savedMsg[saved]) { %>
-        <div class="admin-alert admin-alert--success" style="margin-bottom:1.25rem"><%= savedMsg[saved] %></div>
+        <div class="admin-alert admin-alert--success"><%= savedMsg[saved] %></div>
       <% } %>
       <% if (failed && failedMsg[failed]) { %>
-        <div class="admin-alert admin-alert--error" style="margin-bottom:1.25rem"><%= failedMsg[failed] %></div>
+        <div class="admin-alert admin-alert--error"><%= failedMsg[failed] %></div>
       <% } %>
 
       <% if (customer.status === 'closed') { %>
-        <div class="admin-alert admin-alert--error" style="margin-bottom:1.25rem">
+        <div class="admin-alert admin-alert--error">
           This account is closed. Sign-in links are refused and every session has been ended.
         </div>
       <% } %>
 
-      <div class="admin-stats-grid" style="margin-bottom:1.5rem">
+      <div class="admin-stats-grid">
         <div class="admin-stat-card">
           <div class="admin-stat-card__num"><%= counts.all %></div>
           <div class="admin-stat-card__label">Orders</div>
         </div>
-        <div class="admin-stat-card">
+        <div class="admin-stat-card admin-stat-card--accent">
           <div class="admin-stat-card__num"><%= money(totalSpend) %></div>
           <div class="admin-stat-card__label">Lifetime value</div>
         </div>
@@ -74,151 +89,185 @@
       </div>
 
       <%/* ── Identity ────────────────────────────────────────────── */%>
-      <section class="admin-section" style="margin-bottom:1.75rem">
-        <h2 class="admin-section__title">Profile</h2>
-        <div style="background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:10px;padding:1.25rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.25rem">
-          <div>
-            <div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--admin-faint);margin-bottom:0.3rem">Email</div>
-            <div style="font-family:var(--admin-font-mono);font-size:0.8rem"><%= customer.displayEmail || customer.email %></div>
-          </div>
-          <div>
-            <div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--admin-faint);margin-bottom:0.3rem">Phone</div>
-            <div style="font-size:0.85rem"><%= customer.phone || '—' %></div>
-          </div>
-          <div>
-            <div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--admin-faint);margin-bottom:0.3rem">Default address</div>
-            <div style="font-size:0.85rem;line-height:1.5">
-              <% if (addr.length) { addr.forEach(function (l) { %><%= l %><br><% }); } else { %>—<% } %>
+      <section class="admin-panel">
+        <div class="admin-panel__head"><h2 class="admin-panel__title">Profile</h2></div>
+        <div class="admin-panel__body">
+          <div class="admin-kv">
+            <div>
+              <div class="admin-kv__k">Email</div>
+              <div class="admin-kv__v mono"><%= customer.displayEmail || customer.email %></div>
             </div>
-          </div>
-          <div>
-            <div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--admin-faint);margin-bottom:0.3rem">Account</div>
-            <div style="font-size:0.85rem;line-height:1.6">
-              Created <%= day(customer.createdAt) %> via <%= customer.createdVia || 'purchase' %><br>
-              Marketing: <%= customer.marketingOptIn ? 'opted in' : 'not opted in' %>
+            <div>
+              <div class="admin-kv__k">Phone</div>
+              <div class="admin-kv__v"><%= customer.phone || '—' %></div>
+            </div>
+            <div>
+              <div class="admin-kv__k">Default address</div>
+              <div class="admin-kv__v">
+                <% if (addr.length) { addr.forEach(function (l) { %><%= l %><br><% }); } else { %>—<% } %>
+              </div>
+            </div>
+            <div>
+              <div class="admin-kv__k">Account</div>
+              <div class="admin-kv__v">
+                Created <%= day(customer.createdAt) %> via <%= customer.createdVia || 'purchase' %><br>
+                Marketing: <%= customer.marketingOptIn ? 'opted in' : 'not opted in' %>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       <%/* ── Orders ──────────────────────────────────────────────── */%>
-      <section class="admin-section" style="margin-bottom:1.75rem">
-        <h2 class="admin-section__title">Orders</h2>
+      <section class="admin-panel">
+        <div class="admin-panel__head">
+          <h2 class="admin-panel__title">Orders <span class="admin-header__count"><%= orders.length %></span></h2>
+        </div>
 
         <% if (!orders.length) { %>
-          <div style="background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:10px;padding:2rem;text-align:center;color:var(--admin-muted);font-size:0.85rem">
-            No orders on this account.
+          <div class="admin-panel__body">
+            <div class="admin-empty admin-empty--inset"><p>No orders on this account.</p></div>
           </div>
-        <% } %>
-
-        <% orders.forEach(function (d) { const o = d.order; %>
-          <article style="background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:10px;padding:1.15rem 1.25rem;margin-bottom:0.85rem">
-            <div style="display:flex;flex-wrap:wrap;gap:0.75rem 1.25rem;align-items:baseline">
-              <strong style="font-family:var(--admin-font-mono);font-size:0.85rem"><%= d.reference %></strong>
-              <span class="status-pill status-pill--<%= tone[d.status.tone] || 'neutral' %>">
-                <span class="status-pill__dot"></span><%= d.status.label %>
-              </span>
-              <span style="font-size:0.82rem;color:var(--admin-muted)">
-                <%= (d.product && d.product.title) || (o.products || [])[0] || 'Order' %>
-                <% if ((Number(o.quantity) || 1) > 1) { %> &times;<%= o.quantity %><% } %>
-              </span>
-              <span style="margin-left:auto;font-family:var(--admin-font-mono);font-size:0.85rem"><%= money(o.totalPrice, o.currency) %></span>
-            </div>
-            <div style="font-size:0.72rem;color:var(--admin-faint);margin-top:0.4rem">
-              Placed <%= stamp(o.purchaseDate || o.createdAt) %>
-              <% if (d.isPreorder) { %> &middot; Preorder<% if (d.release && d.release.hasDate) { %>, releases <%= d.release.display %><% } %><% } %>
-              &middot; <%= o.source || o.paymentProvider || 'direct' %>
-              <% if (o.cancelledAt) { %> &middot; Cancelled <%= day(o.cancelledAt) %> by <%= o.cancelledBy || 'unknown' %><% } %>
-              <% if (o.cancellationReason) { %> &middot; &ldquo;<%= o.cancellationReason %>&rdquo;<% } %>
-            </div>
-
-            <%/* ── Fulfilment ─────────────────────────────────────
-                 The customer's account reads these fields directly, so
-                 what is typed here is what they see within seconds. */%>
-            <form method="POST" action="/admin/customers/<%= customer._id %>/orders/<%= o._id %>/fulfilment"
-                  style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;margin-top:0.9rem;padding-top:0.9rem;border-top:1px solid var(--admin-border)">
-              <select name="fulfillmentStatus" class="admin-select" style="font-size:0.78rem;padding:0.35rem 0.6rem">
-                <% ['unfulfilled', 'preparing', 'shipped', 'delivered'].forEach(function (s) { %>
-                  <option value="<%= s %>" <%= o.fulfillmentStatus === s ? 'selected' : '' %>><%= s %></option>
-                <% }); %>
-              </select>
-              <input class="admin-search-input" style="width:150px" name="trackingCarrier" value="<%= o.trackingCarrier || '' %>" placeholder="Carrier">
-              <input class="admin-search-input" style="width:180px" name="trackingNumber" value="<%= o.trackingNumber || '' %>" placeholder="Tracking number">
-              <input class="admin-search-input" style="width:220px" name="trackingUrl" value="<%= o.trackingUrl || '' %>" placeholder="https://tracking-url">
-              <button class="admin-btn admin-btn--sm admin-btn--primary" type="submit">Save fulfilment</button>
-            </form>
-
-            <%/* ── Cancellation & refund ──────────────────────────
-                 NOTHING HERE MOVES MONEY. "Mark refunded" records that a
-                 refund already sent by hand in the payment provider has
-                 been sent; the customer's account then says so. Pressing
-                 it before actually refunding makes the portal lie. */%>
-            <form method="POST" action="/admin/customers/<%= customer._id %>/orders/<%= o._id %>/refund"
-                  style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;margin-top:0.6rem">
-              <span style="font-size:0.72rem;color:var(--admin-faint);margin-right:0.25rem">
-                Refund: <strong style="color:var(--admin-muted)"><%= o.refundStatus %></strong>
-                <% if (o.refundAmount) { %> (<%= money(o.refundAmount, o.currency) %>)<% } %>
-              </span>
-              <%/* The customer has been asked whether they want the order
-                   back, and the email promised the refund goes out AFTER
-                   the deadline. Marking it refunded before then breaks
-                   that promise. See docs/release-day.md. */%>
-              <% if (o.cancelledAt && o.refundStatus === 'processing' && o.reinstateDeadline && new Date(o.reinstateDeadline) > new Date()) { %>
-                <span style="font-size:0.72rem;color:#e0b470;flex-basis:100%">
-                  Keep-or-refund offer open until
-                  <%= new Date(o.reinstateDeadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Los_Angeles' }) %>
-                  &mdash; do not issue this refund before then.
-                </span>
-              <% } %>
-              <% if (o.reinstatedAt && !o.cancelledAt) { %>
-                <span style="font-size:0.72rem;color:#8fc79c;flex-basis:100%">Reinstated by the customer on <%= day(o.reinstatedAt) %> &mdash; no refund owed.</span>
-              <% } %>
-              <% if (!o.cancelledAt) { %>
-                <button class="admin-btn admin-btn--sm admin-btn--danger" name="action" value="cancel" type="submit"
-                        onclick="return confirm('Cancel this order and queue a refund? This does not contact the payment provider.')">Cancel &amp; owe refund</button>
-              <% } %>
-              <% if (o.refundStatus === 'none') { %>
-                <button class="admin-btn admin-btn--sm" name="action" value="processing" type="submit">Mark refund owed</button>
-              <% } %>
-              <% if (o.refundStatus !== 'refunded') { %>
-                <button class="admin-btn admin-btn--sm" name="action" value="refunded" type="submit"
-                        onclick="return confirm('Only press this AFTER issuing the refund in the payment provider. The customer will be told their money has been sent.')">Mark refunded</button>
-              <% } else { %>
-                <span style="font-size:0.72rem;color:var(--admin-faint)">Refunded <%= day(o.refundedAt) %></span>
-              <% } %>
-              <% if (o.refundStatus !== 'none') { %>
-                <button class="admin-btn admin-btn--sm" name="action" value="clear" type="submit">Clear refund flag</button>
-              <% } %>
-            </form>
-          </article>
-        <% }); %>
-      </section>
-
-      <%/* ── Sessions ────────────────────────────────────────────── */%>
-      <section class="admin-section" style="margin-bottom:1.75rem">
-        <h2 class="admin-section__title">Sessions</h2>
-        <div style="background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:10px;padding:1.25rem">
-          <% if (!sessions.length) { %>
-            <p style="font-size:0.85rem;color:var(--admin-muted);margin:0">No live sessions.</p>
-          <% } else { %>
-            <div class="admin-table-wrap" style="border:0">
+        <% } else { %>
+          <div class="admin-panel__body admin-panel__body--flush">
+            <div class="cu-scroll">
               <table class="admin-table">
-                <thead><tr><th>Device</th><th>Network</th><th>Started via</th><th>Last used</th><th>Expires</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>Reference</th>
+                    <th>Status</th>
+                    <th>Items</th>
+                    <th>Placed</th>
+                    <th class="num">Total</th>
+                  </tr>
+                </thead>
                 <tbody>
-                  <% sessions.forEach(function (s) { %>
+                  <% orders.forEach(function (d) { const o = d.order; %>
                     <tr>
-                      <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.72rem"><%= s.userAgent || '—' %></td>
-                      <td style="font-family:var(--admin-font-mono);font-size:0.72rem"><%= s.ipPrefix || '—' %></td>
-                      <td><%= s.origin || '—' %></td>
-                      <td><%= stamp(s.lastUsedAt || s.createdAt) %></td>
-                      <td><%= day(s.expiresAt) %></td>
+                      <td class="mono nowrap"><%= d.reference %></td>
+                      <td>
+                        <span class="status-pill status-pill--<%= tone[d.status.tone] || 'neutral' %>">
+                          <span class="status-pill__dot"></span><%= d.status.label %>
+                        </span>
+                      </td>
+                      <td>
+                        <%= (d.product && d.product.title) || (o.products || [])[0] || 'Order' %>
+                        <% if ((Number(o.quantity) || 1) > 1) { %> &times;<%= o.quantity %><% } %>
+                        <% if (d.isPreorder) { %>
+                          <span class="admin-cell-sub">Preorder<% if (d.release && d.release.hasDate) { %>, releases <%= d.release.display %><% } %></span>
+                        <% } %>
+                      </td>
+                      <td class="nowrap">
+                        <%= stamp(o.purchaseDate || o.createdAt) %>
+                        <span class="admin-cell-sub">
+                          <%= o.source || o.paymentProvider || 'direct' %>
+                          <% if (o.cancelledAt) { %> &middot; Cancelled <%= day(o.cancelledAt) %> by <%= o.cancelledBy || 'unknown' %><% } %>
+                          <% if (o.cancellationReason) { %> &middot; &ldquo;<%= o.cancellationReason %>&rdquo;<% } %>
+                        </span>
+                      </td>
+                      <td class="num mono"><%= money(o.totalPrice, o.currency) %></td>
+                    </tr>
+                    <tr class="cu-tools">
+                      <td colspan="5">
+                        <%/* ── Fulfilment ─────────────────────────────────────
+                             The customer's account reads these fields directly, so
+                             what is typed here is what they see within seconds. */%>
+                        <form method="POST" action="/admin/customers/<%= customer._id %>/orders/<%= o._id %>/fulfilment">
+                          <span class="cu-tools__label">Fulfilment</span>
+                          <select name="fulfillmentStatus" class="admin-select">
+                            <% ['unfulfilled', 'preparing', 'shipped', 'delivered'].forEach(function (s) { %>
+                              <option value="<%= s %>" <%= o.fulfillmentStatus === s ? 'selected' : '' %>><%= s %></option>
+                            <% }); %>
+                          </select>
+                          <input class="admin-input cu-w-sm" name="trackingCarrier" value="<%= o.trackingCarrier || '' %>" placeholder="Carrier">
+                          <input class="admin-input cu-w-md" name="trackingNumber" value="<%= o.trackingNumber || '' %>" placeholder="Tracking number">
+                          <input class="admin-input cu-w-lg" name="trackingUrl" value="<%= o.trackingUrl || '' %>" placeholder="https://tracking-url">
+                          <button class="admin-btn admin-btn--sm admin-btn--primary" type="submit">Save fulfilment</button>
+                        </form>
+
+                        <%/* ── Cancellation & refund ──────────────────────────
+                             NOTHING HERE MOVES MONEY. "Mark refunded" records that a
+                             refund already sent by hand in the payment provider has
+                             been sent; the customer's account then says so. Pressing
+                             it before actually refunding makes the portal lie. */%>
+                        <form method="POST" action="/admin/customers/<%= customer._id %>/orders/<%= o._id %>/refund">
+                          <span class="cu-tools__label">Refund</span>
+                          <span class="small muted">
+                            <strong><%= o.refundStatus %></strong>
+                            <% if (o.refundAmount) { %> (<%= money(o.refundAmount, o.currency) %>)<% } %>
+                          </span>
+                          <%/* The customer has been asked whether they want the order
+                               back, and the email promised the refund goes out AFTER
+                               the deadline. Marking it refunded before then breaks
+                               that promise. See docs/release-day.md. */%>
+                          <% if (o.cancelledAt && o.refundStatus === 'processing' && o.reinstateDeadline && new Date(o.reinstateDeadline) > new Date()) { %>
+                            <span class="cu-line small warn">
+                              Keep-or-refund offer open until
+                              <%= new Date(o.reinstateDeadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Los_Angeles' }) %>
+                              &mdash; do not issue this refund before then.
+                            </span>
+                          <% } %>
+                          <% if (o.reinstatedAt && !o.cancelledAt) { %>
+                            <span class="cu-line small ok">Reinstated by the customer on <%= day(o.reinstatedAt) %> &mdash; no refund owed.</span>
+                          <% } %>
+                          <% if (!o.cancelledAt) { %>
+                            <button class="admin-btn admin-btn--sm admin-btn--danger" name="action" value="cancel" type="submit"
+                                    onclick="return confirm('Cancel this order and queue a refund? This does not contact the payment provider.')">Cancel &amp; owe refund</button>
+                          <% } %>
+                          <% if (o.refundStatus === 'none') { %>
+                            <button class="admin-btn admin-btn--sm" name="action" value="processing" type="submit">Mark refund owed</button>
+                          <% } %>
+                          <% if (o.refundStatus !== 'refunded') { %>
+                            <button class="admin-btn admin-btn--sm" name="action" value="refunded" type="submit"
+                                    onclick="return confirm('Only press this AFTER issuing the refund in the payment provider. The customer will be told their money has been sent.')">Mark refunded</button>
+                          <% } else { %>
+                            <span class="small faint">Refunded <%= day(o.refundedAt) %></span>
+                          <% } %>
+                          <% if (o.refundStatus !== 'none') { %>
+                            <button class="admin-btn admin-btn--sm" name="action" value="clear" type="submit">Clear refund flag</button>
+                          <% } %>
+                        </form>
+                      </td>
                     </tr>
                   <% }); %>
                 </tbody>
               </table>
             </div>
-          <% } %>
-          <form method="POST" action="/admin/customers/<%= customer._id %>/sessions/revoke" style="margin-top:1rem">
+          </div>
+        <% } %>
+      </section>
+
+      <%/* ── Sessions ────────────────────────────────────────────── */%>
+      <section class="admin-panel">
+        <div class="admin-panel__head">
+          <h2 class="admin-panel__title">Sessions <span class="admin-header__count"><%= sessions.length %></span></h2>
+        </div>
+        <% if (!sessions.length) { %>
+          <div class="admin-panel__body">
+            <div class="admin-empty admin-empty--inset"><p>No live sessions.</p></div>
+          </div>
+        <% } else { %>
+          <div class="admin-panel__body admin-panel__body--flush">
+            <div class="cu-scroll">
+              <table class="admin-table">
+                <thead><tr><th>Device</th><th>Network</th><th>Started via</th><th>Last used</th><th>Expires</th></tr></thead>
+                <tbody>
+                  <% sessions.forEach(function (s) { %>
+                    <tr>
+                      <td class="truncate small cu-ua" title="<%= s.userAgent || '' %>"><%= s.userAgent || '—' %></td>
+                      <td class="mono"><%= s.ipPrefix || '—' %></td>
+                      <td><%= s.origin || '—' %></td>
+                      <td class="nowrap"><%= stamp(s.lastUsedAt || s.createdAt) %></td>
+                      <td class="nowrap"><%= day(s.expiresAt) %></td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        <% } %>
+        <div class="admin-panel__foot">
+          <form method="POST" action="/admin/customers/<%= customer._id %>/sessions/revoke">
             <button class="admin-btn admin-btn--sm admin-btn--danger" type="submit"
                     onclick="return confirm('Sign this customer out of every device?')">Sign out everywhere</button>
           </form>
@@ -226,10 +275,15 @@
       </section>
 
       <%/* ── Account state ───────────────────────────────────────── */%>
-      <section class="admin-section" style="margin-bottom:1.75rem">
-        <h2 class="admin-section__title">Account state</h2>
-        <div style="background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:10px;padding:1.25rem">
-          <p style="font-size:0.82rem;color:var(--admin-muted);margin:0 0 1rem;line-height:1.6">
+      <section class="admin-panel">
+        <div class="admin-panel__head">
+          <h2 class="admin-panel__title">Account status</h2>
+          <span class="status-pill status-pill--<%= customer.status === 'closed' ? 'err' : 'ok' %>">
+            <span class="status-pill__dot"></span><%= customer.status === 'closed' ? 'Closed' : 'Active' %>
+          </span>
+        </div>
+        <div class="admin-panel__body stack">
+          <p class="small muted">
             Closing an account refuses new sign-in links and ends every live session. Order records are
             kept &mdash; we are required to hold them for tax and consumer-protection reasons, and the
             customer's orders remain visible here. This is reversible.
@@ -252,12 +306,12 @@
            rendered when every order on the account came from the
            test-purchase flow, and the route re-checks that against the
            database before deleting anything. */%>
-      <section class="admin-section">
-        <h2 class="admin-section__title" style="color:#e07487">Delete permanently</h2>
-        <div style="background:var(--admin-surface);border:1px solid rgba(196,72,92,0.35);border-radius:10px;padding:1.25rem">
+      <section class="admin-panel admin-panel--crit">
+        <div class="admin-panel__head"><h2 class="admin-panel__title">Delete permanently</h2></div>
+        <div class="admin-panel__body stack">
 
           <% if (testOnly) { %>
-            <p style="font-size:0.82rem;color:var(--admin-muted);margin:0 0 1rem;line-height:1.6">
+            <p class="small muted">
               <% if (testOrderCount) { %>
                 Every order on this account (<%= testOrderCount %>) came from the test-purchase flow, so
                 the whole thing can go: the account, its sessions, its sign-in links and those orders.
@@ -266,7 +320,7 @@
               <% } %>
               This cannot be undone.
             </p>
-            <div style="display:flex;flex-wrap:wrap;gap:0.5rem">
+            <div class="admin-btn-row">
               <% if (testOrderCount) { %>
                 <form method="POST" action="/admin/customers/<%= customer._id %>/delete">
                   <input type="hidden" name="orders" value="test">
@@ -286,13 +340,13 @@
             </div>
 
           <% } else { %>
-            <p style="font-size:0.82rem;color:var(--admin-muted);margin:0 0 1rem;line-height:1.6">
-              This account has <strong style="color:var(--admin-text)"><%= realOrderCount %></strong> real
+            <p class="small muted">
+              This account has <strong><%= realOrderCount %></strong> real
               order<%= realOrderCount === 1 ? '' : 's' %>, so its orders cannot be deleted from here.
               Deleting the account itself removes the profile, its sessions and its sign-in links, and
               leaves every order intact.
             </p>
-            <p style="font-size:0.78rem;color:var(--admin-faint);margin:0 0 1rem;line-height:1.6">
+            <p class="tiny faint">
               Orders are matched to an account by email address, so if this customer signs in again with
               the same address the account is rebuilt around the orders that are still here. To stop them
               signing in, close the account above instead.

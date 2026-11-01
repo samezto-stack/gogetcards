@@ -16,6 +16,9 @@
        every row the same height and puts the space where the long text
        actually is. */
     .ot-table { min-width: 980px; table-layout: fixed; }
+    /* Eight columns of free text; below this width every cell wraps a word a line. */
+    .ot-unconfirmed { min-width: 1100px; }
+    .ot-unconfirmed td:nth-child(5) { min-width: 240px; }
     .ot-table th, .ot-table td { vertical-align: top; }
     /* A test purchase sits in the list but is tinted so it cannot be
        mistaken for money. */
@@ -137,7 +140,7 @@
           </div>
         </div>
         <div class="admin-panel__body admin-panel__body--flush">
-          <table class="admin-table">
+          <table class="admin-table ot-unconfirmed">
             <thead>
               <tr>
                 <th>When</th><th>Order ID</th><th>Site</th><th>Customer</th>
@@ -149,14 +152,14 @@
                 <tr>
                   <td class="nowrap muted"><%= new Date(p.createdAt).toLocaleString() %></td>
                   <td><span class="admin-code"><%= p.orderId %></span></td>
-                  <td><%= p.store || '&mdash;' %></td>
+                  <td><%= p.store || '—' %></td>
                   <td>
                     <div><%= p.customerName || 'Guest' %></div>
                     <span class="admin-cell-sub"><%= p.customerEmail || '' %></span>
                   </td>
-                  <td><%= p.productName || '&mdash;' %><% if (p.quantity && p.quantity !== '1') { %> <span class="muted">&times;<%= p.quantity %></span><% } %></td>
+                  <td><%= p.productName || '—' %><% if (p.quantity && p.quantity !== '1') { %> <span class="muted">&times;<%= p.quantity %></span><% } %></td>
                   <td class="num"><strong><%= p.currency || 'USD' %> <%= p.price || '?' %></strong></td>
-                  <td class="mono muted"><%= p.paymentId || '&mdash;' %></td>
+                  <td class="mono muted"><%= p.paymentId || '—' %></td>
                   <td class="num">
                     <%/* The recover action is the affirmative one in that row — it creates an
                          order and mails a customer — so it reads as a button and "Dismiss"
@@ -237,8 +240,8 @@
                visible. The min-width on .ot-table is the floor below
                which it scrolls instead of crushing. */%>
           <colgroup>
-            <col style="width:13%"><col style="width:8%"><col style="width:16%">
-            <col style="width:19%"><col style="width:8%"><col style="width:14%">
+            <col style="width:13%"><col style="width:10%"><col style="width:15%">
+            <col style="width:18%"><col style="width:8%"><col style="width:14%">
             <col style="width:14%"><col style="width:8%">
           </colgroup>
           <thead>
@@ -300,12 +303,12 @@
                     </a>
                   <% } else { %>
                     <div class="ot-cust-name"><%= order.customerName || 'Guest' %></div>
-                    <div class="ot-sub"><%= order.customerEmail || '&mdash;' %></div>
+                    <div class="ot-sub"><%= order.customerEmail || '—' %></div>
                   <% } %>
                 </td>
 
                 <td>
-                  <div class="ot-product" title="<%= r.title %>"><%= r.title || '&mdash;' %></div>
+                  <div class="ot-product" title="<%= r.title %>"><%= r.title || '—' %></div>
                   <div class="ot-sub">
                     <% if ((Number(order.quantity) || 1) > 1) { %>Qty <%= order.quantity %><% } %>
                     <% if (r.isPreorder) { %>
