@@ -393,7 +393,11 @@ function build(product, { channel = 'google', market = null, country = null } = 
     ...(m.shippingLabel ? { shippingLabel: m.shippingLabel } : {}),
     ...(m.taxCategory ? { taxCategory: m.taxCategory } : {}),
     ...(m.isBundle ? { isBundle: true } : {}),
-    ...(m.multipack > 0 ? { multipack: String(m.multipack) } : {}),
+    /* A pack-sold product is a multipack to Google: the price is the
+       pack's, so the listing must say how many units it buys. An explicit
+       merchant override still wins. See helpers/packs.js. */
+    ...(m.multipack > 0 ? { multipack: String(m.multipack) }
+      : (parseInt(product.packSize, 10) > 1 ? { multipack: String(parseInt(product.packSize, 10)) } : {})),
     ...(m.adult ? { adult: true } : {}),
     ...(m.excludedDestinations && m.excludedDestinations.length
       ? { excludedDestinations: m.excludedDestinations } : {}),

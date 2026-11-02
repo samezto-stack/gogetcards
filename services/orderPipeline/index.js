@@ -268,6 +268,14 @@ async function runThankYouPipeline(query) {
   const clickEvent = await resolveCheckoutClickEvent(raw);
   const trafficSource = (clickEvent && clickEvent.source) || '';
   const orderData = buildOrderData(raw, customer, sourceInfo, trafficSource);
+  /* Packs: the partner charged `quantity` rungs, which is packs. Record
+     how many units each pack holds so every receipt can say what is
+     actually on its way. Read from the product rather than the payload,
+     which does not carry it and could not be trusted if it did. */
+  if (orderData.productSlug) {
+    const packProduct = await require('../../models/Product').findOne({ slug: orderData.productSlug }).select('packSize').lean();
+    orderData.packSize = Math.max(1, parseInt(packProduct && packProduct.packSize, 10) || 1);
+  }
   /* The established marker, not a new flag: Order.originalCheckoutMethod
      is what /admin's revenue queries already exclude on, and what
      testOrder.isTestOrder() already recognises. Forced here rather than

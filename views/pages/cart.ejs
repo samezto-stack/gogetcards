@@ -76,12 +76,17 @@
             <!-- Quantity -->
             <div style="display:flex;align-items:center;justify-content:center">
               <div style="display:flex;align-items:center;background:var(--color-bg-input);border:1.5px solid var(--color-border-light);border-radius:var(--radius-md)">
+                <%/* Shown in units, stepping by the pack; the script turns
+                     it back into packs before the cart is told. */%>
+                <% var ctPack = parseInt(item.packSize, 10) > 1 ? parseInt(item.packSize, 10) : 1; %>
                 <input
                   type="number"
-                  value="<%= item.quantity %>"
+                  value="<%= item.quantity * ctPack %>"
                   min="0"
+                  step="<%= ctPack %>"
                   class="cart-qty-input"
                   data-cart-qty="<%= item.slug %>"
+                  data-pack-size="<%= ctPack %>"
                   aria-label="Quantity for <%= item.title %>"
                   style="width:60px;text-align:center;background:transparent;border:none;color:var(--color-heading);font-family:var(--font-heading);font-weight:700;padding:0.4rem"
                 >

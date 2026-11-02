@@ -96,6 +96,9 @@ const PAGES = [
   ['home', { featuredProducts: [inStock, preorderItem], preorderProducts: [preorderItem] }],
   ['product', { product: inStock, relatedProducts: [preorderItem], partnerExperience: { enabled: false } }],
   ['product(preorder)', { __view: 'product', product: preorderItem, relatedProducts: [inStock], partnerExperience: { enabled: false } }],
+  /* Sold in packs: priced per pack on the ladder, shown per unit, bought
+     by the pack. helpers/packs.js. */
+  ['product(pack-of-4)', { __view: 'product', product: { ...inStock, _id: 'p4', slug: 'booster-pack', title: 'One Piece TCG OP-17 Booster Pack', price: 4999, comparePrice: null, packSize: 4, stock: 40 }, relatedProducts: [inStock], partnerExperience: { enabled: false } }],
   ['product(variants)', {
     __view: 'product', product: variantNight,
     variantTitle: 'Pokémon TCG: 30th Celebration Ultra-Premium Collection — Night (Umbreon ex)',

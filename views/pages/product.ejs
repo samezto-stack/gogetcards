@@ -109,12 +109,23 @@
              : { amount: product.price, currency: 'USD', compareAmount: product.comparePrice || 0 }; %>
         <% var _money = (typeof marketMoney !== 'undefined') ? marketMoney
              : function (a, c) { return 'US$' + formatPrice(a); }; %>
-        <span class="pp__price" data-usd-cents="<%= _p.amount %>" data-usd-label="<%= _money(_p.amount, _p.currency) %>"><%= _money(_p.amount, _p.currency) %></span>
+        <%/* PACKS. A product with packSize > 1 is priced per pack (that is
+             the figure the ladder charges and the Offer schema states) but
+             is SHOWN per unit, because the single unit is what the buyer
+             is pricing in their head. The pack price is printed on the next
+             line so the two never contradict. helpers/packs.js. */%>
+        <% var _pack = (typeof packs !== 'undefined' && packs) ? packs.of(product) : (parseInt(product.packSize, 10) > 1 ? parseInt(product.packSize, 10) : 1); %>
+        <% var _unit = _pack > 1 ? Math.round(_p.amount / _pack) : _p.amount; %>
+        <span class="pp__price" data-usd-cents="<%= _unit %>" data-usd-label="<%= _money(_unit, _p.currency) %>"><%= _money(_unit, _p.currency) %></span>
+        <% if (_pack > 1) { %><span class="pp__each">each</span><% } %>
         <% if (product.comparePrice && product.comparePrice > product.price) { %>
-          <span class="pp__compare"><%= _money(_p.compareAmount || product.comparePrice, _p.currency) %></span>
+          <span class="pp__compare"><%= _money(_pack > 1 ? Math.round((_p.compareAmount || product.comparePrice) / _pack) : (_p.compareAmount || product.comparePrice), _p.currency) %></span>
           <span class="pp__save">Save <%= savingsPct %>%</span>
         <% } %>
       </div>
+      <% if (_pack > 1) { %>
+        <p class="pp__pack-line">Sold in packs of <%= _pack %> &middot; <strong><%= _money(_p.amount, _p.currency) %></strong> per pack</p>
+      <% } %>
 
       <!-- Preorder callout -->
       <%/* Was three sentences: "Price locked. Ships release day. Cancel
@@ -280,9 +291,12 @@
         <!-- Quantity -->
         <div class="pp__qty-wrap">
           <span class="form-label">Quantity</span>
-          <div class="pp__qty" data-qty-wrap>
+          <%/* The stepper counts UNITS on screen and PACKS underneath: the
+               hidden input is what the cart and the checkout read, and it
+               still says 1, 2, 3 packs; the display says 4, 8, 12. */%>
+          <div class="pp__qty" data-qty-wrap data-pack-size="<%= _pack %>">
             <button type="button" class="pp__qty-btn" data-qty-minus aria-label="Decrease quantity">−</button>
-            <span data-qty-display class="pp__qty-val">1</span>
+            <span data-qty-display class="pp__qty-val"><%= _pack %></span>
             <%/* THE EFFECTIVE LIMIT, not the allocation limit alone.
                  A partner site sells a ladder of twenty-four equal steps, so a
                  product costing seven of them can only be bought one at a
@@ -297,7 +311,9 @@
           </div>
           <% var shownLimit = (typeof buyLimit !== 'undefined' ? buyLimit : (product.allocationLimit || 0)); %>
           <% if (shownLimit > 0) { %>
-            <span style="font-size:0.78rem;color:var(--color-text-muted);margin-left:0.5rem">Limit <%= shownLimit %> per customer</span>
+            <span style="font-size:0.78rem;color:var(--color-text-muted);margin-left:0.5rem">Limit <%= shownLimit * _pack %> per customer</span>
+          <% } else if (_pack > 1) { %>
+            <span style="font-size:0.78rem;color:var(--color-text-muted);margin-left:0.5rem">Sold in multiples of <%= _pack %></span>
           <% } else { %>
             <span style="font-size:0.78rem;color:var(--color-text-muted);margin-left:0.5rem">Order multiple boxes to optimize shipping</span>
           <% } %>
@@ -571,6 +587,9 @@
 <% } %>
 
 <style>
+  .pp__each { font-size:0.85rem; font-weight:600; color:var(--color-text-muted); margin-left:0.35rem; }
+  .pp__pack-line { font-size:0.85rem; color:var(--color-text-muted); margin:-0.35rem 0 0.9rem; }
+  .pp__pack-line strong { color:var(--color-text); }
   .pp__preorder-head { font-family:var(--font-heading); font-size:0.9rem; font-weight:700; color:var(--color-cyan); }
   .pp__preorder-sub { font-size:0.8rem; color:var(--color-text-muted); margin-top:4px; line-height:1.65; }
   .pp__preorder-sub strong { color:var(--color-text); }

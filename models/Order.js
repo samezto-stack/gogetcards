@@ -130,6 +130,12 @@ const orderSchema = new mongoose.Schema({
   productSlug: { type: String, default: '' },
   productImage: { type: String, default: '' },
   quantity: { type: Number, default: 1 },
+  /* Units per `quantity` when the product is sold in packs (see
+     helpers/packs.js). quantity counts packs, which is what the ladder
+     charged; quantity × packSize is what the customer receives and is
+     the figure every receipt, page and email shows. 1 for everything
+     sold singly, which is every order that predates the field. */
+  packSize: { type: Number, default: 1 },
   purchaseDate: { type: Date, default: null },
 
   // Import metadata — kept separate from the fields above so an imported

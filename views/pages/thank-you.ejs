@@ -35,7 +35,7 @@
     if (Array.isArray(order.products) && order.products.length) {
       return order.products.map((title, i) => ({
         title: typeof title === 'string' ? title : (title && title.title) || 'Item',
-        quantity: i === 0 ? (Number(order.quantity) || 1) : 1,
+        quantity: i === 0 ? (Number(order.quantity) || 1) * (Number(order.packSize) > 1 ? Number(order.packSize) : 1) : 1,
         price: order.products.length === 1 ? order.totalPrice : null,
         image: i === 0 ? (order.productImage || '') : '',
       }));

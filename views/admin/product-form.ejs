@@ -113,6 +113,18 @@
               <div class="form-group"><label>Stock</label><input type="number" name="stock" value="<%= product ? product.stock : 0 %>"></div>
               <div class="form-group"><label>Allocation limit (0 = unlimited)</label><input type="number" name="allocationLimit" value="<%= product ? (product.allocationLimit || 0) : 0 %>"></div>
             </div>
+            <%/* Packs. The price above is the price of one pack of this many
+                 units, on the ladder as usual; the shop shows the single-unit
+                 price and sells in multiples of the pack. Stock and the
+                 allocation limit are counted in packs. */%>
+            <div class="admin-form__row">
+              <div class="form-group">
+                <label>Sold in packs of</label>
+                <input type="number" min="1" step="1" name="packSize" value="<%= product ? (product.packSize || 1) : 1 %>">
+                <small>1 = sold singly. Set 4 and the price above is the price of four; the page shows the price of one and the buyer picks 4, 8, 12. Stock and the limit count packs.</small>
+              </div>
+              <div class="form-group"></div>
+            </div>
             <div class="admin-form__row">
               <div class="form-group"><label>Preorder ships (display text)</label><input type="text" name="preorderShips" value="<%= product ? (product.preorderShips || '') : '' %>" placeholder="Q2 2026"></div>
               <%/* The real release date, as a date. "Q2 2026" is fine for a

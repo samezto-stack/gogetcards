@@ -33,7 +33,8 @@ function getCart(req) {
 }
 
 function recalcCart(cart) {
-  cart.totalItems = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+  /* Units, not packs: the header badge says how many things are in the bag. */
+  cart.totalItems = cart.items.reduce((sum, item) => sum + item.quantity * Math.max(1, parseInt(item.packSize, 10) || 1), 0);
   cart.totalPrice = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 }
 
@@ -76,6 +77,10 @@ router.post('/cart/add', async (req, res) => {
         productType: product.productType,
         variantId: product.variantId || '',
         preorder: product.preorder || false,
+        /* Packs: `quantity` counts packs, `packSize` says how many units
+           each one is, so the drawer can show the count the customer
+           chose. helpers/packs.js. */
+        packSize: Math.max(1, parseInt(product.packSize, 10) || 1),
         quantity: limit > 0 ? Math.min(qty, limit) : qty,
       }];
     }

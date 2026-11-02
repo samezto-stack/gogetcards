@@ -89,7 +89,8 @@
             <% if (d.isPreorder && d.release && d.release.hasDate && !d.order.cancelledAt) { %>
               <span>Releases <%= d.release.display %></span>
             <% } %>
-            <% if (d.order.quantity > 1) { %><span>Qty <%= d.order.quantity %></span><% } %>
+            <% var acUnits = (Number(d.order.quantity) || 1) * (Number(d.order.packSize) > 1 ? Number(d.order.packSize) : 1); %>
+            <% if (acUnits > 1) { %><span>Qty <%= acUnits %></span><% } %>
             <span class="ac__mono"><%= d.reference %></span>
           </p>
         </div>

@@ -29,7 +29,8 @@ function fromOrder(order, product = null, extra = {}) {
   const release = isPreorder && product ? preorderCfg.releaseInfo(product) : null;
 
   const title = (product && product.title) || (o.products || [])[0] || 'Your order';
-  const quantity = Math.max(1, Number(o.quantity) || 1);
+  /* Units, not packs: see helpers/packs.js and Order.packSize. */
+  const quantity = Math.max(1, Number(o.quantity) || 1) * Math.max(1, Number(o.packSize) || 1);
 
   /* The address the ORDER captured. A profile edited later must never
      rewrite where a parcel actually went, and a receipt is a record. */
@@ -103,7 +104,7 @@ function fromOrders(orders, product = null, extra = {}) {
     orders: list.map((o) => ({
       reference: orderReference(o),
       orderId: o.orderId || '',
-      quantity: Math.max(1, Number(o.quantity) || 1),
+      quantity: Math.max(1, Number(o.quantity) || 1) * Math.max(1, Number(o.packSize) || 1),
       total: Number(o.totalPrice) || 0,
       currency: o.currency || base.currency,
       refundAmount: Number(o.refundAmount) || Number(o.totalPrice) || 0,

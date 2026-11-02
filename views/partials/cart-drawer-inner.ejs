@@ -32,7 +32,7 @@
             <a href="<%= marketPath('/products/' + (item.slug)) %>" class="cd__item-title"><%= item.title %></a>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.625rem">
               <span class="cd__item-price">$<%= (item.price * item.quantity / 100).toFixed(2) %></span>
-              <span style="font-size:0.72rem;color:var(--color-text-faint)">×<%= item.quantity %></span>
+              <span style="font-size:0.72rem;color:var(--color-text-faint)">×<%= item.quantity * (parseInt(item.packSize, 10) > 1 ? parseInt(item.packSize, 10) : 1) %></span>
               <button class="cd__remove-btn" data-cart-remove="<%= item.slug %>" aria-label="Remove <%= item.title %>">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
               </button>

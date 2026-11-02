@@ -377,7 +377,7 @@
       %>
         <div class="order-item">
           <div class="order-item-img-wrapper">
-            <span class="order-item-badge"><%= item.quantity %></span>
+            <span class="order-item-badge"><%= item.quantity * (item.product && parseInt(item.product.packSize, 10) > 1 ? parseInt(item.product.packSize, 10) : 1) %></span>
             <img <%- productImage.attrs(imgUrl, 64) %> alt="<%= item.title || 'Product' %>" width="64" height="64" loading="lazy" decoding="async" onerror="this.onerror=null;this.srcset='';this.src='/images/placeholder.jpg';" class="order-item-img">
           </div>
           <div style="flex: 1;">

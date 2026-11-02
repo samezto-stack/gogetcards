@@ -305,7 +305,9 @@
     
     const limitAttr = input.getAttribute('data-allocation-limit');
     const allocLimit = limitAttr ? parseInt(limitAttr) : 0;
-    
+    /* Packs: the input counts packs, the display counts units. */
+    const pack = Math.max(1, parseInt(wrap.getAttribute('data-pack-size') || '1', 10) || 1);
+
     let val = Math.max(1, parseInt(input.value || 1) + delta);
     
     if (allocLimit > 0 && val > allocLimit) {
@@ -314,9 +316,9 @@
     
     input.value = val;
     const display = wrap.querySelector('[data-qty-display]');
-    if (display) display.textContent = val;
+    if (display) display.textContent = val * pack;
 
-    updateStockVisuals(val);
+    updateStockVisuals(val * pack);
     updateStickyPrice(val);
   }
 
@@ -454,7 +456,10 @@
     const input = e.target.closest('[data-cart-qty]');
     if (!input) return;
     const slug = input.dataset.cartQty;
-    const qty = parseInt(input.value);
+    /* The field shows units; the cart counts packs. */
+    const pack = Math.max(1, parseInt(input.getAttribute('data-pack-size') || '1', 10) || 1);
+    const units = parseInt(input.value) || 0;
+    const qty = units <= 0 ? 0 : Math.max(1, Math.round(units / pack));
     fetch('/api/cart/update', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -465,8 +470,10 @@
   /* ── Initialise ──────────────────────────────────────── */
   // Initialize dynamic stock bar if present on page load
   const qtyInput = document.querySelector('input[name="quantity"]');
+  const qtyWrap = qtyInput ? qtyInput.closest('[data-qty-wrap]') : null;
+  const qtyPack = qtyWrap ? Math.max(1, parseInt(qtyWrap.getAttribute('data-pack-size') || '1', 10) || 1) : 1;
   if (document.getElementById('dynamic-stock-wrapper')) {
-    updateStockVisuals(qtyInput ? parseInt(qtyInput.value || 1, 10) : 1);
+    updateStockVisuals((qtyInput ? parseInt(qtyInput.value || 1, 10) : 1) * qtyPack);
   }
   /* Run once on load as well as on every stepper click. A quantity can
      arrive pre-filled (a restored form, a back-navigation), and a bar

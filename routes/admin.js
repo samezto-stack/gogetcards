@@ -2440,6 +2440,8 @@ function parseProductBody(body) {
     preorder: body.preorder === 'on' || body.preorder === 'true',
     preorderShips: body.preorderShips || null,
     allocationLimit: parseInt(body.allocationLimit) || 0,
+    /* See helpers/packs.js. Never below one. */
+    packSize: Math.max(1, parseInt(body.packSize, 10) || 1),
     /* See Product.stockHold. Kept out of `available` on purpose: this is
        the "listed but unbuyable" switch, and it must never be reachable by
        accident from the ordinary Available checkbox. */

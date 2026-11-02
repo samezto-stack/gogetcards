@@ -57,7 +57,8 @@ way you would say them: `149.97`, never `14997`.
 | `sku`, `gtin`, `mpn`, `brand` | Google Shopping identifiers. Copy a GTIN; never guess one. |
 | `language`, `edition`, `set_code` | Facts a buyer asks for by name. |
 | `variant_group`, `variant_name`, `variant_axis`, `variant_order` | Boxes of one product. See the product form. |
-| `allocation_limit` | Max units per customer. 0 = unlimited. |
+| `pack_size` | Sold in multiples of this many. `price` is then the price of one pack (on the $49.99 ladder); the shop shows the single-unit price and sells 4, 8, 12 … Blank or 1 = sold singly. Stock and the limit count packs. |
+| `allocation_limit` | Max packs per customer. 0 = unlimited. |
 | `superseded_by` | Handle of the replacement offered at a stock-hold refusal. |
 | `price_CA`, `compare_CA`, `available_CA` (and UK, EU) | Per-market prices in that currency. Blank price: not sold there. |
 

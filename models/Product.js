@@ -180,6 +180,11 @@ const productSchema = new mongoose.Schema({
   preorder: { type: Boolean, default: false },
   preorderShips: { type: String, default: null },
   allocationLimit: { type: Number, default: 0 }, // Max units one customer may order (0 = unlimited)
+  /* Sold only in multiples. `price` is the price of ONE PACK of this many
+     units, so it sits on the partner ladder like any other price, while
+     the storefront shows the price of a single unit and steps the
+     quantity by the pack. 1 means sold singly. See helpers/packs.js. */
+  packSize: { type: Number, default: 1, min: 1 },
 
   /* ── Per-market pricing ───────────────────────────────────────────────
      `price` above stays the US price in cents and is untouched, so every

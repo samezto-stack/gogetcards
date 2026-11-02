@@ -34,7 +34,8 @@
   const order = o.order;
   const cur = order.currency || 'USD';
   const title = (o.product && o.product.title) || (order.products || [])[0] || 'Order';
-  const qty = Number(order.quantity) || 1;
+  /* Units: packs times the pack size recorded on the order. */
+  const qty = (Number(order.quantity) || 1) * (Number(order.packSize) > 1 ? Number(order.packSize) : 1);
 
   /* The address the ORDER captured, not the one on the profile. A profile
      edited after the fact must not rewrite where a parcel actually went. */

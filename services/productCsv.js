@@ -119,6 +119,8 @@ const BASE_COLUMNS = [
     get: (p) => p.variantAxis || '', set: (b, v) => { b.variantAxis = v.trim(); } },
   { key: 'variant_order', header: 'variant_order', hint: 'Position in the chooser.',
     get: (p) => (p.variantOrder == null ? '' : String(p.variantOrder)), set: (b, v) => { b.variantOrder = v.trim(); } },
+  { key: 'pack_size', header: 'pack_size', hint: 'Sold in multiples of this many. price is then the price of one pack; the shop shows the single-unit price. Blank or 1 = sold singly.',
+    get: (p) => (p.packSize && p.packSize > 1 ? String(p.packSize) : ''), set: (b, v) => { b.packSize = v.trim(); } },
   { key: 'allocation_limit', header: 'allocation_limit', hint: 'Max units per customer. 0 = unlimited.',
     get: (p) => (p.allocationLimit == null ? '' : String(p.allocationLimit)), set: (b, v) => { b.allocationLimit = v.trim(); } },
   { key: 'stock_hold', header: 'stock_hold', hint: 'true/false. Listed but refused at payment. Read the product form before using it.',

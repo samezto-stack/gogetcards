@@ -310,7 +310,8 @@
                 <td>
                   <div class="ot-product" title="<%= r.title %>"><%= r.title || '—' %></div>
                   <div class="ot-sub">
-                    <% if ((Number(order.quantity) || 1) > 1) { %>Qty <%= order.quantity %><% } %>
+                    <% var otUnits = (Number(order.quantity) || 1) * (Number(order.packSize) > 1 ? Number(order.packSize) : 1); %>
+                    <% if (otUnits > 1) { %>Qty <%= otUnits %><% if (Number(order.packSize) > 1) { %> <span class="faint">(<%= order.quantity %> &times; pack of <%= order.packSize %>)</span><% } %><% } %>
                     <% if (r.isPreorder) { %>
                       <span class="ot-pre">Preorder<% if (r.release && r.release.hasDate) { %> &middot; <%= r.release.display %><% } %></span>
                     <% } %>
