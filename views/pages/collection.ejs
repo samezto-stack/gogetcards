@@ -50,11 +50,64 @@
         </form>
       </div>
 
-      <div class="col-page__filter-group">
-        <h2 class="col-page__filter-title">Quick Links</h2>
-        <a href="<%= marketPath('/collection/preorders') %>" style="display:block;padding:0.5rem 0.875rem;background:var(--color-bg-card);border:1px solid var(--color-border-light);border-radius:var(--radius-sm);font-size:0.82rem;color:var(--color-text-muted);font-weight:600;margin-bottom:4px;transition:all var(--transition-fast)" id="filter-preorders-link">🔔 Preorders Only</a>
-        <a href="<%= marketPath('/collection/all') %>" style="display:block;padding:0.5rem 0.875rem;background:var(--color-bg-card);border:1px solid var(--color-border-light);border-radius:var(--radius-sm);font-size:0.82rem;color:var(--color-text-muted);font-weight:600;transition:all var(--transition-fast)" id="filter-all-link">🏪 All Products</a>
-      </div>
+      <%
+        /* Filters. Facets and the URL builders come from the route, so a
+           page rendered without them (a harness, an older caller) simply
+           shows the sort. Every option is a real link: it works without
+           JavaScript and a crawler can follow it, and the canonical in
+           server.js keeps filtered views from competing with the page. */
+        var fc = (typeof facets !== 'undefined' && facets) ? facets : null;
+        var fl = (typeof filters !== 'undefined' && filters) ? filters : { avail: [], line: [], type: [], lang: [], price: [] };
+        var fcount = (typeof activeFilterCount !== 'undefined') ? activeFilterCount : 0;
+        var groups = fc ? [
+          ['avail', 'Availability', fc.avail],
+          ['line', 'Game or sport', fc.line],
+          ['type', 'Product type', fc.type],
+          ['lang', 'Language', fc.lang],
+          ['price', 'Price', fc.price],
+        ].filter(function (g) { return g[2] && g[2].length; }) : [];
+      %>
+      <% if (groups.length) { %>
+        <details class="col-filters" id="col-filters" open>
+          <summary class="col-filters__summary">
+            <span>Filters<% if (fcount) { %> <span class="col-filters__count"><%= fcount %></span><% } %></span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </summary>
+          <div class="col-filters__body">
+            <% if (fcount) { %>
+              <a href="<%= marketPath(filterHref({ avail: [], line: [], type: [], lang: [], price: [] })) %>" class="col-filters__clear">Clear all filters</a>
+            <% } %>
+            <% groups.forEach(function (g) { var key = g[0]; %>
+              <div class="col-page__filter-group">
+                <h2 class="col-page__filter-title"><%= g[1] %></h2>
+                <ul class="col-filters__list">
+                  <% g[2].forEach(function (opt) { var on = fl[key].indexOf(opt.id) !== -1; %>
+                    <li>
+                      <a href="<%= marketPath(toggleHref(key, opt.id)) %>" class="col-filters__opt<%= on ? ' is-on' : '' %>" rel="nofollow"<%= on ? ' aria-current="true"' : '' %>>
+                        <span class="col-filters__box" aria-hidden="true"></span>
+                        <span class="col-filters__label"><%= opt.label %></span>
+                        <span class="col-filters__n"><%= opt.n %></span>
+                      </a>
+                    </li>
+                  <% }); %>
+                </ul>
+              </div>
+            <% }); %>
+          </div>
+        </details>
+        <script>
+          /* Open on a desktop, folded on a phone, where the sidebar sits
+             above the grid and would push every product off the first
+             screen. Static behaviour, no data. */
+          (function () { var d = document.getElementById('col-filters'); if (d && window.innerWidth <= 1024) d.removeAttribute('open'); })();
+        </script>
+      <% } else { %>
+        <div class="col-page__filter-group">
+          <h2 class="col-page__filter-title">Quick Links</h2>
+          <a href="<%= marketPath('/collection/preorders') %>" class="col-filters__quick" id="filter-preorders-link">Preorders only</a>
+          <a href="<%= marketPath('/collection/all') %>" class="col-filters__quick" id="filter-all-link">All products</a>
+        </div>
+      <% } %>
     </aside>
 
     <!-- Main grid -->
@@ -103,6 +156,14 @@
             <%= total %> product<%= total !== 1 ? 's' : '' %>
           <% } %>
         </p>
+        <% if (fc && fcount) { %>
+          <ul class="col-chips" aria-label="Active filters">
+            <% ['avail', 'line', 'type', 'lang', 'price'].forEach(function (key) { fl[key].forEach(function (id) {
+                 var opt = (fc[key] || []).find(function (o) { return o.id === id; }); %>
+              <li><a href="<%= marketPath(toggleHref(key, id)) %>" class="col-chip" rel="nofollow"><%= opt ? opt.label : id %> <span aria-hidden="true">&times;</span><span class="sr-only">remove</span></a></li>
+            <% }); }); %>
+          </ul>
+        <% } %>
       </div>
 
       <!-- Products -->
@@ -127,6 +188,9 @@
           var tp = (typeof totalPages !== 'undefined') ? totalPages : 1;
           var cp = (typeof page !== 'undefined') ? page : 1;
           function pageHref(n) {
+            /* Through the route's builder when there is one, so the page
+               link carries the filters and the sort together. */
+            if (typeof filterHref === 'function') return filterHref({ page: n });
             var qs = [];
             if (typeof sort !== 'undefined' && sort && sort !== 'featured') qs.push('sort=' + encodeURIComponent(sort));
             if (n > 1) qs.push('page=' + n);

@@ -38,6 +38,62 @@ function recalcCart(cart) {
   cart.totalPrice = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 }
 
+/* ── Instant search ──────────────────────────────────────
+   The eight best matches for what is being typed, for the dropdown under
+   the header box. Same fields the collection search matches, same
+   escaping (an unescaped user string in a $regex can make the engine
+   backtrack forever). Set codes are what collectors type, so a code hit
+   ranks above a title hit. Priced in the storefront's own market and
+   left out when the product is not sold there, like every other card.
+   Rate limited: it fires on every keystroke pause. */
+const searchLimiter = require('express-rate-limit')({ windowMs: 60 * 1000, max: 120, standardHeaders: true, legacyHeaders: false });
+router.get('/search', searchLimiter, async (req, res) => {
+  try {
+    const q = String(req.query.q || '').trim().slice(0, 60);
+    if (q.length < 2) return res.json({ results: [] });
+    const safe = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const rx = new RegExp(safe, 'i');
+    const markets = require('../config/markets');
+    const marketService = require('../services/market');
+    const productImage = require('../helpers/productImage');
+    const catalog = require('../config/catalog');
+    const market = (req.market && markets.byId(req.market.id)) || markets.defaultMarket();
+    const found = await Product.find({ $or: [{ title: rx }, { setCode: rx }, { vendor: rx }, { productType: rx }, { tags: rx }] })
+      .select('slug title setCode vendor productType tags collections price marketPrices imageUrl images preorder available packSize')
+      .sort({ available: -1, featured: -1, createdAt: -1 })
+      .limit(24)
+      .lean();
+    const score = (p) => (rx.test(p.setCode || '') ? 3 : 0) + (new RegExp('^' + safe, 'i').test(p.title || '') ? 2 : 0) + (rx.test(p.title || '') ? 1 : 0) + (p.available ? 1 : 0);
+    const results = found
+      .map((p) => ({ p, local: marketService.priceFor(p, market) }))
+      .filter((x) => x.local)
+      .sort((a, b) => score(b.p) - score(a.p))
+      .slice(0, 8)
+      .map(({ p, local }) => {
+        const pack = parseInt(p.packSize, 10) > 1 ? parseInt(p.packSize, 10) : 1;
+        const line = catalog.detect(p);
+        const img = p.imageUrl || (p.images && p.images[0]) || '';
+        return {
+          slug: p.slug,
+          title: p.title,
+          line: line ? line.shortName : '',
+          type: p.productType || '',
+          setCode: p.setCode || '',
+          price: markets.format(Math.round(local.amount / pack), local.currency) + (pack > 1 ? ' each' : ''),
+          preorder: !!p.preorder,
+          available: p.available !== false,
+          image: img ? productImage.at(img, 96) : '',
+          url: markets.path(market, `/products/${p.slug}`),
+        };
+      });
+    res.set('Cache-Control', 'private, max-age=30');
+    res.json({ results, more: markets.path(market, `/collection/all?q=${encodeURIComponent(q)}`) });
+  } catch (err) {
+    console.error('[api/search]', err.message);
+    res.status(500).json({ results: [] });
+  }
+});
+
 /* ── Add to Cart ───────────────────────────────────────── */
 router.post('/cart/add', async (req, res) => {
   try {

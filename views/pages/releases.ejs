@@ -1,0 +1,66 @@
+<%
+  /* The release calendar. Data comes from the /releases route: `months`
+     (upcoming, grouped, soonest first, undated last), `released` (the
+     last two months, newest first), `lines` for the filter chips. Each
+     entry is already priced in the shopper's market. */
+  var _money = (typeof marketMoney !== 'undefined') ? marketMoney : function (c) { return 'US$' + formatPrice(c); };
+%>
+
+<nav class="col-page__breadcrumb container" style="padding-top:1rem" aria-label="Breadcrumb">
+  <a href="<%= marketPath('/') %>">Home</a>
+  <span aria-hidden="true">/</span>
+  <span aria-current="page">Release calendar</span>
+</nav>
+
+<div class="container rel-page">
+  <header class="rel-head">
+    <div class="label-overline">Release calendar</div>
+    <h1 class="heading-section" style="margin-top:0.65rem"><%= lineName ? lineName + ' releases' : 'What comes out, and when' %></h1>
+    <p class="rel-head__sub">
+      Every set we carry with a date, soonest first. A preorder is allocated before release day
+      and ships the moment stock lands; you can cancel for a full refund any time before it does.
+    </p>
+  </header>
+
+  <nav class="rel-lines" aria-label="Filter by game">
+    <a class="rel-line<%= !line ? ' is-on' : '' %>" href="<%= marketPath('/releases') %>"<%= !line ? ' aria-current="page"' : '' %>>All games</a>
+    <% lines.forEach(function (l) { %>
+      <a class="rel-line<%= line === l.handle ? ' is-on' : '' %>" href="<%= marketPath('/releases?line=' + l.handle) %>"<%= line === l.handle ? ' aria-current="page"' : '' %>><img src="/images/<%= l.icon %>" alt="" aria-hidden="true" width="14" height="14" loading="lazy"><span><%= l.shortName %></span></a>
+    <% }); %>
+  </nav>
+
+  <% if (!months.length) { %>
+    <div class="rel-empty">
+      <p><strong>Nothing dated<%= lineName ? ' for ' + lineName : '' %> right now.</strong></p>
+      <p>New sets are added the day a distributor confirms the allocation. <a href="<%= marketPath('/collection/' + (line || 'all')) %>">Browse what is in stock</a><% if (line) { %> or <a href="<%= marketPath('/releases') %>">see every game</a><% } %>.</p>
+    </div>
+  <% } %>
+
+  <% months.forEach(function (m) { %>
+    <section class="rel-month" aria-labelledby="rel-<%= m.key %>">
+      <h2 class="rel-month__title" id="rel-<%= m.key %>"><%= m.label %> <span class="rel-month__n"><%= m.entries.length %> <%= m.entries.length === 1 ? 'release' : 'releases' %></span></h2>
+      <ol class="rel-list">
+        <% m.entries.forEach(function (e) { %>
+          <%- include('../partials/release-row', { e: e, past: false, _money: _money }) %>
+        <% }); %>
+      </ol>
+    </section>
+  <% }); %>
+
+  <% if (released.length) { %>
+    <section class="rel-month rel-month--past" aria-labelledby="rel-past">
+      <h2 class="rel-month__title" id="rel-past">Just released <span class="rel-month__n">last 60 days</span></h2>
+      <ol class="rel-list">
+        <% released.forEach(function (e) { %>
+          <%- include('../partials/release-row', { e: e, past: true, _money: _money }) %>
+        <% }); %>
+      </ol>
+    </section>
+  <% } %>
+
+  <p class="rel-foot">
+    Dates are the publisher's announced street dates and can move. When one does, the product page,
+    this calendar and your order confirmation all change together, and a preorder can be cancelled in
+    full up to dispatch. <a href="<%= marketPath('/collection/preorders') %>">All preorders</a>
+  </p>
+</div>

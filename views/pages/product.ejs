@@ -319,6 +319,25 @@
           <% } %>
         </div>
 
+        <%/* PACK TIERS. The stepper already climbs 4, 8, 12; these say so
+             in one glance, with the price of each, so the shopper who was
+             going to buy two packs does not have to press plus and read
+             the bar to learn what it costs. A chip sets the stepper; the
+             stepper lights the chip. Three tiers, fewer under a limit. */%>
+        <% if (_pack > 1 && product.available) { %>
+          <% var tierMax = shownLimit > 0 ? Math.min(3, shownLimit) : 3; %>
+          <% if (tierMax > 1) { %>
+          <div class="pp__tiers" data-pack-tiers role="group" aria-label="Choose how many">
+            <% for (var t = 1; t <= tierMax; t++) { %>
+              <button type="button" class="pp__tier<%= t === 1 ? ' is-on' : '' %>" data-tier="<%= t %>" aria-pressed="<%= t === 1 ? 'true' : 'false' %>">
+                <span class="pp__tier-n"><%= t * _pack %> for</span>
+                <span class="pp__tier-price"><%= _money(_p.amount * t, _p.currency) %></span>
+              </button>
+            <% } %>
+          </div>
+          <% } %>
+        <% } %>
+
         <div class="pp__ctas">
           <% if (product.available) { %>
             <button
@@ -351,6 +370,36 @@
           <% } %>
         </div>
       </form>
+
+      <%/* THE CASE, on a box page; the box, on a case page. Found by name
+           in services/caseOffer from products the route already read, so
+           there is no bundle to maintain. Prices are the paired product's
+           own market price, never derived. */%>
+      <% var _co = (typeof caseOffer !== 'undefined' && caseOffer && caseOffer.product && caseOffer.priced) ? caseOffer : null; %>
+      <% if (_co) { %>
+        <% var _coImg = _co.product.imageUrl || (_co.product.images && _co.product.images[0]) || ''; %>
+        <a class="pp__case" href="<%= marketPath('/products/' + _co.product.slug) %>" data-case-offer="<%= _co.kind %>">
+          <% if (_coImg) { %>
+            <span class="pp__case-img"><img src="<%= (typeof productImage !== 'undefined' && productImage.at) ? productImage.at(_coImg, 160) : _coImg %>" alt="" width="64" height="64" loading="lazy"></span>
+          <% } %>
+          <span class="pp__case-body">
+            <% if (_co.kind === 'case') { %>
+              <span class="pp__case-head">Buy the case<% if (_co.boxes) { %> &middot; <%= _co.boxes %> boxes<% } %></span>
+              <span class="pp__case-line">
+                <strong><%= _money(_co.priced.amount, _co.priced.currency) %></strong>
+                <% if (_co.boxes) { %><span class="pp__case-per">&middot; <%= _money(Math.round(_co.priced.amount / _co.boxes), _co.priced.currency) %> per box</span><% } %>
+                <% if (_co.savingsPct > 0) { %><span class="pp__case-save">Save <%= _co.savingsPct %>%</span><% } %>
+              </span>
+              <span class="pp__case-sub">One sealed case, one shipment. <%= _co.product.title %></span>
+            <% } else { %>
+              <span class="pp__case-head">Just one box?</span>
+              <span class="pp__case-line"><strong><%= _money(_co.priced.amount, _co.priced.currency) %></strong> <span class="pp__case-per">&middot; single box</span></span>
+              <span class="pp__case-sub"><%= _co.product.title %></span>
+            <% } %>
+          </span>
+          <span class="pp__case-arrow" aria-hidden="true">&rarr;</span>
+        </a>
+      <% } %>
 
       <!-- Trust signals -->
       <div class="pp__trust-grid">
@@ -590,6 +639,24 @@
   .pp__each { font-size:0.85rem; font-weight:600; color:var(--color-text-muted); margin-left:0.35rem; }
   .pp__pack-line { font-size:0.85rem; color:var(--color-text-muted); margin:-0.35rem 0 0.9rem; }
   .pp__pack-line strong { color:var(--color-text); }
+  .pp__tiers { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:0.5rem; margin:0 0 1rem; }
+  .pp__tier { display:flex; flex-direction:column; align-items:center; gap:2px; padding:0.6rem 0.4rem; background:var(--color-bg-card); border:1.5px solid var(--color-border-light); border-radius:var(--radius-md); font:inherit; color:var(--color-text); cursor:pointer; transition:border-color .15s, background .15s; }
+  .pp__tier:hover { border-color:var(--color-text-muted); }
+  .pp__tier.is-on { border-color:var(--color-cyan); background:color-mix(in srgb, var(--color-cyan) 8%, var(--color-bg-card)); }
+  .pp__tier-n { font-size:0.78rem; color:var(--color-text-muted); }
+  .pp__tier-price { font-family:var(--font-heading); font-weight:700; font-size:0.95rem; }
+  .pp__case { display:flex; align-items:center; gap:0.9rem; margin:0 0 1.25rem; padding:0.85rem 1rem; background:var(--color-bg-card); border:1px solid var(--color-border-light); border-left:3px solid var(--color-cyan); border-radius:var(--radius-md); color:inherit; text-decoration:none; transition:border-color .15s; }
+  .pp__case:hover { border-color:var(--color-cyan); }
+  .pp__case-img { flex:0 0 56px; width:56px; height:56px; border-radius:8px; overflow:hidden; background:#fff; display:flex; align-items:center; justify-content:center; }
+  .pp__case-img img { width:100%; height:100%; object-fit:contain; }
+  .pp__case-body { flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:2px; }
+  .pp__case-head { font-family:var(--font-heading); font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--color-cyan); }
+  .pp__case-line { font-size:0.95rem; color:var(--color-text); }
+  .pp__case-line strong { font-family:var(--font-heading); font-weight:700; }
+  .pp__case-per { color:var(--color-text-muted); font-size:0.85rem; }
+  .pp__case-save { margin-left:0.5rem; font-size:0.72rem; font-weight:700; color:#15803d; background:#dcfce7; padding:2px 7px; border-radius:999px; }
+  .pp__case-sub { font-size:0.78rem; color:var(--color-text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pp__case-arrow { flex:0 0 auto; font-size:1.2rem; color:var(--color-text-muted); }
   .pp__preorder-head { font-family:var(--font-heading); font-size:0.9rem; font-weight:700; color:var(--color-cyan); }
   .pp__preorder-sub { font-size:0.8rem; color:var(--color-text-muted); margin-top:4px; line-height:1.65; }
   .pp__preorder-sub strong { color:var(--color-text); }

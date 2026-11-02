@@ -291,6 +291,69 @@
     thumb.classList.add('active');
   });
 
+  /* ── Instant search ──────────────────────────────────────
+     Results under the box as you type. Everything rendered here is
+     built with textContent: titles come from the catalogue, which the
+     admin edits, and that is still data as far as this script is
+     concerned. Enter with nothing highlighted submits the form as before,
+     so the full results page is one keystroke away. */
+  document.querySelectorAll('form[role="search"]').forEach(function (form) {
+    var input = form.querySelector('input[type="search"]');
+    var box = form.querySelector('[data-search-suggest]');
+    if (!input || !box) return;
+    var timer = null, lastQ = '', active = -1, items = [];
+    form.style.position = 'relative';
+
+    function hide() { box.hidden = true; box.textContent = ''; items = []; active = -1; input.removeAttribute('aria-activedescendant'); }
+    function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+    function render(data) {
+      box.textContent = ''; items = []; active = -1;
+      if (!data.results || !data.results.length) { hide(); return; }
+      data.results.forEach(function (r, i) {
+        var a = el('a', 'search-suggest__item'); a.href = r.url; a.setAttribute('role', 'option'); a.id = input.id + '-opt-' + i;
+        var img = el('span', 'search-suggest__img');
+        if (r.image) { var im = document.createElement('img'); im.src = r.image; im.alt = ''; im.width = 40; im.height = 40; im.loading = 'lazy'; img.appendChild(im); }
+        a.appendChild(img);
+        var body = el('span', 'search-suggest__body');
+        body.appendChild(el('span', 'search-suggest__title', r.title));
+        body.appendChild(el('span', 'search-suggest__meta', [r.line, r.type, r.setCode].filter(Boolean).join(' · ')));
+        a.appendChild(body);
+        var side = el('span', 'search-suggest__side');
+        side.appendChild(el('span', 'search-suggest__price', r.price));
+        if (r.preorder) side.appendChild(el('span', 'search-suggest__tag', 'Preorder'));
+        else if (!r.available) side.appendChild(el('span', 'search-suggest__tag search-suggest__tag--out', 'Sold out'));
+        a.appendChild(side);
+        box.appendChild(a); items.push(a);
+      });
+      if (data.more) { var all = el('a', 'search-suggest__all', 'See all results for “' + lastQ + '”'); all.href = data.more; box.appendChild(all); items.push(all); }
+      box.hidden = false;
+    }
+    function highlight(n) {
+      items.forEach(function (it) { it.classList.remove('is-active'); });
+      active = n;
+      if (n >= 0 && items[n]) { items[n].classList.add('is-active'); input.setAttribute('aria-activedescendant', items[n].id || ''); }
+    }
+    function fetchNow() {
+      var q = input.value.trim();
+      if (q.length < 2) { hide(); return; }
+      lastQ = q;
+      fetch('/api/search?q=' + encodeURIComponent(q), { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (data) { if (input.value.trim() === q) render(data); })
+        .catch(hide);
+    }
+    input.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(fetchNow, 180); });
+    input.addEventListener('focus', function () { if (items.length) box.hidden = false; });
+    input.addEventListener('keydown', function (e) {
+      if (box.hidden) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); highlight(Math.min(items.length - 1, active + 1)); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); highlight(Math.max(-1, active - 1)); }
+      else if (e.key === 'Enter' && active >= 0) { e.preventDefault(); window.location.href = items[active].href; }
+      else if (e.key === 'Escape') { hide(); }
+    });
+    document.addEventListener('click', function (e) { if (!form.contains(e.target)) hide(); });
+  });
+
   /* ── Quantity selectors ──────────────────────────────── */
   document.addEventListener('click', function (e) {
     if (e.target.matches('[data-qty-minus]')) changeQty(e.target, -1);
@@ -314,13 +377,43 @@
       val = allocLimit;
     }
     
+    setQty(wrap, input, val, pack);
+  }
+
+  function setQty(wrap, input, val, pack) {
     input.value = val;
     const display = wrap.querySelector('[data-qty-display]');
     if (display) display.textContent = val * pack;
 
     updateStockVisuals(val * pack);
     updateStickyPrice(val);
+    syncTiers(val);
   }
+
+  /* Pack tiers: "4 for $49.99 · 8 for $99.98 · 12 for $149.97". A chip
+     sets the stepper to that many packs; the stepper lights the chip whose
+     count it is on, and none when it has climbed past the last one. */
+  function syncTiers(packs) {
+    document.querySelectorAll('[data-pack-tiers] [data-tier]').forEach(function (chip) {
+      const on = parseInt(chip.getAttribute('data-tier'), 10) === packs;
+      chip.classList.toggle('is-on', on);
+      chip.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+
+  document.addEventListener('click', function (e) {
+    const chip = e.target.closest('[data-pack-tiers] [data-tier]');
+    if (!chip) return;
+    const wrap = document.querySelector('[data-qty-wrap]');
+    const input = wrap && wrap.querySelector('input[name="quantity"]');
+    if (!input) return;
+    const pack = Math.max(1, parseInt(wrap.getAttribute('data-pack-size') || '1', 10) || 1);
+    const limitAttr = input.getAttribute('data-allocation-limit');
+    const allocLimit = limitAttr ? parseInt(limitAttr, 10) : 0;
+    let val = Math.max(1, parseInt(chip.getAttribute('data-tier'), 10) || 1);
+    if (allocLimit > 0 && val > allocLimit) val = allocLimit;
+    setQty(wrap, input, val, pack);
+  });
 
   /* Keeps the mobile buy bar's price in step with the quantity stepper.
      The bar was rendered once server-side at the unit price, so someone

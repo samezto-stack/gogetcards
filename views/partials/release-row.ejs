@@ -1,0 +1,45 @@
+<%
+  /* One line of the release calendar. `e` is an entry built by the
+     /releases route; `past` is true in the "Just released" list. */
+  var p = e.product;
+  var href = marketPath('/products/' + p.slug);
+  var img = p.imageUrl || (p.images && p.images[0]) || '';
+  var when;
+  if (past) when = (e.daysOut === -1) ? 'Released yesterday' : 'Released ' + Math.abs(e.daysOut) + ' days ago';
+  else if (e.daysOut === 0) when = 'Releases today';
+  else if (e.daysOut === 1) when = 'Releases tomorrow';
+  else if (e.daysOut > 1) when = 'In ' + e.daysOut + ' days';
+  else if (e.info && e.info.window) when = 'Ships ' + e.info.window;
+  else when = 'Date to be confirmed';
+%>
+<li class="rel-row">
+  <div class="rel-date">
+    <% if (e.day) { %>
+      <span class="rel-date__day"><%= e.day %></span>
+      <span class="rel-date__mon"><%= e.monthShort %> &middot; <%= e.weekday %></span>
+    <% } else { %>
+      <span class="rel-date__tbc"><%= (e.info && e.info.window) ? e.info.window : 'TBC' %></span>
+    <% } %>
+  </div>
+  <a class="rel-thumb" href="<%= href %>" tabindex="-1" aria-hidden="true">
+    <% if (img) { %><img src="<%= (typeof productImage !== 'undefined' && productImage.at) ? productImage.at(img, 160) : img %>" alt="" width="64" height="64" loading="lazy" decoding="async"><% } %>
+  </a>
+  <div class="rel-body">
+    <span class="rel-tag"><% if (e.line) { %><%= e.line.shortName %><% } %><% if (e.line && p.productType) { %> &middot; <% } %><%= p.productType || '' %></span>
+    <a class="rel-title" href="<%= href %>"><%= p.title %></a>
+    <span class="rel-meta"><% if (e.daysOut === 0 || e.daysOut === 1) { %><strong><%= when %></strong><% } else { %><%= when %><% } %><% if (p.setCode) { %> &middot; <%= p.setCode %><% } %></span>
+  </div>
+  <div class="rel-price">
+    <span class="rel-price__amt"><%= _money(e.unit, e.priced.currency) %></span>
+    <% if (e.pack > 1) { %><span class="rel-price__each">each &middot; packs of <%= e.pack %></span><% } %>
+  </div>
+  <div class="rel-cta">
+    <% if (p.available === false) { %>
+      <span class="rel-status">Sold out</span>
+    <% } else if (p.preorder && !past) { %>
+      <a class="btn btn-primary" href="<%= href %>">Preorder</a>
+    <% } else { %>
+      <a class="btn btn-outline" href="<%= href %>">Buy</a>
+    <% } %>
+  </div>
+</li>

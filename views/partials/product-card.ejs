@@ -90,6 +90,23 @@
       <p class="pc__ships"><%= preorder.shortLine(product) %></p>
     <% } %>
 
+    <%/* The promise, concretely, while the buyer is still comparing:
+         the day it ships (helpers/dispatch.js reads the warehouse clock)
+         and the two facts that matter most in this category. A preorder
+         says what happens to the card instead, because "ships today" is
+         exactly the claim a preorder must not make. Guarded so a harness
+         that renders this card without the helper still renders. */%>
+    <% var pcDispatch = (typeof dispatch !== 'undefined' && dispatch && dispatch.nextDispatch) ? dispatch.nextDispatch() : null; %>
+    <% if (product.available) { %>
+      <p class="pc__promise">
+        <% if (isPreorder) { %>
+          <span>Charged today</span><span class="pc__promise-sep">&middot;</span><span>Cancel before dispatch</span>
+        <% } else { %>
+          <span class="pc__promise-strong"><%= pcDispatch ? pcDispatch.label : 'Ships within 1 business day' %></span><span class="pc__promise-sep">&middot;</span><span>Factory sealed</span><span class="pc__promise-sep">&middot;</span><span>Free shipping</span>
+        <% } %>
+      </p>
+    <% } %>
+
     <div class="pc__footer">
       <div class="pc__pricing">
         <%/* A pack-sold product shows the single-unit price, as its page

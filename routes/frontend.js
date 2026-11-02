@@ -43,6 +43,7 @@ const payments = require('../config/payments');
 const faqConfig = require('../config/faq');
 const distributionCfg = require('../config/distribution');
 const preorderCfg = require('../config/preorder');
+const caseOfferService = require('../services/caseOffer');
 const trustPages = require('../config/trustPages');
 const catalog = require('../config/catalog');
 const orderReference = require('../helpers/orderReference');
@@ -1045,7 +1046,40 @@ router.get('/products/:slug', async (req, res) => {
       ? (allocationLimit > 0 ? Math.min(allocationLimit, partnerMaxQty) : partnerMaxQty)
       : allocationLimit;
 
+    /* The case for this box, or the box for this case (services/caseOffer).
+       Candidates are the live products of the same line; the pairing is by
+       set code or title, and null when nothing matches cleanly. Priced in
+       the shopper's market, and dropped when the pair is not sold there. */
+    let caseOffer = null;
+    try {
+      const lineCollections = (product.collections || []).filter((c) => c && c !== 'preorders');
+      if (lineCollections.length) {
+        const candidates = await Product.find({
+          _id: { $ne: product._id },
+          available: true,
+          collections: { $in: lineCollections },
+          /* A box looks for cases (or anything sharing its set code); a
+             case looks among every live product of its line. */
+          ...(caseOfferService.isCase(product) ? {} : {
+            $or: [
+              { productType: /\bcase\b/i },
+              { title: /\bcase\b/i },
+              ...(product.setCode ? [{ setCode: String(product.setCode) }] : []),
+            ],
+          }),
+        }).select('title slug price productType specs setCode imageUrl images available marketPrices').limit(60).lean();
+        const pair = caseOfferService.pairFor(product, candidates);
+        if (pair) {
+          const pairPriced = marketService.priceFor(pair.product, market);
+          if (pairPriced) caseOffer = { ...pair, priced: pairPriced };
+        }
+      }
+    } catch (e) {
+      console.error('caseOffer', e.message);
+    }
+
     renderPage(res, 'product', {
+      caseOffer,
       pageTitle: variantTitle,
       /* Said "In Stock." for preorders too, so the snippet Google showed
          for an unreleased product advertised it as available now. The
@@ -1125,6 +1159,66 @@ router.get('/collection/:handle', async (req, res) => {
       collectionTitle = `Search: ${rawQuery}`;
       collectionDescription = '';
     }
+
+    /* ── Filters ──────────────────────────────────────────────────
+       Facets are counted on the UNFILTERED collection (plus any search
+       term), so a buyer sees "Booster Box (19)" whether or not Booster
+       Box is already ticked, and can always see what else is there. The
+       filters then narrow the product query. Every value arriving from
+       the URL is matched against the facet it came from, so nothing a
+       buyer types reaches the database as anything but a known string. */
+    const PRICE_BANDS = [
+      { id: 'under-100', label: 'Under $100', min: 0, max: 10000 },
+      { id: '100-250', label: '$100 to $250', min: 10000, max: 25000 },
+      { id: '250-500', label: '$250 to $500', min: 25000, max: 50000 },
+      { id: 'over-500', label: '$500 and up', min: 50000, max: Infinity },
+    ];
+    const lineHandles = catalog.handles();
+    const onLinePage = lineHandles.includes(collectionHandle);
+    const facetRows = (await Product.aggregate([
+      { $match: query },
+      { $facet: {
+        type: [{ $match: { productType: { $nin: ['', null] } } }, { $group: { _id: '$productType', n: { $sum: 1 } } }, { $sort: { n: -1, _id: 1 } }, { $limit: 24 }],
+        lang: [{ $match: { language: { $nin: ['', null] } } }, { $group: { _id: '$language', n: { $sum: 1 } } }, { $sort: { n: -1, _id: 1 } }],
+        line: [{ $unwind: '$collections' }, { $match: { collections: { $in: lineHandles } } }, { $group: { _id: '$collections', n: { $sum: 1 } } }],
+        avail: [{ $group: { _id: { $cond: ['$preorder', 'preorder', { $cond: [{ $eq: ['$available', true] }, 'in-stock', 'sold-out'] }] }, n: { $sum: 1 } } }],
+        price: [{ $group: { _id: null, prices: { $push: '$price' } } }],
+      } },
+    ]))[0] || {};
+    const prices = ((facetRows.price || [])[0] || {}).prices || [];
+    const facets = {
+      avail: [
+        { id: 'in-stock', label: 'In stock', n: ((facetRows.avail || []).find((r) => r._id === 'in-stock') || {}).n || 0 },
+        { id: 'preorder', label: 'Preorder', n: ((facetRows.avail || []).find((r) => r._id === 'preorder') || {}).n || 0 },
+      ].filter((f) => f.n > 0),
+      line: onLinePage ? [] : lineHandles.map((h) => ({ id: h, label: (catalog.byHandle(h) || {}).shortName || h, n: ((facetRows.line || []).find((r) => r._id === h) || {}).n || 0 })).filter((f) => f.n > 0),
+      type: (facetRows.type || []).map((r) => ({ id: r._id, label: r._id, n: r.n })),
+      lang: (facetRows.lang || []).map((r) => ({ id: r._id, label: r._id, n: r.n })),
+      price: PRICE_BANDS.map((b) => ({ id: b.id, label: b.label, n: prices.filter((p) => p >= b.min && p < b.max).length })).filter((f) => f.n > 0),
+    };
+    /* Language is a filter only when there is something to choose. */
+    if (facets.lang.length < 2) facets.lang = [];
+
+    const pick = (key, allowed) => String(req.query[key] || '').split(',').map((s) => s.trim()).filter((v) => v && allowed.some((f) => f.id === v));
+    const filters = {
+      avail: pick('avail', facets.avail).slice(0, 1),
+      line: pick('line', facets.line),
+      type: pick('type', facets.type),
+      lang: pick('lang', facets.lang),
+      price: pick('price', facets.price).slice(0, 1),
+    };
+    const clauses = [];
+    if (filters.avail[0] === 'in-stock') clauses.push({ preorder: { $ne: true }, available: true });
+    if (filters.avail[0] === 'preorder') clauses.push({ preorder: true });
+    if (filters.line.length) clauses.push({ collections: { $in: filters.line } });
+    if (filters.type.length) clauses.push({ productType: { $in: filters.type } });
+    if (filters.lang.length) clauses.push({ language: { $in: filters.lang } });
+    if (filters.price[0]) {
+      const b = PRICE_BANDS.find((x) => x.id === filters.price[0]);
+      clauses.push({ price: { $gte: b.min, ...(Number.isFinite(b.max) ? { $lt: b.max } : {}) } });
+    }
+    if (clauses.length) query = { $and: [query, ...clauses] };
+    const activeFilterCount = Object.values(filters).reduce((n, v) => n + v.length, 0);
 
     // Sort
     let sortObj = { featured: -1, createdAt: -1 };
@@ -1251,7 +1345,34 @@ router.get('/collection/:handle', async (req, res) => {
      * right. */
     const isSearch = !!rawQuery;
 
+    /* One URL builder for every filter link and the pager, so a filter
+       never drops the sort and a page link never drops the filters. */
+    const filterHref = (over = {}) => {
+      const next = { ...filters, ...over };
+      const qs = [];
+      if (rawQuery) qs.push('q=' + encodeURIComponent(rawQuery));
+      for (const k of ['avail', 'line', 'type', 'lang', 'price']) {
+        const v = Array.isArray(next[k]) ? next[k] : (next[k] ? [next[k]] : []);
+        if (v.length) qs.push(k + '=' + v.map(encodeURIComponent).join(','));
+      }
+      if (sort && sort !== 'featured') qs.push('sort=' + encodeURIComponent(sort));
+      if (over.page && over.page > 1) qs.push('page=' + over.page);
+      return `/collection/${collectionHandle}` + (qs.length ? '?' + qs.join('&') : '');
+    };
+    /* Toggle one value in a multi-value facet, or set/clear a single one. */
+    const toggleHref = (key, id) => {
+      const current = filters[key];
+      const single = key === 'avail' || key === 'price';
+      const next = single ? (current[0] === id ? [] : [id]) : (current.includes(id) ? current.filter((v) => v !== id) : current.concat(id));
+      return filterHref({ [key]: next });
+    };
+
     renderPage(res, 'collection', {
+      facets,
+      filters,
+      activeFilterCount,
+      filterHref,
+      toggleHref,
       pageTitle: isSearch
         ? `Search results for "${rawQuery}" | GoGetCards`
         : `${collectionTitle}${pageSuffix} | GoGetCards`,
@@ -1566,6 +1687,104 @@ function breadcrumbGraph(origin, url, name) {
     ],
   };
 }
+
+/* ── Release calendar ─────────────────────────────────────
+ * Every set with a date, soonest first, grouped by month; the ones
+ * released in the last two months underneath. Collectors search for a
+ * set by name and date, and a preorder listing alone does not rank for
+ * "when does X come out". Read from the same releaseDate/preorderShips
+ * fields the product page and the feed use, so one admin edit moves the
+ * date everywhere. Priced in the shopper's market; a product not sold
+ * there is left off rather than shown in a currency it cannot be bought
+ * in. */
+router.get('/releases', async (req, res) => {
+  try {
+    const origin = site.origin();
+    const url = `${origin}/releases`;
+    const market = res.locals.market;
+    const lineHandles = catalog.handles();
+    const line = lineHandles.includes(String(req.query.line || '')) ? String(req.query.line) : '';
+
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const recentCutoff = new Date(today.getTime() - 60 * 86400000);
+    const query = { $or: [{ preorder: true }, { releaseDate: { $gte: recentCutoff } }] };
+    if (line) query.collections = line;
+
+    const rows = await Product.find(query)
+      .select('title slug price packSize imageUrl images collections tags productType vendor preorder preorderShips releaseDate available stock badge setCode marketPrices')
+      .sort({ releaseDate: 1, title: 1 })
+      .limit(400)
+      .lean();
+
+    const entries = [];
+    for (const p of rows) {
+      const priced = marketService.priceFor(p, market);
+      if (!priced) continue;
+      const info = preorderCfg.releaseInfo(p);
+      const date = info.hasDate ? new Date(p.releaseDate) : null;
+      const dayUtc = date ? new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())) : null;
+      const daysOut = dayUtc ? Math.round((dayUtc - today) / 86400000) : null;
+      const pack = Math.max(1, parseInt(p.packSize, 10) || 1);
+      const lineCfg = lineHandles.map((h) => catalog.byHandle(h)).find((l) => l && (p.collections || []).includes(l.handle))
+        || catalog.detect(p);
+      entries.push({
+        product: p,
+        priced,
+        unit: pack > 1 ? Math.round(priced.amount / pack) : priced.amount,
+        pack,
+        line: lineCfg,
+        info,
+        daysOut,
+        monthKey: dayUtc ? `${dayUtc.getUTCFullYear()}-${String(dayUtc.getUTCMonth() + 1).padStart(2, '0')}` : 'tbc',
+        monthLabel: dayUtc ? dayUtc.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' }) : 'Date to be confirmed',
+        day: dayUtc ? dayUtc.getUTCDate() : null,
+        monthShort: dayUtc ? dayUtc.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' }) : null,
+        weekday: dayUtc ? dayUtc.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' }) : null,
+      });
+    }
+
+    /* Upcoming: a future date, or a preorder with none yet (listed last).
+       Released: a past date inside the window, newest first. */
+    const upcoming = entries.filter((e) => (e.daysOut !== null ? e.daysOut >= 0 : e.product.preorder));
+    const released = entries.filter((e) => e.daysOut !== null && e.daysOut < 0).sort((a, b) => b.daysOut - a.daysOut);
+    const months = [];
+    for (const e of upcoming) {
+      let m = months.find((x) => x.key === e.monthKey);
+      if (!m) { m = { key: e.monthKey, label: e.monthLabel, entries: [] }; months.push(m); }
+      m.entries.push(e);
+    }
+    months.sort((a, b) => (a.key === 'tbc' ? 1 : b.key === 'tbc' ? -1 : a.key.localeCompare(b.key)));
+
+    const graph = breadcrumbGraph(origin, url, 'Release Calendar')['@graph'];
+    graph.push({
+      '@type': 'ItemList',
+      '@id': `${url}#releases`,
+      name: 'Upcoming trading card releases',
+      numberOfItems: upcoming.length,
+      itemListElement: upcoming.slice(0, 50).map((e, i) => ({
+        '@type': 'ListItem', position: i + 1, name: e.product.title, url: `${origin}/products/${e.product.slug}`,
+      })),
+    });
+
+    const lineName = line ? (catalog.byHandle(line) || {}).name : '';
+    renderPage(res, 'releases', {
+      pageTitle: `${lineName ? lineName + ' ' : ''}Release Calendar ${today.getUTCFullYear()} | GoGetCards`,
+      metaDescription: `Every upcoming ${lineName || 'trading card'} set with its release date, what it costs and whether preorders are open. Factory sealed, allocated before release day.`,
+      canonicalUrl: line ? `${url}?line=${line}` : url,
+      months,
+      released,
+      upcomingCount: upcoming.length,
+      line,
+      lineName,
+      lines: lineHandles.map((h) => catalog.byHandle(h)).filter(Boolean),
+      jsonLd: { '@context': 'https://schema.org', '@graph': graph },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server Error');
+  }
+});
 
 /* ── FAQ ───────────────────────────────────────────────────
  * A real route rather than a database page, so the questions, the visible
@@ -1997,6 +2216,7 @@ router.get('/sitemap.xml', async (req, res) => {
       '/collection/all',
       ...catalog.handles().map((h) => `/collection/${h}`),
       '/collection/preorders',
+      '/releases',
     ];
     staticPages.forEach(p => {
       xml += `  <url><loc>${host}${p}</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>\n`;

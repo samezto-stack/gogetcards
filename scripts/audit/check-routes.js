@@ -87,6 +87,7 @@ app.use((req, res, next) => {
        here fails only in this harness, which reads as a broken audit
        rather than a missing local. */
     productImage: require(path.join(ROOT, 'helpers/productImage')),
+    dispatch: require(path.join(ROOT, 'helpers/dispatch')),
     testOrder: require(path.join(ROOT, 'services/testOrder')),
     /* jsonForScript is how every inline <script> in the layout serialises
        data (the sitewide JSON-LD graph included), so without it here the
@@ -110,6 +111,10 @@ const Product = require(path.join(ROOT, 'models/Product'));
 const Event = require(path.join(ROOT, 'models/Event'));
 const SiteConfig = require(path.join(ROOT, 'models/SiteConfig'));
 
+/* A release 45 days out, so the preorder fixture is a preorder on the day
+   the audit runs and not only on the day it was written. */
+const PREORDER_RELEASE = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate() + 45));
+const PREORDER_ISO = PREORDER_RELEASE.toISOString().split('T')[0];
 const FIXTURES = {
   'op-17-booster-box': {
     _id: 'p1', title: 'One Piece TCG OP-17 Booster Box', slug: 'op-17-booster-box',
@@ -132,7 +137,7 @@ const FIXTURES = {
     productType: 'Booster Box', collections: ['pokemon'], tags: ['pokemon'],
     available: true, stock: 4, preorder: true, preorderShips: 'Q2 2026',
     sku: 'ZTCG-ME-BB', gtin: '', mpn: '', language: 'English', edition: '',
-    setCode: '', allocationLimit: 0, releaseDate: new Date('2026-09-26'),
+    setCode: '', allocationLimit: 0, releaseDate: PREORDER_RELEASE,
   },
 };
 
@@ -147,6 +152,10 @@ const thenable = (value) => {
 Product.findOne = (q) => thenable(FIXTURES[q && q.slug] || null);
 Product.find = () => thenable(Object.values(FIXTURES));
 Product.countDocuments = () => Promise.resolve(Object.keys(FIXTURES).length);
+/* The collection page counts its filter facets in one $facet pipeline;
+   the stub answers with empty buckets, so the sidebar renders nothing and
+   the rest of the page is checked as before. */
+Product.aggregate = () => thenable([{ avail: [], line: [], type: [], lang: [], price: [] }]);
 Event.create = () => Promise.resolve();
 SiteConfig.getValue = (_k, d) => Promise.resolve(d);
 
@@ -334,9 +343,9 @@ const server = app.listen(0, async () => {
   check('preorder: availability is PreOrder',
     !!(poff && /PreOrder$/.test(poff.availability)));
   check('preorder: availabilityDate emitted',
-    !!(poff && poff.availabilityDate === '2026-09-26'));
+    !!(poff && poff.availabilityDate === PREORDER_ISO));
   check('preorder: priceValidUntil capped at release, not a rolling year',
-    !!(poff && poff.priceValidUntil === '2026-09-26'));
+    !!(poff && poff.priceValidUntil === PREORDER_ISO));
   check('preorder: no GTIN invented for a product without one',
     !!(pre.node && !pre.node.gtin));
   check('preorder: meta description does not say In Stock',
@@ -424,6 +433,24 @@ const server = app.listen(0, async () => {
     /not affiliated with, endorsed by, sponsored by, or licensed by/i.test(trustBodies.disclaimer));
   check('every trust page links onward to the others',
     slugs.every((sl) => (trustBodies[sl].match(/class="tp__aside-group"/g) || []).length >= 4));
+
+  /* ── Release calendar ── */
+  const relPage = await get('/releases');
+  check('GET /releases 200', relPage.status === 200, 'got ' + relPage.status);
+  check('/releases lists the dated preorder fixture with a Preorder button',
+    relPage.body.includes('rel-row') && /class="btn btn-primary" href="[^"]*\/products\/[^"]+">Preorder</.test(relPage.body));
+  check('/releases emits an ItemList of the upcoming sets', (() => {
+    const g = (relPage.body.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g) || [])
+      .map((x) => JSON.parse(x.replace(/^<script[^>]*>/, '').replace(/<\/script>$/, '')))
+      .flatMap((x) => x['@graph'] || [x]);
+    const node = g.find((n) => n['@type'] === 'ItemList');
+    return !!node && node.itemListElement.length > 0;
+  })());
+  const relLine = await get('/releases?line=pokemon');
+  check('/releases?line= filters to a known line and canonicalises to it',
+    relLine.status === 200 && relLine.body.includes('href="https://gogetcards.com/releases?line=pokemon"'));
+  const relBad = await get('/releases?line=%7B%22%24gt%22%3A%22%22%7D');
+  check('/releases ignores an unknown line value', relBad.status === 200 && relBad.body.includes('href="https://gogetcards.com/releases"'));
 
   /* ── FAQ page ── */
   const faqPage = await get('/faq');

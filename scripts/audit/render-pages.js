@@ -64,6 +64,7 @@ const base = {
      a broken audit rather than a missing local. */
   catalog: require(path.join(ROOT, 'config/catalog')),
   jsonForScript: require(path.join(ROOT, 'helpers/jsonForScript')),
+  dispatch: require(path.join(ROOT, 'helpers/dispatch')),
   cart: { items: [], totalItems: 0, totalPrice: 0 },
   currentPath: '/', currentYear: 2026, pageTitle: 'GoGetCards', metaDescription: '',
   ogType: 'website', ogImage: '', canonicalUrl: 'https://gogetcards.com/',
@@ -98,6 +99,8 @@ const PAGES = [
   ['product(preorder)', { __view: 'product', product: preorderItem, relatedProducts: [inStock], partnerExperience: { enabled: false } }],
   /* Sold in packs: priced per pack on the ladder, shown per unit, bought
      by the pack. helpers/packs.js. */
+  ['product(case-offer)', { __view: 'product', product: inStock, relatedProducts: [], partnerExperience: { enabled: false },
+    caseOffer: { kind: 'case', boxes: 6, perBox: 16667, savingsPct: 17, product: { ...inStock, _id: 'c1', slug: 'the-case', title: 'Prismatic Evolutions Booster Box Case (6 Boxes)', price: 99999 }, priced: { amount: 99999, currency: 'USD', compareAmount: 0 } } }],
   ['product(pack-of-4)', { __view: 'product', product: { ...inStock, _id: 'p4', slug: 'booster-pack', title: 'One Piece TCG OP-17 Booster Pack', price: 4999, comparePrice: null, packSize: 4, stock: 40 }, relatedProducts: [inStock], partnerExperience: { enabled: false } }],
   ['product(variants)', {
     __view: 'product', product: variantNight,
@@ -106,7 +109,36 @@ const PAGES = [
     relatedProducts: [inStock], partnerExperience: { enabled: false },
   }],
   ['collection', { collectionTitle: 'All Products', collectionDescription: '', collectionHandle: 'all', content: null, products: [inStock, preorderItem], totalProducts: 2, page: 1, totalPages: 1, perPage: 24, sort: 'featured', searchQuery: '' }],
+  ['collection(filters)', (function () {
+    const filters = { avail: ['in-stock'], line: [], type: ['Booster Box'], lang: [], price: ['100-250'] };
+    const qs = (f) => Object.entries(f).filter(([, v]) => v && v.length).map(([k, v]) => `${k}=${encodeURIComponent(v.join(','))}`).join('&');
+    return {
+      __view: 'collection', collectionTitle: 'All Products', collectionDescription: '', collectionHandle: 'all', content: null,
+      products: [inStock], totalProducts: 1, page: 1, totalPages: 1, perPage: 24, sort: 'featured', searchQuery: '',
+      facets: {
+        avail: [{ id: 'in-stock', label: 'In stock', n: 5 }, { id: 'preorder', label: 'Preorder', n: 2 }],
+        line: [{ id: 'pokemon', label: 'Pokémon', n: 4 }, { id: 'one-piece', label: 'One Piece', n: 3 }],
+        type: [{ id: 'Booster Box', label: 'Booster Box', n: 4 }, { id: 'Elite Trainer Box', label: 'Elite Trainer Box', n: 2 }],
+        lang: [{ id: 'English', label: 'English', n: 6 }, { id: 'Japanese', label: 'Japanese', n: 1 }],
+        price: [{ id: 'under-100', label: 'Under $100', n: 2 }, { id: '100-250', label: '$100 – $250', n: 4 }],
+      },
+      filters, activeFilterCount: 3,
+      filterHref: (over) => '/collection/all?' + qs({ ...filters, ...over }),
+      toggleHref: (key, id) => '/collection/all?' + qs({ ...filters, [key]: filters[key].includes(id) ? filters[key].filter((x) => x !== id) : [...filters[key], id] }),
+    };
+  })()],
   ['about', {}],
+  ['releases', (function () {
+    const priced = (p) => ({ amount: p.price, currency: 'USD', compareAmount: 0 });
+    const line = { handle: 'pokemon', name: 'Pokémon', shortName: 'Pokémon', icon: 'pokemon.svg' };
+    const lines = [line, { handle: 'mtg', name: 'Magic: The Gathering', shortName: 'Magic', icon: 'mtg.svg' }];
+    const dated = { product: preorderItem, priced: priced(preorderItem), unit: preorderItem.price, pack: 1, line, info: { hasDate: true, window: null }, daysOut: 12, monthKey: '2026-12', monthLabel: 'December 2026', day: 5, monthShort: 'Dec', weekday: 'Fri' };
+    const soon = { ...dated, product: { ...preorderItem, _id: 'soon', slug: 'soon', setCode: 'SV9' }, daysOut: 1, day: 3, weekday: 'Wed' };
+    const tbc = { product: { ...preorderItem, _id: 'tbc', slug: 'tbc', releaseDate: null, preorderShips: 'Q2 2027', packSize: 4 }, priced: priced(preorderItem), unit: Math.round(preorderItem.price / 4), pack: 4, line: null, info: { hasDate: false, window: 'Q2 2027' }, daysOut: null, monthKey: 'tbc', monthLabel: 'Date to be confirmed', day: null, monthShort: null, weekday: null };
+    const past = { product: { ...inStock, available: false }, priced: priced(inStock), unit: inStock.price, pack: 1, line, info: { hasDate: true, window: null }, daysOut: -10, monthKey: '2026-10', monthLabel: 'October 2026', day: 23, monthShort: 'Oct', weekday: 'Fri' };
+    return { months: [{ key: '2026-12', label: 'December 2026', entries: [soon, dated] }, { key: 'tbc', label: 'Date to be confirmed', entries: [tbc] }], released: [past, { ...past, product: inStock, daysOut: -1 }], upcomingCount: 3, line: '', lineName: '', lines };
+  })()],
+  ['releases(empty)', { __view: 'releases', months: [], released: [], upcomingCount: 0, line: 'mtg', lineName: 'Magic: The Gathering', lines: [{ handle: 'mtg', name: 'Magic: The Gathering', shortName: 'Magic', icon: 'mtg.svg' }] }],
   ['contact', { faqs: faqCfg.faqs(), sent: false, formError: '', formValues: {}, recaptchaSiteKey: RECAPTCHA_SITE_KEY }],
   ['contact(sent)', { __view: 'contact', faqs: faqCfg.faqs(), sent: true, formError: '', formValues: {}, recaptchaSiteKey: RECAPTCHA_SITE_KEY }],
   ['contact(error)', { __view: 'contact', faqs: faqCfg.faqs(), sent: false, formError: 'Please tell us your name.', formValues: { name: '', email: 'a@b.c', message: 'hi' }, recaptchaSiteKey: RECAPTCHA_SITE_KEY }],

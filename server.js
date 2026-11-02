@@ -200,6 +200,8 @@ app.locals.jsonForScript = require('./helpers/jsonForScript');
    70px cart thumbnail. See docs/image-hosting.md for why this rather than
    a self-hosted media library. */
 app.locals.productImage = require('./helpers/productImage');
+/* Dispatch-day promise on product cards and pages (helpers/dispatch.js). */
+app.locals.dispatch = require('./helpers/dispatch');
 
 /* Lets any admin template ask whether an order came from a test purchase.
    The answer is derived from the order document, so a list and the totals

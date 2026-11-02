@@ -34,6 +34,9 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <span class="hide-mobile">Search</span>
         </button>
+        <%/* Instant results, filled by gogetcards.js from /api/search with
+             textContent only. Empty and hidden until something is typed. */%>
+        <div class="search-suggest" data-search-suggest hidden role="listbox" aria-label="Search suggestions"></div>
       </form>
 
       <!-- Actions -->
@@ -99,6 +102,7 @@
         <a href="<%= marketPath('/collection/' + line.handle) %>" class="header__nav-link<%= currentPath === '/collection/' + line.handle ? ' active' : '' %>" id="nav-<%= line.handle %>"><%= line.shortName %></a>
         <% }); %>
         <a href="<%= marketPath('/collection/preorders') %>" class="header__nav-link header__nav-link--hot<%= currentPath === '/collection/preorders' ? ' active' : '' %>" id="nav-preorders">Preorders</a>
+        <a href="<%= marketPath('/releases') %>" class="header__nav-link<%= currentPath === '/releases' ? ' active' : '' %>" id="nav-releases">Releases</a>
         <a href="<%= marketPath('/about') %>" class="header__nav-link<%= currentPath === '/about' ? ' active' : '' %>" id="nav-about" style="margin-left:auto">About</a>
         <a href="<%= marketPath('/contact') %>" class="header__nav-link<%= currentPath === '/contact' ? ' active' : '' %>" id="nav-contact">Contact</a>
       </nav>
@@ -114,6 +118,7 @@
         <button type="submit" aria-label="Search">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </button>
+        <div class="search-suggest search-suggest--mobile" data-search-suggest hidden role="listbox" aria-label="Search suggestions"></div>
       </form>
       <a href="<%= marketPath('/') %>" class="mobile-nav__link" id="mobile-nav-home">Home <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></a>
       <a href="<%= marketPath('/collection/all') %>" class="mobile-nav__link">All sealed <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></a>
@@ -121,6 +126,7 @@
       <a href="<%= marketPath('/collection/' + line.handle) %>" class="mobile-nav__link"><%= line.name %> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></a>
       <% }); %>
       <a href="<%= marketPath('/collection/preorders') %>" class="mobile-nav__link">Preorders <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></a>
+      <a href="<%= marketPath('/releases') %>" class="mobile-nav__link">Release calendar <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></a>
       <%/* About and the policy pages are listed here too: a phone visitor
            navigating by the menu must be able to reach every page the
            desktop nav or the footer offers. */%>
