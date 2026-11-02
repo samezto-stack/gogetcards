@@ -868,7 +868,7 @@ function dashboardLocals(over = {}) {
     ],
     formatPrice,
     visitorsChart: jsonForScript({ unit: 'day', labels: Array.from({ length: 30 }, (_, i) => `Oct ${i + 1}`), values: Array.from({ length: 30 }, (_, i) => Math.round(120 + 80 * Math.sin(i / 4) + (i % 7 === 0 ? 60 : 0))) }),
-    ordersChart: jsonForScript({ unit: 'day', labels: Array.from({ length: 30 }, (_, i) => `Oct ${i + 1}`), values: Array.from({ length: 30 }, (_, i) => Math.max(0, Math.round(3 + 2 * Math.sin(i / 3) + (i % 5 === 0 ? 3 : 0)))) }),
+    ordersChart: jsonForScript({ unit: 'day', labels: Array.from({ length: 30 }, (_, i) => `Oct ${i + 1}`), values: Array.from({ length: 30 }, (_, i) => Math.max(0, Math.round(3 + 2 * Math.sin(i / 3) + (i % 5 === 0 ? 3 : 0)))), revenue: Array.from({ length: 30 }, (_, i) => Math.max(0, Math.round(3 + 2 * Math.sin(i / 3) + (i % 5 === 0 ? 3 : 0))) * (i % 3 === 0 ? 3 : 2) * UNIT) }),
     trafficSources: jsonForScript(sources.map((s) => ({ name: s.name, count: s.count, percent: ((s.count / totalSources) * 100).toFixed(1) }))),
   }, over);
 }
@@ -913,7 +913,7 @@ const FIXTURES = [
   { view: 'dashboard', state: 'populated', path: '/admin', locals: dashboardLocals() },
   { view: 'dashboard', state: 'no-previous', path: '/admin', locals: dashboardLocals({ range: 'all', previous: null, unconfirmedPaymentCount: 0 }) },
   { view: 'dashboard', state: 'custom-range', path: '/admin', locals: dashboardLocals({ range: 'custom', startDate: dayStr(ago(10 * DAY)), endDate: dayStr(new Date(NOW)), previous: { views: 0, checkouts: 0, orders: 0, revenue: 0 } }) },
-  { view: 'dashboard', state: 'empty', path: '/admin', locals: dashboardLocals({ range: 'today', previous: { views: 12, checkouts: 1, orders: 0, revenue: 0 }, directLandings: [], revenueBySource: [], revenueBySourceTotal: 1, topProductsByRevenue: [], unconfirmedPaymentCount: 0, stats: { views: 0, checkouts: 0, orders: 0, revenue: 0, reachedCheckout: 0 }, topProducts: [], topCountries: [], liveVisitors: [], visitorsChart: jsonForScript({ unit: 'hour', labels: Array.from({ length: 24 }, (_, h) => `${h % 12 || 12} ${h < 12 ? 'AM' : 'PM'}`), values: Array(24).fill(0) }), ordersChart: jsonForScript({ unit: 'hour', labels: Array.from({ length: 24 }, (_, h) => `${h % 12 || 12} ${h < 12 ? 'AM' : 'PM'}`), values: Array(24).fill(0) }), trafficSources: jsonForScript([]) }) },
+  { view: 'dashboard', state: 'empty', path: '/admin', locals: dashboardLocals({ range: 'today', previous: { views: 12, checkouts: 1, orders: 0, revenue: 0 }, directLandings: [], revenueBySource: [], revenueBySourceTotal: 1, topProductsByRevenue: [], unconfirmedPaymentCount: 0, stats: { views: 0, checkouts: 0, orders: 0, revenue: 0, reachedCheckout: 0 }, topProducts: [], topCountries: [], liveVisitors: [], visitorsChart: jsonForScript({ unit: 'hour', labels: Array.from({ length: 24 }, (_, h) => `${h % 12 || 12} ${h < 12 ? 'AM' : 'PM'}`), values: Array(24).fill(0) }), ordersChart: jsonForScript({ unit: 'hour', labels: Array.from({ length: 24 }, (_, h) => `${h % 12 || 12} ${h < 12 ? 'AM' : 'PM'}`), values: Array(24).fill(0), revenue: Array(24).fill(0) }), trafficSources: jsonForScript([]) }) },
 
   /* routes/admin.js GET /orders */
   { view: 'orders', state: 'populated', path: '/admin/orders', locals: ordersLocals(ORDERS.map(orderRow), { unconfirmedPayments: UNCONFIRMED, notice: 'cancelled', query: { recovered: 'whop_pay_Ux3cVb9nQw2E', recoveredNew: '1' }, pages: 4, total: 180, from: 1, to: 50 }) },

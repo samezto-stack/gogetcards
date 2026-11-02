@@ -180,9 +180,11 @@ function chartSeries(range, startDate, endDate) {
   }
   /* Every bucket is present, zero where nothing happened, so the line
      dips to the axis rather than skipping the quiet hours. */
-  const fill = (rows) => {
-    const by = new Map(rows.map((r) => [r._id, r.count]));
-    return { unit, labels, values: keys.map((k) => by.get(k) || 0) };
+  const fill = (rows, extra = []) => {
+    const by = new Map(rows.map((r) => [r._id, r]));
+    const out = { unit, labels, values: keys.map((k) => (by.get(k) || {}).count || 0) };
+    for (const f of extra) out[f] = keys.map((k) => (by.get(k) || {})[f] || 0);
+    return out;
   };
   return { unit, format, start, end, keys, labels, fill, timezone: tz };
 }
@@ -494,11 +496,14 @@ router.get('/', requireAuth, async (req, res) => {
       ]),
       Order.aggregate([
         { $match: { ...testOrder.EXCLUDE_FROM_REPORTING, createdAt: { $gte: series.start, $lt: series.end } } },
-        { $group: { _id: bucket, count: { $sum: 1 } } },
+        /* Count and takings per bucket in one pass: the Orders panel
+           switches between the two without another request. Cents, as
+           stored; the browser formats them. */
+        { $group: { _id: bucket, count: { $sum: 1 }, revenue: { $sum: '$totalPrice' } } },
       ]),
     ]);
     const visitorsChart = series.fill(visitorBuckets);
-    const ordersChart = series.fill(orderBuckets);
+    const ordersChart = series.fill(orderBuckets, ['revenue']);
 
     /* Traffic sources: one row per UNIQUE VISITOR, credited to the channel
      * that actually brought them. The pipeline itself lives in
