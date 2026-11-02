@@ -340,7 +340,7 @@ router.get('/', requireAuth, async (req, res) => {
 
     
     const [
-      uniqueVisitors, checkouts, orders, revenueAgg,
+      uniqueVisitors, checkouts, orders, revenueAgg, pageViews,
     ] = await Promise.all([
       Event.distinct('ip', { type: 'page_view', ...query }).then(arr => arr.length),
       Event.countDocuments({ type: 'checkout_click', ...query }),
@@ -353,6 +353,9 @@ router.get('/', requireAuth, async (req, res) => {
         { $match: orderQuery },
         { $group: { _id: null, total: { $sum: '$totalPrice' } } },
       ]),
+      /* Every page view in the range, as opposed to the unique count
+         above; the Visitors panel shows either. */
+      Event.countDocuments({ type: 'page_view', ...query }),
       /* The Checkout Funnel and Checkout Destinations panels were built to
          prove the partner-experience redirect chain worked end to end.
          It does, and they were never day-to-day numbers, so both panels
@@ -491,8 +494,10 @@ router.get('/', requireAuth, async (req, res) => {
     const [visitorBuckets, orderBuckets] = await Promise.all([
       Event.aggregate([
         { $match: { type: 'page_view', createdAt: { $gte: series.start, $lt: series.end } } },
-        { $group: { _id: bucket, ips: { $addToSet: '$ip' } } },
-        { $project: { _id: 1, count: { $size: '$ips' } } },
+        /* Unique visitors and raw page views per bucket in one pass: the
+           Visitors panel switches between the two without another request. */
+        { $group: { _id: bucket, ips: { $addToSet: '$ip' }, views: { $sum: 1 } } },
+        { $project: { _id: 1, count: { $size: '$ips' }, views: 1 } },
       ]),
       Order.aggregate([
         { $match: { ...testOrder.EXCLUDE_FROM_REPORTING, createdAt: { $gte: series.start, $lt: series.end } } },
@@ -502,7 +507,7 @@ router.get('/', requireAuth, async (req, res) => {
         { $group: { _id: bucket, count: { $sum: 1 }, revenue: { $sum: '$totalPrice' } } },
       ]),
     ]);
-    const visitorsChart = series.fill(visitorBuckets);
+    const visitorsChart = series.fill(visitorBuckets, ['views']);
     const ordersChart = series.fill(orderBuckets, ['revenue']);
 
     /* Traffic sources: one row per UNIQUE VISITOR, credited to the channel
@@ -551,7 +556,7 @@ router.get('/', requireAuth, async (req, res) => {
       layout: false,
       pageTitle: 'Dashboard',
       stats: {
-        views: uniqueVisitors, checkouts, orders, revenue, reachedCheckout,
+        views: uniqueVisitors, pageViews, checkouts, orders, revenue, reachedCheckout,
       },
       range,
       startDate: req.query.start || '',

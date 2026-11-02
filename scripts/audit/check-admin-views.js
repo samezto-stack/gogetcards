@@ -857,7 +857,7 @@ function dashboardLocals(over = {}) {
     revenueBySource, revenueBySourceTotal: revenueBySource.reduce((n, r) => n + r.revenue, 0) || 1,
     topProductsByRevenue: [{ _id: op17Box.slug, revenue: 41 * 3 * UNIT, units: 44, orders: 41 }, { _id: prismaticCase.slug, revenue: 6 * STEPS * UNIT, units: 6, orders: 6 }, { _id: prismaticEtb.slug, revenue: 30 * UNIT, units: 48, orders: 30 }, { _id: megaEvoBox.slug, revenue: 20 * 29999, units: 33, orders: 20 }, { _id: variantNight.slug, revenue: 4 * 5 * UNIT, units: 4, orders: 4 }, { _id: op16Box.slug, revenue: 3 * 2 * UNIT, units: 3, orders: 3 }],
     unconfirmedPaymentCount: 2,
-    stats: { views: 6210, checkouts: 388, orders: 97, revenue: 2184503, reachedCheckout: 212 },
+    stats: { views: 6210, pageViews: 18422, checkouts: 388, orders: 97, revenue: 2184503, reachedCheckout: 212 },
     range: 'month', startDate: '', endDate: '',
     topProducts: [{ _id: op17Box.slug, views: 4210 }, { _id: prismaticEtb.slug, views: 3100 }, { _id: megaEvoBox.slug, views: 1640 }, { _id: prismaticCase.slug, views: 900 }, { _id: variantNight.slug, views: 610 }, { _id: op16Box.slug, views: 420 }, { _id: op18Case.slug, views: 90 }],
     topCountries: [{ _id: 'US', views: 4100 }, { _id: 'CA', views: 820 }, { _id: 'GB', views: 610 }, { _id: 'DE', views: 300 }, { _id: 'AU', views: 120 }, { _id: 'JP', views: 70 }, { _id: '', views: 12 }],
@@ -867,7 +867,7 @@ function dashboardLocals(over = {}) {
       { page: '/collections/pokemon', ip: '10.0.0.9', country: 'Unknown', countryCode: '', lastSeen: ago(200e3) },
     ],
     formatPrice,
-    visitorsChart: jsonForScript({ unit: 'day', labels: Array.from({ length: 30 }, (_, i) => `Oct ${i + 1}`), values: Array.from({ length: 30 }, (_, i) => Math.round(120 + 80 * Math.sin(i / 4) + (i % 7 === 0 ? 60 : 0))) }),
+    visitorsChart: jsonForScript({ unit: 'day', labels: Array.from({ length: 30 }, (_, i) => `Oct ${i + 1}`), values: Array.from({ length: 30 }, (_, i) => Math.round(120 + 80 * Math.sin(i / 4) + (i % 7 === 0 ? 60 : 0))), views: Array.from({ length: 30 }, (_, i) => Math.round((120 + 80 * Math.sin(i / 4) + (i % 7 === 0 ? 60 : 0)) * 3.1)) }),
     ordersChart: jsonForScript({ unit: 'day', labels: Array.from({ length: 30 }, (_, i) => `Oct ${i + 1}`), values: Array.from({ length: 30 }, (_, i) => Math.max(0, Math.round(3 + 2 * Math.sin(i / 3) + (i % 5 === 0 ? 3 : 0)))), revenue: Array.from({ length: 30 }, (_, i) => Math.max(0, Math.round(3 + 2 * Math.sin(i / 3) + (i % 5 === 0 ? 3 : 0))) * (i % 3 === 0 ? 3 : 2) * UNIT) }),
     trafficSources: jsonForScript(sources.map((s) => ({ name: s.name, count: s.count, percent: ((s.count / totalSources) * 100).toFixed(1) }))),
   }, over);
@@ -913,7 +913,7 @@ const FIXTURES = [
   { view: 'dashboard', state: 'populated', path: '/admin', locals: dashboardLocals() },
   { view: 'dashboard', state: 'no-previous', path: '/admin', locals: dashboardLocals({ range: 'all', previous: null, unconfirmedPaymentCount: 0 }) },
   { view: 'dashboard', state: 'custom-range', path: '/admin', locals: dashboardLocals({ range: 'custom', startDate: dayStr(ago(10 * DAY)), endDate: dayStr(new Date(NOW)), previous: { views: 0, checkouts: 0, orders: 0, revenue: 0 } }) },
-  { view: 'dashboard', state: 'empty', path: '/admin', locals: dashboardLocals({ range: 'today', previous: { views: 12, checkouts: 1, orders: 0, revenue: 0 }, directLandings: [], revenueBySource: [], revenueBySourceTotal: 1, topProductsByRevenue: [], unconfirmedPaymentCount: 0, stats: { views: 0, checkouts: 0, orders: 0, revenue: 0, reachedCheckout: 0 }, topProducts: [], topCountries: [], liveVisitors: [], visitorsChart: jsonForScript({ unit: 'hour', labels: Array.from({ length: 24 }, (_, h) => `${h % 12 || 12} ${h < 12 ? 'AM' : 'PM'}`), values: Array(24).fill(0) }), ordersChart: jsonForScript({ unit: 'hour', labels: Array.from({ length: 24 }, (_, h) => `${h % 12 || 12} ${h < 12 ? 'AM' : 'PM'}`), values: Array(24).fill(0), revenue: Array(24).fill(0) }), trafficSources: jsonForScript([]) }) },
+  { view: 'dashboard', state: 'empty', path: '/admin', locals: dashboardLocals({ range: 'today', previous: { views: 12, checkouts: 1, orders: 0, revenue: 0 }, directLandings: [], revenueBySource: [], revenueBySourceTotal: 1, topProductsByRevenue: [], unconfirmedPaymentCount: 0, stats: { views: 0, checkouts: 0, orders: 0, revenue: 0, reachedCheckout: 0 }, topProducts: [], topCountries: [], liveVisitors: [], visitorsChart: jsonForScript({ unit: 'hour', labels: Array.from({ length: 24 }, (_, h) => `${h % 12 || 12} ${h < 12 ? 'AM' : 'PM'}`), values: Array(24).fill(0), views: Array(24).fill(0) }), ordersChart: jsonForScript({ unit: 'hour', labels: Array.from({ length: 24 }, (_, h) => `${h % 12 || 12} ${h < 12 ? 'AM' : 'PM'}`), values: Array(24).fill(0), revenue: Array(24).fill(0) }), trafficSources: jsonForScript([]) }) },
 
   /* routes/admin.js GET /orders */
   { view: 'orders', state: 'populated', path: '/admin/orders', locals: ordersLocals(ORDERS.map(orderRow), { unconfirmedPayments: UNCONFIRMED, notice: 'cancelled', query: { recovered: 'whop_pay_Ux3cVb9nQw2E', recoveredNew: '1' }, pages: 4, total: 180, from: 1, to: 50 }) },

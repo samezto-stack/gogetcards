@@ -48,7 +48,7 @@
        transform, so the change is a glide rather than a repaint. */
     .dash-switch { position: relative; display: inline-grid; grid-auto-flow: column; grid-auto-columns: 1fr; padding: 2px; background: var(--admin-panel-3); border-radius: 999px; isolation: isolate; }
     .dash-switch__thumb { position: absolute; top: 2px; bottom: 2px; left: 2px; width: calc(50% - 2px); background: var(--admin-card); border-radius: 999px; box-shadow: 0 1px 2px rgba(15,42,74,0.14); transition: transform 0.22s cubic-bezier(0.2, 0, 0, 1); z-index: 0; }
-    .dash-switch[data-on="revenue"] .dash-switch__thumb { transform: translateX(100%); }
+    .dash-switch[data-on="revenue"] .dash-switch__thumb, .dash-switch[data-on="views"] .dash-switch__thumb { transform: translateX(100%); }
     .dash-switch__opt { position: relative; z-index: 1; height: 24px; padding: 0 11px; border-radius: 999px; font-size: 12px; font-weight: 600; color: var(--admin-muted); background: none; border: 0; cursor: pointer; transition: color 0.18s; white-space: nowrap; }
     .dash-switch__opt[aria-pressed="true"] { color: var(--admin-primary); }
     .dash-switch__opt:focus-visible { box-shadow: var(--admin-focus); }
@@ -246,10 +246,20 @@
       <div class="admin-panel">
         <div class="admin-panel__head">
           <div>
-            <h2 class="admin-panel__title">Unique visitors</h2>
+            <h2 class="admin-panel__title">Visitors</h2>
             <p class="admin-panel__sub" id="visitorsChartSub"></p>
           </div>
-          <div class="dash-figure num"><%= stats.views || 0 %></div>
+          <div class="dash-orders-head">
+            <%/* People or views: unique visitors counts each address once
+                 per bucket; page views counts every page they opened. */%>
+            <div class="dash-switch" id="visitorsSwitch" data-on="count" role="group" aria-label="Show visitors as">
+              <span class="dash-switch__thumb" aria-hidden="true"></span>
+              <button type="button" class="dash-switch__opt" data-mode="count" aria-pressed="true">Unique</button>
+              <button type="button" class="dash-switch__opt" data-mode="views" aria-pressed="false">Page views</button>
+            </div>
+            <div class="dash-figure num" data-figure="count"><%= stats.views || 0 %></div>
+            <div class="dash-figure num" data-figure="views" hidden><%= (stats.pageViews || 0).toLocaleString('en-US') %></div>
+          </div>
         </div>
         <div class="admin-panel__body">
           <div class="dash-chart">
@@ -608,42 +618,50 @@
         }
       });
     }
-    lineChart('visitorsChart', visitorsSeries, 'rgb(29, 79, 184)', 'Visitors', false);
+    const visitorsLine = lineChart('visitorsChart', visitorsSeries, 'rgb(29, 79, 184)', 'Visitors', false);
     const ordersLine = lineChart('ordersChart', ordersSeries, 'rgb(15, 42, 74)', 'Orders', false);
 
-    // ── Orders: count or revenue ──
+    // ── The switches: one line, two readings of it ──
     /* The same chart, re-fed: Chart.js animates the line from one shape
        to the other, so the switch reads as the line settling rather than
-       a new chart appearing. The y axis relabels itself in dollars. */
-    (function ordersSwitch() {
-      const box = document.getElementById('ordersSwitch');
-      if (!box || !ordersLine || !ordersSeries) return;
-      const revenueDollars = (ordersSeries.revenue || []).map(function (c) { return Math.round(c) / 100; });
-      const figures = document.querySelectorAll('[data-figure]');
-      const dollars = function (v) { return '$' + Number(v).toLocaleString('en-US'); };
+       a new chart appearing. `modes` maps each option to its series, its
+       label and whether the axis speaks in dollars. The figure beside the
+       switch swaps with it, and the choice is remembered per panel. */
+    function attachSwitch(boxId, chart, modes, storageKey) {
+      const box = document.getElementById(boxId);
+      if (!box || !chart) return;
+      const figures = box.parentNode.querySelectorAll('[data-figure]');
       const plain = function (v) { return Number(v).toLocaleString('en-US'); };
+      const dollars = function (v, cents) { return '$' + Number(v).toLocaleString('en-US', cents ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : {}); };
       function show(mode) {
+        const m = modes[mode];
+        if (!m) return;
         box.dataset.on = mode;
         box.querySelectorAll('.dash-switch__opt').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.mode === mode ? 'true' : 'false'); });
         figures.forEach(function (f) { f.hidden = f.dataset.figure !== mode; });
-        const money = mode === 'revenue';
-        ordersLine.data.datasets[0].label = money ? 'Revenue' : 'Orders';
-        ordersLine.data.datasets[0].data = money ? revenueDollars : ordersSeries.values;
-        ordersLine.options.scales.y.ticks.callback = function (v) { return money ? dollars(v) : plain(v); };
-        ordersLine.options.plugins.tooltip.callbacks.label = function (c) {
-          return c.dataset.label + ': ' + (money ? '$' + Number(c.parsed.y).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : plain(c.parsed.y));
-        };
-        ordersLine.update();
-        try { localStorage.setItem('dash.orders.mode', mode); } catch (e) {}
+        chart.data.datasets[0].label = m.label;
+        chart.data.datasets[0].data = m.data;
+        chart.options.scales.y.ticks.callback = function (v) { return m.money ? dollars(v) : plain(v); };
+        chart.options.plugins.tooltip.callbacks.label = function (c) { return c.dataset.label + ': ' + (m.money ? dollars(c.parsed.y, true) : plain(c.parsed.y)); };
+        chart.update();
+        try { localStorage.setItem(storageKey, mode); } catch (e) {}
       }
       box.addEventListener('click', function (e) {
         const btn = e.target.closest('.dash-switch__opt');
         if (btn && btn.dataset.mode !== box.dataset.on) show(btn.dataset.mode);
       });
       let remembered = null;
-      try { remembered = localStorage.getItem('dash.orders.mode'); } catch (e) {}
-      if (remembered === 'revenue') show('revenue');
-    })();
+      try { remembered = localStorage.getItem(storageKey); } catch (e) {}
+      if (remembered && remembered !== box.dataset.on && modes[remembered]) show(remembered);
+    }
+    if (visitorsSeries) attachSwitch('visitorsSwitch', visitorsLine, {
+      count: { label: 'Unique visitors', data: visitorsSeries.values, money: false },
+      views: { label: 'Page views', data: visitorsSeries.views || [], money: false },
+    }, 'dash.visitors.mode');
+    if (ordersSeries) attachSwitch('ordersSwitch', ordersLine, {
+      count: { label: 'Orders', data: ordersSeries.values, money: false },
+      revenue: { label: 'Revenue', data: (ordersSeries.revenue || []).map(function (c) { return Math.round(c) / 100; }), money: true },
+    }, 'dash.orders.mode');
 
     // ── Traffic Sources ──
     // Navy-family palette so the whole panel stays on the admin's palette.
