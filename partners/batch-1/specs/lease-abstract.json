@@ -1,0 +1,33 @@
+{
+  "slug": "lease-abstract",
+  "serviceSlug": "lease-abstract-check",
+  "name": "Lease Abstract",
+  "serviceName": "Lease Abstract Check",
+  "unitNoun": "abstract",
+  "unitNounPlural": "abstracts",
+  "tabs": ["Dates", "Rent", "Options", "Clauses"],
+  "palette": { "light": "#F0EEEA", "accent": "#5A3E72", "accentLift": "#B9A1CF", "cool": "#26222B", "coolLift": "#A09AA6" },
+  "font": { "link": "Spectral:wght@500;600;700", "css": "'Spectral', Georgia, serif" },
+  "footerDisclaimer": "is not a law firm, a solicitor, an attorney or a property adviser, and gives no legal advice. Nothing here interprets the lease, advises on a right, negotiates a term or tells you whether to exercise an option, and no abstract is rewritten. What the lease means is for your lawyer, and what to do about it is yours.",
+  "servicePara": "The abstract is read beside the lease, because every date, figure and option the summary records is read against the clause it was taken from. An abstract read on its own looks complete; it does not show the break notice that was due six months before the date it lists, or the rent review clause that was never carried across.",
+  "seo": {
+    "home": "One lease abstract read against the lease it summarises, the way the person who will rely on it at the next deadline needs it read: every date checked against its clause, the rent schedule against the reviews and steps, every option checked for its notice window, and the clauses that matter checked for whether they were carried across. Not legal advice. One payment, no subscription.",
+    "services": "The lease abstract check, priced per abstract, in twenty-four steps. No legal advice, no interpretation of the lease, nothing certified, nothing negotiated or rewritten, no packages and no retainer.",
+    "service": "Send one lease abstract and the lease and amendments it summarises. Every date checked against its clause, the rent schedule against the review and step provisions, each option checked for its notice window and conditions, and the clauses that drive cost or obligations checked for whether they made it into the summary.",
+    "pricing": "One rate per abstract at $49.99, in twenty-four steps from $49.99 to $1,199.76. No packages, no subscription, no volume discount and no surcharge.",
+    "howItWorks": "Write the brief with what the abstract is used for, attach the abstract and the lease with its amendments, pay in a panel on the same page, and get findings field by field back in three business days.",
+    "standards": "What Lease Abstract does not do: no legal advice and no interpretation of the lease, no view on whether to renew, break or negotiate, nothing certified, and nothing rewritten.",
+    "about": "A lease abstract is not a summary for reading but a set of dates and figures someone will act on without opening the lease, and Lease Abstract checks one the way that deadline needs it checked: abstract against lease.",
+    "faq": "Why the check gives no legal advice, why an abstract prepared by a professional is still worth checking, why nothing is rewritten, which fields fail most often, and what to send when there are amendments.",
+    "resources": "Notes on why a break date is not a notice date, why a rent schedule has to carry its reviews, why an amendment changes the abstract and not just the file, and why the clause that was left out is the expensive one.",
+    "terms": "The terms under which Lease Abstract supplies lease abstract checks, and what it does not advise on, interpret or rewrite."
+  },
+  "og": {
+    "eyebrow": "Lease abstracts",
+    "body": "Every date checked against its clause, the rent schedule against its reviews, each option against its notice window. The abstract read against the lease, before someone relies on it at a deadline."
+  },
+  "whop": {
+    "description": "Lease Abstract checks one lease abstract at a time against the lease and amendments it summarises: every date against its clause, the rent schedule against its reviews, and each option against its notice window. It is a document check, not legal advice. The brief, the files and the written report all live on {host} — customers buy here and use the purchase on that website, outside Whop.",
+    "noClaim": "Never describe the service as legal advice or imply a lawyer, solicitor, attorney or licensed property professional is involved; do not promise savings or avoided penalties."
+  }
+}

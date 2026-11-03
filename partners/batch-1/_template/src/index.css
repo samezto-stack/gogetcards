@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+/* Fonts arrive via <link> in index.html rather than an @import here.
+   Tailwind v4's plugin expands `@import "tailwindcss"` inline, which pushes
+   any CSS @import after it out of the spec-required first position; a <link>
+   in <head> also parallelises the font fetch instead of serialising it
+   behind this stylesheet. */
+
+@theme {
+  /* A pack on a Sunday table: heavy off-white paper, a slate taken from the
+     tab dividers that separate one paper from the next, and a single tab
+     orange spent only on an ask that is not stated — the decision a paper
+     wants and never puts in words. Nothing decorative is ever orange,
+     because the whole argument of the site is that a paper has to say what
+     it wants, and a colour that meant nothing would be the contradiction.
+
+     The ground stays the LIGHT end of the pair, because the shared
+     components paint primary text with `text-brand-black` over
+     `bg-brand-light`. Small-text ratios against that ground: body 15.3:1,
+     secondary 5.6:1, accent 5.7:1 — all clear of 4.5:1. */
+  --color-brand-black: #17181B;
+  --color-brand-ink: #202329;
+  --color-brand-gray: #565B62;
+  --color-brand-light: #EAF0EE;
+  --color-brand-white: #FCFCFD;
+  --color-brand-accent: #1F6B5C;
+  /* Lifted tints for the dark bands. One accent cannot clear 4.5:1 against
+     both a light ground and a near-black one, so text inside a dark band
+     switches to a tint of the same hue. */
+  --color-brand-accent-lift: #79B2A5;
+  --color-brand-mute-lift: #A7ABB2;
+  /* Tab-divider slate, for structure, paper numbers and every rule. */
+  --color-brand-cool: #273230;
+  --color-brand-cool-lift: #99A6A2;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-brand-light text-brand-black font-sans antialiased selection:bg-brand-accent selection:text-brand-white;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-[-0.02em];
+  }
+  /* Figures are tabular everywhere. Page references are read down a column
+     in a contents list, and a column that does not align is read wrong. */
+  .tnum { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+}
+
+/* Deliberately unlayered. Tailwind's utilities sit in `@layer utilities`,
+   and layer order outranks specificity, so the same rules inside `@layer
+   base` would lose to the utilities they override. */
+.bg-brand-black .text-brand-accent,
+.bg-brand-ink .text-brand-accent {
+  color: var(--color-brand-accent-lift);
+}
+.bg-brand-black .text-brand-gray,
+.bg-brand-ink .text-brand-gray {
+  color: var(--color-brand-mute-lift);
+}
+.bg-brand-black .text-brand-cool,
+.bg-brand-ink .text-brand-cool {
+  color: var(--color-brand-cool-lift);
+}
+
+/* A tab divider: the ruled edge each paper in a pack sits behind.
+   Structural, in slate, never orange. */
+.tab {
+  border-left: 1px solid color-mix(in oklab, var(--color-brand-cool) 35%, transparent);
+  padding-left: 1rem;
+}
+
+/* A paper whose ask is not stated. The orange rule is the only mark this
+   site makes in that colour, and the text beside it always says the same
+   thing, so nothing is conveyed by colour alone. */
+.unstated {
+  border-left: 3px solid var(--color-brand-accent);
+  padding-left: 1rem;
+}
+
+/* The rule under a pack's cover sheet: a hairline over a heavier one.
+   Decorative — it says nothing the text does not. */
+.pack-rule {
+  border-top: 1px solid color-mix(in oklab, var(--color-brand-cool) 40%, transparent);
+  border-bottom: 3px solid var(--color-brand-cool);
+}

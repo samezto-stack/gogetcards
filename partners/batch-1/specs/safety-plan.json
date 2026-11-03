@@ -1,0 +1,33 @@
+{
+  "slug": "safety-plan",
+  "serviceSlug": "safety-plan-review",
+  "name": "Safety Plan",
+  "serviceName": "Safety Plan Review",
+  "unitNoun": "plan",
+  "unitNounPlural": "plans",
+  "tabs": ["Activities", "Hazards", "Roles", "Emergency"],
+  "palette": { "light": "#F3F0E8", "accent": "#A4520F", "accentLift": "#E9A66A", "cool": "#2A251F", "coolLift": "#A69D92" },
+  "font": { "link": "Bitter:wght@500;600;700", "css": "'Bitter', Georgia, serif" },
+  "footerDisclaimer": "is not a safety consultant, a competent person, an inspector or a regulator, and gives no view on whether anything is safe. Nothing here assesses a risk, visits a site, approves a control, certifies compliance or signs off a plan, and no plan is rewritten. Whether the event or the work is safe is for the people responsible for it and their competent advisers.",
+  "servicePara": "The plan is read beside its own schedule, site map and staffing list, because every hazard and procedure it records is read against the activities, places and people the other documents describe. A plan read on its own looks thorough; it does not find the activity in the running order that the hazard list never mentions, or the assembly point on a part of the map that is fenced off.",
+  "seo": {
+    "home": "One event or work safety plan read against its own schedule, site map and staffing list: every activity checked for appearing in the hazard section, every control checked for a named owner, every role checked against the people actually rostered, and the emergency procedures checked against the map. A document check, not a safety assessment. One payment, no subscription.",
+    "services": "The safety plan review, priced per plan, in twenty-four steps. No safety assessment, no site visit, no approval or certification, nothing argued or rewritten, no packages and no retainer.",
+    "service": "Send one safety plan with the running order, site map and staffing list it describes. Every activity looked for in the hazard section, every control checked for an owner, every role checked against the roster, and every emergency procedure checked against the map and the contact list.",
+    "pricing": "One rate per plan at $49.99, in twenty-four steps from $49.99 to $1,199.76. No packages, no subscription, no volume discount and no surcharge.",
+    "howItWorks": "Write the brief with what the event or work is and who approves the plan, attach the plan and its supporting documents, pay in a panel on the same page, and get findings section by section back in three business days.",
+    "standards": "What Safety Plan does not do: no safety assessment and no view on whether anything is safe, no site visit, no approval, certification or sign-off, no legal advice, and nothing rewritten.",
+    "about": "A safety plan is not a document for the file but a set of instructions people follow on the day, and Safety Plan reads one the way it has to work: plan against schedule, map and roster.",
+    "faq": "Why the review is not a safety assessment, why a plan written by an experienced organiser is still worth checking, why nothing is rewritten, what fails most often, and what to send with the plan.",
+    "resources": "Notes on why every activity has to appear in the hazard section, why a control needs a name, why the emergency plan has to match the map, and why the plan has to match the roster on the day.",
+    "terms": "The terms under which Safety Plan supplies safety plan reviews, and what it does not assess, approve, certify or rewrite."
+  },
+  "og": {
+    "eyebrow": "Safety plans",
+    "body": "Every activity looked for in the hazard section, every control checked for a named owner, the emergency procedures checked against the map. A document check against the plan’s own schedule and roster — not a safety assessment."
+  },
+  "whop": {
+    "description": "Safety Plan reviews one event or work safety plan at a time against the customer's own running order, site map and staffing list, and lists where the documents disagree: activities missing from the hazard section, controls without an owner, emergency routes that do not match the map. It is a document check, not a safety assessment. The brief, the files and the written report all live on {host} — customers buy here and use the purchase on that website, outside Whop.",
+    "noClaim": "Never describe the service as a safety assessment, risk assessment, inspection, certification or approval, never imply a competent person, safety consultant or regulator is involved, and never say a reviewed plan or event is safe or compliant."
+  }
+}

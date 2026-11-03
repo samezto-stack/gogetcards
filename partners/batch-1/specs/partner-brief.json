@@ -1,0 +1,33 @@
+{
+  "slug": "partner-brief",
+  "serviceSlug": "partner-brief-review",
+  "name": "Partner Brief",
+  "serviceName": "Partner Brief Review",
+  "unitNoun": "brief",
+  "unitNounPlural": "briefs",
+  "tabs": ["Deliverables", "Done means", "Dates", "Decides"],
+  "palette": { "light": "#F1F0EA", "accent": "#6B5A1E", "accentLift": "#D3C07A", "cool": "#29271F", "coolLift": "#A4A093" },
+  "font": { "link": "Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700", "css": "'Fraunces', Georgia, serif" },
+  "footerDisclaimer": "is not an agency, a procurement adviser, a project manager or a lawyer, and gives no view on the work. Nothing here writes a brief, selects a supplier, prices a job, drafts a contract or approves a deliverable, and no brief is rewritten. What you commission is yours, and what your partner delivers is theirs.",
+  "servicePara": "The brief is read beside the budget and the deadline, because every deliverable it asks for is read against what “done” means, when it is due, what it may cost and who decides it is finished. A brief read once sounds clear; it does not find the deliverable with no acceptance criteria, or the three people who each think they sign it off.",
+  "seo": {
+    "home": "One brief to an agency, freelancer or partner, read the way the partner receiving it reads it: every deliverable checked for being listed and countable, every deliverable checked for what “done” means, every date checked against the review rounds it needs, the budget checked against the scope, and the approver checked for being one named person. One payment, no subscription.",
+    "services": "The partner brief review, priced per brief, in twenty-four steps. No view on the work or the partner, no procurement or legal advice, nothing priced or approved, nothing rewritten, no packages and no retainer.",
+    "service": "Send one brief and anything it refers to. Every deliverable listed and checked for acceptance criteria, every deadline checked against the review rounds and inputs it needs, the budget checked against the scope, and the decision-maker checked for being named once.",
+    "pricing": "One rate per brief at $49.99, in twenty-four steps from $49.99 to $1,199.76. No packages, no subscription, no volume discount and no surcharge.",
+    "howItWorks": "Write the brief-about-the-brief with who receives it and what must come back, attach the brief and its references, pay in a panel on the same page, and get findings section by section back in three business days.",
+    "standards": "What Partner Brief does not do: no view on the work, the partner or the price, no procurement, contract or legal advice, nothing approved, and nothing rewritten.",
+    "about": "A brief is not a description of what you want but the only document a partner can hold you to and be held to, and Partner Brief reads one the way they do: deliverables against acceptance, dates and approval.",
+    "faq": "Why the review gives no view on the work, why a brief from an experienced team is still worth checking, why nothing is rewritten, what partners ask first, and what to send.",
+    "resources": "Notes on why every deliverable needs a count, why “done” has to be written down, why a deadline has to include review rounds, and why one person has to sign it off.",
+    "terms": "The terms under which Partner Brief supplies partner brief reviews, and what it does not advise on, approve or rewrite."
+  },
+  "og": {
+    "eyebrow": "Partner briefs",
+    "body": "Every deliverable listed and counted, every one checked for what done means, every date against its review rounds, one named approver. Read the way the agency or freelancer receiving it reads it."
+  },
+  "whop": {
+    "description": "Partner Brief reviews one brief to an agency, freelancer or partner at a time, read as the partner receiving it reads it: every deliverable listed and checked for acceptance criteria, deadlines checked against review rounds, the budget checked against scope, and one named approver. The brief, the files and the written report all live on {host} — customers buy here and use the purchase on that website, outside Whop.",
+    "noClaim": "Do not describe the service as procurement, project management, contract drafting or legal advice, and do not promise better work, lower prices or on-time delivery."
+  }
+}

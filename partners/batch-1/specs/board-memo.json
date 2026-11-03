@@ -1,0 +1,33 @@
+{
+  "slug": "board-memo",
+  "serviceSlug": "board-memo-review",
+  "name": "Board Memo",
+  "serviceName": "Board Memo Review",
+  "unitNoun": "memo",
+  "unitNounPlural": "memos",
+  "tabs": ["Decision", "Options", "Numbers", "Risk"],
+  "palette": { "light": "#F1EFEA", "accent": "#7A2E3A", "accentLift": "#D69AA4", "cool": "#2A2224", "coolLift": "#A69A9C" },
+  "font": { "link": "Crimson+Pro:wght@500;600;700", "css": "'Crimson Pro', Georgia, serif" },
+  "footerDisclaimer": "is not a governance adviser, a company secretary, a lawyer or a director, and gives no view on the decision. Nothing here recommends an option, assesses a director&rsquo;s duties, verifies a number or approves a paper, and no sentence is reworded. What the board decides is the board&rsquo;s, and what goes in the pack is yours.",
+  "servicePara": "The recommendation is read beside the options, because every reason the memo gives for its choice is read against the alternatives it was chosen over. A memo read for clarity sounds decisive; it does not find the option that was set up to lose, or the cost in the recommendation that does not match the cost in the appendix.",
+  "seo": {
+    "home": "One board memo read the way the director who has twenty minutes before the meeting reads it: the decision being asked for checked for being stated on the first page, the options checked for being real alternatives fairly compared, every figure checked against the appendix and the rest of the pack, and the risks checked for an owner and a consequence. One payment, no subscription.",
+    "services": "The board memo review, priced per memo, in twenty-four steps. No view on the decision, no governance or legal advice, nothing verified, nothing argued or rewritten, no packages and no retainer.",
+    "service": "Send one board memo and the papers it relies on. The decision asked for checked for being stated plainly and early, the options for being genuine and compared on the same terms, every figure for agreeing with its source, and every risk for having an owner and a consequence.",
+    "pricing": "One rate per memo at $49.99, in twenty-four steps from $49.99 to $1,199.76. No packages, no subscription, no volume discount and no surcharge.",
+    "howItWorks": "Write the brief with what the board is being asked to decide, attach the memo and the papers it relies on, pay in a panel on the same page, and get findings section by section back in three business days.",
+    "standards": "What Board Memo does not do: no view on the decision or which option to choose, no governance, legal or financial advice, nothing verified, and nothing argued or rewritten.",
+    "about": "A board memo is not a report on a project but a request for a decision a director must be able to make from the memo alone, and Board Memo reads one the way they do: recommendation against options.",
+    "faq": "Why the review gives no view on the decision, why a memo the executive team has agreed is still worth checking, why nothing is rewritten, what a director looks for first, and how much can be redacted.",
+    "resources": "Notes on why the decision has to be on the first page, why an option set up to lose is not an option, why the figure in the memo has to match the appendix, and why a risk without an owner is a worry.",
+    "terms": "The terms under which Board Memo supplies board memo reviews, and what it does not advise on, verify or rewrite."
+  },
+  "og": {
+    "eyebrow": "Board memos",
+    "body": "The decision checked for being on the first page, the options checked for being real alternatives, every figure checked against the appendix. Read the way the director with twenty minutes before the meeting reads it."
+  },
+  "whop": {
+    "description": "Board Memo reviews one board paper or decision memo at a time, read as a director preparing for the meeting reads it: the decision asked for, the options compared, every figure checked against the appendix and the rest of the pack, and every risk checked for an owner. The brief, the files and the written report all live on {host} — customers buy here and use the purchase on that website, outside Whop.",
+    "noClaim": "Never describe the service as governance, legal, company secretarial or financial advice, and do not imply any director, lawyer or chartered professional is involved."
+  }
+}

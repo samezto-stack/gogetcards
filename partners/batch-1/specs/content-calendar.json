@@ -1,0 +1,33 @@
+{
+  "slug": "content-calendar",
+  "serviceSlug": "content-calendar-review",
+  "name": "Content Calendar",
+  "serviceName": "Content Calendar Review",
+  "unitNoun": "calendar",
+  "unitNounPlural": "calendars",
+  "tabs": ["Themes", "Owners", "Deadlines", "Dates"],
+  "palette": { "light": "#F3EEF0", "accent": "#9C2F63", "accentLift": "#E39CC0", "cool": "#2B2127", "coolLift": "#A799A0" },
+  "font": { "link": "Outfit:wght@500;600;700", "css": "'Outfit', system-ui, sans-serif" },
+  "footerDisclaimer": "is not a content agency, a social media manager or a marketing consultant, and gives no view on the content. Nothing here writes a post, chooses a topic, schedules anything or predicts engagement, and no entry is moved or rewritten. What gets published is yours.",
+  "servicePara": "The entries are read beside the people who make them, because every item on the calendar is read against its owner, the deadline that has to come before its publish date, and the capacity the team actually has that week. A calendar read as a grid looks full and balanced; it does not find the week one writer owns nine pieces, or the launch post scheduled the day before the launch was moved.",
+  "seo": {
+    "home": "One content calendar read the way the team who has to produce it reads it: every entry checked for an owner and a draft deadline before its publish date, every week checked against the team’s stated capacity, every piece traced to a stated theme or goal, and every date checked against the launches, holidays and events the calendar depends on. One payment, no subscription.",
+    "services": "The content calendar review, priced per calendar, in twenty-four steps. No view on topics or content, no writing, no scheduling, no engagement predictions, nothing moved or rewritten, no packages and no retainer.",
+    "service": "Send one content calendar with the team’s capacity and the key dates it depends on. Every entry checked for an owner and a deadline before publish, every week totalled against capacity, every piece traced to a theme, and every date checked against launches, holidays and events.",
+    "pricing": "One rate per calendar at $49.99, in twenty-four steps from $49.99 to $1,199.76. No packages, no subscription, no volume discount and no surcharge.",
+    "howItWorks": "Write the brief with what the calendar covers and who produces it, attach the calendar and its key dates, pay in a panel on the same page, and get findings week by week back in three business days.",
+    "standards": "What Content Calendar does not do: no view on topics, channels or content quality, no writing or scheduling, no engagement predictions, and nothing moved or rewritten.",
+    "about": "A content calendar is not a grid of ideas but a production schedule a team has to deliver, and Content Calendar reads one the way that team will: entries against owners, deadlines and dates.",
+    "faq": "Why the review gives no view on the content, why a calendar the team planned together is still worth checking, why nothing is moved, what fails first in a busy month, and what to send with the calendar.",
+    "resources": "Notes on why a publish date needs a draft date, why one writer cannot own a whole week, why every piece needs a reason to exist, and why the calendar has to move when the launch does.",
+    "terms": "The terms under which Content Calendar supplies content calendar reviews, and what it does not write, schedule or rewrite."
+  },
+  "og": {
+    "eyebrow": "Content calendars",
+    "body": "Every entry checked for an owner and a draft deadline, every week against capacity, every date against the launches and holidays it depends on. Read the way the team who has to produce it reads it."
+  },
+  "whop": {
+    "description": "Content Calendar reviews one content or editorial calendar at a time, read as the team who must produce it reads it: every entry checked for an owner and a draft deadline before publish, every week totalled against stated capacity, every piece traced to a theme, and every date checked against launches and holidays. The brief, the files and the written report all live on {host} — customers buy here and use the purchase on that website, outside Whop.",
+    "noClaim": "Do not describe the service as content creation, social media management or marketing consulting, and do not promise engagement, followers, traffic or sales."
+  }
+}

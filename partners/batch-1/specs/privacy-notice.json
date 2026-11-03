@@ -1,0 +1,33 @@
+{
+  "slug": "privacy-notice",
+  "serviceSlug": "privacy-notice-review",
+  "name": "Privacy Notice",
+  "serviceName": "Privacy Notice Review",
+  "unitNoun": "notice",
+  "unitNounPlural": "notices",
+  "tabs": ["Collected", "Purposes", "Shared", "Kept"],
+  "palette": { "light": "#EBF0EF", "accent": "#1E5E62", "accentLift": "#7FBFC2", "cool": "#1F2829", "coolLift": "#94A3A4" },
+  "font": { "link": "IBM+Plex+Serif:wght@500;600;700", "css": "'IBM Plex Serif', Georgia, serif" },
+  "footerDisclaimer": "is not a law firm, a data protection officer or a compliance consultant, and gives no legal advice. Nothing here decides whether a notice is lawful, assesses compliance with any regulation, audits the product or certifies anything, and no notice is rewritten. Whether the notice meets the law is for your lawyer, and what the product does with data is yours.",
+  "servicePara": "The notice is read beside your own description of the product, because every statement it makes about data is read against the inventory of what the product actually collects, uses and shares. A notice read on its own sounds complete; it does not find the analytics tool that the notice never names or the retention period that is longer in the notice than in the database.",
+  "seo": {
+    "home": "One privacy notice read against your own inventory of what the product collects, uses, shares and keeps: every category of data checked against what is actually gathered, every purpose against what the data is actually used for, every recipient against your integrations, and every retention period against your own settings. Not legal advice. One payment, no subscription.",
+    "services": "The privacy notice review, priced per notice, in twenty-four steps. No legal advice, no compliance assessment, no audit of the product, nothing certified, nothing rewritten, no packages and no retainer.",
+    "service": "Send one privacy notice and your own list of what the product collects, the tools it sends data to, and how long it keeps things. The notice is read against that list for data it does not mention, purposes it does not state, recipients it does not name and periods that do not match.",
+    "pricing": "One rate per notice at $49.99, in twenty-four steps from $49.99 to $1,199.76. No packages, no subscription, no volume discount and no surcharge.",
+    "howItWorks": "Write the brief with what the product is and who it serves, attach the notice and your data inventory, pay in a panel on the same page, and get findings section by section back in three business days.",
+    "standards": "What Privacy Notice does not do: no legal advice and no view on whether the notice is lawful, no compliance assessment, no audit or scan of the product, nothing certified, and nothing rewritten.",
+    "about": "A privacy notice is not a page of reassurance but a description of what a product does with people’s data, and Privacy Notice reads one the way it has to be read: against what the product actually does.",
+    "faq": "Why the review gives no legal advice, why a notice from a template or a lawyer is still worth checking against the product, why nothing is rewritten, what the review needs from you, and why the product itself is not scanned.",
+    "resources": "Notes on why every tool that receives data has to be in the notice, why a purpose has to describe the use, why the retention period in the notice has to match the setting, and why a notice goes stale with every release.",
+    "terms": "The terms under which Privacy Notice supplies privacy notice reviews, and what it does not advise on, assess, certify or rewrite."
+  },
+  "og": {
+    "eyebrow": "Privacy notices",
+    "body": "Every statement about data read against what the product actually collects, uses, shares and keeps. The analytics tool the notice never names, found before someone else finds it. Not legal advice."
+  },
+  "whop": {
+    "description": "Privacy Notice reviews one privacy notice at a time against the customer's own inventory of what their product collects, uses, shares and keeps, and lists where the two disagree. It is a document comparison, not legal advice and not a compliance assessment. The brief, the files and the written report all live on {host} — customers buy here and use the purchase on that website, outside Whop.",
+    "noClaim": "Never describe the service as legal advice, a compliance audit, a GDPR or CCPA assessment or certification, and never imply a lawyer or data protection officer is involved."
+  }
+}

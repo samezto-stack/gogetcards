@@ -1,0 +1,33 @@
+{
+  "slug": "launch-plan",
+  "serviceSlug": "launch-plan-review",
+  "name": "Launch Plan",
+  "serviceName": "Launch Plan Review",
+  "unitNoun": "plan",
+  "unitNounPlural": "plans",
+  "tabs": ["Tasks", "Owners", "Go / no-go", "Rollback"],
+  "palette": { "light": "#F2EFE9", "accent": "#B4461B", "accentLift": "#EFA07F", "cool": "#29231F", "coolLift": "#A69D96" },
+  "font": { "link": "Sora:wght@500;600;700", "css": "'Sora', system-ui, sans-serif" },
+  "footerDisclaimer": "is not a launch agency, a project manager or a marketing consultant, and gives no view on the launch. Nothing here plans a launch, runs a task, sets a date, writes the messaging or decides go or no-go, and no task is moved or rewritten. Whether to launch, and when, is yours.",
+  "servicePara": "The tasks are read beside the date, because every task in the plan is read against its owner, its deadline and the tasks that have to finish before it. A plan read as a checklist looks complete; it does not find the press embargo that lifts before the feature is live, or the task that three people each think someone else owns.",
+  "seo": {
+    "home": "One launch plan read the way the person running launch day reads it: every task checked for one owner and a date, every dependency checked for finishing before what needs it, the go/no-go criteria checked for being stated and measurable, the rollback checked for existing, and the announcement checked against what actually ships. One payment, no subscription.",
+    "services": "The launch plan review, priced per plan, in twenty-four steps. No view on whether or when to launch, no marketing or project management, nothing approved, nothing moved or rewritten, no packages and no retainer.",
+    "service": "Send one launch plan and the announcement it goes with. Every task checked for one owner and a date, every dependency checked for order, go/no-go criteria checked for being stated and measurable, the rollback checked for being planned, and every claim in the announcement checked against the scope that ships.",
+    "pricing": "One rate per plan at $49.99, in twenty-four steps from $49.99 to $1,199.76. No packages, no subscription, no volume discount and no surcharge.",
+    "howItWorks": "Write the brief with what is launching and when, attach the plan and the announcement, pay in a panel on the same page, and get findings section by section back in three business days.",
+    "standards": "What Launch Plan does not do: no view on whether or when to launch, no marketing, messaging or project management, no go/no-go decision, and nothing moved or rewritten.",
+    "about": "A launch plan is not a checklist of good intentions but the script for a day that cannot be repeated, and Launch Plan reads one the way that day needs it: tasks against owners, dates and dependencies.",
+    "faq": "Why the review gives no view on whether to launch, why a plan from an experienced team is still worth checking, why nothing is moved, what fails most often on the day, and what to send with the plan.",
+    "resources": "Notes on why a task with two owners has none, why the embargo cannot lift before the feature is live, why go/no-go needs a number, and why a launch without a rollback is a bet.",
+    "terms": "The terms under which Launch Plan supplies launch plan reviews, and what it does not plan, decide or rewrite."
+  },
+  "og": {
+    "eyebrow": "Launch plans",
+    "body": "Every task checked for one owner and a date, every dependency for order, go/no-go for a number, the rollback for existing. Read the way the person running launch day reads it."
+  },
+  "whop": {
+    "description": "Launch Plan reviews one product or campaign launch plan at a time, read as the person running launch day reads it: every task checked for one owner and a date, dependencies checked for order, go/no-go criteria and rollback checked for being stated, and the announcement checked against what ships. The brief, the files and the written report all live on {host} — customers buy here and use the purchase on that website, outside Whop.",
+    "noClaim": "Do not describe the service as project management, marketing, PR or launch consulting, and do not promise a successful launch or any sales or coverage."
+  }
+}

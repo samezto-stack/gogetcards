@@ -1,0 +1,47 @@
+{
+  "slug": "brand-book",
+  "serviceSlug": "brand-book-review",
+  "name": "Brand Book",
+  "serviceName": "Brand Book Review",
+  "unitNoun": "book",
+  "unitNounPlural": "books",
+  "tabs": [
+    "Rules",
+    "Examples",
+    "Colour",
+    "Type"
+  ],
+  "palette": {
+    "light": "#F2EFEC",
+    "accent": "#B03A2E",
+    "accentLift": "#E8968C",
+    "cool": "#2A2322",
+    "coolLift": "#A69C9A"
+  },
+  "font": {
+    "link": "Playfair+Display:wght@500;600;700",
+    "css": "'Playfair Display', Georgia, serif"
+  },
+  "footerDisclaimer": "is not a design agency, a brand consultancy or a trade mark adviser, designs nothing and gives no view on the brand. Nothing here creates a logo, chooses a colour, writes a tone of voice or clears a mark, and no page is redesigned. Whether the brand is right is yours, and whether the book is published is yours.",
+  "servicePara": "The rules are read beside the examples, because every instruction the book gives is read against the page that is supposed to show it. A book read for inspiration looks consistent; it does not find the clear-space rule that the book’s own cover breaks, or the brand blue given as three values that are three different blues.",
+  "seo": {
+    "home": "One brand book read the way the designer who has to apply it on a deadline reads it: every rule read against the book’s own examples, colour values checked across HEX, RGB, CMYK and Pantone, type specifications checked for weights, sizes and fallbacks, and every rule checked for whether it can actually be followed. One payment, no subscription.",
+    "services": "The brand book review, priced per book, in twenty-four steps. No view on whether the brand is right, nothing designed, no trade mark advice, nothing redrawn or rewritten, no packages and no retainer.",
+    "service": "Send one brand book and its asset files. Every rule read against the examples that should show it, colour values compared across every format the book gives, type specifications checked for completeness, and each rule checked for whether a designer could follow it without asking.",
+    "pricing": "One rate per book at $49.99, in twenty-four steps from $49.99 to $1,199.76. No packages, no subscription, no volume discount and no surcharge.",
+    "howItWorks": "Write the brief with who applies the book and where, attach the book and its assets, pay in a panel on the same page, and get findings page by page back in three business days.",
+    "standards": "What Brand Book does not do: no view on whether the brand is right or the design is good, nothing designed or redrawn, no trade mark or legal advice, and nothing rewritten.",
+    "about": "A brand book is not a showcase of a brand but a set of instructions a designer follows without the author in the room, and Brand Book reads one the way they do: rule against example.",
+    "faq": "Why the review gives no view on the brand, why a book from an agency is still worth checking, why nothing is redesigned, what designers ask about first, and what to send with the book.",
+    "resources": "Notes on why the book’s own examples have to obey its rules, why one colour given three ways is three colours, why a type specification needs a fallback, and why a rule nobody can measure is a preference.",
+    "terms": "The terms under which Brand Book supplies brand book reviews, and what it does not design, advise on or rewrite."
+  },
+  "og": {
+    "eyebrow": "Brand books",
+    "body": "Every rule read against the book’s own examples, colour values compared across every format, type specs checked for what a designer needs. Read the way the person applying it on a deadline reads it."
+  },
+  "whop": {
+    "description": "Brand Book reviews one brand book at a time, read as the designer applying it reads it: every rule against the book's own examples, colour values compared across HEX, RGB, CMYK and Pantone, and type specifications checked for completeness. The brief, the files and the written report all live on {host} — customers buy here and use the purchase on that website, outside Whop.",
+    "noClaim": "Do not describe the service as design, branding, trade mark clearance or legal advice, and do not promise brand recognition or consistency results."
+  }
+}

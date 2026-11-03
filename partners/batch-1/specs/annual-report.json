@@ -1,0 +1,33 @@
+{
+  "slug": "annual-report",
+  "serviceSlug": "annual-report-review",
+  "name": "Annual Report",
+  "serviceName": "Annual Report Review",
+  "unitNoun": "report",
+  "unitNounPlural": "reports",
+  "tabs": ["Narrative", "Figures", "Targets", "Risks"],
+  "palette": { "light": "#EEF0EA", "accent": "#3E5B2E", "accentLift": "#A3BE8C", "cool": "#232A22", "coolLift": "#9AA396" },
+  "font": { "link": "Libre+Baskerville:wght@400;700", "css": "'Libre Baskerville', Georgia, serif" },
+  "footerDisclaimer": "is not an auditor, an accountant or an assurance provider, and gives no opinion on any financial statement. Nothing here audits the figures, prepares the accounts, assures the controls or signs off the report, and no sentence is reworded. Whether the accounts are true and fair is for the people who prepare and audit them, and whether the report is published is yours.",
+  "servicePara": "The narrative is read beside the figures, because every claim the front half of the report makes is read against the number in the back half that should carry it. A report read for tone finds a confident year; it does not find the growth the chair’s letter announces that the tables never show, or last year’s target that quietly stopped being reported.",
+  "seo": {
+    "home": "One annual report read cold, the way a member, donor or investor who reads it end to end reads it: the narrative read against the figures, last year’s targets checked for whether they are reported against, every KPI checked for the same definition as last year, and the risks checked against what actually happened. Not an audit. One payment, no subscription.",
+    "services": "The annual report review, priced per report, in twenty-four steps. No audit and no assurance, no opinion on the accounts, nothing certified, nothing argued or rewritten, no packages and no retainer.",
+    "service": "Send one annual report and last year’s. The narrative read against the figures, last year’s stated targets followed into this year’s report, every KPI checked for a consistent definition, and the risk section read against the year the report describes.",
+    "pricing": "One rate per report at $49.99, in twenty-four steps from $49.99 to $1,199.76. No packages, no subscription, no volume discount and no surcharge.",
+    "howItWorks": "Write the brief with who reads the report and what it has to show, attach this year’s report and last year’s, pay in a panel on the same page, and get findings section by section back in three business days.",
+    "standards": "What Annual Report does not do: no audit, no assurance and no opinion on any financial statement, no advice on strategy or disclosure, nothing certified, and nothing argued or rewritten.",
+    "about": "An annual report is not a brochure about a good year but a record a member or investor reads for whether the story and the numbers are the same story, and Annual Report reads one the way they do: narrative against figures.",
+    "faq": "Why the report is not an audit, why an audited report is still worth reading this way, why nothing is rewritten, what a reader compares first, and how much can be withheld.",
+    "resources": "Notes on why the chair’s letter has to match the tables, why last year’s targets have to be reported against, why a KPI that changes definition is a new KPI, and why a risk section has to mention the year that happened.",
+    "terms": "The terms under which Annual Report supplies annual report reviews, and what it does not audit, assure or rewrite."
+  },
+  "og": {
+    "eyebrow": "Annual reports",
+    "body": "The narrative read against the figures, last year’s targets followed into this year, every KPI checked for the same definition. Not an audit — a read the way the member or investor reads it."
+  },
+  "whop": {
+    "description": "Annual Report reviews one annual report at a time, read as its members or investors read it: the narrative against the figures, last year's targets followed into this year, and every KPI checked for a consistent definition. It is not an audit and gives no assurance. The brief, the files and the written report all live on {host} — customers buy here and use the purchase on that website, outside Whop.",
+    "noClaim": "Never describe the service as an audit, assurance, accounting or a review of financial statements, and never imply a qualified accountant or auditor is involved."
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "slug": "help-article",
+  "serviceSlug": "help-article-review",
+  "name": "Help Article",
+  "serviceName": "Help Article Review",
+  "unitNoun": "article",
+  "unitNounPlural": "articles",
+  "tabs": ["Question", "Before", "Steps", "Result"],
+  "palette": { "light": "#ECF0F3", "accent": "#1D5F8A", "accentLift": "#86BEE0", "cool": "#1E262C", "coolLift": "#95A1AA" },
+  "font": { "link": "Manrope:wght@500;600;700;800", "css": "'Manrope', system-ui, sans-serif" },
+  "footerDisclaimer": "is not a documentation agency, a technical writer or a support team, writes no article and tests no product. Nothing here drafts the help, uses the software, takes screenshots or answers a customer, and no article is rewritten. Whether the product works is yours, and whether the article is published is yours.",
+  "servicePara": "The steps are read beside the screenshots, because every instruction the article gives is read against the screen it says the reader will see. An article read top to bottom sounds clear; it does not find the button the text calls “Save” that the screenshot labels “Apply”, or the step that only works if a setting three articles away was turned on first.",
+  "seo": {
+    "home": "One help article read the way the customer who is stuck halfway through a task reads it: the title checked against the question it answers, prerequisites checked for being stated before step one, every step checked against the labels in the screenshots supplied, and the end checked for telling the reader what success looks like. One payment, no subscription.",
+    "services": "The help article review, priced per article, in twenty-four steps. No technical writing, no product testing, no support, nothing rewritten, no packages and no retainer.",
+    "service": "Send one help article with its screenshots. The title checked against the question, prerequisites checked for being up front, every step checked for one action and for the labels its screenshot shows, and the ending checked for a visible result and what to do if it does not appear.",
+    "pricing": "One rate per article at $49.99, in twenty-four steps from $49.99 to $1,199.76. No packages, no subscription, no volume discount and no surcharge.",
+    "howItWorks": "Write the brief with who reads the article and what they are trying to do, attach the article and its screenshots, pay in a panel on the same page, and get findings step by step back in three business days.",
+    "standards": "What Help Article does not do: no technical writing, no use or testing of the product, no customer support, nothing certified, and nothing rewritten.",
+    "about": "A help article is not documentation for its own sake but the one page a stuck customer reads before they give up or open a ticket, and Help Article reads one the way they do: step against screen.",
+    "faq": "Why the review does not test the product, why an article written by the engineer who built the feature is still worth checking, why nothing is rewritten, what makes customers give up, and what to send with the article.",
+    "resources": "Notes on why the title has to be the customer’s question, why prerequisites go before step one, why a step has to use the label on the screen, and why an article has to say what success looks like.",
+    "terms": "The terms under which Help Article supplies help article reviews, and what it does not write, test or rewrite."
+  },
+  "og": {
+    "eyebrow": "Help articles",
+    "body": "The title checked against the question, prerequisites before step one, every step against the label in its screenshot. Read the way the customer who is stuck halfway through reads it."
+  },
+  "whop": {
+    "description": "Help Article reviews one help-centre or knowledge-base article at a time, read as a stuck customer reads it: the title against the question it answers, prerequisites before step one, every step against the labels in its screenshots, and the ending checked for a visible result. The brief, the files and the written report all live on {host} — customers buy here and use the purchase on that website, outside Whop.",
+    "noClaim": "Do not describe the service as technical writing, customer support or product testing, and do not promise fewer tickets or higher satisfaction."
+  }
+}

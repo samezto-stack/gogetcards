@@ -1,0 +1,47 @@
+{
+  "slug": "case-study",
+  "serviceSlug": "case-study-review",
+  "name": "Case Study",
+  "serviceName": "Case Study Review",
+  "unitNoun": "study",
+  "tabs": [
+    "Claim",
+    "Evidence",
+    "Numbers",
+    "Quote"
+  ],
+  "palette": {
+    "light": "#EEEDE6",
+    "accent": "#8A4B1E",
+    "accentLift": "#D59A6A",
+    "cool": "#2C2A26",
+    "coolLift": "#A39E95"
+  },
+  "font": {
+    "link": "Newsreader:opsz,wght@6..72,500;6..72,600;6..72,700",
+    "css": "'Newsreader', Georgia, serif"
+  },
+  "footerDisclaimer": "is not a marketing agency, a copywriter or a research firm, writes no study and advises on no campaign. Nothing here drafts the story, sources the numbers, approaches the customer or signs off the claim, and no sentence is reworded. Whether the study persuades is the reader&rsquo;s, and whether it is published is yours.",
+  "servicePara": "The claim is read beside the evidence, because every result the study announces is read against the number or the quote that should carry it. A study read for flow finds a confident story; it does not find the headline figure that no sentence in the body produces and the quote that praises something the customer never used.",
+  "seo": {
+    "home": "One customer case study read cold, the way the prospect who will decide on it reads it: the headline claim read against the evidence in the body, the numbers checked for a stated baseline and period, the quote checked against what the customer actually did, and the narrative checked for whether the product did the work the study says it did. One payment, no subscription.",
+    "services": "The case study review, priced per study, in twenty-four steps. No advice on whether the study will convert or which customer to feature, nothing certified, nothing argued or rewritten, no packages and no retainer.",
+    "service": "Send one case study and the material behind it. The headline claim read against the evidence, every figure checked for its baseline and period, the quote checked against the customer's own words, and the story checked for whether the product is shown doing the work it is credited with.",
+    "pricing": "One rate per study at $49.99, in twenty-four steps from $49.99 to $1,199.76. No packages, no subscription, no volume discount and no surcharge.",
+    "howItWorks": "Write the brief with who the study is for and what it has to prove, attach the study and its source material, pay in a panel on the same page, and get findings section by section back in three business days.",
+    "standards": "What Case Study does not do: no advice on whether the study will convert or which customer to feature, no view on the campaign it serves, nothing certified as accurate or approved, and nothing argued or rewritten.",
+    "about": "A case study is not a story about a happy customer but a claim a sceptical prospect reads for whether the evidence is really there, and Case Study reads one the way they do: claim against evidence.",
+    "faq": "Why the report will not say whether the study will convert, why a study the customer has approved is still worth checking, why nothing is rewritten, what a sceptical prospect doubts first, and how much can be redacted.",
+    "resources": "Notes on why the headline number has to appear in the body, why a result without a baseline is an anecdote, why the quote has to describe something the customer did, and why the product has to be seen doing the work it is credited with.",
+    "terms": "The terms under which Case Study supplies case study reviews, and what it does not advise on, certify or rewrite."
+  },
+  "og": {
+    "eyebrow": "Case studies",
+    "body": "The headline claim read against the evidence in the body, every number checked for its baseline, the quote checked against what the customer did. Read the way the sceptical prospect who will decide on it reads it."
+  },
+  "unitNounPlural": "studies",
+  "whop": {
+    "description": "Case Study reviews one customer case study at a time: the headline claim read against the evidence in the body, every figure checked for a stated baseline and period, and the quote checked against what the customer actually did. The brief, the files and the written report all live on {host} — customers buy here and use the purchase on that website, outside Whop.",
+    "noClaim": "Do not describe the service as marketing, copywriting, research or fact-checking, and do not promise more sales, conversions or approvals."
+  }
+}

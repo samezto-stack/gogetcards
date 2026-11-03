@@ -1,0 +1,25 @@
+{
+  "name": "experience-engine",
+  "version": "1.1.0",
+  "description": "Framework-agnostic engine for signed, server-side experience routing: token issuance, resolution (token → cookie → default), persistent signed cookies, and optional per-experience page rendering. No UI, no business logic, zero runtime dependencies.",
+  "main": "src/index.js",
+  "types": "types/index.d.ts",
+  "scripts": {
+    "test": "node test/smoke.js"
+  },
+  "keywords": [
+    "experience",
+    "routing",
+    "signed-token",
+    "hmac",
+    "cookie",
+    "middleware",
+    "sdk",
+    "server-side"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=16"
+  },
+  "dependencies": {}
+}

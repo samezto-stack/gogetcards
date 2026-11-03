@@ -1,0 +1,33 @@
+{
+  "slug": "white-paper",
+  "serviceSlug": "white-paper-review",
+  "name": "White Paper",
+  "serviceName": "White Paper Review",
+  "unitNoun": "paper",
+  "unitNounPlural": "papers",
+  "tabs": ["Problem", "Thesis", "Sources", "Pivot"],
+  "palette": { "light": "#ECEFF2", "accent": "#28507A", "accentLift": "#8FB3D9", "cool": "#1F2630", "coolLift": "#97A1AD" },
+  "font": { "link": "Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700", "css": "'Source Serif 4', Georgia, serif" },
+  "footerDisclaimer": "is not a marketing agency, a ghostwriter or a research firm, writes no paper and verifies no study. Nothing here drafts the argument, finds the sources, tests the product or signs off the claims, and no sentence is reworded. Whether the paper persuades is the reader&rsquo;s, and whether it is published is yours.",
+  "servicePara": "The thesis is read beside its sources, because every claim the paper makes is read against the citation that should carry it. A paper read for flow finds a confident argument; it does not find the statistic whose source says something narrower, and the page where the argument quietly becomes a product brochure.",
+  "seo": {
+    "home": "One white paper read cold, the way the technical buyer who will judge it reads it: the problem checked for whether it is framed so only one product solves it, the thesis checked for being stated and defended, every cited figure read against what its source actually says, and the pivot to the product checked for whether the argument earned it. One payment, no subscription.",
+    "services": "The white paper review, priced per paper, in twenty-four steps. No advice on whether the paper will generate leads or what to write, nothing verified or certified, nothing argued or rewritten, no packages and no retainer.",
+    "service": "Send one white paper and the sources it cites. The problem read for honest framing, the thesis checked for being stated and argued, every figure read against its source, and the turn to the product checked for whether the argument arrives there or jumps.",
+    "pricing": "One rate per paper at $49.99, in twenty-four steps from $49.99 to $1,199.76. No packages, no subscription, no volume discount and no surcharge.",
+    "howItWorks": "Write the brief with who the paper is for and what it has to establish, attach the paper and its sources, pay in a panel on the same page, and get findings section by section back in three business days.",
+    "standards": "What White Paper does not do: no advice on whether the paper will generate leads or which topic to choose, no view on the product or the market, nothing verified as true or certified, and nothing argued or rewritten.",
+    "about": "A white paper is not a long brochure but an argument a technical reader tests for whether its evidence holds, and White Paper reads one the way they do: thesis against sources.",
+    "faq": "Why the report will not say whether the paper will generate leads, why a paper with real citations is still worth checking, why nothing is rewritten, what a technical reader doubts first, and how much can be redacted.",
+    "resources": "Notes on why a cited figure has to say what the source says, why a problem framed for one product reads as a pitch, why a thesis has to be stated before it is defended, and why the turn to the product has to be earned.",
+    "terms": "The terms under which White Paper supplies white paper reviews, and what it does not advise on, verify or rewrite."
+  },
+  "og": {
+    "eyebrow": "White papers",
+    "body": "The thesis read against its sources, every cited figure checked against what the source says, and the turn to the product checked for whether the argument earned it. Read the way the technical buyer reads it."
+  },
+  "whop": {
+    "description": "White Paper reviews one white paper at a time: the problem checked for honest framing, the thesis checked for being stated and argued, every cited figure read against what its source actually says, and the turn to the product checked for whether it is earned. The brief, the files and the written report all live on {host} — customers buy here and use the purchase on that website, outside Whop.",
+    "noClaim": "Do not describe the service as ghostwriting, research, fact-checking or peer review, and do not promise leads, downloads or sales."
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "slug": "data-dictionary",
+  "serviceSlug": "data-dictionary-review",
+  "name": "Data Dictionary",
+  "serviceName": "Data Dictionary Review",
+  "unitNoun": "dictionary",
+  "unitNounPlural": "dictionaries",
+  "tabs": ["Fields", "Types", "Values", "Meaning"],
+  "palette": { "light": "#ECEEF1", "accent": "#2E4F86", "accentLift": "#93ADDD", "cool": "#1C2230", "coolLift": "#949CAD" },
+  "font": { "link": "IBM+Plex+Sans:wght@500;600;700", "css": "'IBM Plex Sans', system-ui, sans-serif" },
+  "footerDisclaimer": "is not a data consultancy, an engineering team or a governance adviser, and builds nothing. Nothing here designs a schema, writes a query, migrates data, defines a metric or certifies data quality, and no definition is rewritten. What the data means for the business is yours.",
+  "servicePara": "The dictionary is read beside the schema and a sample, because every definition it gives is read against the column that actually exists, the type that column actually has and the values it actually holds. A dictionary read on its own looks complete; it does not find the column renamed last release, or the status field documented with four values that holds seven.",
+  "seo": {
+    "home": "One data dictionary read the way the analyst or engineer who has to use the data reads it: every column in the schema checked for an entry, every entry checked for a column that exists, every type and unit checked against the schema, every list of allowed values checked against a sample, and every definition checked for agreeing with the metric documents that use it. One payment, no subscription.",
+    "services": "The data dictionary review, priced per dictionary, in twenty-four steps. No schema design, no engineering, no metric definitions, no data-quality certification, nothing rewritten, no packages and no retainer.",
+    "service": "Send one data dictionary with the schema it documents and, if you can, a sample. Every column matched to an entry and every entry to a column, types and units compared, allowed values checked against the sample, and definitions checked for agreeing with each other and with your metric documents.",
+    "pricing": "One rate per dictionary at $49.99, in twenty-four steps from $49.99 to $1,199.76. No packages, no subscription, no volume discount and no surcharge.",
+    "howItWorks": "Write the brief with what the data is and who uses the dictionary, attach the dictionary, schema and sample, pay in a panel on the same page, and get findings table by table back in three business days.",
+    "standards": "What Data Dictionary does not do: no schema design or engineering, no metric or business definitions written for you, no data-quality certification, and nothing rewritten.",
+    "about": "A data dictionary is not documentation for its own sake but the contract between the people who store data and the people who use it, and Data Dictionary reads one the way users do: definition against schema and sample.",
+    "faq": "Why the review builds nothing, why a dictionary generated from the schema is still worth checking, why nothing is rewritten, what analysts trip on first, and what to send.",
+    "resources": "Notes on why every column needs an entry and every entry a column, why a number needs a unit, why allowed values have to be the values in the data, and why one word cannot mean two things.",
+    "terms": "The terms under which Data Dictionary supplies data dictionary reviews, and what it does not build, certify or rewrite."
+  },
+  "og": {
+    "eyebrow": "Data dictionaries",
+    "body": "Every column matched to an entry and every entry to a column, types and units compared with the schema, allowed values checked against a sample. Read the way the analyst who has to use the data reads it."
+  },
+  "whop": {
+    "description": "Data Dictionary reviews one data dictionary at a time against the schema it documents and a sample of the data: every column matched to an entry, types and units compared, allowed values checked against what the data holds, and definitions checked for agreeing with each other and with metric documents. The brief, the files and the written report all live on {host} — customers buy here and use the purchase on that website, outside Whop.",
+    "noClaim": "Do not describe the service as data engineering, consulting, governance or data-quality certification, and do not promise better analytics or decisions."
+  }
+}

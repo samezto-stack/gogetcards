@@ -1,0 +1,33 @@
+{
+  "slug": "warranty-terms",
+  "serviceSlug": "warranty-terms-review",
+  "name": "Warranty Terms",
+  "serviceName": "Warranty Terms Review",
+  "unitNoun": "warranty",
+  "unitNounPlural": "warranties",
+  "tabs": ["Covered", "Period", "Claim", "Excluded"],
+  "palette": { "light": "#F0EEEB", "accent": "#7C4A2D", "accentLift": "#D7A685", "cool": "#29231F", "coolLift": "#A59B94" },
+  "font": { "link": "Gelasio:wght@500;600;700", "css": "'Gelasio', Georgia, serif" },
+  "footerDisclaimer": "is not a law firm, a consumer-rights adviser or a compliance consultant, and gives no legal advice. Nothing here decides whether terms are lawful or enforceable, assesses statutory rights, drafts a warranty or handles a claim, and no term is rewritten. What the terms mean in law is for your lawyer, and what you offer customers is yours.",
+  "servicePara": "The warranty is read beside what you tell customers about it, because every promise on the product page, the box and the checkout is read against the terms a customer would be held to when they claim. Terms read on their own look careful; they do not find the “lifetime warranty” on the box that the terms limit to two years, or the claim process that asks for a receipt the checkout never sends.",
+  "seo": {
+    "home": "One set of warranty terms read the way the customer making a claim reads them: what is covered checked against what the product page and packaging promise, the period checked for when it starts and ends, the claim process checked for steps a customer can actually complete, and every exclusion checked against the marketing it contradicts. Not legal advice. One payment, no subscription.",
+    "services": "The warranty terms review, priced per warranty, in twenty-four steps. No legal advice, no view on statutory rights or enforceability, no drafting, no claims handling, nothing rewritten, no packages and no retainer.",
+    "service": "Send one warranty and everything that describes it to customers — product pages, packaging, checkout text, support macros. Coverage, period, claim process and exclusions each read against those promises, and every step of the claim process checked for being completable.",
+    "pricing": "One rate per warranty at $49.99, in twenty-four steps from $49.99 to $1,199.76. No packages, no subscription, no volume discount and no surcharge.",
+    "howItWorks": "Write the brief with what the product is and where the warranty is promised, attach the terms and the customer-facing material, pay in a panel on the same page, and get findings term by term back in three business days.",
+    "standards": "What Warranty Terms does not do: no legal advice and no view on whether terms are lawful or enforceable, no assessment of statutory or consumer rights, no drafting, and nothing rewritten.",
+    "about": "A warranty is not small print but a promise a customer reads at the worst moment — when the product has failed — and Warranty Terms reads one the way they do: terms against what they were told.",
+    "faq": "Why the review gives no legal advice, why terms from a template or a lawyer are still worth checking against the marketing, why nothing is rewritten, what customers trip on when they claim, and what to send.",
+    "resources": "Notes on why the box and the terms have to say the same thing, why a period needs a start date, why a claim process has to be completable, and why an exclusion cannot contradict the product page.",
+    "terms": "The terms under which Warranty Terms supplies warranty terms reviews, and what it does not advise on, draft or rewrite."
+  },
+  "og": {
+    "eyebrow": "Warranty terms",
+    "body": "Coverage, period, claim process and exclusions read against what the product page and the box promise. The way the customer making a claim reads them, before they do. Not legal advice."
+  },
+  "whop": {
+    "description": "Warranty Terms reviews one product warranty at a time against what the business tells customers about it — product pages, packaging, checkout and support text — and lists where coverage, period, claim steps and exclusions disagree with those promises. It is a document comparison, not legal advice. The brief, the files and the written report all live on {host} — customers buy here and use the purchase on that website, outside Whop.",
+    "noClaim": "Never describe the service as legal advice, consumer-law compliance or a warranty provider, never imply a lawyer is involved, and do not promise fewer claims, returns or disputes."
+  }
+}

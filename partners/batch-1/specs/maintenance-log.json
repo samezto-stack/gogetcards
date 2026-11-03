@@ -1,0 +1,33 @@
+{
+  "slug": "maintenance-log",
+  "serviceSlug": "maintenance-log-review",
+  "name": "Maintenance Log",
+  "serviceName": "Maintenance Log Review",
+  "unitNoun": "log",
+  "unitNounPlural": "logs",
+  "tabs": ["Schedule", "Entries", "Defects", "Sign-off"],
+  "palette": { "light": "#EFEFEC", "accent": "#55602A", "accentLift": "#BAC48A", "cool": "#24261F", "coolLift": "#9EA195" },
+  "font": { "link": "Roboto+Slab:wght@500;600;700", "css": "'Roboto Slab', Georgia, serif" },
+  "footerDisclaimer": "is not an engineer, an inspector, a maintenance provider or a regulator, and gives no view on the condition or safety of anything. Nothing here inspects equipment, certifies fitness for use, approves maintenance or signs off a record, and no entry is altered. Whether the equipment is safe and fit to use is for the people responsible for it and their qualified engineers.",
+  "servicePara": "The log is read beside the schedule, because every task the schedule requires is read against the entry that should record it, the interval it should fall within and the signature it should carry. A log read entry by entry looks diligent; it does not find the quarterly task that has no entry for the third quarter, or the defect recorded in March that no later entry ever closes.",
+  "seo": {
+    "home": "One maintenance log read against the schedule it is meant to evidence: every scheduled task checked for an entry inside its interval, every entry checked for a date, a description, the parts used and a signature, every defect checked for being closed out by a later entry, and every gap listed. A record check, not an inspection. One payment, no subscription.",
+    "services": "The maintenance log review, priced per log, in twenty-four steps. No inspection, no view on condition or safety, no certification or sign-off, nothing altered, no packages and no retainer.",
+    "service": "Send one maintenance log and the schedule it should follow. Every scheduled task looked for inside its interval, every entry checked for being complete and signed, every defect followed to its close-out, and every period with no entry where one was due listed.",
+    "pricing": "One rate per log at $49.99, in twenty-four steps from $49.99 to $1,199.76. No packages, no subscription, no volume discount and no surcharge.",
+    "howItWorks": "Write the brief with what the equipment is and why the log is being checked, attach the log and its schedule, pay in a panel on the same page, and get findings task by task back in three business days.",
+    "standards": "What Maintenance Log does not do: no inspection and no view on the condition, safety or fitness of anything, no certification, approval or sign-off, no regulatory advice, and nothing altered.",
+    "about": "A maintenance log is not a diary of work done but the evidence that a schedule was kept, and Maintenance Log reads one the way it will be read when it matters: log against schedule.",
+    "faq": "Why the review is not an inspection, why a log kept by a careful team is still worth checking, why no entry is altered, which gaps are most common, and what to send.",
+    "resources": "Notes on why a scheduled task needs an entry in its interval, why an entry needs a signature and the parts, why a defect has to be closed out, and why a missing month is a finding in itself.",
+    "terms": "The terms under which Maintenance Log supplies maintenance log reviews, and what it does not inspect, certify or alter."
+  },
+  "og": {
+    "eyebrow": "Maintenance logs",
+    "body": "Every scheduled task looked for inside its interval, every entry checked for a signature and parts, every defect followed to its close-out. A record check against the schedule — not an inspection."
+  },
+  "whop": {
+    "description": "Maintenance Log reviews one equipment, building or vehicle maintenance log at a time against the schedule it should follow: every scheduled task looked for inside its interval, every entry checked for being complete and signed, and every defect followed to its close-out. It is a record check, not an inspection. The brief, the files and the written report all live on {host} — customers buy here and use the purchase on that website, outside Whop.",
+    "noClaim": "Never describe the service as an inspection, survey, certification, airworthiness or roadworthiness check, never imply an engineer or inspector is involved, and never say reviewed equipment is safe, compliant or fit for use."
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "slug": "offer-letter",
+  "serviceSlug": "offer-letter-check",
+  "name": "Offer Letter",
+  "serviceName": "Offer Letter Check",
+  "unitNoun": "letter",
+  "unitNounPlural": "letters",
+  "tabs": ["Pay", "Equity", "Dates", "Conditions"],
+  "palette": { "light": "#EFF0EC", "accent": "#36605A", "accentLift": "#97C3BC", "cool": "#202826", "coolLift": "#97A29F" },
+  "font": { "link": "Petrona:wght@500;600;700", "css": "'Petrona', Georgia, serif" },
+  "footerDisclaimer": "is not a law firm, an employment lawyer, a recruiter or an HR adviser, and gives no legal, tax or employment advice. Nothing here interprets a contract, advises on a negotiation, benchmarks a salary or tells anyone whether to accept, and no letter is rewritten. What the terms mean is for a lawyer, and whether to accept is the candidate&rsquo;s.",
+  "servicePara": "The letter is read beside the terms that were agreed, because every figure, date and condition it states is read against the summary, email or term sheet it is supposed to put in writing. A letter read on its own looks correct; it does not find the bonus that was agreed as guaranteed and written as discretionary, or the start date that moved in conversation and not on paper.",
+  "seo": {
+    "home": "One offer letter read the way the candidate signing it needs it read: every figure checked against the terms that were agreed, the equity checked for the number, type, vesting and exercise terms it states, every date checked against what was discussed, and every condition checked for being stated plainly. Not legal advice. One payment, no subscription.",
+    "services": "The offer letter check, priced per letter, in twenty-four steps. No legal, tax or employment advice, no salary benchmarking, no negotiation, nothing rewritten, no packages and no retainer.",
+    "service": "Send one offer letter and the terms it is meant to record — an email, a summary, a term sheet. Every figure compared with what was agreed, the equity read for what it actually states, every date checked, and every condition and contingency listed in plain words.",
+    "pricing": "One rate per letter at $49.99, in twenty-four steps from $49.99 to $1,199.76. No packages, no subscription, no volume discount and no surcharge.",
+    "howItWorks": "Write the brief with whose side you are on and what was agreed, attach the letter and the agreed terms, pay in a panel on the same page, and get findings term by term back in three business days.",
+    "standards": "What Offer Letter does not do: no legal, tax or employment advice, no interpretation of the contract, no salary benchmarking or negotiation advice, and nothing rewritten.",
+    "about": "An offer letter is not a welcome note but the written version of what two people agreed in conversation, and Offer Letter checks one the way it has to be checked: letter against agreed terms.",
+    "faq": "Why the check gives no legal advice, whether employers and candidates can both use it, why nothing is rewritten, which terms drift most often, and what to send.",
+    "resources": "Notes on why the agreed figure has to be the written figure, why equity needs four numbers not one, why the start date moves in conversation, and why a condition has to be stated, not implied.",
+    "terms": "The terms under which Offer Letter supplies offer letter checks, and what it does not advise on, interpret or rewrite."
+  },
+  "og": {
+    "eyebrow": "Offer letters",
+    "body": "Every figure checked against what was agreed, the equity read for what it actually states, every date and condition listed in plain words. The letter read against the terms, before it is signed. Not legal advice."
+  },
+  "whop": {
+    "description": "Offer Letter checks one job offer letter at a time against the terms the two sides agreed — an email, a summary or a term sheet — and lists where the figures, equity terms, dates and conditions in the letter differ. It is a document comparison, not legal, tax or employment advice. The brief, the files and the written report all live on {host} — customers buy here and use the purchase on that website, outside Whop.",
+    "noClaim": "Never describe the service as legal, tax, HR or employment advice, never imply a lawyer, recruiter or HR professional is involved, and do not promise better pay or negotiation results."
+  }
+}

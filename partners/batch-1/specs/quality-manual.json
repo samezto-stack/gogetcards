@@ -1,0 +1,33 @@
+{
+  "slug": "quality-manual",
+  "serviceSlug": "quality-manual-review",
+  "name": "Quality Manual",
+  "serviceName": "Quality Manual Review",
+  "unitNoun": "manual",
+  "unitNounPlural": "manuals",
+  "tabs": ["References", "Roles", "Records", "Versions"],
+  "palette": { "light": "#EDEFF0", "accent": "#3A5568", "accentLift": "#9BB4C6", "cool": "#1F2529", "coolLift": "#98A0A6" },
+  "font": { "link": "Archivo:wght@500;600;700", "css": "'Archivo', system-ui, sans-serif" },
+  "footerDisclaimer": "is not a certification body, an auditor, a registrar or a quality consultant, and gives no view on compliance with any standard. Nothing here audits a system, prepares for certification, writes a procedure or approves a document, and no manual is rewritten. Whether the system meets a standard is for the people who run it and the bodies that assess it.",
+  "servicePara": "The manual is read beside the documents it points to, because every procedure, form, role and record it names is read against whether that thing exists in the set supplied, under that name and that version. A manual read on its own looks complete; it does not find the procedure it cites that was renamed two revisions ago, or the record it requires that no form ever creates.",
+  "seo": {
+    "home": "One quality manual read the way the staff member following it — or the person checking it — reads it: every procedure, form and document it cites checked for existing in the set supplied under that name and version, every role checked for being defined, every required record checked for a form that creates it, and the revision history checked for agreeing with the documents. Not an audit. One payment, no subscription.",
+    "services": "The quality manual review, priced per manual, in twenty-four steps. No audit, no certification or compliance view, no consulting, nothing approved, nothing rewritten, no packages and no retainer.",
+    "service": "Send one quality manual and the procedures, forms and records it refers to. Every cross-reference checked for a document that exists under that name and version, every role checked for a definition, every required record checked for a form or system that produces it, and every revision checked for consistency.",
+    "pricing": "One rate per manual at $49.99, in twenty-four steps from $49.99 to $1,199.76. No packages, no subscription, no volume discount and no surcharge.",
+    "howItWorks": "Write the brief with what the manual covers and who uses it, attach the manual and the documents it cites, pay in a panel on the same page, and get findings section by section back in three business days.",
+    "standards": "What Quality Manual does not do: no audit, no view on compliance with any standard, no certification preparation or consulting, nothing approved, and nothing rewritten.",
+    "about": "A quality manual is not a statement of good intentions but a map of documents people are expected to follow, and Quality Manual reads one the way it has to work: every reference against the document it points to.",
+    "faq": "Why the review is not an audit, why a manual that passed an assessment is still worth checking, why nothing is rewritten, which references break most often, and what to send.",
+    "resources": "Notes on why a cross-reference has to land on a real document, why a role has to be defined once, why a required record needs a form, and why the revision table has to agree with the documents.",
+    "terms": "The terms under which Quality Manual supplies quality manual reviews, and what it does not audit, certify or rewrite."
+  },
+  "og": {
+    "eyebrow": "Quality manuals",
+    "body": "Every procedure and form the manual cites checked for existing under that name and version, every role for a definition, every required record for a form that creates it. Not an audit — a read of the map against the territory."
+  },
+  "whop": {
+    "description": "Quality Manual reviews one quality or operations manual at a time against the procedures, forms and records it refers to: every cross-reference checked for a document that exists under that name and version, every role for a definition, and every required record for a form that creates it. It is a document consistency check, not an audit or certification. The brief, the files and the written report all live on {host} — customers buy here and use the purchase on that website, outside Whop.",
+    "noClaim": "Never describe the service as an audit, certification, registration or ISO consulting, never name or imply any standards or certification body, and never say a reviewed manual is compliant or certifiable."
+  }
+}

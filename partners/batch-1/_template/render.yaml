@@ -1,0 +1,30 @@
+# Render Blueprint for business-plan-review (SSR Express server).
+#
+# This file only takes effect via a Blueprint deploy (Render dashboard ->
+# New + -> Blueprint -> select this repo). Creating the web service manually
+# means Render never reads it — set the same Build and Start commands in
+# Settings -> Build & Deploy instead.
+#
+# The build MUST run before start: without dist/client and dist/server the
+# server has nothing to render and crashes on the first request with ENOENT
+# on dist/client/index.html.
+services:
+  - type: web
+    name: business-plan-review
+    runtime: node
+    plan: starter
+    branch: main
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # No other environment variables are needed.
+      #
+      # SITE_URL is deliberately absent: server/seo.js falls back to Render's
+      # own RENDER_EXTERNAL_URL, which is this service's real public origin,
+      # so canonical links, og:url and sitemap.xml follow the host actually
+      # in use. Setting it here would override that — do so only once a
+      # custom domain is attached.

@@ -1,0 +1,33 @@
+{
+  "slug": "product-roadmap",
+  "serviceSlug": "roadmap-review",
+  "name": "Product Roadmap",
+  "serviceName": "Roadmap Review",
+  "unitNoun": "roadmap",
+  "unitNounPlural": "roadmaps",
+  "tabs": ["Goals", "Items", "Capacity", "Order"],
+  "palette": { "light": "#EEEEF3", "accent": "#5B3FA0", "accentLift": "#B3A2E2", "cool": "#23212D", "coolLift": "#9C99AA" },
+  "font": { "link": "Space+Grotesk:wght@500;600;700", "css": "'Space Grotesk', system-ui, sans-serif" },
+  "footerDisclaimer": "is not a product consultant, a strategist or an agency, and gives no view on what to build. Nothing here prioritises a feature, sets a strategy, estimates effort or approves a plan, and no item is moved or rewritten. What the product becomes is yours, and what the roadmap promises is yours to keep.",
+  "servicePara": "The items are read beside the goals, because every item on the roadmap is read against the objective it is supposed to serve, the capacity that is supposed to build it and the items it depends on. A roadmap read as a list looks ambitious and organised; it does not find the quarter that needs three teams and has one, or the feature scheduled before the platform work it cannot ship without.",
+  "seo": {
+    "home": "One product roadmap read the way the executive, customer or team who will be held to it reads it: every item checked for the goal it serves, every quarter checked against the capacity the roadmap itself states, dependencies checked for being scheduled in order, and commitments checked for being marked apart from hopes. One payment, no subscription.",
+    "services": "The roadmap review, priced per roadmap, in twenty-four steps. No view on what to build or what to prioritise, no estimates, nothing approved, nothing moved or rewritten, no packages and no retainer.",
+    "service": "Send one roadmap with the goals and capacity figures it is built on. Every item traced to a stated goal, every period checked against stated capacity, every dependency checked for being scheduled first, and every item checked for whether it reads as a commitment or a hope.",
+    "pricing": "One rate per roadmap at $49.99, in twenty-four steps from $49.99 to $1,199.76. No packages, no subscription, no volume discount and no surcharge.",
+    "howItWorks": "Write the brief with who the roadmap is shown to and what it has to convince them of, attach the roadmap and its goals and capacity, pay in a panel on the same page, and get findings section by section back in three business days.",
+    "standards": "What Product Roadmap does not do: no view on what to build or prioritise, no product strategy, no effort estimates, nothing approved, and nothing moved or rewritten.",
+    "about": "A product roadmap is not a wish list but a set of promises someone will hold the team to, and Product Roadmap reads one the way they will: items against goals and capacity.",
+    "faq": "Why the review gives no view on what to build, why a roadmap the team agreed is still worth checking, why nothing is moved, what an executive checks first, and how much can be redacted.",
+    "resources": "Notes on why every item needs a goal, why a quarter cannot hold more than its capacity, why a dependency has to come first, and why a commitment has to look different from a hope.",
+    "terms": "The terms under which Product Roadmap supplies roadmap reviews, and what it does not prioritise, estimate or rewrite."
+  },
+  "og": {
+    "eyebrow": "Product roadmaps",
+    "body": "Every item traced to the goal it serves, every quarter checked against stated capacity, every dependency checked for coming first. Read the way the people who will hold the team to it read it."
+  },
+  "whop": {
+    "description": "Product Roadmap reviews one product roadmap at a time against the goals and capacity it is built on: every item traced to a stated goal, every period checked against stated capacity, dependencies checked for being scheduled in order, and commitments checked for being marked apart from hopes. The brief, the files and the written report all live on {host} — customers buy here and use the purchase on that website, outside Whop.",
+    "noClaim": "Do not describe the service as product strategy, consulting, prioritisation or estimation, and do not promise delivery dates or outcomes."
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "slug": "investor-update",
+  "serviceSlug": "investor-update-review",
+  "name": "Investor Update",
+  "serviceName": "Investor Update Review",
+  "unitNoun": "update",
+  "unitNounPlural": "updates",
+  "tabs": ["Metrics", "Last time", "Cash", "Asks"],
+  "palette": { "light": "#EEF0F4", "accent": "#3B4A9A", "accentLift": "#A2ACE0", "cool": "#20232E", "coolLift": "#999EAE" },
+  "font": { "link": "Literata:opsz,wght@7..72,500;7..72,600;7..72,700", "css": "'Literata', Georgia, serif" },
+  "footerDisclaimer": "is not an investor, a financial adviser or an accountant, and gives no investment, financial or legal advice. Nothing here values the company, forecasts the runway, advises on a raise or verifies a number, and no sentence is reworded. What the investors make of the update is theirs, and what the company does next is yours.",
+  "servicePara": "This update is read beside the last one, because every metric it reports is read against the definition, the figure and the promise the previous update gave. An update read on its own sounds like steady progress; it does not find the metric that quietly changed its definition, or last month’s “we expect to close by the 15th” that this month never mentions.",
+  "seo": {
+    "home": "One investor update read the way the investor who keeps every update reads it — with the last one open beside it: every metric checked for the same definition as last time, last update’s promises followed into this one, the cash and runway figures checked for agreeing with each other, and the asks checked for being specific enough to act on. One payment, no subscription.",
+    "services": "The investor update review, priced per update, in twenty-four steps. No investment or financial advice, no view on the company, nothing verified, nothing argued or rewritten, no packages and no retainer.",
+    "service": "Send this update and the previous one. Every metric compared with its definition last time, every promise made last time followed into this one, cash, burn and runway checked against each other, and every ask checked for whether an investor could act on it today.",
+    "pricing": "One rate per update at $49.99, in twenty-four steps from $49.99 to $1,199.76. No packages, no subscription, no volume discount and no surcharge.",
+    "howItWorks": "Write the brief with who receives the update and what it most has to say, attach this update and the last one, pay in a panel on the same page, and get findings section by section back in three business days.",
+    "standards": "What Investor Update does not do: no investment, financial or legal advice, no view on the company or its prospects, nothing verified, and nothing argued or rewritten.",
+    "about": "An investor update is not a newsletter but a running record the investor reads against the last one, and Investor Update reads one the way they do: this update against the last.",
+    "faq": "Why the review gives no advice on the company, why an update to friendly investors is still worth checking, why nothing is rewritten, what an investor compares first, and how much can be redacted.",
+    "resources": "Notes on why a metric that changes definition has to say so, why last update’s promise has to be answered, why burn, cash and runway have to agree, and why an ask has to be something an investor can do today.",
+    "terms": "The terms under which Investor Update supplies investor update reviews, and what it does not advise on, verify or rewrite."
+  },
+  "og": {
+    "eyebrow": "Investor updates",
+    "body": "Every metric checked for the same definition as last time, last update’s promises followed into this one, cash and runway checked against each other. Read the way the investor who keeps every update reads it."
+  },
+  "whop": {
+    "description": "Investor Update reviews one startup investor update at a time against the previous one: every metric checked for a consistent definition, last update's promises followed into this one, cash, burn and runway checked against each other, and every ask checked for being actionable. The brief, the files and the written report all live on {host} — customers buy here and use the purchase on that website, outside Whop.",
+    "noClaim": "Never describe the service as investment, financial or legal advice, never imply it helps raise money, and do not promise funding outcomes."
+  }
+}

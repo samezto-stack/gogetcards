@@ -1,0 +1,33 @@
+{
+  "slug": "training-deck",
+  "serviceSlug": "training-deck-review",
+  "name": "Training Deck",
+  "serviceName": "Training Deck Review",
+  "unitNoun": "deck",
+  "unitNounPlural": "decks",
+  "tabs": ["Objectives", "Teaching", "Practice", "Check"],
+  "palette": { "light": "#EEF1EC", "accent": "#2F6B3F", "accentLift": "#93C9A0", "cool": "#202821", "coolLift": "#97A399" },
+  "font": { "link": "Lora:wght@500;600;700", "css": "'Lora', Georgia, serif" },
+  "footerDisclaimer": "is not an instructional designer, a training provider or an accreditation body, designs no course and certifies no learning. Nothing here builds slides, writes a quiz, delivers training or approves a course for any requirement, and no slide is rewritten. Whether people learn is for the trainer and the learner, and whether the deck is used is yours.",
+  "servicePara": "The objectives are read beside the quiz, because every outcome the deck promises is read against the slide that teaches it, the exercise that practises it and the question that checks it. A deck read slide by slide looks complete; it does not find the objective no slide teaches, or the quiz question about something the deck never mentioned.",
+  "seo": {
+    "home": "One training deck read the way the learner who has to pass the check at the end reads it: every stated objective followed to the slides that teach it, the exercise that practises it and the question that checks it, every term checked for being defined before it is used, and the steps checked for being in the order the job is done. One payment, no subscription.",
+    "services": "The training deck review, priced per deck, in twenty-four steps. No instructional design, no accreditation or compliance view, nothing certified, nothing argued or rewritten, no packages and no retainer.",
+    "service": "Send one training deck with its quiz, exercises and trainer notes. Every objective followed through teaching, practice and assessment, every quiz question checked for being taught, every term checked for a definition before use, and every procedure checked for steps in the right order.",
+    "pricing": "One rate per deck at $49.99, in twenty-four steps from $49.99 to $1,199.76. No packages, no subscription, no volume discount and no surcharge.",
+    "howItWorks": "Write the brief with who the learners are and what they must be able to do afterwards, attach the deck and its materials, pay in a panel on the same page, and get findings section by section back in three business days.",
+    "standards": "What Training Deck does not do: no instructional design and no view on whether the training is effective, no accreditation or compliance view, nothing certified, and nothing rewritten.",
+    "about": "A training deck is not a set of slides about a topic but a promise that a learner will be able to do something afterwards, and Training Deck reads one the way that promise has to be kept: objective against assessment.",
+    "faq": "Why the review gives no view on whether the training works, why a deck from a subject expert is still worth checking, why nothing is rewritten, what learners trip on first, and what to send with the deck.",
+    "resources": "Notes on why every objective needs a slide, an exercise and a question, why the quiz cannot test what the deck never taught, why a term has to be defined before it is used, and why steps have to be in the order the job is done.",
+    "terms": "The terms under which Training Deck supplies training deck reviews, and what it does not design, certify or rewrite."
+  },
+  "og": {
+    "eyebrow": "Training decks",
+    "body": "Every objective followed to the slide that teaches it, the exercise that practises it and the question that checks it. Read the way the learner who has to pass the quiz at the end reads it."
+  },
+  "whop": {
+    "description": "Training Deck reviews one training deck at a time, read as the learner reads it: every stated objective followed to the slides that teach it, the exercise that practises it and the quiz question that checks it, and every term checked for being defined before use. The brief, the files and the written report all live on {host} — customers buy here and use the purchase on that website, outside Whop.",
+    "noClaim": "Never describe the service as instructional design, training delivery, accreditation or compliance certification, and do not promise learning outcomes or pass rates."
+  }
+}
