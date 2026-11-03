@@ -45,10 +45,20 @@
         <% } %>
       </form>
 
+      <%/* Bulk delete. The row checkboxes belong to this form through their
+           form= attribute, because the per-row Delete buttons are forms of
+           their own and forms cannot nest. */%>
+      <form method="POST" action="/admin/products/bulk-delete" id="bulk-delete-form" class="bulk-bar" hidden>
+        <span class="bulk-bar__count"><strong id="bulk-count">0</strong> selected</span>
+        <button type="button" class="admin-btn admin-btn--sm admin-btn--ghost" id="bulk-clear">Clear selection</button>
+        <button type="submit" class="admin-btn admin-btn--sm admin-btn--danger" id="bulk-delete-btn">Delete selected</button>
+      </form>
+
       <div class="admin-table-wrap">
         <table class="admin-table">
           <thead>
             <tr>
+              <th class="bulk-col"><input type="checkbox" id="bulk-all" aria-label="Select all products"<%= products.length ? '' : ' disabled' %>></th>
               <th>Product</th>
               <th class="num">Price</th>
               <th class="num">Stock</th>
@@ -59,10 +69,11 @@
           </thead>
           <tbody>
             <% if (products.length === 0) { %>
-              <tr><td colspan="6" class="admin-table__empty">No products match.</td></tr>
+              <tr><td colspan="7" class="admin-table__empty">No products match.</td></tr>
             <% } %>
             <% products.forEach(function(p) { %>
               <tr id="product-row-<%= p._id %>">
+                <td class="bulk-col"><input type="checkbox" name="ids" value="<%= p._id %>" form="bulk-delete-form" class="bulk-pick" aria-label="Select <%= p.title %>"></td>
                 <td>
                   <a href="/admin/products/<%= p._id %>/edit" class="admin-cell-link admin-product-title"><%= p.title %></a>
                   <%/* The version, beside the title rather than folded into
@@ -109,7 +120,36 @@
     </div>
   </main>
 
+  <style>
+    .bulk-col { width: 36px; }
+    .bulk-col input { width: 16px; height: 16px; cursor: pointer; accent-color: var(--admin-primary); }
+    .bulk-bar { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; padding: 10px 14px; background: var(--admin-crit-tint); border: 1px solid var(--admin-crit-line); border-radius: var(--admin-r); }
+    .bulk-bar[hidden] { display: none; }
+    .bulk-bar__count { margin-right: auto; font-size: 13px; color: var(--admin-text); }
+  </style>
   <script>
+    // Bulk selection
+    (function () {
+      const form = document.getElementById('bulk-delete-form');
+      const all = document.getElementById('bulk-all');
+      const picks = Array.from(document.querySelectorAll('.bulk-pick'));
+      const count = document.getElementById('bulk-count');
+      function sync() {
+        const n = picks.filter((p) => p.checked).length;
+        count.textContent = n;
+        form.hidden = n === 0;
+        all.checked = n > 0 && n === picks.length;
+        all.indeterminate = n > 0 && n < picks.length;
+      }
+      all.addEventListener('change', () => { picks.forEach((p) => { p.checked = all.checked; }); sync(); });
+      picks.forEach((p) => p.addEventListener('change', sync));
+      document.getElementById('bulk-clear').addEventListener('click', () => { picks.forEach((p) => { p.checked = false; }); sync(); });
+      form.addEventListener('submit', (e) => {
+        const n = picks.filter((p) => p.checked).length;
+        if (!n || !confirm('Delete ' + n + ' product' + (n === 1 ? '' : 's') + '? This cannot be undone.')) e.preventDefault();
+      });
+    })();
+
     // Quick inline edit
     document.querySelectorAll('.admin-editable').forEach(el => {
       el.style.cursor = 'pointer';

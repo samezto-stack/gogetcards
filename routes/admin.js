@@ -24,6 +24,7 @@ const cryptoUtil = require('../services/cryptoUtil');
 const mail = require('../services/mail');
 const partnerClient = require('../services/partnerClient');
 const liveActivity = require('../services/liveActivity');
+const mongoose = require('mongoose');
 const metaCapi = require('../services/metaCapi');
 const crypto = require('crypto');
 const { generateSecret, verifySync } = require('otplib');
@@ -1364,6 +1365,23 @@ router.get('/products/:id/edit', requireAuth, async (req, res) => {
   const product = await Product.findById(req.params.id).lean();
   if (!product) return res.redirect('/admin/products');
   res.render('admin/product-form', { layout: false, pageTitle: 'Edit Product', product, error: null, success: null, formatPrice, specTemplates, variantAxes: variants.VARIANT_AXES, allMarkets: require('../config/markets').MARKETS });
+});
+
+/* Bulk delete from the product list. Ids arrive as repeated `ids` fields;
+   each is checked to be an ObjectId string before it reaches the query, so
+   nothing from the body can become a query operator. */
+router.post('/products/bulk-delete', requireAuth, async (req, res) => {
+  const ids = [].concat(req.body.ids || [])
+    .map((id) => String(id))
+    .filter((id) => mongoose.isValidObjectId(id));
+  if (!ids.length) return res.redirect('/admin/products?success=' + encodeURIComponent('Nothing selected'));
+  try {
+    const { deletedCount } = await Product.deleteMany({ _id: { $in: ids } });
+    res.redirect('/admin/products?success=' + encodeURIComponent(`${deletedCount} product${deletedCount === 1 ? '' : 's'} deleted`));
+  } catch (err) {
+    console.error('bulk delete', err.message);
+    res.redirect('/admin/products?success=' + encodeURIComponent('Delete failed, nothing was removed'));
+  }
 });
 
 router.post('/products/:id', requireAuth, async (req, res) => {
