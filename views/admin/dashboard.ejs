@@ -35,6 +35,19 @@
     /* A row of two panels. The panel's own bottom margin is dropped
        inside the grid so the gap is the only spacing. */
     .dash-row { margin-bottom: 20px; }
+    /* Single-column widths: flatten the pairs and order by urgency.
+       Stats, then live visitors, then sales, then where traffic came from. */
+    @media (max-width: 1023px) {
+      .dash-flow { display: flex; flex-direction: column; gap: 20px; }
+      .dash-flow > .dash-row { display: contents; }
+      .dash-flow > .admin-stats-grid { margin-bottom: 0; order: 1; }
+      .dash-p-live { order: 2; } .dash-p-orders { order: 3; } .dash-p-visitors { order: 4; }
+      .dash-p-toprev { order: 5; } .dash-p-traffic { order: 6; } .dash-p-channel { order: 7; }
+      .dash-p-viewed { order: 8; } .dash-p-countries { order: 9; }
+      .dash-flow .admin-panel { margin-bottom: 0; }
+      .dash-s-revenue { order: 1; } .dash-s-orders { order: 2; } .dash-s-conv { order: 3; }
+      .dash-s-visitors { order: 4; } .dash-s-reached { order: 5; } .dash-s-checkouts { order: 6; }
+    }
     .dash-row > .admin-panel { margin-bottom: 0; min-width: 0; }
 
     /* Chart.js needs a positioned box with a fixed height to size into.
@@ -198,14 +211,18 @@
       </a>
     <% } %>
 
+    <%/* dash-flow: one column on phones/tablets, where the panels are
+         re-ordered with CSS `order` (see the <style> block): what is
+         happening now and what sold first, analysis after. */%>
+    <div class="dash-flow">
     <!-- Stats -->
     <div class="admin-stats-grid">
-      <div class="admin-stat-card">
+      <div class="admin-stat-card dash-s-visitors">
         <div class="admin-stat-card__num"><%= stats.views || 0 %></div>
         <div class="admin-stat-card__label">Unique visitors</div>
         <%- deltaHtml(stats.views || 0, previous && previous.views, true) %>
       </div>
-      <div class="admin-stat-card">
+      <div class="admin-stat-card dash-s-checkouts">
         <div class="admin-stat-card__num"><%= stats.checkouts || 0 %></div>
         <div class="admin-stat-card__label">Checkouts</div>
         <%- deltaHtml(stats.checkouts || 0, previous && previous.checkouts, true) %>
@@ -214,11 +231,11 @@
            as Checkouts in practice, so it told you nothing. This is a real
            later step: the payment iframe actually rendered for these
            people. Buyers are included, so it is not styled as a warning. */%>
-      <div class="admin-stat-card" title="Filled the checkout form and got as far as Whop's payment step. Includes the ones who went on to pay.">
+      <div class="admin-stat-card dash-s-reached" title="Filled the checkout form and got as far as Whop's payment step. Includes the ones who went on to pay.">
         <div class="admin-stat-card__num"><%= stats.reachedCheckout || 0 %></div>
         <div class="admin-stat-card__label">Reached checkout</div>
       </div>
-      <div class="admin-stat-card">
+      <div class="admin-stat-card dash-s-orders">
         <div class="admin-stat-card__num"><%= stats.orders || 0 %></div>
         <div class="admin-stat-card__label">Orders</div>
         <%- deltaHtml(stats.orders || 0, previous && previous.orders, true) %>
@@ -227,12 +244,12 @@
            the thousands separator in one place rather than each view
            inventing its own. Revenue is the one figure worth finding
            first, so it is the page's accent card. */%>
-      <div class="admin-stat-card admin-stat-card--accent">
+      <div class="admin-stat-card admin-stat-card--accent dash-s-revenue">
         <div class="admin-stat-card__num">$<%= formatPrice(stats.revenue || 0) %></div>
         <div class="admin-stat-card__label">Revenue</div>
         <%- deltaHtml(stats.revenue || 0, previous && previous.revenue, true) %>
       </div>
-      <div class="admin-stat-card">
+      <div class="admin-stat-card dash-s-conv">
         <% const conversionRate = stats.views > 0 ? ((stats.orders / stats.views) * 100).toFixed(1) : 0; %>
         <div class="admin-stat-card__num"><%= conversionRate %>%</div>
         <div class="admin-stat-card__label">Conversion rate</div>
@@ -243,7 +260,7 @@
     <%/* The figure in each head is the range's own count from the stat
          strip; the line underneath is how it arrived. */%>
     <div class="grid-2 dash-row">
-      <div class="admin-panel">
+      <div class="admin-panel dash-p-visitors">
         <div class="admin-panel__head">
           <div>
             <h2 class="admin-panel__title">Visitors</h2>
@@ -268,7 +285,7 @@
         </div>
       </div>
 
-      <div class="admin-panel">
+      <div class="admin-panel dash-p-orders">
         <div class="admin-panel__head">
           <div>
             <h2 class="admin-panel__title">Orders</h2>
@@ -301,7 +318,7 @@
          a <table>. */%>
     <!-- Traffic sources + live visitors -->
     <div class="grid-2 dash-row">
-      <div class="admin-panel">
+      <div class="admin-panel dash-p-traffic">
         <div class="admin-panel__head">
           <div>
             <h2 class="admin-panel__title">Traffic sources</h2>
@@ -341,7 +358,7 @@
         </div>
       </div>
 
-      <div class="admin-panel">
+      <div class="admin-panel dash-p-live">
         <div class="admin-panel__head">
           <h2 class="admin-panel__title">Live visitors <span class="admin-live-count"><span class="live-dot"></span><span id="live-count"><%= liveVisitors.length %></span> now</span></h2>
           <span class="tiny faint">Last 5 minutes. Auto-refreshes every 10s</span>
@@ -405,7 +422,7 @@
            order of magnitude. This is the panel that decides where ad
            money goes. */%>
       <% if ((typeof revenueBySource !== 'undefined') && revenueBySource.length) { %>
-        <div class="admin-panel">
+        <div class="admin-panel dash-p-channel">
           <div class="admin-panel__head">
             <div>
               <h2 class="admin-panel__title">Revenue by channel</h2>
@@ -448,7 +465,7 @@
            item that gets browsed a lot above an expensive one that
            actually sells, which is backwards for restocking decisions. */%>
       <% if ((typeof topProductsByRevenue !== 'undefined') && topProductsByRevenue.length) { %>
-        <div class="admin-panel">
+        <div class="admin-panel dash-p-toprev">
           <div class="admin-panel__head">
             <div>
               <h2 class="admin-panel__title">Top products by revenue</h2>
@@ -479,7 +496,7 @@
     <!-- Most viewed products + top countries -->
     <div class="grid-2 dash-row">
       <% if (topProducts && topProducts.length > 0) { %>
-        <div class="admin-panel">
+        <div class="admin-panel dash-p-viewed">
           <div class="admin-panel__head">
             <div>
               <h2 class="admin-panel__title">Most viewed products</h2>
@@ -502,7 +519,7 @@
       <% } %>
 
       <% if (typeof topCountries !== 'undefined' && topCountries && topCountries.length > 0) { %>
-        <div class="admin-panel">
+        <div class="admin-panel dash-p-countries">
           <div class="admin-panel__head">
             <h2 class="admin-panel__title">Top countries</h2>
           </div>
@@ -546,6 +563,7 @@
         </div>
       <% } %>
     </div>
+    </div><%/* /.dash-flow */%>
 
     </div>
   </main>
