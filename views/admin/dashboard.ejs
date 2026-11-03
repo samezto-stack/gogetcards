@@ -347,31 +347,52 @@
           <span class="tiny faint">Last 5 minutes. Auto-refreshes every 10s</span>
         </div>
         <div class="admin-panel__body admin-panel__body--flush">
+          <%
+            /* Live activity, not raw paths. services/liveActivity names what
+               each visitor is doing (product title, "Checking out", "Just
+               purchased") and orders the list so buyers sit at the top. The
+               icons are static markup defined once here; the 10-second
+               refresh clones them from the <template> below and writes every
+               visitor-supplied string with textContent. */
+            var LV_ICONS = {
+              purchased: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+              checkout: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg>',
+              cart: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 12.4a2 2 0 0 0 2 1.6h8.6a2 2 0 0 0 2-1.5L22 8H6"/></svg>',
+              product: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>',
+              search: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>',
+              collection: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+              account: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>',
+              home: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
+              page: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>',
+              other: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>'
+            };
+            var lvAgo = function (d) {
+              var s = Math.max(0, Math.round((Date.now() - new Date(d).getTime()) / 1000));
+              return s < 60 ? s + 's ago' : Math.floor(s / 60) + 'm ago';
+            };
+          %>
+          <template id="lv-icons"><% Object.keys(LV_ICONS).forEach(function (k) { %><span data-kind="<%= k %>"><%- LV_ICONS[k] /* static SVG defined above, no data */ %></span><% }); %></template>
           <div id="live-visitors-container" class="dash-scroll">
-            <% if (liveVisitors.length === 0) { %>
-              <p class="dash-empty">No active visitors right now.</p>
-            <% } else { %>
-              <div class="admin-table-wrap">
-                <table class="admin-table">
-                  <thead><tr><th>Page</th><th>IP</th><th>Country</th><th>Last seen</th></tr></thead>
-                  <tbody>
-                    <% liveVisitors.forEach(function(v) { %>
-                      <tr>
-                        <td><code><%= v.page %></code></td>
-                        <td class="mono"><%= v.ip %></td>
-                        <td>
-                          <% if (v.countryCode) { %>
-                            <img src="https://flagcdn.com/w20/<%= v.countryCode.toLowerCase() %>.png" width="16" height="12" class="dash-flag" alt="<%= v.country %>">
-                          <% } %>
-                          <%= v.country || 'Unknown' %>
-                        </td>
-                        <td class="muted nowrap"><%= new Date(v.lastSeen).toLocaleTimeString() %></td>
-                      </tr>
-                    <% }); %>
-                  </tbody>
-                </table>
-              </div>
-            <% } %>
+            <p class="dash-empty" id="lv-empty"<%= liveVisitors.length ? ' hidden' : '' %>>No active visitors right now.</p>
+            <ul class="lv-list" id="lv-list">
+              <% liveVisitors.forEach(function (v) { var a = v.activity || { kind: 'other', label: v.page, detail: '' }; %>
+                <li class="lv-row lv--<%= a.kind %>" title="IP <%= v.ip %>">
+                  <span class="lv-icon" title="<%= a.kind %>"><%- LV_ICONS[a.kind] || LV_ICONS.other %></span>
+                  <span class="lv-main">
+                    <span class="lv-label">
+                      <% if (a.href) { %><a href="<%= a.href %>" target="_blank" rel="noopener"><%= a.label %></a><% } else { %><%= a.label %><% } %>
+                    </span>
+                    <span class="lv-detail"><% if (a.kind === 'checkout' || a.kind === 'purchased') { %><span class="lv-badge"><%= a.kind === 'purchased' ? 'Purchased' : 'Checkout' %></span><% } %><%= [a.detail, a.market ? a.market + ' store' : ''].filter(Boolean).join(' · ') %></span>
+                  </span>
+                  <% if (a.image) { %><img class="lv-thumb" src="<%= a.image %>" alt="" width="36" height="36" loading="lazy"><% } %>
+                  <span class="lv-geo">
+                    <% if (v.countryCode) { %><img src="https://flagcdn.com/w20/<%= v.countryCode.toLowerCase() %>.png" width="16" height="12" alt=""><% } %>
+                    <span><%= v.countryCode || '—' %></span>
+                  </span>
+                  <time class="lv-time" datetime="<%= new Date(v.lastSeen).toISOString() %>"><%= lvAgo(v.lastSeen) %></time>
+                </li>
+              <% }); %>
+            </ul>
           </div>
         </div>
       </div>
@@ -840,16 +861,115 @@
     }
     foldPanels();
 
+    // ── Live visitors: rebuilt from JSON with textContent only ──
+    function lvAgo(d) {
+      const s = Math.max(0, Math.round((Date.now() - new Date(d).getTime()) / 1000));
+      return s < 60 ? s + 's ago' : Math.floor(s / 60) + 'm ago';
+    }
+    function lvIcon(kind) {
+      const t = document.getElementById('lv-icons');
+      const src = t && (t.content.querySelector('[data-kind="' + kind + '"]') || t.content.querySelector('[data-kind="other"]'));
+      return src ? src.firstElementChild.cloneNode(true) : document.createTextNode('');
+    }
+    function el(tag, cls, text) {
+      const n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (text != null) n.textContent = text;
+      return n;
+    }
+    function renderLive(visitors) {
+      const list = document.getElementById('lv-list');
+      const empty = document.getElementById('lv-empty');
+      if (!list) return;
+      list.replaceChildren();
+      if (empty) empty.hidden = visitors.length > 0;
+      visitors.forEach(function (v) {
+        const a = v.activity || { kind: 'other', label: v.page || '/', detail: '' };
+        const kind = /^[a-z]+$/.test(a.kind) ? a.kind : 'other';
+        const li = el('li', 'lv-row lv--' + kind); li.title = 'IP ' + (v.ip || '');
+        const icon = el('span', 'lv-icon'); icon.title = kind; icon.appendChild(lvIcon(kind)); li.appendChild(icon);
+        const main = el('span', 'lv-main');
+        const label = el('span', 'lv-label');
+        if (a.href && a.href.charAt(0) === '/') {
+          const link = el('a', null, a.label); link.href = a.href; link.target = '_blank'; link.rel = 'noopener';
+          label.appendChild(link);
+        } else {
+          label.textContent = a.label || '';
+        }
+        main.appendChild(label);
+        const detail = el('span', 'lv-detail');
+        if (kind === 'checkout' || kind === 'purchased') detail.appendChild(el('span', 'lv-badge', kind === 'purchased' ? 'Purchased' : 'Checkout'));
+        detail.appendChild(document.createTextNode([a.detail, a.market ? a.market + ' store' : ''].filter(Boolean).join(' · ')));
+        main.appendChild(detail);
+        li.appendChild(main);
+        if (a.image && /^(https?:)?\//.test(a.image)) {
+          const img = el('img', 'lv-thumb'); img.src = a.image; img.alt = ''; img.width = 36; img.height = 36; img.loading = 'lazy';
+          li.appendChild(img);
+        }
+        const geo = el('span', 'lv-geo');
+        if (/^[A-Za-z]{2}$/.test(v.countryCode || '')) {
+          const f = el('img'); f.src = 'https://flagcdn.com/w20/' + v.countryCode.toLowerCase() + '.png'; f.width = 16; f.height = 12; f.alt = '';
+          geo.appendChild(f);
+        }
+        geo.appendChild(el('span', null, v.countryCode || '—'));
+        li.appendChild(geo);
+        const t = el('time', 'lv-time', lvAgo(v.lastSeen)); t.dateTime = v.lastSeen; li.appendChild(t);
+        list.appendChild(li);
+      });
+    }
+    // "12s ago" keeps moving between refreshes
+    setInterval(function () {
+      document.querySelectorAll('#lv-list .lv-time').forEach(function (t) { t.textContent = lvAgo(t.getAttribute('datetime') || t.dateTime); });
+    }, 1000);
+
     // ── Auto-refresh live visitors ──
     setInterval(async () => {
       try {
         const res = await fetch('/admin/api/live-visitors');
         const data = await res.json();
         document.getElementById('live-count').textContent = data.count;
+        renderLive(data.visitors || []);
       } catch(e) {}
     }, 10000);
    }); // end DOMContentLoaded
   </script>
+
+
+<style>
+  .lv-list { list-style: none; margin: 0; padding: 0; }
+  .lv-row { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto 50px 52px; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--admin-border); }
+  .lv-row:last-child { border-bottom: 0; }
+  .lv-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: var(--admin-panel-2); color: var(--admin-muted); }
+  .lv-main { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .lv-label { font-weight: 600; color: var(--admin-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13.5px; }
+  .lv-label a { color: inherit; text-decoration: none; }
+  .lv-label a:hover { text-decoration: underline; }
+  .lv-detail { font-size: 12px; color: var(--admin-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+  .lv-thumb { width: 36px; height: 36px; border-radius: 6px; object-fit: contain; background: #fff; border: 1px solid var(--admin-border); }
+  .lv-thumb--empty { border-color: transparent; background: transparent; }
+  .lv-geo { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--admin-muted); white-space: nowrap; }
+  .lv-geo img { border-radius: 2px; box-shadow: 0 0 0 1px rgba(0,0,0,0.08); }
+  .lv-ip { font-family: var(--admin-font-mono); font-size: 11.5px; color: var(--admin-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lv-time { font-size: 12px; color: var(--admin-faint); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .lv-badge { flex: 0 0 auto; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; }
+  /* The rows worth noticing. */
+  .lv--checkout { background: var(--admin-accent-tint); box-shadow: inset 3px 0 0 var(--admin-accent); }
+  .lv--checkout .lv-icon { background: var(--admin-accent); color: #fff; animation: lv-pulse 1.8s ease-in-out infinite; }
+  .lv--checkout .lv-label { color: var(--admin-accent); }
+  .lv--checkout .lv-badge { background: var(--admin-accent); color: #fff; }
+  .lv--purchased { background: var(--admin-ok-tint); box-shadow: inset 3px 0 0 var(--admin-ok); }
+  .lv--purchased .lv-icon { background: var(--admin-ok); color: #fff; }
+  .lv--purchased .lv-label { color: var(--admin-ok); }
+  .lv--purchased .lv-badge { background: var(--admin-ok); color: #fff; }
+  .lv--cart .lv-icon { background: var(--admin-warn-tint); color: var(--admin-warn); }
+  .lv--product .lv-icon { background: var(--admin-primary-tint); color: var(--admin-primary); }
+  .lv--search .lv-icon { background: var(--admin-info-tint); color: var(--admin-info); }
+  @keyframes lv-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(194, 65, 12, 0.35); } 50% { box-shadow: 0 0 0 5px rgba(194, 65, 12, 0); } }
+  @media (prefers-reduced-motion: reduce) { .lv--checkout .lv-icon { animation: none; } }
+  @media (max-width: 720px) {
+    .lv-row { grid-template-columns: 32px minmax(0, 1fr) auto 50px 48px; padding: 10px 12px; gap: 10px; }
+  }
+</style>
 
 <%/* Channel drill-down. One dialog reused for every row — the content is
      fetched on open rather than rendered for all channels up front, which

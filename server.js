@@ -420,7 +420,11 @@ async function boot() {
       Visitor.findOneAndUpdate(
         { sessionId: req.sessionID },
         { 
-          page: req.path, 
+          /* The path, plus the search term on a search: the live list
+             shows "Searching ‘op-13’". Nothing else from the query string
+             is kept, so a token in a URL never lands in this collection. */
+          page: req.path + (typeof req.query.q === 'string' && req.query.q.trim()
+            ? '?q=' + encodeURIComponent(req.query.q.trim().slice(0, 80)) : ''),
           ip, 
           country,
           countryCode,

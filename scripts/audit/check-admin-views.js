@@ -861,10 +861,15 @@ function dashboardLocals(over = {}) {
     range: 'month', startDate: '', endDate: '',
     topProducts: [{ _id: op17Box.slug, views: 4210 }, { _id: prismaticEtb.slug, views: 3100 }, { _id: megaEvoBox.slug, views: 1640 }, { _id: prismaticCase.slug, views: 900 }, { _id: variantNight.slug, views: 610 }, { _id: op16Box.slug, views: 420 }, { _id: op18Case.slug, views: 90 }],
     topCountries: [{ _id: 'US', views: 4100 }, { _id: 'CA', views: 820 }, { _id: 'GB', views: 610 }, { _id: 'DE', views: 300 }, { _id: 'AU', views: 120 }, { _id: 'JP', views: 70 }, { _id: '', views: 12 }],
+    /* Shaped as services/liveActivity.describe returns them, one of each
+       kind the panel styles differently. */
     liveVisitors: [
-      { page: '/products/op-17-booster-box', ip: '73.15.4.22', country: 'United States', countryCode: 'US', lastSeen: ago(20e3) },
-      { page: '/', ip: '2a02:8071:1:2::1', country: 'Germany', countryCode: 'DE', lastSeen: ago(90e3) },
-      { page: '/collections/pokemon', ip: '10.0.0.9', country: 'Unknown', countryCode: '', lastSeen: ago(200e3) },
+      { page: '/thank-you', ip: '24.6.18.200', country: 'United States', countryCode: 'US', lastSeen: ago(8e3), activity: { kind: 'purchased', label: 'Just purchased', detail: 'One Piece TCG OP-16 Master Case × 1', href: '/products/op-16-case', image: '', market: '' } },
+      { page: '/checkout/…', ip: '86.12.40.7', country: 'United Kingdom', countryCode: 'GB', lastSeen: ago(14e3), activity: { kind: 'checkout', label: 'On the payment step', detail: 'Pokémon Prismatic Evolutions ETB × 2', href: '/products/prismatic-etb', image: '', market: 'UK' } },
+      { page: '/cart', ip: '102.53.25.108', country: 'Morocco', countryCode: 'MA', lastSeen: ago(30e3), activity: { kind: 'cart', label: 'Looking at the cart', detail: '', href: '', image: '', market: '' } },
+      { page: '/products/op-17-booster-box', ip: '73.15.4.22', country: 'United States', countryCode: 'US', lastSeen: ago(20e3), activity: { kind: 'product', label: 'One Piece TCG OP-17 Booster Box', detail: 'Viewing product', href: '/products/op-17-booster-box', image: '', market: '' } },
+      { page: '/collection/all', ip: '2a02:8071:1:2::1', country: 'Germany', countryCode: 'DE', lastSeen: ago(90e3), activity: { kind: 'search', label: 'Searching “op 13”', detail: '', href: '', image: '', market: 'EU' } },
+      { page: '/', ip: '10.0.0.9', country: 'Unknown', countryCode: '', lastSeen: ago(200e3), activity: { kind: 'home', label: 'Home page', detail: '', href: '', image: '', market: '' } },
     ],
     formatPrice,
     visitorsChart: jsonForScript({ unit: 'day', labels: Array.from({ length: 30 }, (_, i) => `Oct ${i + 1}`), values: Array.from({ length: 30 }, (_, i) => Math.round(120 + 80 * Math.sin(i / 4) + (i % 7 === 0 ? 60 : 0))), views: Array.from({ length: 30 }, (_, i) => Math.round((120 + 80 * Math.sin(i / 4) + (i % 7 === 0 ? 60 : 0)) * 3.1)) }),

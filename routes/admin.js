@@ -23,6 +23,7 @@ const axios = require('axios');
 const cryptoUtil = require('../services/cryptoUtil');
 const mail = require('../services/mail');
 const partnerClient = require('../services/partnerClient');
+const liveActivity = require('../services/liveActivity');
 const metaCapi = require('../services/metaCapi');
 const crypto = require('crypto');
 const { generateSecret, verifySync } = require('otplib');
@@ -544,7 +545,7 @@ router.get('/', requireAuth, async (req, res) => {
         ipMap.set(v.ip, v); // Keeps the most recent one since we sorted by lastSeen -1
       }
     });
-    const liveVisitors = Array.from(ipMap.values());
+    const liveVisitors = await liveActivity.describe(Array.from(ipMap.values()));
 
     res.render('admin/dashboard', {
       directLandings,
@@ -1082,9 +1083,11 @@ router.get('/api/live-visitors', requireAuth, async (req, res) => {
         ipMap.set(v.ip, v);
       }
     });
-    const visitors = Array.from(ipMap.values());
+    const visitors = await liveActivity.describe(Array.from(ipMap.values()));
+    res.set('Cache-Control', 'no-store');
     res.json({ count: visitors.length, visitors });
   } catch (err) {
+    console.error('live visitors', err.message);
     res.json({ count: 0, visitors: [] });
   }
 });
