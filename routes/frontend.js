@@ -249,7 +249,10 @@ router.get('/', async (req, res) => {
     const preorderProducts = await Product.find({ preorder: true, available: true }).limit(2).lean();
     renderPage(res, 'home', {
       pageTitle: 'GoGetCards — Premium Sealed TCG Marketplace',
-      metaDescription: 'Factory-sealed booster boxes, Master Cases & elite ETBs. Pokémon, Yu-Gi-Oh!, MTG & One Piece TCG. Lock in preorder pricing before allocations run out.',
+      /* From config/catalog.js, so the snippet Google shows names exactly
+         the lines this store sells. It was copied from Zyphera and listed
+         Yu-Gi-Oh!, which GoGetCards does not carry. */
+      metaDescription: `Factory-sealed booster boxes, ETBs and hobby boxes for ${catalog.listNames(catalog.all(), 'shortName')}, from authorized distribution.`,
       featuredProducts,
       preorderProducts,
     });
