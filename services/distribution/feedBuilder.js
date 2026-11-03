@@ -29,6 +29,7 @@ const marketService = require('../market');
 const { RETURN_WINDOW_DAYS } = require('../../config/faq');
 const distribution = require('../../config/distribution');
 const site = require('../../config/site');
+const productImage = require('../../helpers/productImage');
 const variants = require('../variants');
 
 const D = distribution.defaults;
@@ -259,7 +260,10 @@ function images(product) {
   const override = product.merchant && product.merchant.imageLink;
   const all = [override || product.imageUrl, ...(product.images || [])]
     .filter(Boolean)
-    .map(absolute);
+    .map(absolute)
+    /* Google wants a large, sharp image; the hosted links carry width=800.
+       Shopify returns the original when it is smaller, never an upscale. */
+    .map((u) => productImage.at(u, 1600));
   return [...new Set(all)];
 }
 

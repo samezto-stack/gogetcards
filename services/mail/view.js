@@ -17,6 +17,7 @@
 const preorderCfg = require('../../config/preorder');
 const orderReference = require('../../helpers/orderReference');
 const site = require('../../config/site');
+const productImage = require('../../helpers/productImage');
 
 /**
  * @param {object} order    a persisted Order
@@ -51,7 +52,8 @@ function fromOrder(order, product = null, extra = {}) {
 
     title,
     quantity,
-    image: (product && (product.imageUrl || (product.images || [])[0])) || o.productImage || '',
+    /* The email tile is 72px; 144 covers retina screens. */
+    image: productImage.at((product && (product.imageUrl || (product.images || [])[0])) || o.productImage || '', 144),
     slug: o.productSlug || (product && product.slug) || '',
 
     total: Number(o.totalPrice) || 0,

@@ -61,7 +61,7 @@
       <div class="ck-line-item">
         <div class="ck-thumb">
           <% if (p.imageUrl) { %>
-            <img src="<%= p.imageUrl %>" alt="<%= esc(p.title) %>">
+            <img src="<%= productImage.at(p.imageUrl, 160) %>" alt="<%= esc(p.title) %>">
           <% } else { %>
             <svg viewBox="0 0 64 48" role="img" aria-label="Product image">
               <rect x="20" y="10" width="24" height="28" rx="2" fill="none" stroke="#3A4867" stroke-width="1.2"/>

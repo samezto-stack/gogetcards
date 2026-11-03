@@ -106,7 +106,7 @@
       <div class="ck-item">
         <div class="ck-thumb">
           <% if (priced.product.imageUrl) { %>
-            <img src="<%= priced.product.imageUrl %>" alt="" width="64" height="64" loading="lazy">
+            <img src="<%= productImage.at(priced.product.imageUrl, 128) %>" alt="" width="64" height="64" loading="lazy">
           <% } %>
           <% if (priced.quantity > 1) { %>
             <span class="ck-thumb-qty" style="display:grid" aria-label="Quantity <%= priced.quantity %>"><%= priced.quantity %></span>

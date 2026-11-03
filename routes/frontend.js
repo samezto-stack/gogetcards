@@ -44,6 +44,7 @@ const faqConfig = require('../config/faq');
 const distributionCfg = require('../config/distribution');
 const preorderCfg = require('../config/preorder');
 const caseOfferService = require('../services/caseOffer');
+const productImage = require('../helpers/productImage');
 const trustPages = require('../config/trustPages');
 const catalog = require('../config/catalog');
 const orderReference = require('../helpers/orderReference');
@@ -860,7 +861,7 @@ router.get('/products/:slug', async (req, res) => {
         const href = `${origin}${markets.path(m, `/products/${product.slug}`)}`;
         return (m.countries || []).map((cc) => ({ locale: `${m.language}-${cc}`, href }));
       });
-    const productImages = [product.imageUrl, ...(product.images || [])].filter(Boolean);
+    const productImages = [product.imageUrl, ...(product.images || [])].filter(Boolean).map((u) => productImage.at(u, 1200));
     const cleanDesc = product.description
       ? product.description.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().substring(0, 500)
       : `${variantTitle}. Factory sealed, sourced through authorized distribution.`;
@@ -1093,7 +1094,7 @@ router.get('/products/:slug', async (req, res) => {
           : 'In Stock.'
       } Factory sealed, sourced through authorized distribution.`,
       ogType: 'product',
-      ogImage: product.imageUrl || (product.images && product.images[0]) || '',
+      ogImage: productImage.at(product.imageUrl || (product.images && product.images[0]) || '', 1200),
       product,
       priced,
       market,

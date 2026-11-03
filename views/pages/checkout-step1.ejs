@@ -365,15 +365,7 @@
   <div class="checkout-right">
     <div class="order-items">
       <% cartItems.forEach(item => { 
-          let imgUrl = item.product.imageUrl || (item.product.images && item.product.images.length > 0 ? item.product.images[0] : '/images/placeholder.jpg');
-          
-          if (imgUrl.includes('cdn/shop')) {
-            if (imgUrl.includes('width=')) {
-              imgUrl = imgUrl.replace(/width=\d+/, 'width=80');
-            } else {
-              imgUrl += imgUrl.includes('?') ? '&width=80' : '?width=80';
-            }
-          }
+          let imgUrl = productImage.at(item.product.imageUrl || (item.product.images && item.product.images.length > 0 ? item.product.images[0] : '/images/placeholder.jpg'), 160);
       %>
         <div class="order-item">
           <div class="order-item-img-wrapper">
