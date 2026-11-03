@@ -25,6 +25,7 @@ const mail = require('../services/mail');
 const partnerClient = require('../services/partnerClient');
 const liveActivity = require('../services/liveActivity');
 const mongoose = require('mongoose');
+const productImage = require('../helpers/productImage');
 const metaCapi = require('../services/metaCapi');
 const crypto = require('crypto');
 const { generateSecret, verifySync } = require('otplib');
@@ -477,6 +478,32 @@ router.get('/', requireAuth, async (req, res) => {
       { $sort: { views: -1 } },
       { $limit: 10 },
     ]);
+
+    /* Names and photos for both product lists, which group by slug. One
+       query for all of them; a slug whose product has since been deleted
+       keeps a readable name and is marked removed rather than vanishing,
+       because its views and revenue really happened. */
+    const listedSlugs = [...new Set([...topProducts, ...topProductsByRevenue].map((t) => t._id).filter(Boolean))];
+    const listedProducts = listedSlugs.length
+      ? await Product.find({ slug: { $in: listedSlugs } }).select('slug title variantName imageUrl images').lean()
+      : [];
+    const bySlug = new Map(listedProducts.map((p) => [p.slug, p]));
+    const describeSlug = (slug) => {
+      const p = bySlug.get(slug);
+      if (!p) {
+        const name = String(slug || 'Unknown product').replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+        return { title: name, image: '', id: null, removed: true };
+      }
+      const src = p.imageUrl || (p.images && p.images[0]) || '';
+      return {
+        title: p.variantName && !p.title.includes(p.variantName) ? `${p.title} [${p.variantName}]` : p.title,
+        image: src ? productImage.at(src, 80) : '',
+        id: String(p._id),
+        removed: false,
+      };
+    };
+    topProducts.forEach((t) => { t.product = describeSlug(t._id); });
+    topProductsByRevenue.forEach((t) => { t.product = describeSlug(t._id); });
 
     // Top countries by unique visitors (by IP)
     const topCountries = await Event.aggregate([

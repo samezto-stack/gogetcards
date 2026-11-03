@@ -457,13 +457,13 @@
           </div>
           <div class="admin-panel__body admin-panel__body--flush chart-card">
             <div class="admin-table-wrap">
-              <table class="admin-table">
+              <table class="admin-table dpc-table">
                 <thead><tr><th class="num">#</th><th>Product</th><th class="num">Units</th><th class="num">Revenue</th></tr></thead>
                 <tbody data-collapse="5">
                   <% topProductsByRevenue.forEach(function (tp, i) { %>
                     <tr>
                       <td class="num faint"><%= i + 1 %></td>
-                      <td><%= tp._id %></td>
+                      <td class="dpc-td"><%- include('_product-cell', { tp: tp }) %></td>
                       <td class="num"><%= tp.units %></td>
                       <td class="num"><strong>$<%= formatPrice(tp.revenue) %></strong></td>
                     </tr>
@@ -488,11 +488,11 @@
           </div>
           <div class="admin-panel__body admin-panel__body--flush chart-card">
             <div class="admin-table-wrap">
-              <table class="admin-table">
+              <table class="admin-table dpc-table">
                 <thead><tr><th class="num">#</th><th>Product</th><th class="num">Views</th></tr></thead>
                 <tbody data-collapse="5">
                   <% topProducts.forEach(function(tp, idx) { %>
-                    <tr><td class="num faint"><%= idx + 1 %></td><td><%= tp._id %></td><td class="num"><%= tp.views %></td></tr>
+                    <tr><td class="num faint"><%= idx + 1 %></td><td class="dpc-td"><%- include('_product-cell', { tp: tp }) %></td><td class="num"><%= tp.views %></td></tr>
                   <% }); %>
                 </tbody>
               </table>
@@ -969,6 +969,25 @@
   @media (max-width: 720px) {
     .lv-row { grid-template-columns: 32px minmax(0, 1fr) auto 50px 48px; padding: 10px 12px; gap: 10px; }
   }
+</style>
+
+
+<style>
+  /* The name column takes what is left and truncates, so the figures on
+     the right are never pushed out of the panel. */
+  /* Compact product lists: fit the panel at any width instead of the
+     720px sideways-scroll minimum other admin tables use on phones. */
+  .admin-table.dpc-table { min-width: 0; }
+  .dpc-td { width: 100%; max-width: 0; }
+  @media (max-width: 640px) { .dpc__img { flex-basis: 28px; width: 28px; height: 28px; } .dpc { gap: 8px; } .dpc__removed { display: none; } }
+  .dpc__name--removed { color: var(--admin-faint); font-style: italic; }
+  .dpc { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .dpc__img { flex: 0 0 32px; width: 32px; height: 32px; border-radius: 6px; object-fit: contain; background: #fff; border: 1px solid var(--admin-border); }
+  .dpc__img--empty { background: var(--admin-panel-2); }
+  .dpc__text { min-width: 0; flex: 1 1 auto; display: flex; align-items: center; gap: 6px; overflow: hidden; }
+  .dpc__name { color: var(--admin-text); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; min-width: 0; }
+  a.dpc__name:hover { text-decoration: underline; }
+  .dpc__removed { flex: 0 0 auto; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--admin-faint); background: var(--admin-panel-2); border-radius: 4px; padding: 1px 5px; }
 </style>
 
 <%/* Channel drill-down. One dialog reused for every row — the content is

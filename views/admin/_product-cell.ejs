@@ -1,0 +1,14 @@
+<%/* One product in a dashboard list: thumbnail, name, and the slug as a
+     hover hint. Every value is escaped; links go to the admin edit page. */%>
+<% var pc = (tp && tp.product) || { title: (tp && tp._id) || 'Unknown product', image: '', id: null, removed: true }; %>
+<span class="dpc">
+  <% if (pc.image) { %>
+    <img class="dpc__img" src="<%= pc.image %>" alt="" width="32" height="32" loading="lazy">
+  <% } else { %>
+    <span class="dpc__img dpc__img--empty" aria-hidden="true"></span>
+  <% } %>
+  <span class="dpc__text" title="<%= tp && tp._id %>">
+    <% if (pc.id) { %><a href="/admin/products/<%= pc.id %>/edit" class="dpc__name"><%= pc.title %></a><% } else { %><span class="dpc__name<%= pc.removed ? ' dpc__name--removed' : '' %>"><%= pc.title %></span><% } %>
+    <% if (pc.removed) { %><span class="dpc__removed">removed</span><% } %>
+  </span>
+</span>

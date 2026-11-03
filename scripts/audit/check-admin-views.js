@@ -859,7 +859,7 @@ function dashboardLocals(over = {}) {
     unconfirmedPaymentCount: 2,
     stats: { views: 6210, pageViews: 18422, checkouts: 388, orders: 97, revenue: 2184503, reachedCheckout: 212 },
     range: 'month', startDate: '', endDate: '',
-    topProducts: [{ _id: op17Box.slug, views: 4210 }, { _id: prismaticEtb.slug, views: 3100 }, { _id: megaEvoBox.slug, views: 1640 }, { _id: prismaticCase.slug, views: 900 }, { _id: variantNight.slug, views: 610 }, { _id: op16Box.slug, views: 420 }, { _id: op18Case.slug, views: 90 }],
+    topProducts: [{ _id: op17Box.slug, views: 4210, product: { title: op17Box.title, image: op17Box.imageUrl || '', id: 'p1', removed: false } }, { _id: prismaticEtb.slug, views: 3100, product: { title: prismaticEtb.title, image: '', id: 'p2', removed: false } }, { _id: '2025-bowman-baseball-jumbo-box-preorder', views: 2200, product: { title: '2025 Bowman Baseball Jumbo Box Preorder', image: '', id: null, removed: true } }, { _id: megaEvoBox.slug, views: 1640 }, { _id: prismaticCase.slug, views: 900 }, { _id: variantNight.slug, views: 610 }, { _id: op16Box.slug, views: 420 }, { _id: op18Case.slug, views: 90 }],
     topCountries: [{ _id: 'US', views: 4100 }, { _id: 'CA', views: 820 }, { _id: 'GB', views: 610 }, { _id: 'DE', views: 300 }, { _id: 'AU', views: 120 }, { _id: 'JP', views: 70 }, { _id: '', views: 12 }],
     /* Shaped as services/liveActivity.describe returns them, one of each
        kind the panel styles differently. */
