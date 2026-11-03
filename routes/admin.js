@@ -741,7 +741,7 @@ router.get('/orders', requireAuth, async (req, res) => {
         { customerEmail: rx }, { customerName: rx }, { orderId: rx },
         { paymentId: rx }, { products: rx }, { trackingNumber: rx },
       ];
-      /* A ZTCG- reference is DERIVED from the order id, not stored, so it
+      /* A GGC- reference is DERIVED from the order id, not stored, so it
          cannot be matched by a query. Resolved separately below. */
     }
 
@@ -758,8 +758,8 @@ router.get('/orders', requireAuth, async (req, res) => {
        common thing this page is opened to do. Scoped to the current
        date range so the scan stays bounded. */
     let referenceHit = null;
-    if (q && /^(ZTCG-)?\d{4,5}$/i.test(q)) {
-      const wanted = (q.toUpperCase().startsWith('ZTCG-') ? q : 'ZTCG-' + q).toUpperCase();
+    if (q && /^(GGC-)?\d{4,5}$/i.test(q)) {
+      const wanted = (q.toUpperCase().startsWith('GGC-') ? q : 'GGC-' + q).toUpperCase();
       const candidates = await Order.find(query).select('orderId paymentId').lean();
       const match = candidates.find((o) => orderReference(o) === wanted);
       if (match) referenceHit = await Order.findOne({ orderId: match.orderId }).lean();

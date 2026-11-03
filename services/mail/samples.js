@@ -232,7 +232,7 @@ const CASES = {
       message: 'Good day,\n\nI would like to find out if I could pre-order an OP-17 case (12 boxes), and who your distributor is. I am based in South Africa.',
     }],
     ['about an order, with a number', {
-      name: 'Jerelle Whitmore', email: 'jerelle@example.com', topic: 'order', orderNumber: 'ZTCG-1001',
+      name: 'Jerelle Whitmore', email: 'jerelle@example.com', topic: 'order', orderNumber: 'GGC-1001',
       message: 'I placed a preorder in April and never received it. Can you ship it or refund me?',
     }],
     ['no name given, unknown topic', {

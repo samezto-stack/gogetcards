@@ -125,7 +125,7 @@ const FIXTURES = {
     images: ['https://example.com/a.jpg', 'https://example.com/b.jpg'],
     description: '<p>Sealed booster box.</p>', specs: [], vendor: 'Bandai', brand: 'Bandai',
     productType: 'Booster Box', collections: ['one-piece'], tags: ['one-piece'],
-    available: true, stock: 12, preorder: false, sku: 'ZTCG-OP17-BB',
+    available: true, stock: 12, preorder: false, sku: 'GGC-OP17-BB',
     gtin: '4570118083104', mpn: 'OP-17-BB', language: 'English', edition: '',
     setCode: 'OP-17', allocationLimit: 0, releaseDate: null,
   },
@@ -136,7 +136,7 @@ const FIXTURES = {
     specs: [], vendor: 'The Pokemon Company', brand: 'The Pokemon Company',
     productType: 'Booster Box', collections: ['pokemon'], tags: ['pokemon'],
     available: true, stock: 4, preorder: true, preorderShips: 'Q2 2026',
-    sku: 'ZTCG-ME-BB', gtin: '', mpn: '', language: 'English', edition: '',
+    sku: 'GGC-ME-BB', gtin: '', mpn: '', language: 'English', edition: '',
     setCode: '', allocationLimit: 0, releaseDate: PREORDER_RELEASE,
   },
 };
@@ -286,7 +286,7 @@ const server = app.listen(0, async () => {
     && !/alt="Image \d"/.test(inStock.html));
 
   check('product: identifiers emitted',
-    !!(inStock.node && inStock.node.sku === 'ZTCG-OP17-BB'
+    !!(inStock.node && inStock.node.sku === 'GGC-OP17-BB'
       && inStock.node.gtin === '4570118083104' && inStock.node.mpn === 'OP-17-BB'));
   check('product: brand is the manufacturer, not the shop',
     !!(inStock.node && inStock.node.brand.name === 'Bandai'));

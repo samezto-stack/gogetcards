@@ -30,7 +30,7 @@ const inStock = {
   description: '<p>Sealed booster box.</p>', specs: [{ label: 'Packs per box', value: '24' }],
   vendor: 'Bandai', brand: 'Bandai', productType: 'Booster Box', collections: ['one-piece'],
   tags: ['one-piece'], available: true, stock: 12, badge: 'Hot', preorder: false,
-  sku: 'ZTCG-OP17-BB', gtin: '4570118083104', mpn: 'OP-17-BB',
+  sku: 'GGC-OP17-BB', gtin: '4570118083104', mpn: 'OP-17-BB',
   language: 'English', edition: '', setCode: 'OP-17', allocationLimit: 0, releaseDate: null,
 };
 const preorderItem = {
@@ -38,7 +38,7 @@ const preorderItem = {
   slug: 'mega-evolution-bb-preorder', price: 13999, comparePrice: null,
   vendor: 'The Pokémon Company', brand: 'The Pokémon Company',
   preorder: true, preorderShips: 'Q2 2026', badge: 'Preorder', stock: 4,
-  releaseDate: new Date('2026-09-26'), gtin: '', sku: 'ZTCG-ME-BB',
+  releaseDate: new Date('2026-09-26'), gtin: '', sku: 'GGC-ME-BB',
 };
 
 /* One product sold as two boxes — the Day/Night case. Rendered so the

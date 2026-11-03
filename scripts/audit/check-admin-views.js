@@ -415,7 +415,7 @@ const LEADS = [
 ];
 const MESSAGES = [
   { _id: 'm1', name: 'Dario Liebenberg', email: 'dario@example.com', topic: 'preorder', status: 'new', createdAt: ago(2 * HOUR), orderNumber: '', message: 'Good day,\n\nCould I pre-order an OP-17 case (12 boxes)? I am based in South Africa.', replies: [] },
-  { _id: 'm2', name: 'Jerelle Whitmore', email: 'jerelle@example.com', topic: 'order', status: 'answered', createdAt: ago(3 * DAY), orderNumber: 'ZTCG-1001', message: 'I placed a preorder in April and never received it. Can you ship it or refund me?', replies: [{ body: 'Hi Jerelle, the set lands on the 21st and your box goes out the same day. Tracking follows by email.', sentAt: ago(2 * DAY), emailLogId: 'e1' }] },
+  { _id: 'm2', name: 'Jerelle Whitmore', email: 'jerelle@example.com', topic: 'order', status: 'answered', createdAt: ago(3 * DAY), orderNumber: 'GGC-1001', message: 'I placed a preorder in April and never received it. Can you ship it or refund me?', replies: [{ body: 'Hi Jerelle, the set lands on the 21st and your box goes out the same day. Tracking follows by email.', sentAt: ago(2 * DAY), emailLogId: 'e1' }] },
   { _id: 'm3', name: 'A <script> Tester', email: 'tester@example.com', topic: 'general', status: 'read', createdAt: ago(6 * DAY), orderNumber: '', message: 'Do you stock "Bloomburrow" <Bundle> & similar? 5 > 3', replies: [] },
 ];
 
@@ -429,16 +429,16 @@ const PAGES = [
 function emailRow(over) {
   return Object.assign({
     _id: '6700000000000000000000e1', createdAt: ago(2 * HOUR), type: 'orderConfirmation', retriedFrom: null,
-    subject: 'Order ZTCG-46571 confirmed — One Piece TCG: OP-17 Booster Box', to: 'marcus@example.com',
-    orderRef: 'ZTCG-46571', orderId: 'whop_pay_MYUR2yPi5hiWdI', status: 'sent', attempts: 1,
+    subject: 'Order GGC-46571 confirmed — One Piece TCG: OP-17 Booster Box', to: 'marcus@example.com',
+    orderRef: 'GGC-46571', orderId: 'whop_pay_MYUR2yPi5hiWdI', status: 'sent', attempts: 1,
     linkOpenedAt: ago(1 * HOUR), error: '', providerResponse: '250 2.0.0 OK queued as 8fA3c1',
   }, over);
 }
 const EMAIL_ROWS = [
   emailRow(),
-  emailRow({ _id: '6700000000000000000000e2', type: 'shipped', subject: 'Your order is on its way', to: 'priya.n@example.com', orderRef: 'ZTCG-10882', orderId: 'whop_pay_7Qx1ZnB3kLpT', linkOpenedAt: null, createdAt: ago(1 * DAY) }),
-  emailRow({ _id: '6700000000000000000000e3', type: 'cancellation', subject: 'Order ZTCG-20931 cancelled', to: 'lena.k@example.co.uk', orderRef: 'ZTCG-20931', orderId: 'whop_pay_Lm3nHj6uVb8C', status: 'failed', attempts: 3, linkOpenedAt: null, error: '550 5.1.1 The email account that you tried to reach does not exist', providerResponse: '', createdAt: ago(2 * DAY) }),
-  emailRow({ _id: '6700000000000000000000e4', type: 'cancellation', subject: 'Order ZTCG-20931 cancelled', to: 'lena.k@example.co.uk', orderRef: 'ZTCG-20931', orderId: 'whop_pay_Lm3nHj6uVb8C', retriedFrom: '6700000000000000000000e3', status: 'queued', attempts: 0, linkOpenedAt: null, providerResponse: '', createdAt: ago(1 * HOUR) }),
+  emailRow({ _id: '6700000000000000000000e2', type: 'shipped', subject: 'Your order is on its way', to: 'priya.n@example.com', orderRef: 'GGC-10882', orderId: 'whop_pay_7Qx1ZnB3kLpT', linkOpenedAt: null, createdAt: ago(1 * DAY) }),
+  emailRow({ _id: '6700000000000000000000e3', type: 'cancellation', subject: 'Order GGC-20931 cancelled', to: 'lena.k@example.co.uk', orderRef: 'GGC-20931', orderId: 'whop_pay_Lm3nHj6uVb8C', status: 'failed', attempts: 3, linkOpenedAt: null, error: '550 5.1.1 The email account that you tried to reach does not exist', providerResponse: '', createdAt: ago(2 * DAY) }),
+  emailRow({ _id: '6700000000000000000000e4', type: 'cancellation', subject: 'Order GGC-20931 cancelled', to: 'lena.k@example.co.uk', orderRef: 'GGC-20931', orderId: 'whop_pay_Lm3nHj6uVb8C', retriedFrom: '6700000000000000000000e3', status: 'queued', attempts: 0, linkOpenedAt: null, providerResponse: '', createdAt: ago(1 * HOUR) }),
   emailRow({ _id: '6700000000000000000000e5', type: 'accountAccess', subject: 'Your sign-in link', to: 'jonas@example.de', orderRef: '', orderId: '', status: 'skipped', attempts: 0, linkOpenedAt: null, providerResponse: '', error: 'No mail credentials on this server, so nothing was sent. See docs/email-setup.md.', createdAt: ago(3 * DAY) }),
   emailRow({ _id: '6700000000000000000000e6', type: 'preorderConfirmation', subject: 'Preorder secured — Prismatic Evolutions Case', to: 'sam+ztest@gogetcards.com', orderRef: 'SAMPLE', orderId: '', status: 'sent', linkOpenedAt: null, createdAt: ago(5 * DAY) }),
   emailRow({ _id: '6700000000000000000000e7', type: 'recoveryReminder2', subject: 'Still thinking it over?', to: 'left.behind@example.com', orderRef: '', orderId: '', status: 'pending', attempts: 1, linkOpenedAt: null, providerResponse: '', createdAt: ago(10 * 60e3) }),
@@ -922,7 +922,7 @@ const FIXTURES = [
 
   /* routes/admin.js GET /orders */
   { view: 'orders', state: 'populated', path: '/admin/orders', locals: ordersLocals(ORDERS.map(orderRow), { unconfirmedPayments: UNCONFIRMED, notice: 'cancelled', query: { recovered: 'whop_pay_Ux3cVb9nQw2E', recoveredNew: '1' }, pages: 4, total: 180, from: 1, to: 50 }) },
-  { view: 'orders', state: 'page-3-filtered', path: '/admin/orders', locals: ordersLocals(ORDERS.slice(0, 4).map(orderRow), { range: 'all', statusFilter: 'unfulfilled', q: 'ZTCG-46571', page: 3, pages: 8, total: 380, from: 101, to: 150, notice: 'cancel_already_shipped', query: { recoverError: 'The payment id did not match any pending payment.' } }) },
+  { view: 'orders', state: 'page-3-filtered', path: '/admin/orders', locals: ordersLocals(ORDERS.slice(0, 4).map(orderRow), { range: 'all', statusFilter: 'unfulfilled', q: 'GGC-46571', page: 3, pages: 8, total: 380, from: 101, to: 150, notice: 'cancel_already_shipped', query: { recoverError: 'The payment id did not match any pending payment.' } }) },
   { view: 'orders', state: 'empty', path: '/admin/orders', locals: ordersLocals([]) },
   { view: 'orders', state: 'search-no-match', path: '/admin/orders', locals: ordersLocals([], { q: 'nobody@example.com', statusFilter: 'refunded' }) },
 

@@ -33,7 +33,7 @@ const FIXTURES = [
     price: 29998, imageUrl: 'https://example.com/a.jpg', images: [],
     description: '<p>Factory sealed booster box with twenty-four packs inside.</p>',
     vendor: 'Bandai', brand: 'Bandai', productType: 'Booster Box', tags: [],
-    available: true, sku: 'ZTCG-OP17-BB', gtin: '4570118083104', mpn: 'OP-17-BB',
+    available: true, sku: 'GGC-OP17-BB', gtin: '4570118083104', mpn: 'OP-17-BB',
     language: 'English', preorder: false, releaseDate: null },
   /* Deliberately broken: no description, no image. Must NOT appear. */
   { _id: 'p2', title: 'Broken Product', slug: 'broken', price: 100,
@@ -90,7 +90,7 @@ const server = http.createServer(app).listen(0, async () => {
      the stable identifier a purchase order can be reconciled against,
      which is the point of preferring it. */
   check('valid product is present, keyed on its SKU',
-    /<g:id>ZTCG-OP17-BB<\/g:id>/.test(xml.body));
+    /<g:id>GGC-OP17-BB<\/g:id>/.test(xml.body));
   check('INVALID product is omitted', !/<g:id>broken<\/g:id>/.test(xml.body));
   check('carries free shipping', /<g:price>0\.00 USD<\/g:price>/.test(xml.body));
   check('carries the GTIN', /<g:gtin>4570118083104<\/g:gtin>/.test(xml.body));
@@ -124,7 +124,7 @@ const server = http.createServer(app).listen(0, async () => {
   const itemOf = (id) => (xml.body.match(new RegExp(`<item>(?:(?!</item>)[\\s\\S])*<g:id>${id}</g:id>[\\s\\S]*?</item>`)) || [''])[0];
   const nightItem = itemOf('ZT-30TH-NIGHT');
   const dayItem = itemOf('ZT-30TH-DAY');
-  const plainItem = itemOf('ZTCG-OP17-BB');
+  const plainItem = itemOf('GGC-OP17-BB');
   check('both boxes are in the feed', !!nightItem && !!dayItem);
   check('both carry the same item_group_id',
     /<g:item_group_id>10-10448-120<\/g:item_group_id>/.test(nightItem)

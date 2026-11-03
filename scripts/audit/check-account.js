@@ -356,7 +356,7 @@ async function seed() {
       ok('no detail leaks in the refusal', !stolen.body.includes('18 Ocean Ave')
         && !stolen.body.includes('ada@example.com'));
 
-      const madeUp = await GET('/account/orders/ZTCG-00001', { jar: grace });
+      const madeUp = await GET('/account/orders/GGC-00001', { jar: grace });
       ok('an unknown reference answers identically', madeUp.status === stolen.status);
       ok('the refusal body is identical, so existence cannot be probed',
         madeUp.body.length === stolen.body.length);

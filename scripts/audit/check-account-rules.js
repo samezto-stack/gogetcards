@@ -172,7 +172,7 @@ console.log('timeline');
 console.log('redirect safety');
 {
   const safe = customerAuth.safeRedirect;
-  ['/account', '/account/orders', '/account/orders/ZTCG-46571', '/products/op-17-box',
+  ['/account', '/account/orders', '/account/orders/GGC-46571', '/products/op-17-box',
    '/collection/all?q=box'].forEach((p) => {
     ok(`same-site path survives: ${p}`, safe(p) === p);
   });
@@ -216,13 +216,13 @@ console.log('ip truncation');
 /* ── Order references ───────────────────────────────────── */
 console.log('order references');
 {
-  ok('format is ZTCG-nnnnn', /^ZTCG-\d{5}$/.test(orderReference({ orderId: 'whop_pay_MYUR2yPi5hiWdI' })));
+  ok('format is GGC-nnnnn', /^GGC-\d{5}$/.test(orderReference({ orderId: 'whop_pay_MYUR2yPi5hiWdI' })));
   ok('stable for the same order',
     orderReference({ orderId: 'a' }) === orderReference({ orderId: 'a' }));
   ok('accepts a bare id', orderReference('whop_pay_x') === orderReference({ orderId: 'whop_pay_x' }));
   ok('falls back to paymentId', orderReference({ paymentId: 'p1' }) === orderReference('p1'));
   ok('nothing in, nothing out', orderReference(null) === '' && orderReference({}) === '');
-  ok('never starts at 1', orderReference({ orderId: 'a' }) !== 'ZTCG-00001');
+  ok('never starts at 1', orderReference({ orderId: 'a' }) !== 'GGC-00001');
 
   /* Collisions are possible in 90,000 values and are handled by scoping
      the lookup to one customer's own orders. What must NOT happen is two
@@ -230,7 +230,7 @@ console.log('order references');
      differently, since the URL is typed by hand. */
   const ids = Array.from({ length: 4000 }, (_, i) => 'whop_pay_' + crypto.randomBytes(6).toString('hex') + i);
   const refs = ids.map((id) => orderReference(id));
-  ok('all references are well formed', refs.every((r) => /^ZTCG-\d{5}$/.test(r)));
+  ok('all references are well formed', refs.every((r) => /^GGC-\d{5}$/.test(r)));
   const unique = new Set(refs).size;
   ok('references are well distributed', unique > 3800, `${unique}/4000 unique`);
 }

@@ -35,7 +35,7 @@
 
 const crypto = require('crypto');
 
-const PREFIX = 'ZTCG';
+const PREFIX = 'GGC';
 
 /* 10000–99999. The floor keeps every reference the same width, so they line
    up in a column and none of them reads as truncated. */
@@ -44,7 +44,7 @@ const SPAN = 90000;
 
 /**
  * @param {object|string} order  an Order document, or an order id
- * @returns {string} e.g. "ZTCG-46571", or '' when there is nothing to derive from
+ * @returns {string} e.g. "GGC-46571", or '' when there is nothing to derive from
  */
 function orderReference(order) {
   const id = typeof order === 'string' ? order : (order && (order.orderId || order.paymentId));

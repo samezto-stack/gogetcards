@@ -130,7 +130,7 @@ check('in-stock: says In Stock', />\s*In Stock\s*</.test(ins));
 
 /* ── Identifiers on the page ── */
 check('product: GTIN shown', /4570118083104/.test(ins));
-check('product: SKU shown', /ZTCG-OP17-BB/.test(ins));
+check('product: SKU shown', /GGC-OP17-BB/.test(ins));
 check('product: language shown', /Language/.test(ins));
 check('product: shipping stated on the page', /tracked/i.test(ins));
 check('product: return window from config', /14-Day Return Window/.test(ins));

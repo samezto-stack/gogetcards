@@ -199,7 +199,7 @@
         <form class="ot-tools" method="GET" action="/admin/orders">
           <input type="hidden" name="range" value="<%= range %>">
           <input class="admin-search-input ot-search" type="search" name="q" value="<%= q %>"
-                 placeholder="ZTCG-46571, email, name, product or tracking" autocomplete="off">
+                 placeholder="GGC-46571, email, name, product or tracking" autocomplete="off">
           <select name="status" class="admin-select">
             <% [['all','Any status'],['unfulfilled','Needs packing'],['preparing','Preparing'],
                 ['shipped','Shipped'],['delivered','Delivered'],['cancelled','Cancelled'],
@@ -267,7 +267,7 @@
               <tr class="<%= isTest ? 'is-test' : '' %>">
 
                 <td>
-                  <%/* The ZTCG reference first, because it is the only
+                  <%/* The GGC reference first, because it is the only
                        identifier the customer has and the thing they
                        quote. The provider's own id is kept underneath —
                        it is what you paste into Whop — but it is no

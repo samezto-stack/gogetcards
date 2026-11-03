@@ -167,7 +167,7 @@ function unsubscribeHeaders(opts) {
  * @param {string} opts.to        recipient address
  * @param {object} opts.data      template variables
  * @param {string} [opts.orderId] joins the log row back to the Order
- * @param {string} [opts.orderRef] the ZTCG- reference, for the admin log
+ * @param {string} [opts.orderRef] the GGC- reference, for the admin log
  * @param {object} [opts.customer] Customer id, for the admin log
  * @param {object} [opts.linkId] the MagicLink carried in this message
  * @param {object} [opts.retryOf] the EmailLog row this replaces
