@@ -1,4 +1,5 @@
 const express = require('express');
+const orderCap = require('../helpers/orderCap');
 const notFound = require('../helpers/notFound');
 const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
@@ -496,8 +497,7 @@ router.post('/api/checkout/partner', async (req, res) => {
   let qty = Math.max(1, parseInt(quantity) || 1);
 
   const limitProduct = await Product.findOne({ slug }).lean();
-  const allocationLimit = limitProduct ? (limitProduct.allocationLimit || 0) : 0;
-  if (allocationLimit > 0 && qty > allocationLimit) qty = allocationLimit;
+  if (limitProduct) qty = orderCap.clamp(limitProduct, qty);
 
 
   // THROUGH STEP 1, NOT STRAIGHT TO THE PAYMENT HOST. This used to resolve
@@ -1055,7 +1055,9 @@ router.get('/products/:slug', async (req, res) => {
       ? partnerRotation.maxQuantityAcross(partnerExperience, product,
           { amount: priced.amount, market: market.id })
       : 0;
-    const allocationLimit = product.allocationLimit || 0;
+    /* The order cap (helpers/orderCap: no line above $1,199.76, the top of
+       the ladder) already includes the product's own allocation limit. */
+    const allocationLimit = orderCap.maxQuantity(product, priced.amount);
     const buyLimit = partnerMaxQty > 0
       ? (allocationLimit > 0 ? Math.min(allocationLimit, partnerMaxQty) : partnerMaxQty)
       : allocationLimit;
@@ -2247,8 +2249,7 @@ router.get('/checkout-redirect', async (req, res) => {
   try {
     const product = await Product.findOne({ slug: wantedSlug }).lean();
     if (!product) return res.redirect('/cart');
-    const limit = product.allocationLimit || 0;
-    if (limit > 0 && qty > limit) qty = limit;
+    qty = orderCap.clamp(product, qty);
 
     const checkoutId = trackCheckoutReached(req, qty, 'two_step_checkout', wantedSlug);
     const sessionService = require('../services/checkout/session');
@@ -2463,9 +2464,7 @@ router.get('/checkout/step-1', async (req, res) => {
     if (slug) {
       const product = await Product.findOne({ slug: slug }).lean();
       if (product) {
-        const limit = product.allocationLimit || 0;
-        let parsedQty = parseInt(qty) || 1;
-        if (limit > 0 && parsedQty > limit) parsedQty = limit;
+        const parsedQty = orderCap.clamp(product, qty);
         cartItems.push({ product, quantity: parsedQty, variantId: variant });
         cartTotal = product.price * parsedQty;
       }
@@ -2530,9 +2529,7 @@ async function buildTestPurchase(body) {
     const slug = (line && line.product && line.product.slug) || line.slug;
     const product = bySlug.get(slug);
     if (!product) continue;
-    const limit = product.allocationLimit || 0;
-    let qty = Math.max(1, parseInt(line.quantity, 10) || 1);
-    if (limit > 0 && qty > limit) qty = limit;
+    const qty = orderCap.clamp(product, line.quantity);
     totalCents += (product.price || 0) * qty;
     if (!first) { first = product; firstQty = qty; }
   }

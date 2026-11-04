@@ -784,7 +784,7 @@ function renderUnavailable(res, info) {
             : { price: 0, comparePrice: 0, currency: '' };
         })(),
         stock: typeof a.stock === 'number' && a.stock > 0 ? a.stock : 0,
-        limit: a.allocationLimit || 0,
+        limit: require('../helpers/orderCap').maxQuantity(a),
         isPreorder: !!a.preorder,
         release: rel && rel.hasDate ? rel.display : '',
       } : null,

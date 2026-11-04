@@ -1,4 +1,5 @@
 const express = require('express');
+const orderCap = require('../helpers/orderCap');
 const router = express.Router();
 const Product = require('../models/Product');
 const Event = require('../models/Event');
@@ -106,7 +107,7 @@ router.post('/cart/add', async (req, res) => {
 
     const cart = getCart(req);
     const existing = cart.items.find(i => i.slug === slug);
-    const limit = product.allocationLimit || 0;
+    const limit = orderCap.maxQuantity(product);
 
     /* What the cart held before, so the response can tell the customer
        what happened to it. The replacement below was already correct and
@@ -184,8 +185,7 @@ router.post('/cart/update', async (req, res) => {
       cart.items = cart.items.filter(i => i.slug !== slug);
     } else {
       const product = await Product.findOne({ slug }).lean();
-      const limit = product ? (product.allocationLimit || 0) : 0;
-      item.quantity = limit > 0 ? Math.min(qty, limit) : qty;
+      item.quantity = product ? orderCap.clamp(product, qty) : qty;
     }
     recalcCart(cart);
   }

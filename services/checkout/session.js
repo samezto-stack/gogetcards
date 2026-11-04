@@ -20,6 +20,7 @@
  */
 
 const CheckoutSession = require('../../models/CheckoutSession');
+const orderCap = require('../../helpers/orderCap');
 const Product = require('../../models/Product');
 const SiteConfig = require('../../models/SiteConfig');
 const preorderCfg = require('../../config/preorder');
@@ -70,7 +71,9 @@ async function priceFor(slug, requestedQty, opts = {}) {
     return { ok: false, reason: 'sold_out', product, replacement };
   }
 
-  const limit = product.allocationLimit || 0;
+  /* The product's own allocation limit AND the ladder's ceiling: no line
+     may exceed $1,199.76 (helpers/orderCap), in this market's price. */
+  const limit = orderCap.maxQuantity(product, localPrice.amount);
   let quantity = Math.max(1, parseInt(requestedQty, 10) || 1);
   /* Counted stock is a ceiling. Stock is in packs, like `quantity`; 0
      means not counted (see services/orderPipeline/stockLedger). */
