@@ -99,19 +99,41 @@ async function compose(product, opts = {}) {
   const copy = resize(opts.source ? PNG.sync.read(opts.source) : await fetchPng(src), COPY);
   const canvas = new PNG({ width: CANVAS, height: CANVAS, fill: true });
   canvas.data.fill(255);
-  /* Diagonal cascade, back copy top-left, front copy bottom-right, the
-     whole stack centred. The step shrinks with N so a pack of nine still
-     fits; every copy is drawn fully inside the canvas. */
-  const span = CANVAS - Math.max(copy.width, copy.height);
-  const step = n > 1 ? Math.floor(span / (n - 1)) : 0;
-  const used = step * (n - 1) + copy.width;
-  const base = Math.max(0, Math.floor((CANVAS - used) / 2));
-  for (let i = 0; i < n; i++) {
-    blit(canvas, copy, base + i * step, base + i * step);
+  if (n <= 3) {
+    /* Two or three: a diagonal cascade, back copy top-left, front copy
+       bottom-right, the whole stack centred. Beyond three a cascade reads
+       as a smear and costs N full blits; see below. */
+    const span = CANVAS - Math.max(copy.width, copy.height);
+    const step = Math.floor(span / (n - 1));
+    const used = step * (n - 1) + copy.width;
+    const base = Math.max(0, Math.floor((CANVAS - used) / 2));
+    for (let i = 0; i < n; i++) blit(canvas, copy, base + i * step, base + i * step);
+  } else {
+    /* Four or more: one copy on the left and a "×N" badge on the right,
+       the way the owner's own case photos are made. The badge is a
+       pre-rendered PNG (public/images/badges, drawn once with a real
+       font) so no text rasteriser is needed here. */
+    blit(canvas, copy, 80, Math.floor((CANVAS - copy.height) / 2));
+    const badge = badgeFor(n);
+    if (badge) blit(canvas, badge, CANVAS - badge.width - 110, Math.floor((CANVAS - badge.height) / 2));
   }
   const buf = PNG.sync.write(canvas, { colorType: 2 }); // RGB, no alpha
   remember(product.slug, buf);
   return buf;
+}
+
+const badges = new Map();
+function badgeFor(n) {
+  const key = Math.min(12, n);
+  if (badges.has(key)) return badges.get(key);
+  let png = null;
+  try {
+    png = PNG.sync.read(require('fs').readFileSync(require('path').join(__dirname, '..', 'public', 'images', 'badges', `x${key}.png`)));
+  } catch (err) {
+    console.error('[multipack image] no badge for', n, err.message);
+  }
+  badges.set(key, png);
+  return png;
 }
 
 /** The public URL of the composite for a pack product, or '' for singles. */
