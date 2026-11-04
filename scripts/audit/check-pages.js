@@ -128,7 +128,7 @@ check('preorder: no live urgency countdown', !/dynamic-stock-wrapper/.test(po));
 check('in-stock: keeps the urgency countdown', /dynamic-stock-wrapper/.test(ins));
 /* ── Pack-sold product ── */
 const pk = pages['product(pack-of-4)'];
-check('pack: the main image is the picture of the pack', /id="product-main-img"\s*src="https:\/\/gogetcards\.com\/images\/multipack\/booster-pack\.png"/.test(pk));
+check('pack: the main image is the picture of the pack, sized for the slot', /id="product-main-img"\s*src="https:\/\/gogetcards\.com\/images\/multipack\/booster-pack\.png\?width=\d+&amp;fmt=webp"\s*srcset="[^"]*multipack[^"]*"/.test(pk));
 check('pack: the single photo is the second thumbnail', /pp__thumb[^>]*data-thumb-src="https:\/\/tfi11w[^"]*"/.test(pk) || /pp__thumbs/.test(pk));
 check('pack: the headline is the pack price', /pp__price[^>]*>US\$49\.99<\/span>\s*<span class="pp__each">for 4<\/span>/.test(pk));
 check('in-stock: says In Stock', />\s*In Stock\s*</.test(ins));

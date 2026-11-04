@@ -62,7 +62,7 @@
                the next thumbnail. */%>
           <img
             id="product-main-img"
-            <% if (_packImg) { %>src="<%= _packImg %>"<% } else { %><%- productImage.attrs(_single, 490, '(max-width: 900px) calc(92vw - 5rem), 490px') %><% } %>
+            <%- productImage.attrs(_packImg || _single, 490, '(max-width: 900px) calc(92vw - 5rem), 490px') %>
             alt="<%= product.title %> — <%= _packImg ? 'pack of ' + _packN + ', ' : '' %>factory sealed, shown in original packaging"
             width="900" height="900"
             fetchpriority="high"

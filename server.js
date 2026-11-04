@@ -685,6 +685,9 @@ async function boot() {
 
   // Connect to DB in the background
   connectDB().then(() => {
+    /* Pack pictures: render them now, two at a time, so the first shopper
+       after a deploy is not the one who waits for them. */
+    setTimeout(() => require('./services/multipackImage').warmAll().catch((err) => console.error('[multipack image] warm-up:', err.message)), 3000);
     /* Reaching here proves nothing about the database. In production
        connectDB CATCHES a failed connection, records global.dbError and
        resolves anyway — so without this check the sweeps start against a

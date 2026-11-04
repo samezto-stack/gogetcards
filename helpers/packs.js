@@ -49,4 +49,9 @@ function titleFor(product, base) {
   return dash === -1 ? `${title} (Pack of ${n})` : `${title.slice(0, dash)} (Pack of ${n})${title.slice(dash)}`;
 }
 
-module.exports = { of, units, unitPrice, titleFor };
+/** The pack picture (relative URL) for a pack product, '' for singles. */
+function imageFor(product) {
+  return require('../services/multipackImage').urlFor(product, '');
+}
+
+module.exports = { of, units, unitPrice, titleFor, imageFor };

@@ -109,7 +109,7 @@ const server = http.createServer(app).listen(0, async () => {
   check('pack: title says so before the detail tail',
     /<g:title>Pokémon TCG 30th Celebration Booster Bundle \(Pack of 3\) – 6 Booster Packs<\/g:title>/.test(packItem));
   check('pack: pictured as a pack, single photo as the extra image',
-    /<g:image_link>https:\/\/gogetcards\.com\/images\/multipack\/celebration-bundle\.png<\/g:image_link>/.test(packItem)
+    /<g:image_link>https:\/\/gogetcards\.com\/images\/multipack\/celebration-bundle\.png\?v=[a-f0-9]{8}<\/g:image_link>/.test(packItem)
     && /<g:additional_image_link>https:\/\/example\.com\/b\.jpg<\/g:additional_image_link>/.test(packItem));
   check('pack: the stale price sentence is out of the description, the pack fact is in',
     !/\$199\.96/.test(packItem) && /Sold as a pack of 3/.test(packItem));

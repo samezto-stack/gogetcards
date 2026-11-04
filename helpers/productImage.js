@@ -70,7 +70,17 @@ function parse(url) {
 }
 
 /** Whether this URL is one we can ask for a specific size. */
+/* This app's own multipack composites (services/multipackImage) take the
+   same ?width= and a ?fmt=webp, so cards and pages get the size they use. */
+const OWN_RESIZABLE = /^\/images\/multipack\/[^/?#]+\.png$/i;
+function isOwnResizable(url) {
+  const parsed = parse(url);
+  return !!parsed && OWN_RESIZABLE.test(parsed.pathname)
+    && (parsed.hostname === 'placeholder.invalid' || /(^|\.)gogetcards\.com$/i.test(parsed.hostname) || parsed.hostname === 'localhost');
+}
+
 function isTransformable(url) {
+  if (isOwnResizable(url)) return true;
   const parsed = parse(url);
   if (!parsed) return false;
   if (parsed.hostname && TRANSFORMABLE_HOSTS.test(parsed.hostname)) return true;
@@ -91,6 +101,15 @@ function isTransformable(url) {
 function at(url, width) {
   if (!isTransformable(url)) return url;
   const parsed = parse(url);
+  if (isOwnResizable(url)) {
+    /* Snap to the ladder the service renders, WebP for browsers. The feed
+       never comes through here with a width (it uses the plain PNG URL). */
+    const ladder = require('../services/multipackImage').WIDTHS;
+    const w = ladder.find((x) => x >= width) || ladder[ladder.length - 1];
+    parsed.searchParams.set('width', String(w));
+    parsed.searchParams.set('fmt', 'webp');
+    return parsed.toString().replace('https://placeholder.invalid', '');
+  }
   parsed.searchParams.set('width', String(width));
   return parsed.toString().replace('https://placeholder.invalid', '');
 }
@@ -108,8 +127,8 @@ function at(url, width) {
 function srcset(url, slotWidth) {
   if (!isTransformable(url)) return '';
   const max = slotWidth * 2;
-  const ladder = WIDTHS.filter((w) => w <= max);
-  if (!ladder.includes(max) && max <= WIDTHS[WIDTHS.length - 1]) ladder.push(max);
+  const ladder = (isOwnResizable(url) ? require('../services/multipackImage').WIDTHS : WIDTHS).filter((w) => w <= max);
+  if (!isOwnResizable(url) && !ladder.includes(max) && max <= WIDTHS[WIDTHS.length - 1]) ladder.push(max);
   if (!ladder.length) return '';
   return ladder.map((w) => `${at(url, w)} ${w}w`).join(', ');
 }

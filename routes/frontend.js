@@ -2387,8 +2387,13 @@ router.get('/images/multipack/:slug.png', async (req, res) => {
   try {
     const product = await Product.findOne({ slug: String(req.params.slug) }).select('slug imageUrl images packSize').lean();
     if (!product || !(parseInt(product.packSize, 10) > 1)) return notFound(res);
-    const buf = await require('../services/multipackImage').compose(product);
-    res.set('Cache-Control', 'public, max-age=86400').set('X-Robots-Tag', 'noindex').type('image/png').send(buf);
+    const { buf, type } = await require('../services/multipackImage').render(product, {
+      width: parseInt(req.query.width, 10) || undefined,
+      fmt: String(req.query.fmt || 'png'),
+    });
+    /* The URL carries ?v=<hash of the source>, so it can be immutable:
+       a changed photo is a changed URL. */
+    res.set('Cache-Control', 'public, max-age=31536000, immutable').set('X-Robots-Tag', 'noindex').type(type).send(buf);
   } catch (err) {
     console.error('[multipack image]', req.params.slug, err.message);
     return notFound(res);

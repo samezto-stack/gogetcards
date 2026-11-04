@@ -33,7 +33,8 @@
            the ladder. */%>
       <img
         class="pc__img"
-        <%- productImage.attrs(product.imageUrl || product.images[0], 270, '(max-width: 640px) calc(92vw - 3.7rem), (max-width: 1024px) 45vw, 270px') %>
+        <% var pcImg = ((typeof packs !== 'undefined' && packs && packs.imageFor) ? packs.imageFor(product) : '') || product.imageUrl || product.images[0]; %>
+        <%- productImage.attrs(pcImg, 270, '(max-width: 640px) calc(92vw - 3.7rem), (max-width: 1024px) 45vw, 270px') %>
         alt="<%= product.title %>"
         width="480" height="480"
         loading="lazy"
