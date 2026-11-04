@@ -72,6 +72,7 @@ function itemXml(p) {
     ...(p.multipack ? [['g:multipack', p.multipack]] : []),
     ...(p.adult ? [['g:adult', 'yes']] : []),
     ...(p.customLabel0 ? [['g:custom_label_0', p.customLabel0]] : []),
+    ...(p.customLabel1 ? [['g:custom_label_1', p.customLabel1]] : []),
     ...(p.excludedDestinations || []).map((d) => ['g:excluded_destination', d]),
   ].filter(([, v]) => v !== undefined && v !== null && v !== '');
 

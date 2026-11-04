@@ -290,7 +290,10 @@ async function runThankYouPipeline(query) {
        customer has paid, and a bookkeeping error is the admin's problem
        to see in the logs and on the order, not the buyer's. */
     try {
-      await require('./stockLedger').consume(order);
+      /* Opt-in (STOCK_LEDGER=true). The owner keeps a partial count in
+         `stock` and adjusts it by hand, so an automatic decrement would
+         drift from the real figure. */
+      if (process.env.STOCK_LEDGER === 'true') await require('./stockLedger').consume(order);
     } catch (err) {
       console.error('[orderPipeline] stock ledger failed:', err.message);
     }

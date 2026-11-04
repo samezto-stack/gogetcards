@@ -420,6 +420,9 @@ function build(product, { channel = 'google', market = null, country = null } = 
        set; everything else is catalog_only, which a Shopping campaign can
        exclude. Both values travel in the feed so they survive a re-fetch. */
     customLabel0: (product.tags || []).some((t) => /^launch[-_]30$/i.test(String(t))) ? 'launch_30' : 'catalog_only',
+    /* Pack-sold or single: a campaign can bid differently, or leave packs
+       out, without touching the product data. */
+    customLabel1: parseInt(product.packSize, 10) > 1 ? 'multipack' : 'single',
   };
 
   return payload;

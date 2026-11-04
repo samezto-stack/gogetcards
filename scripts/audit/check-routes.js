@@ -577,6 +577,16 @@ const server = app.listen(0, async () => {
 
   /* robots.txt */
   const robots = await get('/robots.txt');
+  /* ── llms.txt ── */
+  const llms = await get('/llms.txt');
+  check('llms.txt renders as text', llms.status === 200 && /text\/plain/.test(llms.headers['content-type'] || ''));
+  check('llms.txt states the return window and the preorder window from config',
+    llms.body.includes(`${faqCfg.RETURN_WINDOW_DAYS} days`) && llms.body.includes(`within ${shippingCfg.DISPATCH.preorderBusinessDaysAfterRelease} business days`));
+  check('llms.txt links the feed, the sitemap and the policies',
+    /\/feed\/google\.xml/.test(llms.body) && /\/sitemap\.xml/.test(llms.body) && /\/refund-policy/.test(llms.body));
+  check('robots.txt names the AI assistants and points at llms.txt',
+    /User-agent: GPTBot/.test((await get('/robots.txt')).body) && /llms\.txt/.test((await get('/robots.txt')).body));
+
   check('robots.txt disallows checkout and admin',
     /Disallow: \/admin/.test(robots.body) && /Disallow: \/checkout/.test(robots.body));
   check('robots.txt disallows the customer portal',

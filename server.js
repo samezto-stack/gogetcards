@@ -439,9 +439,9 @@ async function boot() {
     /* GA4 property. Unset means no GA4 tag; the Ads tag is independent. */
     res.locals.ga4Id = process.env.GA4_MEASUREMENT_ID || '';
     /* Numeric stock/allocation counts on the storefront ("Only 4 left",
-       "61 units remaining"). Off until the counts in the database are real
-       stock counts: a number that is not real is a fake scarcity claim. */
-    res.locals.showStockCounts = process.env.SHOW_STOCK_COUNTS === 'true';
+       "61 units remaining"). Shown by default, from Product.stock, which the
+       owner maintains by hand; SHOW_STOCK_COUNTS=false hides every number. */
+    res.locals.showStockCounts = process.env.SHOW_STOCK_COUNTS !== 'false';
     res.locals.googleAdsPurchaseLabel = process.env.GOOGLE_ADS_PURCHASE_LABEL || '';
     // Free-shipping copy comes from config/shipping.js, the same module
     // the Product Offer schema uses, so the promise shown to customers

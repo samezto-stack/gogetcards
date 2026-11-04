@@ -1,5 +1,6 @@
 /**
- * Stock follows paid orders.
+ * Stock follows paid orders. OPT-IN: runs only with STOCK_LEDGER=true,
+ * because the owner keeps a partial, hand-maintained count in `stock`.
  *
  * Until now Product.stock was never touched by a sale: it fed the "Only N
  * left" meter and nothing else, so two buyers could both pay for the last

@@ -2362,8 +2362,61 @@ router.get('/robots.txt', (req, res) => {
        that, and stops /account/sign-in appearing in a site: search. */
     'Disallow: /account',
     '',
+    /* AI search and shopping assistants. They are already allowed by the
+       wildcard; naming them states the intent, and some (OAI-SearchBot,
+       PerplexityBot) look for their own section before trusting "*". The
+       same disallows apply: a cart or checkout URL is not an answer. */
+    ...['GPTBot', 'OAI-SearchBot', 'ChatGPT-User', 'Google-Extended', 'Gemini-Deep-Research', 'PerplexityBot', 'Perplexity-User', 'ClaudeBot', 'Claude-SearchBot', 'Claude-User', 'Bingbot', 'Applebot', 'Applebot-Extended', 'Amazonbot', 'meta-externalagent', 'DuckAssistBot']
+      .flatMap((ua) => [`User-agent: ${ua}`, 'Allow: /', 'Disallow: /admin', 'Disallow: /api/', 'Disallow: /cart', 'Disallow: /checkout', 'Disallow: /thank-you', 'Disallow: /account', '']),
     `Sitemap: ${host}/sitemap.xml`,
+    `# Machine-readable summary for assistants: ${host}/llms.txt`,
   ].join('\n'));
+});
+
+/* ── llms.txt ───────────────────────────────────────────
+ * A plain-text summary for AI search and shopping assistants (ChatGPT,
+ * Gemini, Perplexity, Claude, Copilot): what the store sells, the terms
+ * that matter to a shopper, and where the machine-readable data lives.
+ * Everything here is read from the same config the pages use, so it
+ * cannot say something the site does not. */
+router.get('/llms.txt', (req, res) => {
+  const host = site.origin();
+  const biz = company.business;
+  const d = shipping.DISPATCH;
+  const lines = [
+    `# ${biz.tradingName}`,
+    '',
+    `> ${biz.tradingName} is an online retailer of factory-sealed trading card game and sports card products (Pokémon TCG, Magic: The Gathering, One Piece Card Game, Disney Lorcana, and Topps/Panini baseball, basketball and football hobby boxes), based in ${biz.country}, pricing in ${biz.currency}, sourced through authorized distribution and shipped sealed.`,
+    '',
+    '## Facts a shopper asks about',
+    `- Shipping: ${shipping.copy.long}. In-stock orders placed before ${d.cutoffLocal} ${d.cutoffTimezone} on a business day ship the same day. US delivery ${shipping.PRIMARY_REGION.transitDays[0]}–${shipping.PRIMARY_REGION.transitDays[1]} business days.`,
+    `- Preorders: charged in full at checkout; dispatched on the publisher's release date or within ${d.preorderBusinessDaysAfterRelease} business days of it; cancel any time before dispatch for a full refund.`,
+    `- Returns: ${faqConfig.RETURN_WINDOW_DAYS} days from delivery for unopened, still-sealed product; ${faqConfig.FREE_RETURNS ? 'free prepaid return label' : 'return postage paid by the buyer'}; no restocking fee; refund to the original payment method.`,
+    `- Payment: ${payments.copy.accepted} Checkout is completed on the partner payment page (Whop).`,
+    `- Contact: ${biz.supportEmail}, ${host}/contact. Response within ${biz.responseTimeHours} hours, ${biz.supportHours} ${biz.supportTimezoneLabel}.`,
+    `- Address: ${company.addressOneLine ? company.addressOneLine() : biz.country}.`,
+    '',
+    '## Pages',
+    `- [All products](${host}/collection/all): the full sealed catalogue with filters and search (${host}/collection/all?q=...)`,
+    ...catalog.handles().map((h) => `- [${(catalog.byHandle(h) || {}).name || h}](${host}/collection/${h})`),
+    `- [Preorders](${host}/collection/preorders) and the [release calendar](${host}/releases)`,
+    `- [Shipping & delivery](${host}/shipping)`,
+    `- [Refund & return policy](${host}/refund-policy)`,
+    `- [Preorder policy](${host}/preorder-policy)`,
+    `- [Authenticity guarantee](${host}/authenticity-guarantee) and [factory-sealed guarantee](${host}/factory-sealed-guarantee)`,
+    `- [FAQ](${host}/faq), [About](${host}/about), [Contact](${host}/contact), [Terms](${host}/terms-of-service), [Privacy](${host}/privacy-policy)`,
+    '',
+    '## Machine-readable data',
+    `- Product pages carry schema.org Product/Offer JSON-LD with price, availability, GTIN where known, shipping and return policy.`,
+    `- Sitemap: ${host}/sitemap.xml`,
+    `- Product feed (Google Merchant Center RSS format): ${host}/feed/google.xml (JSON: ${host}/feed/google.json)`,
+    '',
+    '## Notes for assistants',
+    '- Prices on product pages are the prices charged; products sold as packs state the pack size and pack price.',
+    '- Availability on a product page is current; a preorder shows its release date.',
+    '- Cart, checkout, account and admin URLs are not for indexing or quoting.',
+  ];
+  res.type('text/plain; charset=utf-8').set('Cache-Control', 'public, max-age=3600').send(lines.join('\n') + '\n');
 });
 
 /* ── The information form ──────────────────────────────
