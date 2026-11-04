@@ -101,7 +101,7 @@ const PAGES = [
      by the pack. helpers/packs.js. */
   ['product(case-offer)', { __view: 'product', product: inStock, relatedProducts: [], partnerExperience: { enabled: false },
     caseOffer: { kind: 'case', boxes: 6, perBox: 16667, savingsPct: 17, product: { ...inStock, _id: 'c1', slug: 'the-case', title: 'Prismatic Evolutions Booster Box Case (6 Boxes)', price: 99999 }, priced: { amount: 99999, currency: 'USD', compareAmount: 0 } } }],
-  ['product(pack-of-4)', { __view: 'product', product: { ...inStock, _id: 'p4', slug: 'booster-pack', title: 'One Piece TCG OP-17 Booster Pack', price: 4999, comparePrice: null, packSize: 4, stock: 40 }, relatedProducts: [inStock], partnerExperience: { enabled: false } }],
+  ['product(pack-of-4)', { __view: 'product', product: { ...inStock, _id: 'p4', slug: 'booster-pack', title: 'One Piece TCG OP-17 Booster Pack', price: 4999, comparePrice: null, packSize: 4, stock: 40 }, packImage: 'https://gogetcards.com/images/multipack/booster-pack.png', relatedProducts: [inStock], partnerExperience: { enabled: false } }],
   ['product(variants)', {
     __view: 'product', product: variantNight,
     variantTitle: 'Pokémon TCG: 30th Celebration Ultra-Premium Collection — Night (Umbreon ex)',

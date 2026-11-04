@@ -863,6 +863,11 @@ router.get('/products/:slug', async (req, res) => {
         return (m.countries || []).map((cc) => ({ locale: `${m.language}-${cc}`, href }));
       });
     const productImages = [product.imageUrl, ...(product.images || [])].filter(Boolean).map((u) => productImage.at(u, 1200));
+    /* A pack-sold product is pictured as the pack, on the page as in the
+       ad: the composite leads the gallery, the JSON-LD image list and the
+       share image; the single photo stays as the second picture. */
+    const packImage = require('../services/multipackImage').urlFor(product, site.origin());
+    if (packImage) productImages.unshift(packImage);
     const cleanDesc = product.description
       ? product.description.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().substring(0, 500)
       : `${variantTitle}. Factory sealed, sourced through authorized distribution.`;
@@ -1102,7 +1107,8 @@ router.get('/products/:slug', async (req, res) => {
           : 'In Stock.'
       } Factory sealed, sourced through authorized distribution.`,
       ogType: 'product',
-      ogImage: productImage.at(product.imageUrl || (product.images && product.images[0]) || '', 1200),
+      ogImage: packImage || productImage.at(product.imageUrl || (product.images && product.images[0]) || '', 1200),
+      packImage,
       /* A product with no photo is not a landing page worth indexing: the
          Product rich result needs an image, Merchant Center rejects the
          item, and a searcher who lands on it sees an empty frame. The page

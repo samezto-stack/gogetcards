@@ -51,10 +51,17 @@
                around 570px and goes full width below 900px. The stored
                original is typically 2048px, and asking for the size the
                slot actually uses is the largest LCP saving available here. */%>
+          <% var _packImg = (typeof packImage !== 'undefined' && packImage) ? packImage : ''; %>
+          <% var _packN = parseInt(product.packSize, 10) > 1 ? parseInt(product.packSize, 10) : 1; %>
+          <% var _single = product.imageUrl || product.images[0]; %>
+          <%/* A pack-sold product leads with the picture of the pack (the
+               same composite the Shopping ad shows), so the US$199.96 "for
+               3" headline has three boxes next to it. The single photo is
+               the next thumbnail. */%>
           <img
             id="product-main-img"
-            <%- productImage.attrs(product.imageUrl || product.images[0], 490, '(max-width: 900px) calc(92vw - 5rem), 490px') %>
-            alt="<%= product.title %> — factory sealed, shown in original packaging"
+            <% if (_packImg) { %>src="<%= _packImg %>"<% } else { %><%- productImage.attrs(_single, 490, '(max-width: 900px) calc(92vw - 5rem), 490px') %><% } %>
+            alt="<%= product.title %> — <%= _packImg ? 'pack of ' + _packN + ', ' : '' %>factory sealed, shown in original packaging"
             width="900" height="900"
             fetchpriority="high"
             decoding="async"
@@ -70,9 +77,10 @@
           <%- include('../partials/badge', { product: product }) %>
         <% } %>
       </div>
-      <% if (product.images && product.images.length > 1) { %>
+      <% var _gallery = _packImg ? [_packImg].concat((product.images && product.images.length) ? product.images : [_single]).filter(Boolean) : (product.images || []); %>
+      <% if (_gallery.length > 1) { %>
         <div class="pp__thumbs">
-          <% product.images.forEach(function(img, idx) { %>
+          <% _gallery.forEach(function(img, idx) { %>
             <%/* Both attributes, not just src. The main image now carries a
                  srcset, and a srcset beats a src — assigning only .src
                  would leave the picture unchanged and make the thumbnails
@@ -87,7 +95,7 @@
                    it: Google uses alt text to confirm the picture matches
                    the listing, and a screen reader user gets nothing from
                    "Image 1". Naming the product costs no markup. */%>
-              <img <%- productImage.attrs(img, 72) %> alt="<%= product.title %> — photo <%= idx + 1 %>" width="70" height="70" loading="lazy" decoding="async">
+              <img <%- productImage.attrs(img, 72) %> alt="<%= product.title %> — <%= (_packImg && idx === 0) ? 'pack of ' + _packN : 'photo ' + (idx + 1) %>" width="70" height="70" loading="lazy" decoding="async">
             </button>
           <% }); %>
         </div>
