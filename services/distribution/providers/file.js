@@ -70,6 +70,8 @@ function itemXml(p) {
     ...(p.shippingLabel ? [['g:shipping_label', p.shippingLabel]] : []),
     ...(p.isBundle ? [['g:is_bundle', 'yes']] : []),
     ...(p.multipack ? [['g:multipack', p.multipack]] : []),
+    ...(p.unitPricingMeasure ? [['g:unit_pricing_measure', p.unitPricingMeasure]] : []),
+    ...(p.unitPricingBaseMeasure ? [['g:unit_pricing_base_measure', p.unitPricingBaseMeasure]] : []),
     ...(p.adult ? [['g:adult', 'yes']] : []),
     ...(p.customLabel0 ? [['g:custom_label_0', p.customLabel0]] : []),
     ...(p.customLabel1 ? [['g:custom_label_1', p.customLabel1]] : []),

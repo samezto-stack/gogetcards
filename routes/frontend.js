@@ -2373,6 +2373,22 @@ router.get('/robots.txt', (req, res) => {
   ].join('\n'));
 });
 
+/* ── Multipack image ──────────────────────────────────────
+ * The feed's picture of a pack-sold product: N copies of its own photo.
+ * Public (Google fetches it), cached a day here and at the edge, 404 for
+ * anything that is not a pack product. See services/multipackImage. */
+router.get('/images/multipack/:slug.png', async (req, res) => {
+  try {
+    const product = await Product.findOne({ slug: String(req.params.slug) }).select('slug imageUrl images packSize').lean();
+    if (!product || !(parseInt(product.packSize, 10) > 1)) return notFound(res);
+    const buf = await require('../services/multipackImage').compose(product);
+    res.set('Cache-Control', 'public, max-age=86400').set('X-Robots-Tag', 'noindex').type('image/png').send(buf);
+  } catch (err) {
+    console.error('[multipack image]', req.params.slug, err.message);
+    return notFound(res);
+  }
+});
+
 /* ── llms.txt ───────────────────────────────────────────
  * A plain-text summary for AI search and shopping assistants (ChatGPT,
  * Gemini, Perplexity, Claude, Copilot): what the store sells, the terms

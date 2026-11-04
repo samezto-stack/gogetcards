@@ -234,7 +234,10 @@ function title(product) {
   const pack = parseInt(product.packSize, 10) > 1 ? parseInt(product.packSize, 10) : 0;
   if (pack && !(product.merchant && product.merchant.title)
       && !new RegExp(`\\b(pack of ${pack}|${pack}[- ]pack|x ?${pack})\\b`, 'i').test(clean)) {
-    clean = `${clean} (Pack of ${pack})`;
+    /* Before the " – detail" tail when there is one, so the pack is in
+       the part of the title an ad actually shows. */
+    const dash = clean.indexOf(' – ');
+    clean = dash === -1 ? `${clean} (Pack of ${pack})` : `${clean.slice(0, dash)} (Pack of ${pack})${clean.slice(dash)}`;
   }
   if (clean.length <= 150) return clean;
   return clean.slice(0, clean.lastIndexOf(' ', 150)).trim();
@@ -257,6 +260,7 @@ function description(product) {
   if (product.edition) facts.push(`Edition: ${product.edition}`);
   if (product.setCode) facts.push(`Set: ${product.setCode}`);
   facts.push('Condition: factory sealed');
+  if (parseInt(product.packSize, 10) > 1) facts.push(`Sold as a pack of ${parseInt(product.packSize, 10)}; the price is for the pack`);
   if (preorderCfg.isPreorder(product)) {
     const rel = preorderCfg.releaseInfo(product);
     facts.push(rel.hasDate ? `Preorder, releases ${rel.display}` : 'Preorder, not yet released');
@@ -288,6 +292,10 @@ function build(product, { channel = 'google', market = null, country = null } = 
   const isPreorder = preorderCfg.isPreorder(product);
   const rel = preorderCfg.releaseInfo(product);
   const imgs = images(product);
+  /* A pack is pictured as a pack: the composite of N copies leads, the
+     single photo follows as an additional image. services/multipackImage. */
+  const packImage = require('../multipackImage').urlFor(product, origin);
+  const feedImgs = packImage ? [packImage, ...imgs] : imgs;
 
   /* ── The market this row is for ────────────────────────────────────
      Defaults to the US, so every existing caller keeps producing exactly
@@ -359,8 +367,8 @@ function build(product, { channel = 'google', market = null, country = null } = 
     title: title(product),
     description: description(product),
     link: `${origin}${markets.path(mkt, `/products/${product.slug}`)}`,
-    imageLink: imgs[0] || '',
-    additionalImageLinks: imgs.slice(1, 11), // Google accepts 10 extras
+    imageLink: feedImgs[0] || '',
+    additionalImageLinks: feedImgs.slice(1, 11), // Google accepts 10 extras
 
     /* A market row where the product is withdrawn reports out of stock
        rather than vanishing: pulling the row entirely would make Google
@@ -423,6 +431,12 @@ function build(product, { channel = 'google', market = null, country = null } = 
     /* Pack-sold or single: a campaign can bid differently, or leave packs
        out, without touching the product data. */
     customLabel1: parseInt(product.packSize, 10) > 1 ? 'multipack' : 'single',
+    /* Unit pricing: Google shows "US$66.65 / ct" beside the pack price in
+       the ad, which is the per-unit figure a shopper compares on. "ct"
+       (count) is Google's unit for pieces. */
+    ...(parseInt(product.packSize, 10) > 1
+      ? { unitPricingMeasure: `${parseInt(product.packSize, 10)} ct`, unitPricingBaseMeasure: '1 ct' }
+      : {}),
   };
 
   return payload;

@@ -35,6 +35,13 @@ const FIXTURES = [
     vendor: 'Bandai', brand: 'Bandai', productType: 'Booster Box', tags: [],
     available: true, sku: 'GGC-OP17-BB', gtin: '4570118083104', mpn: 'OP-17-BB',
     language: 'English', preorder: false, releaseDate: null },
+  /* Pack-sold: listed as a multipack at the pack price, pictured as a pack. */
+  { _id: 'p5', title: 'Pokémon TCG 30th Celebration Booster Bundle – 6 Booster Packs', slug: 'celebration-bundle',
+    price: 19996, packSize: 3, imageUrl: 'https://example.com/b.jpg', images: [],
+    description: '<p>Six booster packs in a bundle, factory sealed and ready to open.</p><p>Sold in packs of 3: 3 units for $199.96, $66.65 each.</p>',
+    vendor: 'The Pokémon Company', brand: 'The Pokémon Company', productType: 'Booster Bundle', tags: ['launch-30'],
+    available: true, sku: 'GGC-30TH-BB', gtin: '', mpn: '',
+    language: 'English', preorder: false, releaseDate: null },
   /* Deliberately broken: no description, no image. Must NOT appear. */
   { _id: 'p2', title: 'Broken Product', slug: 'broken', price: 100,
     imageUrl: '', images: [], description: '', vendor: '', brand: '',
@@ -92,6 +99,21 @@ const server = http.createServer(app).listen(0, async () => {
   check('valid product is present, keyed on its SKU',
     /<g:id>GGC-OP17-BB<\/g:id>/.test(xml.body));
   check('INVALID product is omitted', !/<g:id>broken<\/g:id>/.test(xml.body));
+
+  /* ── Pack-sold product ── */
+  const packItem = (xml.body.split('<item>').find((it) => it.includes('<g:id>GGC-30TH-BB</g:id>')) || '');
+  check('pack product is present', !!packItem);
+  check('pack: price is the pack price with multipack and unit pricing',
+    /<g:price>199\.96 USD<\/g:price>/.test(packItem) && /<g:multipack>3<\/g:multipack>/.test(packItem)
+    && /<g:unit_pricing_measure>3 ct<\/g:unit_pricing_measure>/.test(packItem) && /<g:unit_pricing_base_measure>1 ct<\/g:unit_pricing_base_measure>/.test(packItem));
+  check('pack: title says so before the detail tail',
+    /<g:title>Pokémon TCG 30th Celebration Booster Bundle \(Pack of 3\) – 6 Booster Packs<\/g:title>/.test(packItem));
+  check('pack: pictured as a pack, single photo as the extra image',
+    /<g:image_link>https:\/\/gogetcards\.com\/images\/multipack\/celebration-bundle\.png<\/g:image_link>/.test(packItem)
+    && /<g:additional_image_link>https:\/\/example\.com\/b\.jpg<\/g:additional_image_link>/.test(packItem));
+  check('pack: the stale price sentence is out of the description, the pack fact is in',
+    !/\$199\.96/.test(packItem) && /Sold as a pack of 3/.test(packItem));
+  check('pack: custom labels', /<g:custom_label_0>launch_30<\/g:custom_label_0>/.test(packItem) && /<g:custom_label_1>multipack<\/g:custom_label_1>/.test(packItem));
   check('carries free shipping', /<g:price>0\.00 USD<\/g:price>/.test(xml.body));
   check('carries the GTIN', /<g:gtin>4570118083104<\/g:gtin>/.test(xml.body));
   check('no admin data leaks', !/merchantId|refreshToken|quota|lastSyncHash/i.test(xml.body));
