@@ -72,6 +72,11 @@ async function priceFor(slug, requestedQty, opts = {}) {
 
   const limit = product.allocationLimit || 0;
   let quantity = Math.max(1, parseInt(requestedQty, 10) || 1);
+  /* Counted stock is a ceiling. Stock is in packs, like `quantity`; 0
+     means not counted (see services/orderPipeline/stockLedger). */
+  if (opts.enforceStock && typeof product.stock === 'number' && product.stock > 0 && quantity > product.stock) {
+    quantity = product.stock;
+  }
   /* Silently capping is correct here rather than an error: the customer
      asked for more than we allow one person to have, and the honest
      response is to sell them the maximum, which is what the product page

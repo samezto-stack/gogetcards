@@ -212,4 +212,9 @@ const orderSchema = new mongoose.Schema({
   },
 });
 
+/* Account pages and the recovery sweep look orders up by address; the
+   admin lists them newest first. Both were collection scans. */
+orderSchema.index({ customerEmail: 1, createdAt: -1 });
+orderSchema.index({ createdAt: -1 });
+
 module.exports = mongoose.model('Order', orderSchema);

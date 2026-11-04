@@ -212,11 +212,12 @@ async function seed() {
     console.log(`📁 Seeded ${COLLECTIONS.length} collections`);
 
     // Seed admin user
-    await User.create({
-      email: 'admin@gogetcards.com',
-      password: 'changeme123',
-    });
-    console.log('👤 Created admin user (admin@gogetcards.com / changeme123)');
+    if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD && process.env.ADMIN_PASSWORD.length >= 16) {
+      await User.create({ email: process.env.ADMIN_EMAIL, password: process.env.ADMIN_PASSWORD });
+      console.log(`👤 Created admin user (${process.env.ADMIN_EMAIL})`);
+    } else {
+      console.log('👤 No admin user created: set ADMIN_EMAIL and ADMIN_PASSWORD (16+ chars)');
+    }
 
     // Seed pages
     await Page.insertMany(PAGES);

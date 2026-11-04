@@ -139,8 +139,7 @@ function availability(product) {
      The lever is `available`. Unticking it reports OUT_OF_STOCK from the
      line above and refuses at session start — that is the honest path and
      it is one click away. */
-  const isPreorder = !!(product.preorder || (product.tags || []).includes('preorder'));
-  if (isPreorder) return 'PREORDER';
+  if (preorderCfg.isPreorder(product)) return 'PREORDER';
   return 'IN_STOCK';
 }
 
@@ -228,7 +227,15 @@ function title(product) {
   const raw = (product.merchant && product.merchant.title)
     || variants.displayTitle(product)
     || product.title || '';
-  const clean = raw.replace(/\s+/g, ' ').trim();
+  let clean = raw.replace(/\s+/g, ' ').trim();
+  /* A pack-sold product's price is the pack's, so the title says so:
+     a title that reads as one unit beside a four-unit price is a price
+     mismatch to a reviewer. Only when the title does not already. */
+  const pack = parseInt(product.packSize, 10) > 1 ? parseInt(product.packSize, 10) : 0;
+  if (pack && !(product.merchant && product.merchant.title)
+      && !new RegExp(`\\b(pack of ${pack}|${pack}[- ]pack|x ?${pack})\\b`, 'i').test(clean)) {
+    clean = `${clean} (Pack of ${pack})`;
+  }
   if (clean.length <= 150) return clean;
   return clean.slice(0, clean.lastIndexOf(' ', 150)).trim();
 }
@@ -237,7 +244,11 @@ function description(product) {
   const override = product.merchant && product.merchant.description;
   if (override) return plainText(override);
 
-  const base = plainText(product.description);
+  /* A price written into the description goes stale the day the price
+     moves and reaches Google verbatim. The import wrote "Sold in packs of
+     N: N units for $X, $Y each."; the pack is stated by `multipack` and
+     the title instead. */
+  const base = plainText(product.description).replace(/\s*Sold in packs of \d+:[^.]*\$[\d.,]+[^.]*\.\s*/g, ' ').trim();
   /* A description built only from marketing copy loses the facts a
      Shopping shopper filters on. These are appended from real fields, and
      only when they are set, so nothing is invented. */
@@ -246,8 +257,7 @@ function description(product) {
   if (product.edition) facts.push(`Edition: ${product.edition}`);
   if (product.setCode) facts.push(`Set: ${product.setCode}`);
   facts.push('Condition: factory sealed');
-  const isPreorder = !!(product.preorder || (product.tags || []).includes('preorder'));
-  if (isPreorder) {
+  if (preorderCfg.isPreorder(product)) {
     const rel = preorderCfg.releaseInfo(product);
     facts.push(rel.hasDate ? `Preorder, releases ${rel.display}` : 'Preorder, not yet released');
   }
@@ -275,7 +285,7 @@ function images(product) {
 function build(product, { channel = 'google', market = null, country = null } = {}) {
   const m = product.merchant || {};
   const origin = siteOrigin();
-  const isPreorder = !!(product.preorder || (product.tags || []).includes('preorder'));
+  const isPreorder = preorderCfg.isPreorder(product);
   const rel = preorderCfg.releaseInfo(product);
   const imgs = images(product);
 
@@ -405,6 +415,11 @@ function build(product, { channel = 'google', market = null, country = null } = 
     ...(m.adult ? { adult: true } : {}),
     ...(m.excludedDestinations && m.excludedDestinations.length
       ? { excludedDestinations: m.excludedDestinations } : {}),
+    /* Campaign grouping. The whole catalogue is listed; ads are run on a
+       chosen set. The "launch-30" tag (set in the import CSV) marks that
+       set; everything else is catalog_only, which a Shopping campaign can
+       exclude. Both values travel in the feed so they survive a re-fetch. */
+    customLabel0: (product.tags || []).some((t) => /^launch[-_]30$/i.test(String(t))) ? 'launch_30' : 'catalog_only',
   };
 
   return payload;

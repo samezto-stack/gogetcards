@@ -26,7 +26,7 @@ const productImage = require('../../helpers/productImage');
  */
 function fromOrder(order, product = null, extra = {}) {
   const o = order || {};
-  const isPreorder = !!(product && (product.preorder || (product.tags || []).includes('preorder')));
+  const isPreorder = preorderCfg.isPreorder(product);
   const release = isPreorder && product ? preorderCfg.releaseInfo(product) : null;
 
   const title = (product && product.title) || (o.products || [])[0] || 'Your order';

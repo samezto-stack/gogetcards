@@ -68,11 +68,16 @@
         ].filter(function (g) { return g[2] && g[2].length; }) : [];
       %>
       <% if (groups.length) { %>
-        <details class="col-filters" id="col-filters" open>
+        <details class="col-filters" id="col-filters">
           <summary class="col-filters__summary">
             <span>Filters<% if (fcount) { %> <span class="col-filters__count"><%= fcount %></span><% } %></span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
           </summary>
+          <%/* Open on a desktop, folded on a phone. Decided WHILE the parser
+               is inside the element, so the first layout is already right:
+               shipping it open and closing it afterwards moved the whole
+               product grid up on every phone (CLS 0.39). */%>
+          <script>(function(){var d=document.getElementById('col-filters');if(d&&window.innerWidth>1024)d.setAttribute('open','');})();</script>
           <div class="col-filters__body">
             <% if (fcount) { %>
               <a href="<%= marketPath(filterHref({ avail: [], line: [], type: [], lang: [], price: [] })) %>" class="col-filters__clear">Clear all filters</a>
@@ -95,12 +100,6 @@
             <% }); %>
           </div>
         </details>
-        <script>
-          /* Open on a desktop, folded on a phone, where the sidebar sits
-             above the grid and would push every product off the first
-             screen. Static behaviour, no data. */
-          (function () { var d = document.getElementById('col-filters'); if (d && window.innerWidth <= 1024) d.removeAttribute('open'); })();
-        </script>
       <% } else { %>
         <div class="col-page__filter-group">
           <h2 class="col-page__filter-title">Quick Links</h2>

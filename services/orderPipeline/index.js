@@ -6,6 +6,7 @@
 */
 
 const { parseOrderParams } = require('./orderParser');
+const Order = require('../../models/Order');
 const { validateOrderParams } = require('./orderValidator');
 const { detectSource } = require('./sourceDetector');
 const { normalizeCustomer } = require('./customerNormalizer');
@@ -283,6 +284,34 @@ async function runThankYouPipeline(query) {
   if (isTestOrder) orderData.originalCheckoutMethod = testOrder.MARKER;
 
   const { order, isNew } = await createOrRetrieveOrder(orderData);
+
+  if (isNew) {
+    /* Stock follows the sale, once per order. Never fails the page: the
+       customer has paid, and a bookkeeping error is the admin's problem
+       to see in the logs and on the order, not the buyer's. */
+    try {
+      await require('./stockLedger').consume(order);
+    } catch (err) {
+      console.error('[orderPipeline] stock ledger failed:', err.message);
+    }
+    /* The partner's signed total against the server's own record of this
+       checkout. A mismatch is not grounds to refuse a paid order, but it
+       is exactly the thing the admin must see: a partner host charging a
+       different figure from the one this server quoted. */
+    if (raw.zcid) {
+      try {
+        const CheckoutSession = require('../../models/CheckoutSession');
+        const cs = await CheckoutSession.findOne({ checkoutId: String(raw.zcid) }).select('total currency quantity').lean();
+        if (cs && cs.total > 0 && (Number(cs.total) !== Number(order.totalPrice) || String(cs.currency || 'USD') !== String(order.currency || 'USD'))) {
+          const msg = `AMOUNT MISMATCH: checkout quoted ${cs.total} ${cs.currency}, partner reported ${order.totalPrice} ${order.currency}.`;
+          console.error(`[orderPipeline] ${msg} order ${order.orderId}`);
+          await Order.updateOne({ _id: order._id }, { $set: { note: `${msg} ${order.note || ''}`.trim() } });
+        }
+      } catch (err) {
+        console.error('[orderPipeline] amount check failed:', err.message);
+      }
+    }
+  }
 
   /* PAYMENT ALWAYS WINS. Close any abandoned-checkout sequence for this
      purchase the moment the order exists, before a single email can go

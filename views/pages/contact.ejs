@@ -249,7 +249,35 @@
                 </p>
               </noscript>
             </div>
-            <script src="https://www.google.com/recaptcha/api.js" async></script>
+            <%/* Fetched on the first interaction with the form, not on page
+                 load: the widget is 360KB and ~380ms of main-thread time on
+                 a phone, paid by every visitor who only came to read the
+                 address. The honeypot and rate limit cover a submission that
+                 somehow skips the widget. */%>
+            <script>
+              (function () {
+                var cap = document.querySelector('.g-recaptcha');
+                var form = cap && cap.closest('form');
+                if (!form) return;
+                var loaded = false;
+                function load() {
+                  if (loaded) return; loaded = true;
+                  window.__ggcCaptcha = function () {
+                    document.querySelectorAll('.g-recaptcha').forEach(function (el) {
+                      if (!el.hasChildNodes()) grecaptcha.render(el, { sitekey: el.getAttribute('data-sitekey') });
+                    });
+                  };
+                  var s = document.createElement('script');
+                  s.src = 'https://www.google.com/recaptcha/api.js?onload=__ggcCaptcha&render=explicit';
+                  s.async = true; document.head.appendChild(s);
+                }
+                ['focusin', 'pointerdown', 'touchstart'].forEach(function (ev) { form.addEventListener(ev, load, { once: true, passive: true }); });
+                if ('IntersectionObserver' in window) {
+                  var io = new IntersectionObserver(function (entries) { if (entries.some(function (e) { return e.isIntersecting; })) { load(); io.disconnect(); } });
+                  io.observe(cap);
+                }
+              })();
+            </script>
           <% } %>
 
           <button type="submit" class="btn btn-primary btn-lg" id="contact-submit">Send Message</button>

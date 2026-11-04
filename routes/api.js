@@ -7,8 +7,9 @@ const Lead = require('../models/Lead');
 /* ── Collect Leads (Newsletter/Cart) ───────────────────── */
 router.post('/leads', async (req, res) => {
   try {
-    const { email, source } = req.body;
-    if (!email) return res.status(400).json({ success: false, error: 'Email required' });
+    const email = String(req.body.email || '').trim();
+    const source = String(req.body.source || '').slice(0, 60);
+    if (!email || !email.includes('@')) return res.status(400).json({ success: false, error: 'Email required' });
     
     // Upsert so we don't crash on duplicates
     await Lead.findOneAndUpdate(
@@ -97,8 +98,8 @@ router.get('/search', searchLimiter, async (req, res) => {
 /* ── Add to Cart ───────────────────────────────────────── */
 router.post('/cart/add', async (req, res) => {
   try {
-    const { slug, quantity } = req.body;
-    const qty = Math.max(1, parseInt(quantity) || 1);
+    const slug = String(req.body.slug || '');
+    const qty = Math.max(1, parseInt(req.body.quantity) || 1);
 
     const product = await Product.findOne({ slug }).lean();
     if (!product) return res.json({ success: false, error: 'Product not found' });
@@ -172,7 +173,8 @@ router.get('/cart', (req, res) => {
 
 /* ── Update Cart Item ──────────────────────────────────── */
 router.post('/cart/update', async (req, res) => {
-  const { slug, quantity } = req.body;
+  const slug = String(req.body.slug || '');
+  const quantity = req.body.quantity;
   const qty = parseInt(quantity) || 0;
   const cart = getCart(req);
   const item = cart.items.find(i => i.slug === slug);

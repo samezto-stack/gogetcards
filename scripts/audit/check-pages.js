@@ -119,7 +119,7 @@ check('contact: every configured question is rendered',
 const po = pages['product(preorder)'];
 const ins = pages.product;
 check('preorder: payment-taken-today disclosed', /card is charged today/i.test(po));
-check('preorder: release date shown', /September 26, 2026/.test(po));
+check('preorder: release date shown', /March 26, 2027/.test(po));
 check('preorder: full terms in the HTML', /If our allocation is cut/.test(po));
 check('preorder: allocation wording, not stock', /remaining in our distributor allocation/.test(po));
 check('preorder: NOT described as In Stock', !/>\s*In Stock\s*</.test(po));

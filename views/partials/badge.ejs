@@ -9,7 +9,7 @@
      actually agreeing to, everything else is neutral. */
   var badgeLabel = '';
   var badgeClass = '';
-  if (product.preorder || (product.tags && product.tags.includes('preorder'))) {
+  if (preorder.isPreorder(product)) {
     badgeLabel = 'Preorder';
     badgeClass = 'badge--preorder';
   } else if (product.badge === 'Hot' || (product.tags && product.tags.includes('hot'))) {

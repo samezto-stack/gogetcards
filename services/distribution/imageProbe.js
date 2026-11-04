@@ -98,7 +98,27 @@ async function probe(url, { timeoutMs = 8000 } = {}) {
     /* Range request: the header is all that is needed, and some CDNs are
        slow to serve a full multi-megabyte original. A server that ignores
        Range replies 200 with the whole body, which still works. */
-    const res = await fetch(url, {
+    /* Public hosts only, on every hop: a product image URL is operator
+       input, and a redirect from a public host to a private address is the
+       classic way round a check made once at the start. */
+    const { assertPublicUrl } = require('../../helpers/safeUrl');
+    let target = url;
+    let res;
+    for (let hop = 0; hop < 4; hop++) {
+      await assertPublicUrl(target);
+      res = await fetch(target, {
+        signal: controller.signal,
+        redirect: 'manual',
+        headers: { Range: 'bytes=0-32767', 'User-Agent': 'GoGetCards-FeedValidator/1.0' },
+      });
+      if (res.status >= 300 && res.status < 400 && res.headers.get('location')) {
+        target = new URL(res.headers.get('location'), target).toString();
+        continue;
+      }
+      break;
+    }
+    if (res.status >= 300 && res.status < 400) return { url, ok: false, status: res.status, contentType: '' };
+    if (false) await fetch(url, {
       signal: controller.signal,
       redirect: 'follow',
       headers: { Range: 'bytes=0-32767', 'User-Agent': 'GoGetCards-FeedValidator/1.0' },

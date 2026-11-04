@@ -33,8 +33,7 @@ function fulfilmentFor(order, product) {
      the product cannot be resolved — a deleted listing, an order imported
      without a slug — the in-stock wording is the safe default, because it
      promises a dispatch window rather than a release date nobody has. */
-  const isPreorder = !!(product && (product.preorder
-    || (product.tags || []).includes('preorder')));
+  const isPreorder = !!(product && preorderCfg.isPreorder(product));
 
   const release = isPreorder && product ? preorderCfg.releaseInfo(product) : null;
   const dispatchDays = shipping.DISPATCH.inStockBusinessDays;

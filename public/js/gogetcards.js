@@ -107,6 +107,7 @@
     cartBackdrop && cartBackdrop.classList.add('cd-backdrop--open');
     document.body.style.overflow = 'hidden';
     setPanelOpen(cartDrawer, true);
+    cartTrigger && cartTrigger.setAttribute('aria-expanded', 'true');
     const close = document.getElementById('cart-drawer-close');
     close && close.focus();
   }
@@ -118,6 +119,7 @@
     cartBackdrop && cartBackdrop.classList.remove('cd-backdrop--open');
     document.body.style.overflow = '';
     setPanelOpen(cartDrawer, false);
+    cartTrigger && cartTrigger.setAttribute('aria-expanded', 'false');
     if (wasOpen && lastFocused && document.contains(lastFocused)) {
       lastFocused.focus();
       lastFocused = null;
@@ -190,6 +192,7 @@
 
           // Track add_to_cart event
           trackEvent('add_to_cart', slug, qty);
+          gaEvent('add_to_cart', form, qty);
         } else {
           if (btn) { btn.innerHTML = '❌ Error — retry'; btn.disabled = false; }
         }
@@ -237,6 +240,15 @@
       .then(html => {
         const inner = document.getElementById('cart-drawer-inner');
         if (inner) inner.innerHTML = html;
+        /* The swap destroys whatever was focused inside the dialog; put
+           focus back on the close button so keyboard users are not left
+           on <body> inside an open aria-modal. */
+        if (cartDrawer && cartDrawer.classList.contains('cd--open')) {
+          const close = document.getElementById('cart-drawer-close');
+          if (close && !cartDrawer.contains(document.activeElement)) close.focus();
+        }
+        const live = document.getElementById('cart-live');
+        if (live) live.textContent = 'Cart updated.';
       })
       .catch(() => {});
   }
@@ -385,7 +397,7 @@
     const display = wrap.querySelector('[data-qty-display]');
     if (display) display.textContent = val * pack;
 
-    updateStockVisuals(val * pack);
+    updateStockVisuals(Math.max(1, Math.ceil(val / pack)));
     updateStickyPrice(val);
     syncTiers(val);
   }
@@ -503,6 +515,38 @@
      travel in the request body rather than being scraped back out of the
      DOM by a global. */
 
+  /* ── Google tag e-commerce events ───────────────────────
+     gtag() is defined by views/partials/analytics.ejs only when a tag id
+     is configured; without consent the calls queue in the dataLayer and
+     are never sent. The item comes from the form's data-ga-item, written
+     by the server from the real price (the pack price for pack products). */
+  function gaEvent(name, form, qty) {
+    if (typeof window.gtag !== 'function' || !form) return;
+    var raw = form.getAttribute('data-ga-item');
+    if (!raw) return;
+    var item;
+    try { item = JSON.parse(raw); } catch (e) { return; }
+    var packEl = form.querySelector('[data-pack-size]') || document.querySelector('[data-qty-wrap][data-pack-size]');
+    var packSize = packEl ? (parseInt(packEl.getAttribute('data-pack-size'), 10) || 1) : 1;
+    var packs = Math.max(1, Math.ceil((parseInt(qty, 10) || 1) / packSize));
+    item.quantity = packs;
+    window.gtag('event', name, { currency: item.currency, value: Math.round(item.price * packs * 100) / 100, items: [item] });
+  }
+  document.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (form && form.getAttribute && /\/checkout\/start$/.test(form.getAttribute('action') || '')) {
+      var q = form.querySelector('[name="quantity"]');
+      gaEvent('begin_checkout', form, q ? q.value : 1);
+    }
+  });
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest && e.target.closest('a[href*="/checkout-redirect"]');
+    if (!a || typeof window.gtag !== 'function') return;
+    var cents = document.querySelector('.cd__subtotal-amount[data-usd-cents], .cart-total-value [data-usd-cents]');
+    var value = cents ? Number(cents.getAttribute('data-usd-cents')) / 100 : undefined;
+    window.gtag('event', 'begin_checkout', value !== undefined ? { currency: 'USD', value: value } : {});
+  });
+
   /* ── Event Tracking ─────────────────────────────────── */
   function trackEvent(type, productSlug, quantity) {
     fetch('/api/track-event', {
@@ -566,7 +610,7 @@
   const qtyWrap = qtyInput ? qtyInput.closest('[data-qty-wrap]') : null;
   const qtyPack = qtyWrap ? Math.max(1, parseInt(qtyWrap.getAttribute('data-pack-size') || '1', 10) || 1) : 1;
   if (document.getElementById('dynamic-stock-wrapper')) {
-    updateStockVisuals((qtyInput ? parseInt(qtyInput.value || 1, 10) : 1) * qtyPack);
+    updateStockVisuals(Math.max(1, Math.ceil((qtyInput ? parseInt(qtyInput.value || 1, 10) : 1) / qtyPack)));
   }
   /* Run once on load as well as on every stepper click. A quantity can
      arrive pre-filled (a restored form, a back-navigation), and a bar

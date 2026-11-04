@@ -414,8 +414,13 @@ module.exports = async function seedAll() {
   await Collection.insertMany(COLLECTIONS);
   await Page.insertMany(PAGES);
 
+  /* Never a literal password: an empty production database (new cluster,
+     failed restore) must not come up with a world-readable admin login.
+     Credentials come from the environment, and only outside production. */
   const userCount = await User.countDocuments();
-  if (userCount === 0) {
-    await User.create({ email: 'admin@gogetcards.com', password: 'changeme123' });
+  if (userCount === 0 && process.env.NODE_ENV !== 'production') {
+    const email = process.env.ADMIN_EMAIL, password = process.env.ADMIN_PASSWORD;
+    if (email && password && password.length >= 16) await User.create({ email, password });
+    else console.warn('[seed] no admin user created: set ADMIN_EMAIL and ADMIN_PASSWORD (16+ chars)');
   }
 };

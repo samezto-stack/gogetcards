@@ -61,7 +61,7 @@
                  allocation limit and current stock, so the bar can only
                  ever under-state urgency, never over-state it. */
               var stock = typeof product.stock === 'number' ? product.stock : null;
-              var showAllocation = stock !== null && stock > 0;
+              var showAllocation = showStockCounts && stock !== null && stock > 0;
               var allocationStart = showAllocation
                 ? Math.max(stock, (product.allocationLimit || 0), 1)
                 : 0;

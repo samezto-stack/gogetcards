@@ -89,6 +89,18 @@ function resolveSessionSecret() {
 
 /* ── Security & Performance ────────────────────────────── */
 app.set('trust proxy', 1); // Trust exactly one proxy hop (Render's load balancer). Using `true` is unsafe as it allows X-Forwarded-For spoofing.
+app.disable('x-powered-by');
+
+/* ── Health check ───────────────────────────────────────────
+   For the platform's liveness/readiness probe and for uptime monitors.
+   Mounted before sessions and tracking so a probe every few seconds
+   creates no session document and no visitor row. 503 when the database
+   is not connected, so a replica that cannot serve orders is taken out
+   of rotation rather than answering 200 with an error page. */
+app.get(['/health', '/healthz'], (req, res) => {
+  const dbUp = require('mongoose').connection.readyState === 1;
+  res.status(dbUp ? 200 : 503).set('Cache-Control', 'no-store').json({ ok: dbUp, db: dbUp ? 'connected' : 'disconnected' });
+});
 
 /* ── One canonical host: www → apex ────────────────────────
    The store lives on the apex, gogetcards.com — that is what config/site.js
@@ -138,6 +150,31 @@ require('./services/fx').start();
    styles, images, fonts and pixels load exactly as before.
    FOLLOW-UP (needs testing): move to a nonce-based strict script-src.
    See docs/security-audit.md. */
+/* ── Cross-site write guard ────────────────────────────────
+   Both cookies are SameSite=Lax, which is what stops a cross-site form
+   post from carrying a session today. That is one cookie attribute away
+   from every admin and account POST being forgeable, so the request's
+   own provenance is checked as well: a browser that says the request
+   came from another site (Sec-Fetch-Site) or sends a foreign Origin is
+   refused. Server-to-server callers send neither header and pass; the
+   few endpoints that are legitimately cross-origin are exempt. */
+const CROSS_SITE_OK = [/^\/api\/checkout\/(payment-recorded|session|confirm-arrival)/, /^\/email\/unsubscribe\//, /^\/api\/track-order/, /^\/feed\//];
+app.use((req, res, next) => {
+  if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') return next();
+  if (CROSS_SITE_OK.some((re) => re.test(req.path))) return next();
+  const sfs = req.get('Sec-Fetch-Site');
+  if (sfs && sfs !== 'same-origin' && sfs !== 'same-site' && sfs !== 'none') return res.status(403).send('Forbidden');
+  const origin = req.get('Origin');
+  if (origin) {
+    let host = '';
+    try { host = new URL(origin).hostname; } catch (_) { return res.status(403).send('Forbidden'); }
+    const own = new Set([req.hostname, `www.${req.hostname}`, 'localhost', '127.0.0.1']);
+    try { own.add(new URL(require('./config/site').origin()).hostname); } catch (_) { /* no SITE_URL */ }
+    if (!own.has(host)) return res.status(403).send('Forbidden');
+  }
+  next();
+});
+
 app.use(helmet({
   contentSecurityPolicy: {
     useDefaults: false,
@@ -166,6 +203,7 @@ app.use(express.urlencoded({ extended: true }));
 // new deploy changes the URL and the browser fetches the fresh file.
 app.use(express.static(path.join(__dirname, 'public'), {
   maxAge: process.env.NODE_ENV === 'production' ? '1y' : '5m',
+  immutable: process.env.NODE_ENV === 'production',
   etag: true,
   lastModified: true,
 }));
@@ -175,9 +213,18 @@ app.use(express.static(path.join(__dirname, 'public'), {
 // for rendered HTML / API responses. Marking them no-store guarantees every
 // deploy is reflected immediately — no stale admin pages after a redeploy.
 app.use((req, res, next) => {
-  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.set('Pragma', 'no-cache');
-  res.set('Expires', '0');
+  /* Storefront HTML: revalidated on every navigation (no-cache) but NOT
+     no-store, because no-store disables the browser's back/forward cache
+     and every "back" became a full reload. Anything personal or
+     transactional stays no-store. */
+  const sensitive = /^\/(admin|account|checkout|thank-you|api|feed|cart)(\/|$)/.test(req.path);
+  if (sensitive || req.method !== 'GET') {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+  } else {
+    res.set('Cache-Control', 'private, no-cache, must-revalidate');
+  }
   next();
 });
 
@@ -214,7 +261,19 @@ app.locals.testOrder = require('./services/testOrder');
    after a deploy. On Render, RENDER_GIT_COMMIT changes every deploy, so this
    auto-busts caches; falls back to a timestamp locally. Append it to asset
    URLs as ?v=<%= assetVersion %>. */
-app.locals.assetVersion = (process.env.RENDER_GIT_COMMIT || String(Date.now())).slice(0, 12);
+/* A hash of the assets themselves, not a timestamp: the timestamp changed
+   on every restart and threw away every visitor's year-long cache of CSS
+   and JS for a deploy that had not touched them. */
+app.locals.assetVersion = (() => {
+  try {
+    const crypto = require('crypto');
+    const h = crypto.createHash('md5');
+    for (const f of ['public/css/gogetcards.css', 'public/js/gogetcards.js']) h.update(require('fs').readFileSync(path.join(__dirname, f)));
+    return h.digest('hex').slice(0, 12);
+  } catch (_) {
+    return (process.env.RENDER_GIT_COMMIT || String(Date.now())).slice(0, 12);
+  }
+})();
 
 /* ── Boot ──────────────────────────────────────────────── */
 async function boot() {
@@ -377,6 +436,12 @@ async function boot() {
        other store's Google Ads account. Unset means the tag is not
        rendered at all. */
     res.locals.googleAdsId = process.env.GOOGLE_ADS_ID || '';
+    /* GA4 property. Unset means no GA4 tag; the Ads tag is independent. */
+    res.locals.ga4Id = process.env.GA4_MEASUREMENT_ID || '';
+    /* Numeric stock/allocation counts on the storefront ("Only 4 left",
+       "61 units remaining"). Off until the counts in the database are real
+       stock counts: a number that is not real is a fake scarcity claim. */
+    res.locals.showStockCounts = process.env.SHOW_STOCK_COUNTS === 'true';
     res.locals.googleAdsPurchaseLabel = process.env.GOOGLE_ADS_PURCHASE_LABEL || '';
     // Free-shipping copy comes from config/shipping.js, the same module
     // the Product Offer schema uses, so the promise shown to customers
@@ -423,7 +488,7 @@ async function boot() {
       !req.path.startsWith('/api') &&
       !req.path.includes('.')
     ) {
-      const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.ip || '';
+      const ip = req.ip || ''; // trust-proxy resolved; the leftmost X-Forwarded-For hop is client-chosen
       const geo = geoip.lookup(ip);
       const country = geo ? geo.country : 'Unknown';
       const countryCode = geo ? geo.country : '';
@@ -465,6 +530,10 @@ async function boot() {
     max: 200,
     standardHeaders: true,
     legacyHeaders: false,
+    /* The partner host's server-to-server calls come from a handful of
+       IPs and are already HMAC-verified; a burst of payments must not be
+       answered 429. Everything else under /api keeps the limit. */
+    skip: (req) => /^\/checkout\/(payment-recorded|confirm-arrival)|^\/chat(\/|$)/.test(req.path),
   });
 
   /* ── Phone push notifications ────────────────────────── */
@@ -564,7 +633,7 @@ async function boot() {
   });
 
   /* ── Start Express Immediately ───────────────────────── */
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.log(`
 ╔═══════════════════════════════════════════╗
 ║  🔮 GoGetCards — Server Running         ║
@@ -573,6 +642,24 @@ async function boot() {
 ╚═══════════════════════════════════════════╝
     `);
   });
+
+  /* ── Graceful shutdown ──────────────────────────────────
+     The platform sends SIGTERM on every deploy and scale-down. Without a
+     handler the process dies mid-request: a /thank-you that had just
+     written the Order but not yet sent the confirmation email would leave
+     a paid customer with no email, and the email claim flag already set.
+     Stop accepting connections, let in-flight requests finish, close the
+     database, then exit; a hard deadline so a hung request cannot keep a
+     dead replica alive. */
+  const shutdown = (signal) => {
+    console.log(`[server] ${signal} received, draining`);
+    server.close(() => {
+      require('mongoose').connection.close(false).finally(() => process.exit(0));
+    });
+    setTimeout(() => process.exit(1), 25000).unref();
+  };
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 
   /* ONE STRAY PROMISE MUST NOT BE ABLE TO CLOSE THE SHOP.
    *

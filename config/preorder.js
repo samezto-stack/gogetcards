@@ -23,6 +23,7 @@
  */
 
 const shipping = require('./shipping');
+const WAREHOUSE_TZ = 'America/Los_Angeles'; // helpers/dispatch.js WAREHOUSE_TZ, repeated here to avoid a config→helpers require
 
 /* ONE dispatch window, stated the same way everywhere a preorder is sold.
    The homepage, the preorders collection, the product page, the FAQ, the
@@ -75,6 +76,35 @@ const TERMS = [
 ];
 
 /**
+ * Is this product a preorder TODAY?
+ *
+ * The flag (or the "preorder" tag) says the product was listed as a
+ * preorder; the release date says whether it still is. Nothing used to
+ * clear the flag when the date passed, so the day after release the feed
+ * still sent `preorder` with a past availability_date (a Merchant Center
+ * availability error) and the page still said "not yet released". With
+ * 37 releases landing in one fortnight that is not a manual job.
+ *
+ * Released = the publisher's date has arrived in the warehouse's own
+ * timezone. From that day the product reads in stock everywhere; stock
+ * and `available` are then the honest levers.
+ */
+function isPreorder(product, now = new Date()) {
+  const flagged = !!(product && (product.preorder || (product.tags || []).includes('preorder')));
+  if (!flagged) return false;
+  const info = releaseInfo(product);
+  if (!info.hasDate) return true;
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: WAREHOUSE_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+  return info.iso > today;
+}
+
+/** Start of today in the warehouse timezone, for database filters. */
+function releasedCutoff(now = new Date()) {
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: WAREHOUSE_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+  return new Date(`${today}T00:00:00Z`);
+}
+
+/**
  * Human-readable release information for a product.
  *
  * `releaseDate` is the authoritative field because it is a real date that
@@ -109,4 +139,4 @@ function shortLine(product) {
   return 'Preorder — release date to be confirmed';
 }
 
-module.exports = { TERMS, releaseInfo, shortLine, AFTER_RELEASE, DISPATCH_SHORT };
+module.exports = { TERMS, releaseInfo, shortLine, isPreorder, releasedCutoff, AFTER_RELEASE, DISPATCH_SHORT };

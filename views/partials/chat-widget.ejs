@@ -1,6 +1,6 @@
 <!-- Live Chat Widget — Lightweight, theme-matched -->
 <div id="live-chat-widget" class="chat-widget">
-  <button id="chat-toggle" class="chat-widget__toggle" aria-label="Open live chat">
+  <button id="chat-toggle" class="chat-widget__toggle" aria-label="Open live chat" aria-expanded="false" aria-controls="chat-panel">
     <svg id="chat-icon-open" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
     </svg>
@@ -95,8 +95,10 @@
     iconOpen.style.display = isOpen ? 'none' : 'block';
     iconClose.style.display = isOpen ? 'block' : 'none';
     
+    toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     if (isOpen) {
-      if (!pollInterval) pollInterval = setInterval(fetchNewMessages, 3000);
+      if (!loadedOnce) { loadedOnce = true; fetchNewMessages(true); }
+      if (!pollInterval) pollInterval = setInterval(function () { if (!document.hidden) fetchNewMessages(); }, 10000);
     } else {
       if (pollInterval) {
         clearInterval(pollInterval);
@@ -158,8 +160,10 @@
     }
   });
 
-  // Initialize
+  /* History loads on first open, not on every page view: one request per
+     visitor per page for a panel most never open was the single most
+     common call to the API. */
+  var loadedOnce = false;
   applyOpenState();
-  fetchNewMessages(true); // Load history on mount
 })();
 </script>

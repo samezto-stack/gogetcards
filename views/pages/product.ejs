@@ -1,5 +1,5 @@
 <%
-  var isPreorder = product.preorder || (product.tags && product.tags.includes('preorder'));
+  var isPreorder = preorder.isPreorder(product);
   var savingsPct = product.comparePrice && product.comparePrice > product.price
     ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100) : 0;
   /* Stock meter shows ONLY when a real figure was recorded. This used to
@@ -7,7 +7,8 @@
      then counted down from it, so a page with no inventory data displayed
      "In Stock — 14 available" — a number nobody entered, presented as
      live scarcity. Now an unset stock simply hides the meter. */
-  var hasRealStock = typeof product.stock === 'number' && product.stock > 0;
+  /* And only when the operator has said the counts are real (SHOW_STOCK_COUNTS). */
+  var hasRealStock = showStockCounts && typeof product.stock === 'number' && product.stock > 0;
   var stockQty = hasRealStock ? product.stock : 0;
   var variantId = product.variantId || '';
   /* Release information for a preorder. `releaseDate` is a real date and
@@ -52,7 +53,7 @@
                slot actually uses is the largest LCP saving available here. */%>
           <img
             id="product-main-img"
-            <%- productImage.attrs(product.imageUrl || product.images[0], 570, '(max-width: 900px) 92vw, 570px') %>
+            <%- productImage.attrs(product.imageUrl || product.images[0], 490, '(max-width: 900px) calc(92vw - 5rem), 490px') %>
             alt="<%= product.title %> — factory sealed, shown in original packaging"
             width="900" height="900"
             fetchpriority="high"
@@ -120,6 +121,8 @@
              back up: 66.65 × 3 ≠ 199.96). The per-unit figure stays, as
              the secondary line. helpers/packs.js. */%>
         <% var _pack = (typeof packs !== 'undefined' && packs) ? packs.of(product) : (parseInt(product.packSize, 10) > 1 ? parseInt(product.packSize, 10) : 1); %>
+        <%/* The item as GA4 and Google Ads see it: the pack is the unit sold. */%>
+        <% var _gaItem = { item_id: product.sku || product.slug, item_name: product.title, item_brand: product.brand || product.vendor || '', item_category: product.productType || '', price: Math.round(_p.amount) / 100, currency: _p.currency || 'USD' }; %>
         <span class="pp__price" data-usd-cents="<%= _p.amount %>" data-usd-label="<%= _money(_p.amount, _p.currency) %>"><%= _money(_p.amount, _p.currency) %></span>
         <% if (_pack > 1) { %><span class="pp__each">for <%= _pack %></span><% } %>
         <% if (product.comparePrice && product.comparePrice > product.price) { %>
@@ -270,7 +273,7 @@
            at it predicted. There is one checkout now, so there is nothing
            left to choose between. */%>
       <% if (product.available) { %>
-        <form method="POST" action="<%= marketPath('/checkout/start') %>" id="partner-checkout-form" style="display:none;">
+        <form method="POST" action="<%= marketPath('/checkout/start') %>" id="partner-checkout-form" style="display:none;" data-ga-item="<%= JSON.stringify(_gaItem) %>">
           <input type="hidden" name="slug" value="<%= product.slug %>">
           <input type="hidden" name="quantity" value="1" id="partner-qty-mirror">
         </form>
@@ -289,7 +292,7 @@
         </script>
       <% } %>
 
-      <form data-atc-form>
+      <form data-atc-form data-ga-item="<%= JSON.stringify(_gaItem) %>">
         <input type="hidden" name="slug" value="<%= product.slug %>">
 
         <!-- Quantity -->
@@ -693,3 +696,14 @@
 <noscript>
   <style>.pp__preorder-terms[hidden] { display:block !important; } .pp__preorder-toggle { display:none; }</style>
 </noscript>
+<%/* GA4 view_item. gtag() exists only when a Google tag id is configured
+     (views/partials/analytics.ejs); without consent the call sits in the
+     dataLayer and is never sent. Data goes through jsonForScript. */%>
+<% if (typeof _gaItem !== 'undefined') { %>
+<script>
+  if (typeof gtag === 'function') {
+    var ggcItem = <%- jsonForScript(_gaItem) %>;
+    gtag('event', 'view_item', { currency: ggcItem.currency, value: ggcItem.price, items: [Object.assign({ quantity: 1 }, ggcItem)] });
+  }
+</script>
+<% } %>

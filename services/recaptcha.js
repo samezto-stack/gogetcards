@@ -31,8 +31,11 @@ const VERIFY_URL = 'https://www.google.com/recaptcha/api/siteverify';
    page's HTML — and is not a secret at all. */
 const SITE_KEY = process.env.RECAPTCHA_SITE_KEY
   || '6LcQGJ0tAAAAANcD15mELga7VYqRUMVSdCV_SG2M';
-const SECRET = process.env.RECAPTCHA_SECRET
-  || '6LcQGJ0tAAAAAAjO3ZVhRA55fA5ygFz2nDSmI3Jl';
+/* No fallback: a secret committed to the repository is a secret in every
+   clone and in git history for good. Unset means verify() fails open and
+   the honeypot + rate limit carry the form; set RECAPTCHA_SECRET in the
+   platform environment (and rotate the pair the old literal belonged to). */
+const SECRET = process.env.RECAPTCHA_SECRET || '';
 
 /* Only consulted when Google sends a score, i.e. v3. 0.5 is Google's own
    suggested starting point. */

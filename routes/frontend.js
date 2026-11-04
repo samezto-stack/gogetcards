@@ -248,7 +248,7 @@ router.get('/', async (req, res) => {
   }
   try {
     const featuredProducts = await Product.find({ featured: true, available: true }).limit(4).lean();
-    const preorderProducts = await Product.find({ preorder: true, available: true }).limit(2).lean();
+    const preorderProducts = await Product.find({ preorder: true, available: true, $or: [{ releaseDate: null }, { releaseDate: { $gte: preorderCfg.releasedCutoff() } }] }).limit(2).lean();
     renderPage(res, 'home', {
       pageTitle: 'GoGetCards — Premium Sealed TCG Marketplace',
       /* From config/catalog.js, so the snippet Google shows names exactly
@@ -880,7 +880,7 @@ router.get('/products/:slug', async (req, res) => {
      * from an in-stock one, which is the availability misrepresentation
      * that suspends accounts rather than disapproving items. */
     const rel = preorderCfg.releaseInfo(product);
-    const isPreorderItem = !!(product.preorder || (product.tags || []).includes('preorder'));
+    const isPreorderItem = preorderCfg.isPreorder(product);
     const oneYearOut = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
     const priceValidUntil = (isPreorderItem && rel.hasDate && new Date(rel.iso) < oneYearOut)
       ? rel.iso
@@ -1087,6 +1087,9 @@ router.get('/products/:slug', async (req, res) => {
       console.error('caseOffer', e.message);
     }
 
+    /* The import wrote the pack price into descriptions; it is rendered
+       live from the price instead (and stripped from the feed the same way). */
+    if (product.description) product.description = String(product.description).replace(/<p>\s*Sold in packs of \d+:[^<]*<\/p>/g, '').replace(/\s*Sold in packs of \d+:[^.]*\$[\d.,]+[^.]*\./g, '');
     renderPage(res, 'product', {
       caseOffer,
       pageTitle: variantTitle,
@@ -1136,7 +1139,8 @@ router.get('/collection/:handle', async (req, res) => {
     if (handle === 'all') {
       query = {};
     } else if (handle === 'preorders') {
-      query = { preorder: true };
+      /* Still unreleased only: a preorder whose date has passed is stock. */
+      query = { preorder: true, $or: [{ releaseDate: null }, { releaseDate: { $gte: preorderCfg.releasedCutoff() } }] };
       collectionTitle = 'Preorders';
       collectionDescription = 'Lock in your price today. We ship directly from our distributor on release day.';
     } else {
@@ -1231,7 +1235,7 @@ router.get('/collection/:handle', async (req, res) => {
     };
     const clauses = [];
     if (filters.avail[0] === 'in-stock') clauses.push({ preorder: { $ne: true }, available: true });
-    if (filters.avail[0] === 'preorder') clauses.push({ preorder: true });
+    if (filters.avail[0] === 'preorder') clauses.push({ preorder: true, $or: [{ releaseDate: null }, { releaseDate: { $gte: preorderCfg.releasedCutoff() } }] });
     if (filters.line.length) clauses.push({ collections: { $in: filters.line } });
     if (filters.type.length) clauses.push({ productType: { $in: filters.type } });
     if (filters.lang.length) clauses.push({ language: { $in: filters.lang } });
@@ -1510,6 +1514,7 @@ router.get('/cart', (req, res) => {
   renderPage(res, 'cart', {
     pageTitle: 'Shopping Cart | GoGetCards',
     metaDescription: 'Review your cart at GoGetCards.',
+    robotsOverride: 'noindex, follow',
   });
 });
 
@@ -2061,14 +2066,19 @@ router.get('/thank-you', async (req, res) => {
   const hasToken = !!(req.query.sig && req.query.iat);
 
   if (!hasToken) {
+    /* Nothing from the URL is echoed. An unsigned ?order_id=X&value=99.99
+       used to render "Order confirmed · Total paid US$99.99" with a
+       reference derived from X: a ready-made receipt on the real domain
+       for anyone to link to. Without a signature there is no order to
+       show, so the page is the neutral "thank you" with no figures. */
     return renderPage(res, 'thank-you', {
-      pageTitle: 'Order Confirmed | GoGetCards',
+      pageTitle: 'Thank You | GoGetCards',
       metaDescription: 'Thank you for your purchase from GoGetCards.',
-      order_id: req.query.order_id || null,
-      orderRef: req.query.order_id ? orderReference(req.query.order_id) : '',
+      order_id: null,
+      orderRef: '',
       account: { customer: null, created: false, signedIn: false },
-      value: req.query.value || null,
-      currency: req.query.currency || 'USD',
+      value: null,
+      currency: 'USD',
       pipelineOrder: null,
       fulfilment: null,
       pipelineErrors: null,
@@ -2115,8 +2125,12 @@ router.get('/thank-you', async (req, res) => {
        has already verified the HMAC signature and written a real Order, so
        an account can only ever follow a payment the server confirmed. It
        cannot fail the page — see services/customerProvisioning. */
+    /* signIn only on the FIRST arrival. The signed link stays valid for
+       30 minutes and is idempotent for the order, but a replay that also
+       started a customer session would make the URL (which sits in
+       browser history and the partner's logs) a bearer credential. */
     const account = result.ok
-      ? await provisionFromOrder(result.order, req, res)
+      ? await provisionFromOrder(result.order, req, res, { signIn: !!result.isNew })
       : { customer: null, created: false, signedIn: false };
 
     return renderPage(res, 'thank-you', {
@@ -2148,41 +2162,22 @@ router.get('/thank-you', async (req, res) => {
   }
 });
 
-/* ── API: Track Order (Called by Shopify Script) ─────────── */
-router.post('/api/track-order', async (req, res) => {
-  try {
-    const { orderId, totalPrice, currency, customerName, customerEmail, customerPhone, products, source } = req.body;
-    
-    if (!orderId) {
-      return res.status(400).json({ error: 'orderId is required' });
-    }
-
-    let order = await Order.findOne({ orderId });
-    let isNewOrder = false;
-
-    if (!order) {
-      isNewOrder = true;
-      order = await Order.create({
-        orderId, 
-        totalPrice, 
-        currency, 
-        customerName, 
-        customerEmail, 
-        customerPhone, 
-        products, 
-        source 
-      });
-    }
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Order tracking error:', err);
-    res.status(500).json({ error: 'Server Error' });
-  }
-});
+/* ── /api/track-order: GONE ────────────────────────────────
+ * A relic of the Shopify era: an unauthenticated POST that wrote a paid
+ * Order from whatever the request body said. Nothing has called it since
+ * the move off Shopify, and anyone who found it could create fake
+ * revenue, silence a real customer's abandoned-checkout recovery, and
+ * plant orders inside that customer's account page. Orders are created
+ * in exactly one place, services/orderPipeline/orderService.js, behind
+ * the signature verifier; test/security/static-scan.test.js enforces
+ * that. 410, not 404: the route existed, and is deliberately gone. */
+router.post('/api/track-order', (req, res) => res.status(410).json({ error: 'Gone' }));
 
 /* ── API: Live Chat ──────────────────────────────────────── */
-router.post('/api/chat', async (req, res) => {
+/* Its own limiter, so an open chat panel polling for replies cannot use
+   up the shared /api allowance that the cart and search depend on. */
+const chatLimiter = rateLimit({ windowMs: 5 * 60 * 1000, max: 120, standardHeaders: true, legacyHeaders: false });
+router.post('/api/chat', chatLimiter, async (req, res) => {
   try {
     const { message } = req.body;
     if (!message || !message.trim()) return res.status(400).json({ error: 'Message required' });
@@ -2201,7 +2196,7 @@ router.post('/api/chat', async (req, res) => {
   }
 });
 
-router.get('/api/chat', async (req, res) => {
+router.get('/api/chat', chatLimiter, async (req, res) => {
   try {
     const since = req.query.since ? new Date(req.query.since) : new Date(0);
     // Fetch only messages meant for this session ID that were sent AFTER the 'since' timestamp
@@ -2522,7 +2517,7 @@ router.post('/checkout/capture-lead', publicFormLimiter, async (req, res) => {
     return res.json({ success: false, error: 'Checkout is not available here. Please order from the product page.' });
   } catch (err) {
     console.error('Capture Lead error:', err);
-    res.json({ success: false, error: err.message });
+    res.json({ success: false, error: 'Something went wrong. Please try again.' });
   }
 });
 

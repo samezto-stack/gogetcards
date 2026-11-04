@@ -171,7 +171,7 @@ router.get('/', requireAuth, async (req, res) => {
     });
   } catch (err) {
     console.error('[distribution] dashboard:', err);
-    res.status(500).send('Distribution error: ' + err.message);
+    res.status(500).send('Server error. Check the server logs.');
   }
 });
 
@@ -216,7 +216,7 @@ router.get('/product/:slug', requireAuth, async (req, res) => {
     });
   } catch (err) {
     console.error('[distribution] product:', err);
-    res.status(500).send('Distribution error: ' + err.message);
+    res.status(500).send('Server error. Check the server logs.');
   }
 });
 
@@ -256,7 +256,7 @@ router.post('/product/:slug', requireAuth, async (req, res) => {
     });
     res.redirect(`/admin/distribution/product/${req.params.slug}?saved=1`);
   } catch (err) {
-    res.status(500).send('Save failed: ' + err.message);
+    res.status(500).send('Server error. Check the server logs.');
   }
 });
 
@@ -278,7 +278,7 @@ router.post('/selection-mode', requireAuth, async (req, res) => {
     await cfg.save();
     res.redirect(`/admin/distribution?channel=${channel}&saved=1`);
   } catch (err) {
-    res.status(500).send('Could not change the selection mode: ' + err.message);
+    res.status(500).send('Server error. Check the server logs.');
   }
 });
 
@@ -323,7 +323,7 @@ router.post('/bulk', requireAuth, async (req, res) => {
 
     res.redirect(`/admin/distribution?channel=${channel}&bulk=${result.modifiedCount}&action=${wantsSend ? 'send' : 'hold'}`);
   } catch (err) {
-    res.status(500).send('Bulk update failed: ' + err.message);
+    res.status(500).send('Server error. Check the server logs.');
   }
 });
 
@@ -338,7 +338,7 @@ router.post('/product/:slug/autofix', requireAuth, async (req, res) => {
     }
     res.redirect(`/admin/distribution/product/${req.params.slug}?fixed=${Object.keys(patch).length}`);
   } catch (err) {
-    res.status(500).send('Autofix failed: ' + err.message);
+    res.status(500).send('Server error. Check the server logs.');
   }
 });
 
@@ -356,7 +356,7 @@ router.post('/autofix-all', requireAuth, async (req, res) => {
     }
     res.redirect(`/admin/distribution?fixed=${changed}`);
   } catch (err) {
-    res.status(500).send('Autofix failed: ' + err.message);
+    res.status(500).send('Server error. Check the server logs.');
   }
 });
 
@@ -405,7 +405,7 @@ router.get('/export.:format', requireAuth, async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="gogetcards-feed.${req.params.format}"`);
     res.send(chosen.body());
   } catch (err) {
-    res.status(500).send('Export failed: ' + err.message);
+    res.status(500).send('Server error. Check the server logs.');
   }
 });
 

@@ -1,6 +1,6 @@
 <%
-  var lowStock = product.stock > 0 && product.stock <= 5;
-  var isPreorder = product.preorder || (product.tags && product.tags.includes('preorder'));
+  var lowStock = showStockCounts && product.stock > 0 && product.stock <= 5;
+  var isPreorder = preorder.isPreorder(product);
 
   /* PRICED IN THE MARKET BEING RENDERED, never in the base currency.
      This card is the related strip, the collection grid and the featured
@@ -25,7 +25,7 @@
 %>
 <% if (pcPriced) { %>
 <article class="pc" id="product-card-<%= product.slug %>">
-  <a href="<%= pcHref %>" class="pc__img-wrap" aria-label="View <%= product.title %>">
+  <a href="<%= pcHref %>" class="pc__img-wrap">
     <% if (product.imageUrl || (product.images && product.images.length > 0)) { %>
       <%/* Slot is ~270px in the four-up grid, ~45vw at tablet and nearly
            the full container on a phone, so `sizes` has to say so: the
@@ -33,7 +33,7 @@
            the ladder. */%>
       <img
         class="pc__img"
-        <%- productImage.attrs(product.imageUrl || product.images[0], 270, '(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 270px') %>
+        <%- productImage.attrs(product.imageUrl || product.images[0], 270, '(max-width: 640px) calc(92vw - 3.7rem), (max-width: 1024px) 45vw, 270px') %>
         alt="<%= product.title %>"
         width="480" height="480"
         loading="lazy"

@@ -135,10 +135,24 @@ function validate(product, opts = {}) {
     return { eligible: false, errors: [{ field: 'price', message: `No price set for the ${(opts.market && opts.market.id) || 'US'} market` }], warnings: [], payload: null, product };
   }
   const m = product.merchant || {};
-  const isPreorder = !!(product.preorder || (product.tags || []).includes('preorder'));
+  const isPreorder = preorderCfg.isPreorder(product);
   const tcgType = detectTcgType(product);
 
   /* ── Identity and identifiers ── */
+  if (product.gtin) {
+    /* GS1 mod-10 check digit. Google validates it and rejects the item;
+       better to refuse the row here than to learn from a disapproval. */
+    const d = String(product.gtin).replace(/[\s-]/g, '');
+    const ok = /^(\d{8}|\d{12,14})$/.test(d)
+      && d.split('').reverse().reduce((sum, c, i) => sum + Number(c) * (i === 0 ? 1 : (i % 2 ? 3 : 1)), 0) % 10 === 0;
+    if (!ok) {
+      issues.push(issue('gtin_check_digit', 'error',
+        `GTIN "${product.gtin}" fails its check digit`,
+        'Google validates the check digit and disapproves an item whose GTIN fails it.',
+        'Re-copy the barcode from the product, or clear the field.',
+        'gtin'));
+    }
+  }
   if (!payload.brand) {
     issues.push(issue('brand_missing', 'error',
       'No brand',
@@ -201,7 +215,9 @@ function validate(product, opts = {}) {
         'Use sentence or title case. Set codes and acronyms are left alone; the automatic fix will correct the rest.',
         'merchant.title'));
     }
-    if (/!{1,}|\bfree shipping\b|\bbest price\b|\bsale\b|\bbuy now\b/i.test(rawTitle)) {
+    /* Repeated or trailing exclamation marks are shouting; one inside a
+       set name ("Attack of the Vine!") is the product's name. */
+    if (/!{2,}|!\s*$|\bfree shipping\b|\bbest price\b|\bsale\b|\bbuy now\b/i.test(rawTitle)) {
       issues.push(issue('title_promotional', 'error',
         'Title contains promotional text',
         'Promotional language in a title ("free shipping", "sale", "buy now", exclamation marks) is an editorial violation and Google disapproves the item.',
@@ -333,10 +349,16 @@ function validate(product, opts = {}) {
         `Set Release date on the product. The free-text "ships" window is not a date and cannot be sent. If this is not actually a preorder, clear ${preorderSource} instead.`,
         'releaseDate'));
     } else if (new Date(rel.iso) < new Date()) {
-      issues.push(issue('preorder_past_date', 'warning',
+      issues.push(issue('preorder_past_date', 'error',
         `Release date ${rel.display} has passed but this is still sent as a preorder`,
-        'A preorder whose date is in the past reads as a stale listing, and Google may treat the availability as wrong.',
+        'Google treats a preorder whose availability_date is in the past as incorrect availability. (config/preorder.isPreorder should already have turned this into in_stock; reaching here means a caller bypassed it.)',
         `Either move the date, or clear ${preorderSource} now the product has released.`,
+        'releaseDate'));
+    } else if (new Date(rel.iso) > new Date(Date.now() + 365 * 86400e3)) {
+      issues.push(issue('availability_date_too_far', 'error',
+        `Release date ${rel.display} is more than a year away`,
+        'Google rejects an availability_date more than one year ahead.',
+        'Set a date within a year, or hold the product back until one is known.',
         'releaseDate'));
     }
   } else if (isPreorder && payload.availability === 'OUT_OF_STOCK') {

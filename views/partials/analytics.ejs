@@ -34,6 +34,8 @@
 <% /* Empty string reads exactly like an unset id everywhere below, so the
       opt-out needs no second condition at any of the use sites. */ %>
 <% const adsId = (typeof googleAds !== 'undefined' && googleAds === false) ? '' : googleAdsId; %>
+<% const ga4 = (typeof googleAds !== 'undefined' && googleAds === false) ? '' : ((typeof ga4Id !== 'undefined' && ga4Id) || ''); %>
+<% const gtagId = adsId || ga4; %>
   <script>
     window.__gogetcardsConsent = {
       KEY: 'zy_cookie_consent',
@@ -63,8 +65,8 @@
             t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
             y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
         })(window, document, "clarity", "script", "xlgaj8np2e");
-        <% if (adsId) { %>
-        <%/* The Google Ads tag, INSIDE the consent gate with the others.
+        <% if (gtagId) { %>
+        <%/* The Google tag (Ads and/or GA4), INSIDE the consent gate with the others.
              Google's published snippet loads unconditionally; putting it
              here instead is the entire point of having a gate — a tracker
              that ignores a refusal turns the banner into a lie. The cost is
@@ -73,15 +75,19 @@
         (function () {
           var s = document.createElement('script');
           s.async = true;
-          s.src = 'https://www.googletagmanager.com/gtag/js?id=<%= adsId %>';
+          s.src = 'https://www.googletagmanager.com/gtag/js?id=<%= gtagId %>';
           document.head.appendChild(s);
         })();
+        /* Consent Mode v2: the visitor just accepted, say so before the
+           first hit so Ads and GA4 model nothing and store everything. */
+        gtag('consent', 'update', { ad_storage: 'granted', analytics_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted' });
         gtag('js', new Date());
-        gtag('config', '<%= adsId %>');
+        <% if (adsId) { %>gtag('config', '<%= adsId %>');<% } %>
+        <% if (ga4) { %>gtag('config', '<%= ga4 %>', { send_page_view: true });<% } %>
         <% } %>
       }
     };
-    <% if (adsId) { %>
+    <% if (gtagId) { %>
     <%/* dataLayer and gtag() are defined OUTSIDE load(), so any page can
          call gtag() without knowing whether consent was given: with
          consent the library drains the queue, without it the calls sit in
@@ -90,6 +96,10 @@
          consent check of its own and no risk of a ReferenceError. */%>
     window.dataLayer = window.dataLayer || [];
     window.gtag = function () { window.dataLayer.push(arguments); };
+    /* Consent Mode v2 defaults, queued before anything else: everything
+       denied until the banner is accepted. Google reads this as the
+       "basic" implementation (tags load only after consent). */
+    gtag('consent', 'default', { ad_storage: 'denied', analytics_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', wait_for_update: 500 });
     <% } %>
     if (window.__gogetcardsConsent.get() === 'accepted') window.__gogetcardsConsent.load();
   </script>

@@ -82,6 +82,13 @@ router.post('/api/checkout/session', captureLimiter, express.json({ limit: '8kb'
     if (!checkoutId || !email || !email.includes('@')) {
       return res.status(400).json({ ok: false, error: 'checkoutId and a valid email are required' });
     }
+    /* Only a checkout THIS server minted may be captured. The comment
+       above used to assert that, but nothing checked it: any string
+       would do, so anyone could enrol any email address into the
+       recovery sequence under the store's name. Same receipt either
+       way, so the response is not an oracle for which ids exist. */
+    const minted = await require('../models/Event').exists({ type: 'checkout_click', checkoutId });
+    if (!minted) return res.json({ ok: true });
 
     const doc = await service.capture({
       checkoutId,
@@ -292,13 +299,15 @@ router.get('/checkout/recover/:token', tokenLimiter, async (req, res) => {
         s.city = (doc.shipping && doc.shipping.city) || '';
         s.state = (doc.shipping && doc.shipping.state) || '';
         s.postalCode = (doc.shipping && doc.shipping.postalCode) || '';
-        /* Step 1 IS complete — they completed it themselves the first time
-           round. Saying so is what lets the payment step open rather than
-           bouncing them back into a form they have already filled in. */
-        s.status = 'step1_completed';
+        /* The form is PREFILLED, not skipped. The captured row came from a
+           request this server could not fully authenticate, so the address
+           on it is shown to the customer for confirmation rather than
+           handed straight to the payment step: a captured row with
+           someone else's address must never ship there unseen. */
+        s.status = 'step1_active';
         s.lastActivityAt = new Date();
         await s.save();
-        return res.redirect(302, marketUrl(doc, `/checkout/${started.token}/payment`));
+        return res.redirect(302, marketUrl(doc, `/checkout/${started.token}`));
       }
     } catch (err) {
       /* A recovery link must never dead-end. Fall through to the product

@@ -932,7 +932,7 @@
         if (win && win.closed) {
           idle();
           showError(greeted
-            ? 'The payment window was closed before payment finished. Nothing has been charged.'
+            ? 'The payment window was closed. If you completed payment in it, your order is safe and your confirmation email is on its way: do not pay again. If you did not finish, nothing has been charged and you can reopen it.'
             : 'The payment window closed before it finished loading. Nothing has been charged.');
         }
       }, 700);

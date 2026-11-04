@@ -57,7 +57,9 @@ const FORMATS = {
 function tokenOk(req) {
   const expected = (process.env.FEED_TOKEN || '').trim();
   if (!expected) return true;
-  return String(req.query.key || '') === expected;
+  const given = Buffer.from(String(req.query.key || ''));
+  const want = Buffer.from(expected);
+  return given.length === want.length && require('crypto').timingSafeEqual(given, want);
 }
 
 /**

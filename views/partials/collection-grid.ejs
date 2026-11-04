@@ -14,7 +14,7 @@
       <% catalog.all().forEach(function (line) { %>
       <a href="<%= marketPath('/collection/' + line.handle) %>" class="cat__card" style="--cat-accent:<%= line.accent %>" id="cat-<%= line.handle %>">
         <div class="cat__emoji" aria-hidden="true">
-          <img src="/images/<%= line.icon %>" alt="" width="120" height="40" loading="lazy" decoding="async" style="height:40px;width:auto;object-fit:contain">
+          <img src="/images/<%= line.icon %>" alt="" width="120" height="40" loading="lazy" decoding="async" style="height:40px;width:120px;object-fit:contain">
         </div>
         <div class="cat__info">
           <div class="label-overline" style="font-size:0.65rem;margin-bottom:0.25rem"><%= line.kind === 'sport' ? (line.league + ' · ' + line.publisher) : line.publisher %></div>

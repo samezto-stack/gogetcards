@@ -90,7 +90,9 @@ async function getPartnerToken(config) {
 
   while (attempt <= maxRetries) {
     try {
+      await require('../helpers/safeUrl').assertPublicUrl(issuerUrl);
       const response = await axios.post(issuerUrl, payload, {
+        maxRedirects: 0,
         headers: {
           'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json'

@@ -160,7 +160,7 @@ async function productsFor(orders) {
 
 /** Decorates one order with everything the portal renders. */
 function decorate(order, product) {
-  const isPreorder = !!(product && (product.preorder || (product.tags || []).includes('preorder')));
+  const isPreorder = preorderCfg.isPreorder(product);
   const release = isPreorder && product ? preorderCfg.releaseInfo(product) : null;
   return {
     order,

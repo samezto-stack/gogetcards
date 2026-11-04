@@ -71,6 +71,7 @@ function itemXml(p) {
     ...(p.isBundle ? [['g:is_bundle', 'yes']] : []),
     ...(p.multipack ? [['g:multipack', p.multipack]] : []),
     ...(p.adult ? [['g:adult', 'yes']] : []),
+    ...(p.customLabel0 ? [['g:custom_label_0', p.customLabel0]] : []),
     ...(p.excludedDestinations || []).map((d) => ['g:excluded_destination', d]),
   ].filter(([, v]) => v !== undefined && v !== null && v !== '');
 

@@ -247,6 +247,10 @@ const productSchema = new mongoose.Schema({
          Chosen knowingly by the owner; `available` is the honest lever
          and it is one click away. */
   stockHold: { type: Boolean, default: false },
+  /* Decremented by services/orderPipeline/stockLedger when a paid order
+     arrives. 0 means "not counted" unless the ledger set it, in which
+     case stockHold is set with it and the product reads sold out at the
+     payment step. */
   /* Slug of what to offer instead. Optional: without it the buyer is told
      it sold out and sent back to the catalogue. */
   supersededBy: { type: String, default: '', trim: true },
@@ -341,5 +345,13 @@ productSchema.virtual('savingsPct').get(function () {
 
 productSchema.set('toJSON', { virtuals: true });
 productSchema.set('toObject', { virtuals: true });
+
+/* Hot storefront queries. The collection page filters on these (and sorts
+   on price/createdAt); without an index every request scans the catalogue. */
+productSchema.index({ available: 1, collections: 1 });
+productSchema.index({ available: 1, preorder: 1, releaseDate: 1 });
+productSchema.index({ tags: 1 });
+productSchema.index({ featured: 1, createdAt: -1 });
+productSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('Product', productSchema);

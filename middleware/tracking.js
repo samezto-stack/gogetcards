@@ -187,7 +187,7 @@ function trackPageView(req, res, next) {
     !req.path.startsWith('/api') &&
     !req.path.includes('.') // Ignore strictly any file paths (.php, .xml, .txt, etc)
   ) {
-    const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.ip || '';
+    const ip = req.ip || ''; // trust-proxy resolved; the leftmost X-Forwarded-For hop is client-chosen
     const geo = geoip.lookup(ip);
     const source = detectSource(req);
     const referrer = req.get('Referer') || req.get('Referrer') || '';

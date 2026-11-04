@@ -38,7 +38,7 @@ const preorderItem = {
   slug: 'mega-evolution-bb-preorder', price: 13999, comparePrice: null,
   vendor: 'The Pokémon Company', brand: 'The Pokémon Company',
   preorder: true, preorderShips: 'Q2 2026', badge: 'Preorder', stock: 4,
-  releaseDate: new Date('2026-09-26'), gtin: '', sku: 'GGC-ME-BB',
+  releaseDate: new Date('2027-03-26'), gtin: '', sku: 'GGC-ME-BB',
 };
 
 /* One product sold as two boxes — the Day/Night case. Rendered so the
@@ -80,7 +80,7 @@ const base = {
   metaPixelId: '', googleAdsId: '', googleAdsPurchaseLabel: '',
   fx: require(path.join(ROOT, 'services/fx')).snapshot(),
   assetVersion: 'test', shippingCopy: shippingCfg.copy,
-  company, payments, preorder, shippingCfg, returnWindowDays: faqCfg.RETURN_WINDOW_DAYS, freeReturns: faqCfg.FREE_RETURNS,
+  company, payments, preorder, shippingCfg, returnWindowDays: faqCfg.RETURN_WINDOW_DAYS, freeReturns: faqCfg.FREE_RETURNS, ga4Id: '', showStockCounts: true,
   formatPrice, productImage, script: '',
 
   /* ── The market locals every customer template now depends on ────────

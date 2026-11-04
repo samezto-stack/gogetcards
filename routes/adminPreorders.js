@@ -227,7 +227,7 @@ router.post('/:slug/release-ready', requireAuth, form, async (req, res) => {
     return res.redirect(`${back}?sent=ready_${r.queued}_${r.orders}`);
   } catch (err) {
     console.error('[admin/preorders] release-ready failed:', err);
-    return res.redirect(`${back}?failed=${encodeURIComponent(err.message)}`);
+    return res.redirect(`${back}?failed=${encodeURIComponent('Something went wrong. Check the server logs.')}`);
   }
 });
 
@@ -252,7 +252,7 @@ router.post('/:slug/reinstate-offer', requireAuth, form, async (req, res) => {
     return res.redirect(`${back}?sent=offer_${r.queued}_${r.orders}`);
   } catch (err) {
     console.error('[admin/preorders] reinstate-offer failed:', err);
-    return res.redirect(`${back}?failed=${encodeURIComponent(err.message)}`);
+    return res.redirect(`${back}?failed=${encodeURIComponent('Something went wrong. Check the server logs.')}`);
   }
 });
 
@@ -267,7 +267,7 @@ router.post('/:slug/broadcast/stop', requireAuth, form, async (req, res) => {
     return res.redirect(`${back}?sent=stopped_${r.stopped}`);
   } catch (err) {
     console.error('[admin/preorders] stop failed:', err);
-    return res.redirect(`${back}?failed=${encodeURIComponent(err.message)}`);
+    return res.redirect(`${back}?failed=${encodeURIComponent('Something went wrong. Check the server logs.')}`);
   }
 });
 

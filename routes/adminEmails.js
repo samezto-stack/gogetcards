@@ -347,7 +347,8 @@ router.get('/preview/:type', requireAuth, (req, res) => {
   try {
     out = templates[type].build(data);
   } catch (err) {
-    return res.status(500).type('text/plain').send('Template threw:\n\n' + err.stack);
+    console.error('[adminEmails] template threw:', err.stack);
+    return res.status(500).type('text/plain').send('Template threw. Check the server logs.');
   }
 
   /* Never cached and never indexed: sample data is shaped like a real

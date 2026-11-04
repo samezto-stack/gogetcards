@@ -66,7 +66,6 @@ const markets = require('../config/markets');
    injects live markup (stored XSS). Shared with the templates' global. */
 const jsonForScript = require('../helpers/jsonForScript');
 
-router.get('/test-error', (req,res) => res.status(500).send('test'));
 /* ── Global Admin Middleware ─────────────────────────────── */
 router.use(async (req, res, next) => {
   if (req.session && req.session.adminId) {
@@ -93,7 +92,12 @@ router.post('/login', loginLimiter, async (req, res) => {
     const email = String(req.body.email || '').toLowerCase().trim();
     const password = String(req.body.password || '');
     const user = email ? await User.findOne({ email }) : null;
-    if (!user || !(await user.comparePassword(password))) {
+    /* Compare against a dummy hash when the email is unknown, so a wrong
+       email and a wrong password take the same time: skipping bcrypt on
+       unknown users let the admin address be confirmed by the clock. */
+    const ok = user ? await user.comparePassword(password)
+      : await require('bcryptjs').compare(password, '$2a$12$CwTycUXWue0Thq9StjUM0uJ8ZbSP2rHjHtR9Jb6V0nqkqE0mGq1oG').then(() => false);
+    if (!ok) {
       return res.status(401).render('admin/login', { layout: false, error: 'Invalid email or password.' });
     }
 
@@ -608,7 +612,7 @@ router.get('/', requireAuth, async (req, res) => {
     });
   } catch (err) {
     console.error('Dashboard route error:', err);
-    res.status(500).send('Dashboard Route Error: ' + err.message);
+    res.status(500).send('Dashboard error. Check the server logs.');
   }
 });
 
@@ -693,7 +697,7 @@ router.post('/orders/pending/:orderId/create-order', requireAuth, async (req, re
     return back({ recovered: result.order.orderId, recoveredNew: result.isNew ? '1' : '0' });
   } catch (err) {
     console.error(`[admin] could not recover pending payment ${orderId}:`, err);
-    return back({ recoverError: err.message });
+    return back({ recoverError: 'Could not recover this order. Check the server logs.' });
   }
 });
 
@@ -963,7 +967,7 @@ router.post('/api/test-push', requireAuth, async (req, res) => {
     return res.json({ success: true, results });
   } catch (err) {
     console.error('[test-push] failed:', err.message);
-    return res.status(500).json({ success: false, error: err.message });
+    return res.status(500).json({ success: false, error: 'Server error. Check the server logs.' });
   }
 });
 
@@ -1127,12 +1131,12 @@ router.get('/leads', requireAuth, async (req, res) => {
     res.render('admin/leads', { layout: false, leads }, (err, html) => {
       if (err) {
         console.error('Leads render error:', err);
-        return res.status(500).send('Leads Render Error: ' + err.message);
+        return res.status(500).send('Leads page error. Check the server logs.');
       }
       res.send(html);
     });
   } catch (err) {
-    res.status(500).send('Server Error: ' + err.message);
+    res.status(500).send('Server error. Check the server logs.');
   }
 });
 
@@ -1160,7 +1164,7 @@ router.get('/messages', requireAuth, async (req, res) => {
       error: typeof req.query.error === 'string' ? req.query.error : '',
     });
   } catch (err) {
-    res.status(500).send('Server Error: ' + err.message);
+    res.status(500).send('Server error. Check the server logs.');
   }
 });
 
@@ -1442,7 +1446,7 @@ router.post('/products/:id/quick-update', requireAuth, async (req, res) => {
     await Product.findByIdAndUpdate(req.params.id, { [field]: updateVal });
     res.json({ success: true });
   } catch (err) {
-    res.json({ success: false, error: err.message });
+    res.json({ success: false, error: 'Something went wrong. Check the server logs.' });
   }
 });
 
@@ -1543,13 +1547,13 @@ router.get('/settings', requireAuth, async (req, res) => {
     }, (err, html) => {
       if (err) {
         console.error('Settings render error:', err);
-        return res.status(500).send('Settings Render Error: ' + err.message);
+        return res.status(500).send('Server error. Check the server logs.');
       }
       res.send(html);
     });
   } catch (err) {
     console.error('Settings route error:', err);
-    res.status(500).send('Server Error: ' + err.message);
+    res.status(500).send('Server error. Check the server logs.');
   }
 });
 
@@ -2295,7 +2299,7 @@ router.post('/api/partner-test', requireAuth, async (req, res) => {
          }
       }
       
-      return res.json({ success: false, status, error: err.message });
+      return res.json({ success: false, status, error: 'Something went wrong. Check the server logs.' });
     }
   } catch (err) {
     console.error('Connection test error:', err);
