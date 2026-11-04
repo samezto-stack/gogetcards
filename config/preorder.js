@@ -30,7 +30,7 @@ const shipping = require('./shipping');
    cannot drift apart again (they had: "release day", "the business day
    after" and "within 2 business days" were all live at once). It is the
    window declared to Google as preorder handling time. */
-const AFTER_RELEASE = shipping.preorderBusinessDaysAfterRelease;
+const AFTER_RELEASE = shipping.DISPATCH.preorderBusinessDaysAfterRelease;
 const DISPATCH_SHORT = `Ships on release day or within ${AFTER_RELEASE} business days`;
 
 const TERMS = [

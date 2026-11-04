@@ -53,7 +53,7 @@ function faqs() {
     },
     {
       q: 'How do preorders work?',
-      a: `A preorder reserves you a unit from our distributor allocation at the price shown on the day you order. Payment is taken in full at checkout, not on release day. We dispatch as soon as the product reaches us: on the publisher's release date, or within ${shipping.preorderBusinessDaysAfterRelease} business days of it. The expected shipping window is stated on every preorder listing.`,
+      a: `A preorder reserves you a unit from our distributor allocation at the price shown on the day you order. Payment is taken in full at checkout, not on release day. We dispatch as soon as the product reaches us: on the publisher's release date, or within ${shipping.DISPATCH.preorderBusinessDaysAfterRelease} business days of it. The expected shipping window is stated on every preorder listing.`,
     },
     {
       q: 'What happens if a preorder is delayed or my allocation is cut?',

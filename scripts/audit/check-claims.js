@@ -52,6 +52,17 @@ const RED_FLAGS = [
   [/\bguaranteed\s+(profit|return on|value|investment|hit|pull)\b/i, 'guarantees an outcome'],
   [/\bwill (increase|appreciate) in value\b/i, 'predicts future value'],
 
+  // A template that printed a missing value. "within undefined business
+  // days" went live once: every check passed because none of them looked
+  // for the word itself.
+  [/\b(undefined|NaN|\[object Object\])\b|\bnull business days?\b/,
+    'a template printed a missing value (undefined/NaN/null)'],
+
+  // Preorder dispatch window. Every surface reads the number from
+  // config/shipping.js; these are the phrasings that drifted from it.
+  [/\b(release day or the business day after|ships? (direct )?on release day\b(?! or within)|ships? release day\.)/i,
+    'preorder dispatch window stated differently from the Shipping page'],
+
   // Payment and pricing accuracy.
   [/\b(PayPal|Klarna|Afterpay|Affirm|Sezzle)\b/i, 'names a payment method that is not offered'],
   [/\b(taxes|duties|VAT) (are )?included\b/i,
