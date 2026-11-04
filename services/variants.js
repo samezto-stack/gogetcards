@@ -107,11 +107,12 @@ function isGrouped(product) {
  * every save would grow the title by another " — Night (Umbreon ex)".
  */
 function displayTitle(product) {
+  const packs = require('../helpers/packs');
   const base = String((product && product.title) || '').trim();
   const name = nameOf(product);
-  if (!name) return base;
-  if (base.toLowerCase().includes(name.toLowerCase())) return base;
-  return `${base} — ${name}`;
+  if (!name) return packs.titleFor(product, base);
+  if (base.toLowerCase().includes(name.toLowerCase())) return packs.titleFor(product, base);
+  return packs.titleFor(product, `${base} — ${name}`);
 }
 
 /**

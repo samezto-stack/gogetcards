@@ -79,7 +79,8 @@
       if (product.vendor) metaBits.push(product.vendor);
     %>
     <p class="pc__meta"><%= metaBits.join(' · ') %></p>
-    <a href="<%= pcHref %>" class="pc__title" style="text-decoration:none"><%= product.title.length > 60 ? product.title.substring(0, 60) + '...' : product.title %></a>
+    <% var pcTitle = (typeof packs !== 'undefined' && packs && packs.titleFor) ? packs.titleFor(product) : product.title; %>
+    <a href="<%= pcHref %>" class="pc__title" style="text-decoration:none"><%= pcTitle.length > 72 ? pcTitle.substring(0, 72) + '...' : pcTitle %></a>
     <p class="pc__type"><%= product.productType %></p>
 
     <%/* Every preorder card says so, even with no ship window set. The

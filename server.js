@@ -465,6 +465,7 @@ async function boot() {
        a partial that silently loses a local it needs fails at render time
        on whichever page forgot to pass it. */
     res.locals.preorder = require('./config/preorder');
+    res.locals.packs = require('./helpers/packs');
     res.locals.shippingCfg = require('./config/shipping');
     res.locals.returnWindowDays = require('./config/faq').RETURN_WINDOW_DAYS;
     res.locals.freeReturns = require('./config/faq').FREE_RETURNS;

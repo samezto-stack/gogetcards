@@ -32,4 +32,21 @@ function unitPrice(packPriceCents, packSize) {
   return Math.round((Number(packPriceCents) || 0) / n);
 }
 
-module.exports = { of, units, unitPrice };
+/**
+ * The title with the pack in it: "… Booster Bundle (Pack of 3)". The pack
+ * is what the buyer pays for, so it is in the name wherever the name is
+ * shown — H1, <title>, breadcrumb, cards, JSON-LD and the feed — rather
+ * than a detail discovered under the price. Placed before a " – detail"
+ * tail when there is one. Nothing is appended when the title already
+ * says it, or when the product is sold singly.
+ */
+function titleFor(product, base) {
+  const n = of(product);
+  const title = String(base == null ? (product && product.title) || '' : base).trim();
+  if (n <= 1 || !title) return title;
+  if (new RegExp(`\\b(pack of ${n}|${n}[- ]pack|x ?${n})\\b`, 'i').test(title)) return title;
+  const dash = title.indexOf(' – ');
+  return dash === -1 ? `${title} (Pack of ${n})` : `${title.slice(0, dash)} (Pack of ${n})${title.slice(dash)}`;
+}
+
+module.exports = { of, units, unitPrice, titleFor };

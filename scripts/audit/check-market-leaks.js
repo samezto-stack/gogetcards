@@ -65,7 +65,7 @@ function localsFor(market) {
     catalog: require(path.join(ROOT, 'config/catalog')),
     jsonForScript: require(path.join(ROOT, 'helpers/jsonForScript')),
     shippingCopy: require(path.join(ROOT, 'config/shipping')).copy,
-    returnWindowDays: require(path.join(ROOT, 'config/faq')).RETURN_WINDOW_DAYS, freeReturns: require(path.join(ROOT, 'config/faq')).FREE_RETURNS, ga4Id: '', showStockCounts: false,
+    returnWindowDays: require(path.join(ROOT, 'config/faq')).RETURN_WINDOW_DAYS, freeReturns: require(path.join(ROOT, 'config/faq')).FREE_RETURNS, ga4Id: '', showStockCounts: false, packs: require(path.join(ROOT, 'helpers/packs')),
     payments: require(path.join(ROOT, 'config/payments')),
     preorder: require(path.join(ROOT, 'config/preorder')),
   };

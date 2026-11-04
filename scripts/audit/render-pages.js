@@ -80,7 +80,7 @@ const base = {
   metaPixelId: '', googleAdsId: '', googleAdsPurchaseLabel: '',
   fx: require(path.join(ROOT, 'services/fx')).snapshot(),
   assetVersion: 'test', shippingCopy: shippingCfg.copy,
-  company, payments, preorder, shippingCfg, returnWindowDays: faqCfg.RETURN_WINDOW_DAYS, freeReturns: faqCfg.FREE_RETURNS, ga4Id: '', showStockCounts: true,
+  company, payments, preorder, shippingCfg, returnWindowDays: faqCfg.RETURN_WINDOW_DAYS, freeReturns: faqCfg.FREE_RETURNS, ga4Id: '', showStockCounts: true, packs: require(path.join(ROOT, 'helpers/packs')),
   formatPrice, productImage, script: '',
 
   /* ── The market locals every customer template now depends on ────────

@@ -21,6 +21,8 @@
      description and the structured data cannot drift apart. Falls back to
      the plain title for any caller that renders this page without it. */
   var shownTitle = (typeof variantTitle !== 'undefined' && variantTitle) || product.title;
+  /* The pack in the name, on the page as in the ad. helpers/packs.titleFor. */
+  if (typeof packs !== 'undefined' && packs && packs.titleFor) shownTitle = packs.titleFor(product, shownTitle);
   var siblings = (typeof variantSiblings !== 'undefined' && variantSiblings) || [];
 %>
 

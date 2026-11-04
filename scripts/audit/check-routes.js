@@ -73,7 +73,7 @@ app.use((req, res, next) => {
     payments: require(path.join(ROOT, 'config/payments')),
     preorder: require(path.join(ROOT, 'config/preorder')),
     shippingCfg,
-    returnWindowDays: faqCfg.RETURN_WINDOW_DAYS, freeReturns: faqCfg.FREE_RETURNS, ga4Id: '', showStockCounts: false,
+    returnWindowDays: faqCfg.RETURN_WINDOW_DAYS, freeReturns: faqCfg.FREE_RETURNS, ga4Id: '', showStockCounts: false, packs: require(path.join(ROOT, 'helpers/packs')),
     formatPrice: require(path.join(ROOT, 'helpers/formatPrice')),
 
     /* ── What middleware/market puts on every real request ───────────
