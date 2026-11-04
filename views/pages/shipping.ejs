@@ -117,8 +117,9 @@
   <p>
     Unopened, still-sealed product can be returned within <%= returnWindowDays %> days of
     delivery. If an item arrives damaged or is not what you ordered we pay the return
-    postage and you choose between a replacement and a full refund; for a change of
-    mind the return postage is yours. The full terms, including how to start a return,
+    postage and you choose between a replacement and a full refund<% if (freeReturns) { %>;
+    if you simply changed your mind, we pay the return postage on that too<% } else { %>; for a change of
+    mind the return postage is yours<% } %>. The full terms, including how to start a return,
     are on the <a href="<%= marketPath('/refund-policy') %>">Refund Policy</a> page.
   </p>
 

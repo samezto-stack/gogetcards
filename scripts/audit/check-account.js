@@ -141,7 +141,7 @@ function buildApp() {
       payments: require(path.join(ROOT, 'config/payments')),
       preorder: require(path.join(ROOT, 'config/preorder')),
       shippingCfg,
-      returnWindowDays: faqCfg.RETURN_WINDOW_DAYS,
+      returnWindowDays: faqCfg.RETURN_WINDOW_DAYS, freeReturns: faqCfg.FREE_RETURNS,
       formatPrice: require(path.join(ROOT, 'helpers/formatPrice')),
       script: '',
     });

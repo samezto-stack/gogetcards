@@ -109,22 +109,26 @@
              : { amount: product.price, currency: 'USD', compareAmount: product.comparePrice || 0 }; %>
         <% var _money = (typeof marketMoney !== 'undefined') ? marketMoney
              : function (a, c) { return 'US$' + formatPrice(a); }; %>
-        <%/* PACKS. A product with packSize > 1 is priced per pack (that is
-             the figure the ladder charges and the Offer schema states) but
-             is SHOWN per unit, because the single unit is what the buyer
-             is pricing in their head. The pack price is printed on the next
-             line so the two never contradict. helpers/packs.js. */%>
+        <%/* PACKS. A product with packSize > 1 is priced per pack: that is
+             the figure the buyer is charged, the figure the Offer schema
+             states and the figure in the Merchant Center feed, so it is
+             the HEADLINE price. It used to be shown per unit with the pack
+             price on a smaller line underneath; Merchant Center reads the
+             most prominent price on the landing page and compared it with
+             the feed's, and the two disagreed on every pack product (a
+             rounded per-unit figure times the pack size does not even add
+             back up: 66.65 × 3 ≠ 199.96). The per-unit figure stays, as
+             the secondary line. helpers/packs.js. */%>
         <% var _pack = (typeof packs !== 'undefined' && packs) ? packs.of(product) : (parseInt(product.packSize, 10) > 1 ? parseInt(product.packSize, 10) : 1); %>
-        <% var _unit = _pack > 1 ? Math.round(_p.amount / _pack) : _p.amount; %>
-        <span class="pp__price" data-usd-cents="<%= _unit %>" data-usd-label="<%= _money(_unit, _p.currency) %>"><%= _money(_unit, _p.currency) %></span>
-        <% if (_pack > 1) { %><span class="pp__each">each</span><% } %>
+        <span class="pp__price" data-usd-cents="<%= _p.amount %>" data-usd-label="<%= _money(_p.amount, _p.currency) %>"><%= _money(_p.amount, _p.currency) %></span>
+        <% if (_pack > 1) { %><span class="pp__each">for <%= _pack %></span><% } %>
         <% if (product.comparePrice && product.comparePrice > product.price) { %>
-          <span class="pp__compare"><%= _money(_pack > 1 ? Math.round((_p.compareAmount || product.comparePrice) / _pack) : (_p.compareAmount || product.comparePrice), _p.currency) %></span>
+          <span class="pp__compare"><%= _money(_p.compareAmount || product.comparePrice, _p.currency) %></span>
           <span class="pp__save">Save <%= savingsPct %>%</span>
         <% } %>
       </div>
       <% if (_pack > 1) { %>
-        <p class="pp__pack-line">Sold in packs of <%= _pack %> &middot; <strong><%= _money(_p.amount, _p.currency) %></strong> per pack</p>
+        <p class="pp__pack-line">Sold as a pack of <%= _pack %> &middot; about <strong><%= _money(Math.round(_p.amount / _pack), _p.currency) %></strong> per unit</p>
       <% } %>
 
       <!-- Preorder callout -->

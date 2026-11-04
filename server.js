@@ -24,6 +24,7 @@ require('dotenv').config();
 if (!process.env.TZ) process.env.TZ = 'Africa/Casablanca';
 
 const express = require('express');
+const notFound = require('./helpers/notFound');
 const mongoose = require('mongoose');
 const path = require('path');
 const session = require('express-session');
@@ -326,6 +327,15 @@ async function boot() {
      * Canonical is now the clean path. SITE_URL pins the host so a request
      * arriving on a Render *.onrender.com URL, or on a non-www/www variant,
      * still points Google at one origin instead of splitting signals. */
+    /* /about/ and /about were two URLs for one page: Express is not strict
+       about trailing slashes, so both returned 200. The canonical below
+       consolidates them for Google, but a duplicate URL still costs a
+       crawl and still gets linked. One 301 ends it. GET and HEAD only:
+       a POST must never be redirected. */
+    if ((req.method === 'GET' || req.method === 'HEAD') && req.path.length > 1 && req.path.endsWith('/')) {
+      const q = req.originalUrl.indexOf('?');
+      return res.redirect(301, req.path.replace(/\/+$/, '') + (q === -1 ? '' : req.originalUrl.slice(q)));
+    }
     const canonicalOrigin = site.origin();
     const canonicalPath = req.path === '/' ? '/' : req.path.replace(/\/$/, '');
     res.locals.canonicalUrl = `${canonicalOrigin}${canonicalPath}`;
@@ -392,6 +402,7 @@ async function boot() {
     res.locals.preorder = require('./config/preorder');
     res.locals.shippingCfg = require('./config/shipping');
     res.locals.returnWindowDays = require('./config/faq').RETURN_WINDOW_DAYS;
+    res.locals.freeReturns = require('./config/faq').FREE_RETURNS;
     next();
   });
 
@@ -534,7 +545,7 @@ async function boot() {
 
   /* ── 404 Handler ─────────────────────────────────────── */
   app.use((req, res) => {
-    res.status(404).render('pages/404');
+    notFound(res);
   });
 
   /* ── Error Handler ───────────────────────────────────────

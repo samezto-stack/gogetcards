@@ -133,7 +133,10 @@
       name: biz.tradingName,
       url: siteOrigin,
       logo: { '@type': 'ImageObject', url: siteOrigin + '/favicon-512.png', width: 512, height: 512 },
-      image: ogImg,
+      /* The brand's own card, not the current page's og:image: on a product
+         page that was a product photo, so the Organization entity's image
+         changed on every URL. */
+      image: siteOrigin + '/images/og-default.jpg',
       description: 'Retailer of factory-sealed trading card game products, sourced through authorized distribution.',
       slogan: 'Factory sealed. Allocated early. Held to release day.',
       paymentAccepted: payments.copy.schemaPaymentAccepted,

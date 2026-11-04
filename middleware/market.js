@@ -26,6 +26,7 @@
  */
 
 const markets = require('../config/markets');
+const notFound = require('../helpers/notFound');
 const marketService = require('../services/market');
 
 /* Matches a leading segment only. Built once from the registry so adding
@@ -59,7 +60,7 @@ module.exports = function marketMiddleware() {
       if (!found) {
         /* Configured off, or its currency cannot be charged. Not found is
            the honest answer: there is no such storefront. */
-        return res.status(404).render('pages/404');
+        return notFound(res);
       }
       market = found;
       // Strip the prefix so the existing routes match unchanged.

@@ -109,13 +109,15 @@
 
     <div class="pc__footer">
       <div class="pc__pricing">
-        <%/* A pack-sold product shows the single-unit price, as its page
-             does; the pack is explained on the page. helpers/packs.js. */%>
+        <%/* A pack-sold product shows the PACK price, the figure the buyer
+             is charged and the one its page, the Offer schema and the feed
+             all state, with the pack size beside it. It used to show a
+             rounded per-unit figure, which disagreed with the product page
+             headline and with the Merchant Center feed. helpers/packs.js. */%>
         <% var pcPack = parseInt(product.packSize, 10) > 1 ? parseInt(product.packSize, 10) : 1; %>
-        <% var pcUnit = pcPack > 1 ? Math.round(pcPriced.amount / pcPack) : pcPriced.amount; %>
-        <span class="pc__price" data-usd-cents="<%= pcUnit %>" data-usd-label="<%= pcMoney(pcUnit, pcPriced.currency) %>"><%= pcMoney(pcUnit, pcPriced.currency) %></span><% if (pcPack > 1) { %> <span class="pc__each">each</span><% } %>
+        <span class="pc__price" data-usd-cents="<%= pcPriced.amount %>" data-usd-label="<%= pcMoney(pcPriced.amount, pcPriced.currency) %>"><%= pcMoney(pcPriced.amount, pcPriced.currency) %></span><% if (pcPack > 1) { %> <span class="pc__each">for <%= pcPack %></span><% } %>
         <% if (pcPriced.compareAmount && pcPriced.compareAmount > pcPriced.amount) { %>
-          <span class="pc__compare"><%= pcMoney(pcPack > 1 ? Math.round(pcPriced.compareAmount / pcPack) : pcPriced.compareAmount, pcPriced.currency) %></span>
+          <span class="pc__compare"><%= pcMoney(pcPriced.compareAmount, pcPriced.currency) %></span>
           <span class="pc__save">Save <%= savingsPct %>%</span>
         <% } %>
       </div>

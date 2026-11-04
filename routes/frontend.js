@@ -1,4 +1,5 @@
 const express = require('express');
+const notFound = require('../helpers/notFound');
 const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
 const router = express.Router();
@@ -761,7 +762,7 @@ router.get('/products/:slug', async (req, res) => {
         return res.redirect(301, withQuery(req, `/products/${matches[0].slug}`));
       }
 
-      return res.status(404).render('pages/404');
+      return notFound(res);
     }
 
     // Related products (same collection, excluding current)
@@ -841,7 +842,7 @@ router.get('/products/:slug', async (req, res) => {
     /* NOT SOLD HERE IS A 404, not a fallback to US dollars. A `/ca/`
        URL quoting US$ would be precisely the mismatch this prevents. */
     if (!priced) {
-      return res.status(404).render('pages/404');
+      return notFound(res);
     }
     const productUrl = `${origin}${markets.path(market, `/products/${product.slug}`)}`;
     /* Self-canonical per market, and an hreflang cluster across only the
@@ -1017,6 +1018,10 @@ router.get('/products/:slug', async (req, res) => {
               returnFees: faqConfig.FREE_RETURNS
                 ? 'https://schema.org/FreeReturn'
                 : 'https://schema.org/ReturnShippingFees',
+              /* Money back to the original card, never store credit unless
+                 asked: refund-policy page, "Refunds". Google lists this as
+                 a recommended property and reads its absence as unknown. */
+              refundType: 'https://schema.org/FullRefund',
               /* The canonical URL, not /page/refund-policy, which only 301s
                  here. Merchant Center compares this link with the policy URL
                  filed in the account; they should be the same string, and a
@@ -1095,6 +1100,12 @@ router.get('/products/:slug', async (req, res) => {
       } Factory sealed, sourced through authorized distribution.`,
       ogType: 'product',
       ogImage: productImage.at(product.imageUrl || (product.images && product.images[0]) || '', 1200),
+      /* A product with no photo is not a landing page worth indexing: the
+         Product rich result needs an image, Merchant Center rejects the
+         item, and a searcher who lands on it sees an empty frame. The page
+         stays reachable and is indexed again the moment an image is set.
+         The sitemap applies the same rule. */
+      robotsOverride: (product.imageUrl || (product.images && product.images[0])) ? undefined : 'noindex, follow',
       product,
       priced,
       market,
@@ -1136,7 +1147,14 @@ router.get('/collection/:handle', async (req, res) => {
         collectionTitle = col.name;
         collectionDescription = col.description || '';
       } else {
-        // Fallback: search by tag
+        /* Fallback: a tag used as a collection. ONLY when the tag exists.
+           Without this check /collection/<anything-at-all> rendered an
+           empty, indexable, self-canonical page with a 200 status — a
+           soft 404 for every misspelt or invented handle, and an
+           unbounded set of junk URLs for a crawler to spend budget on. */
+        if (!(await Product.exists({ tags: handle }))) {
+          return notFound(res);
+        }
         query = { tags: handle };
         collectionTitle = handle.charAt(0).toUpperCase() + handle.slice(1);
       }
@@ -1973,7 +1991,7 @@ router.get('/page/:slug', (req, res, next) => {
 router.get('/page/:slug', async (req, res) => {
   try {
     const page = await Page.findOne({ slug: req.params.slug }).lean();
-    if (!page) return res.status(404).render('pages/404');
+    if (!page) return notFound(res);
 
     const origin = site.origin();
     const url = `${origin}/page/${page.slug}`;
@@ -2259,7 +2277,10 @@ router.get('/sitemap.xml', async (req, res) => {
      * dropped every out-of-stock page, which is exactly backwards for a
      * preorder-driven store: those URLs hold their rankings and restock,
      * and de-listing them sheds accumulated authority for no gain. */
-    const products = await Product.find({}).select('slug updatedAt price available marketPrices').lean();
+    const products = (await Product.find({}).select('slug updatedAt price available marketPrices imageUrl images').lean())
+      /* Same rule as the product page's robots meta: no photo, not
+         indexed, so not advertised either. */
+      .filter((p) => p.imageUrl || (p.images && p.images.length));
     const pages = await Page.find().select('slug updatedAt').lean();
     /* ── Other markets ────────────────────────────────────────────────
        Only markets that are actually open, and within them only products
