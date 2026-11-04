@@ -144,6 +144,12 @@ function buildApp() {
       returnWindowDays: faqCfg.RETURN_WINDOW_DAYS, freeReturns: faqCfg.FREE_RETURNS, ga4Id: '', showStockCounts: false,
       formatPrice: require(path.join(ROOT, 'helpers/formatPrice')),
       script: '',
+      jsonForScript: require(path.join(ROOT, 'helpers/jsonForScript')),
+      googleAdsId: '', googleAdsPurchaseLabel: '', fx: require(path.join(ROOT, 'services/fx')).snapshot(),
+      catalog: require(path.join(ROOT, 'config/catalog')), settings: {}, collections: [],
+      showStockCounts: false, ga4Id: '',
+      /* marketPath/marketMoney and friends, exactly as middleware/market.js sets them. */
+      ...require(path.join(ROOT, 'scripts/audit/marketLocals'))(),
     });
     next();
   });
