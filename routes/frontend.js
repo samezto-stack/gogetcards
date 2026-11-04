@@ -1424,6 +1424,69 @@ router.get('/shop', (req, res) => res.redirect(301, withQuery(req, '/collection/
 router.get('/collections', (req, res) => res.redirect(301, withQuery(req, '/collection/all')));
 router.get('/collections/:handle', (req, res) => res.redirect(301, withQuery(req, `/collection/${req.params.handle}`)));
 
+/* ── Shopify-era URLs ──────────────────────────────────────
+ * This domain ran on Shopify before this app. Google's index, old ads,
+ * marketplace listings and bookmarks still carry Shopify's URL shapes
+ * (/pages/returns-refunds, /policies/shipping-policy,
+ * /collections/x/products/y, /search, /account/login), and a Merchant
+ * Center reviewer who follows one of them lands on a 404 instead of the
+ * policy they came to read. Each shape is sent to the page that now holds
+ * the same information. Only handles with a real destination redirect;
+ * anything else stays an honest 404 rather than a guess. */
+const SHOPIFY_PAGE_REDIRECTS = {
+  'returns-refunds': '/refund-policy',
+  'refund-policy': '/refund-policy',
+  'return-policy': '/refund-policy',
+  returns: '/refund-policy',
+  refunds: '/refund-policy',
+  'shipping-policy': '/shipping',
+  shipping: '/shipping',
+  'shipping-delivery': '/shipping',
+  delivery: '/shipping',
+  'pre-order-faq': '/preorder-policy',
+  'preorder-faq': '/preorder-policy',
+  'pre-order-policy': '/preorder-policy',
+  'preorder-policy': '/preorder-policy',
+  preorders: '/preorder-policy',
+  'pre-orders': '/preorder-policy',
+  about: '/about',
+  'about-us': '/about',
+  contact: '/contact',
+  'contact-us': '/contact',
+  'contact-information': '/contact',
+  faq: '/faq',
+  faqs: '/faq',
+  'privacy-policy': '/privacy-policy',
+  privacy: '/privacy-policy',
+  'terms-of-service': '/terms-of-service',
+  terms: '/terms-of-service',
+  'terms-and-conditions': '/terms-of-service',
+  'terms-conditions': '/terms-of-service',
+  'legal-notice': '/disclaimer',
+  'track-order': '/order-tracking',
+  'track-your-order': '/order-tracking',
+  tracking: '/order-tracking',
+  authenticity: '/authenticity-guarantee',
+};
+function shopifyPageTarget(handle) {
+  const h = String(handle || '').toLowerCase();
+  if (SHOPIFY_PAGE_REDIRECTS[h]) return SHOPIFY_PAGE_REDIRECTS[h];
+  if (trustPages.bySlug(h)) return `/${h}`; // same slug, served at top level now
+  return null;
+}
+router.get(['/pages/:handle', '/policies/:handle'], (req, res, next) => {
+  const target = shopifyPageTarget(req.params.handle);
+  if (!target) return next();
+  res.redirect(301, withQuery(req, target));
+});
+/* Shopify nests a product URL under the collection it was reached from
+   (/collections/pokemon/products/x). The product is what matters. */
+router.get('/collections/:handle/products/:slug', (req, res) => res.redirect(301, withQuery(req, `/products/${req.params.slug}`)));
+/* Shopify's search and account entry points. Search lives on the
+   catalogue page here and reads the same `q` parameter. */
+router.get('/search', (req, res) => res.redirect(301, withQuery(req, '/collection/all')));
+router.get(['/account/login', '/account/register'], (req, res) => res.redirect(301, '/account/sign-in'));
+
 /* ── Cart Page ─────────────────────────────────────────── */
 router.get('/cart', (req, res) => {
   renderPage(res, 'cart', {

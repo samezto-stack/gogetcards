@@ -22,6 +22,17 @@
  * store's actual practice changes.
  */
 
+const shipping = require('./shipping');
+
+/* ONE dispatch window, stated the same way everywhere a preorder is sold.
+   The homepage, the preorders collection, the product page, the FAQ, the
+   Preorder Policy and the Shipping page all read this number, so they
+   cannot drift apart again (they had: "release day", "the business day
+   after" and "within 2 business days" were all live at once). It is the
+   window declared to Google as preorder handling time. */
+const AFTER_RELEASE = shipping.preorderBusinessDaysAfterRelease;
+const DISPATCH_SHORT = `Ships on release day or within ${AFTER_RELEASE} business days`;
+
 const TERMS = [
   {
     title: 'Payment is taken today',
@@ -39,8 +50,8 @@ const TERMS = [
     title: 'Ships on release, not before',
     body:
       'Sealed product cannot legally leave a distributor ahead of the publisher\'s street '
-      + 'date. We dispatch as soon as stock reaches us, which is normally release day or '
-      + 'the business day after.',
+      + `date. We dispatch as soon as stock reaches us: on the publisher's release date, `
+      + `or within ${AFTER_RELEASE} business days of it.`,
   },
   {
     title: 'If the publisher moves the date',
@@ -98,4 +109,4 @@ function shortLine(product) {
   return 'Preorder — release date to be confirmed';
 }
 
-module.exports = { TERMS, releaseInfo, shortLine };
+module.exports = { TERMS, releaseInfo, shortLine, AFTER_RELEASE, DISPATCH_SHORT };

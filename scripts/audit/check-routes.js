@@ -486,6 +486,34 @@ const server = app.listen(0, async () => {
   }
   check('every legacy /page/* URL 301s to its hardcoded replacement', redirFails === 0);
 
+  /* ── Shopify-era URLs (the domain's previous storefront) ── */
+  const SHOPIFY = [
+    ['/pages/returns-refunds', '/refund-policy'],
+    ['/pages/shipping-policy', '/shipping'],
+    ['/pages/pre-order-faq', '/preorder-policy'],
+    ['/pages/about-us', '/about'],
+    ['/pages/contact', '/contact'],
+    ['/pages/authenticity-guarantee', '/authenticity-guarantee'],
+    ['/policies/refund-policy', '/refund-policy'],
+    ['/policies/shipping-policy', '/shipping'],
+    ['/policies/privacy-policy', '/privacy-policy'],
+    ['/policies/terms-of-service', '/terms-of-service'],
+    ['/collections/pokemon/products/some-box', '/products/some-box'],
+    ['/search?q=pokemon', '/collection/all?q=pokemon'],
+    ['/account/login', '/account/sign-in'],
+  ];
+  let shopifyFails = 0;
+  for (const [from, to] of SHOPIFY) {
+    const r = await get(from);
+    if (r.status !== 301 || r.headers.location !== to) {
+      shopifyFails++;
+      console.log(`        ${from} -> ${r.status} ${r.headers.location}`);
+    }
+  }
+  check('every Shopify-era policy/product/search URL 301s to its replacement', shopifyFails === 0);
+  const unknownShopify = await get('/pages/definitely-not-a-page');
+  check('an unknown Shopify /pages/ handle 404s rather than guessing', unknownShopify.status === 404);
+
   /* An unknown top-level slug must still 404, not be swallowed by the
      trust-page route's catch-all pattern. */
   const unknown = await get('/definitely-not-a-page');

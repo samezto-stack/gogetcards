@@ -127,7 +127,7 @@ const PAGES = {
         p('That payment is what reserves your unit against our distributor allocation. Distributors require us to commit to quantities well before release, and we are paying for that commitment at the time you place the order.'),
         p('If you would rather not pay months ahead of delivery, do not preorder. Wait for release and buy from stock. We would rather say that plainly than have you find out at the wrong moment.')),
       s('When it ships',
-        p('Sealed product cannot legally leave a distributor before the publisher\'s street date, so nothing ships early, from us or from anyone. We dispatch as soon as stock reaches us, which is normally release day or the business day after.'),
+        p(`Sealed product cannot legally leave a distributor before the publisher's street date, so nothing ships early, from us or from anyone. We dispatch as soon as stock reaches us: on the publisher's release date, or within ${shipping.preorderBusinessDaysAfterRelease} business days of it.`),
         p(`Every preorder listing states the release date where the publisher has announced one, and an expected dispatch window. Delivery then takes the usual time for your destination — see the ${'Shipping & Delivery'} page.`)),
       s('Price',
         p('You pay the price shown on the day you order, and it does not change. If the market price rises before release, yours is fixed. If we lower the price before release, we refund you the difference without being asked; you do not have to notice and email us.')),

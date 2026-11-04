@@ -13,7 +13,7 @@
           <span style="color:var(--color-text-muted);font-weight:300">priced at release rate</span>
         </h2>
         <p style="color:var(--color-text-muted);font-weight:300;line-height:1.8;max-width:420px;margin-top:0.875rem">
-          Preorder allocation is finite and set by the distributor, not by us. Lock your price today and we ship direct on release day. No markup, no delay.
+          Preorder allocation is finite and set by the distributor, not by us. Lock your price today and we dispatch on the publisher's release date, or within <%= preorder.AFTER_RELEASE %> business days of it. No markup.
         </p>
 
         <div class="po-section__urgency">
@@ -23,7 +23,7 @@
           </div>
           <div class="po-section__urgency-item">
             <span class="po-section__urgency-dot"></span>
-            <span>Ships release day from distributor</span>
+            <span><%= preorder.DISPATCH_SHORT %></span>
           </div>
           <div class="po-section__urgency-item">
             <span class="po-section__urgency-dot"></span>

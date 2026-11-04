@@ -21,6 +21,8 @@
  * collection is worth its own page.
  */
 
+const shipping = require('./shipping');
+
 const collections = {
   all: {
     intro:
@@ -44,7 +46,7 @@ const collections = {
       },
       {
         q: 'How quickly do in-stock orders ship?',
-        a: 'In-stock orders are dispatched within one business day. Preorders ship on the product\'s release date.',
+        a: `In-stock orders are dispatched within one business day. Preorders ship on the product's release date, or within ${shipping.preorderBusinessDaysAfterRelease} business days of it.`,
       },
     ],
   },

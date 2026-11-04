@@ -144,7 +144,7 @@
             </p>
             <p class="pp__preorder-sub">
               <strong>Your card is charged today.</strong> This item has not been released yet and
-              ships on or just after the publisher's release date.
+              ships on the publisher's release date, or within <%= preorder.AFTER_RELEASE %> business days of it.
               <% if (rel.hasDate && rel.window) { %>Expected dispatch <%= rel.window %>.<% } %>
               Cancel any time before dispatch for a full refund.
             </p>
