@@ -24,13 +24,11 @@ const https = require('https');
 
 const VERIFY_URL = 'https://www.google.com/recaptcha/api/siteverify';
 
-/* Committed rather than required from the environment so the form is
-   protected the moment this deploys, with no config step. Safe only while
-   this repository stays private; set RECAPTCHA_SECRET to override it
-   without touching code. The site key is public by design — it is in the
-   page's HTML — and is not a secret at all. */
+/* The site key is public by design (it is in the page's HTML), so it can
+   live here; RECAPTCHA_SITE_KEY in the environment overrides it. Its
+   partner secret is NOT here: see below. */
 const SITE_KEY = process.env.RECAPTCHA_SITE_KEY
-  || '6LcQGJ0tAAAAANcD15mELga7VYqRUMVSdCV_SG2M';
+  || '6LegfxAuAAAAAL8c-uSs8TO-aiuLH3IWdrAm38uR';
 /* No fallback: a secret committed to the repository is a secret in every
    clone and in git history for good. Unset means verify() fails open and
    the honeypot + rate limit carry the form; set RECAPTCHA_SECRET in the
