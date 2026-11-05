@@ -197,7 +197,7 @@
   <script>document.documentElement.className = document.documentElement.className.replace('no-js', 'js');</script>
 
     <%- include('partials/analytics') %>
-    <%- include('partials/fx-approx') %>
+    <%/* The approximate local-currency line (partials/fx-approx) is off: the store sells and charges in USD only. */%>
 </head>
 
 <body id="gogetcards-body" class="<%= typeof bodyClass !== 'undefined' ? bodyClass : '' %>">
