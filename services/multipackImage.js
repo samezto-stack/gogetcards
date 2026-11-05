@@ -56,6 +56,12 @@ function versionOf(product) {
 }
 
 async function fetchSource(url) {
+  /* A photo this app hosts itself is read from disk. */
+  const own = String(url).match(/\/images\/products\/([a-z0-9-]+)\.webp/);
+  if (own) {
+    const p = require('./productAsset').masterPath(own[1]);
+    if (p) return fs.readFileSync(p);
+  }
   const u = await assertPublicUrl(productImage.at(url, 1200));
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 15000);

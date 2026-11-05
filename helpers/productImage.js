@@ -72,7 +72,7 @@ function parse(url) {
 /** Whether this URL is one we can ask for a specific size. */
 /* This app's own multipack composites (services/multipackImage) take the
    same ?width= and a ?fmt=webp, so cards and pages get the size they use. */
-const OWN_RESIZABLE = /^\/images\/multipack\/[^/?#]+\.png$/i;
+const OWN_RESIZABLE = /^\/images\/(multipack\/[^/?#]+\.png|products\/[^/?#]+\.webp)$/i;
 function isOwnResizable(url) {
   const parsed = parse(url);
   return !!parsed && OWN_RESIZABLE.test(parsed.pathname)

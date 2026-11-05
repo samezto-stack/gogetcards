@@ -2401,6 +2401,21 @@ router.get('/images/multipack/:slug.png', async (req, res) => {
   }
 });
 
+/* ── Self-hosted product photos (services/productAsset) ── */
+router.get('/images/products/:slug.webp', async (req, res) => {
+  try {
+    const out = await require('../services/productAsset').render(String(req.params.slug), {
+      width: parseInt(req.query.width, 10) || undefined,
+      fmt: String(req.query.fmt || 'webp'),
+    });
+    if (!out) return notFound(res);
+    res.set('Cache-Control', 'public, max-age=31536000, immutable').type(out.type).send(out.buf);
+  } catch (err) {
+    console.error('[product asset]', req.params.slug, err.message);
+    return notFound(res);
+  }
+});
+
 /* ── llms.txt ───────────────────────────────────────────
  * A plain-text summary for AI search and shopping assistants (ChatGPT,
  * Gemini, Perplexity, Claude, Copilot): what the store sells, the terms

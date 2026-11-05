@@ -277,7 +277,11 @@ function images(product) {
     .map(absolute)
     /* Google wants a large, sharp image; the hosted links carry width=800.
        Shopify returns the original when it is smaller, never an upscale. */
-    .map((u) => productImage.at(u, 1600));
+    .map((u) => productImage.at(u, 1600))
+    /* Photos this app hosts are served as WebP for browsers; the feed asks
+       for JPEG on white (Google's preferred background, a tenth of the
+       bytes of a transparent PNG at this size). */
+    .map((u) => (/\/images\/products\//.test(u) ? u.replace('fmt=webp', 'fmt=jpeg') : u));
   return [...new Set(all)];
 }
 
