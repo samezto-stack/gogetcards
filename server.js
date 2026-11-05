@@ -150,30 +150,8 @@ require('./services/fx').start();
    styles, images, fonts and pixels load exactly as before.
    FOLLOW-UP (needs testing): move to a nonce-based strict script-src.
    See docs/security-audit.md. */
-/* ── Cross-site write guard ────────────────────────────────
-   Both cookies are SameSite=Lax, which is what stops a cross-site form
-   post from carrying a session today. That is one cookie attribute away
-   from every admin and account POST being forgeable, so the request's
-   own provenance is checked as well: a browser that says the request
-   came from another site (Sec-Fetch-Site) or sends a foreign Origin is
-   refused. Server-to-server callers send neither header and pass; the
-   few endpoints that are legitimately cross-origin are exempt. */
-const CROSS_SITE_OK = [/^\/api\/checkout\/(payment-recorded|session|confirm-arrival)/, /^\/email\/unsubscribe\//, /^\/api\/track-order/, /^\/feed\//];
-app.use((req, res, next) => {
-  if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') return next();
-  if (CROSS_SITE_OK.some((re) => re.test(req.path))) return next();
-  const sfs = req.get('Sec-Fetch-Site');
-  if (sfs && sfs !== 'same-origin' && sfs !== 'same-site' && sfs !== 'none') return res.status(403).send('Forbidden');
-  const origin = req.get('Origin');
-  if (origin) {
-    let host = '';
-    try { host = new URL(origin).hostname; } catch (_) { return res.status(403).send('Forbidden'); }
-    const own = new Set([req.hostname, `www.${req.hostname}`, 'localhost', '127.0.0.1']);
-    try { own.add(new URL(require('./config/site').origin()).hostname); } catch (_) { /* no SITE_URL */ }
-    if (!own.has(host)) return res.status(403).send('Forbidden');
-  }
-  next();
-});
+/* ── Cross-site write guard (middleware/crossSiteGuard) ──── */
+app.use(require('./middleware/crossSiteGuard'));
 
 app.use(helmet({
   contentSecurityPolicy: {
