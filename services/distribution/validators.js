@@ -33,11 +33,18 @@ const issue = (code, severity, message, why, fix, field) =>
 const TCG_TYPES = [
   { id: 'case',        label: 'Case / Display',      test: /\b(case|master case|display case|shipper)\b/i },
   { id: 'booster-box', label: 'Booster Box',         test: /\bbooster box\b|\bdisplay box\b/i },
+  /* Sports card configurations (Topps, Panini, Bowman). A "Jumbo Hobby
+     Box" and a "Mega Box" are hobby-channel and retail-channel boxes of
+     the same set, which is the first thing a sports buyer filters on. */
+  { id: 'hobby-box',   label: 'Hobby / Retail Box',  test: /\bhobby box\b|\bjumbo box\b|\bmega box\b|\bblaster box\b|\bhanger box\b|\bcello box\b/i },
   { id: 'etb',         label: 'Elite Trainer Box',   test: /\belite trainer box\b|\betb\b/i },
-  { id: 'bundle',      label: 'Bundle',              test: /\bbundle\b|\bcollection box\b|\bgift set\b/i },
+  { id: 'trove',       label: 'Illumineer’s Trove', test: /\btrove\b/i },
+  { id: 'premium',     label: 'Premium Collection',  test: /\b(ultra[- ]premium|premium|figure|special) collection\b/i },
+  { id: 'bundle',      label: 'Bundle',              test: /\bbundle\b|\bcollection box\b|\bgift set\b|\bcollection\b/i },
   { id: 'tin',         label: 'Tin',                 test: /\btin\b/i },
-  { id: 'starter',     label: 'Starter / Structure', test: /\b(starter deck|structure deck|theme deck|battle deck)\b/i },
-  { id: 'pack',        label: 'Booster Pack',        test: /\bbooster pack\b|\bpack\b/i },
+  { id: 'prerelease',  label: 'Prerelease Kit',      test: /\bprerelease\b|\bbuild (&|and) battle\b/i },
+  { id: 'starter',     label: 'Starter / Deck',      test: /\b(starter deck|structure deck|theme deck|battle deck|commander deck|draft night|jumpstart|deck)\b/i },
+  { id: 'pack',        label: 'Booster Pack',        test: /\bbooster pack\b|\bpack\b|\bblister\b/i },
   { id: 'single',      label: 'Single Card',         test: /\bsingle\b|\bgraded\b|\bpsa\b|\bbgs\b/i },
 ];
 
