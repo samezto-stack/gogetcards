@@ -348,12 +348,12 @@ function validate(product, opts = {}) {
         'Google accepts the preorder availability value only with an availability_date. Without one the item is disapproved, and the listing cannot tell a shopper when they would receive it.',
         `Set Release date on the product. The free-text "ships" window is not a date and cannot be sent. If this is not actually a preorder, clear ${preorderSource} instead.`,
         'releaseDate'));
-    } else if (new Date(rel.iso) < new Date()) {
-      issues.push(issue('preorder_past_date', 'error',
-        `Release date ${rel.display} has passed but this is still sent as a preorder`,
-        'Google treats a preorder whose availability_date is in the past as incorrect availability. (config/preorder.isPreorder should already have turned this into in_stock; reaching here means a caller bypassed it.)',
-        `Either move the date, or clear ${preorderSource} now the product has released.`,
-        'releaseDate'));
+    } else if (preorderCfg.awaitingStock(product)) {
+      issues.push(issue('preorder_awaiting_stock', 'warning',
+        `Released ${rel.display}, still marked preorder`,
+        'The feed sends preorder with an availability date a few business days out, which is accurate while stock is on its way. Once it arrives, the listing should say in stock.',
+        `Clear ${preorderSource} when the stock arrives.`,
+        'preorder'));
     } else if (new Date(rel.iso) > new Date(Date.now() + 365 * 86400e3)) {
       issues.push(issue('availability_date_too_far', 'error',
         `Release date ${rel.display} is more than a year away`,

@@ -76,26 +76,58 @@ const TERMS = [
 ];
 
 /**
- * Is this product a preorder TODAY?
+ * Is this product a preorder?
  *
- * The flag (or the "preorder" tag) says the product was listed as a
- * preorder; the release date says whether it still is. Nothing used to
- * clear the flag when the date passed, so the day after release the feed
- * still sent `preorder` with a past availability_date (a Merchant Center
- * availability error) and the page still said "not yet released". With
- * 37 releases landing in one fortnight that is not a manual job.
- *
- * Released = the publisher's date has arrived in the warehouse's own
- * timezone. From that day the product reads in stock everywhere; stock
- * and `available` are then the honest levers.
+ * THE FLAG IS THE TRUTH, NOT THE CALENDAR. A preorder becomes in stock when
+ * the stock is in the building, which is something only the owner knows:
+ * a publisher's release day is when distributors ship, not when boxes
+ * arrive here. Flipping to "In Stock" at midnight on release day made the
+ * page say In Stock (with an Add to Cart and "Ships today") while the
+ * stock was still on a truck. The owner unticks Preorder when it lands;
+ * until then it is a preorder everywhere: page, cards, feed, schema.
  */
-function isPreorder(product, now = new Date()) {
-  const flagged = !!(product && (product.preorder || (product.tags || []).includes('preorder')));
-  if (!flagged) return false;
+function isPreorder(product) {
+  return !!(product && (product.preorder || (product.tags || []).includes('preorder')));
+}
+
+function todayIso(now = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: WAREHOUSE_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+}
+
+/** Released (the date has arrived) but still marked preorder: awaiting stock. */
+function awaitingStock(product, now = new Date()) {
+  if (!isPreorder(product)) return false;
   const info = releaseInfo(product);
-  if (!info.hasDate) return true;
-  const today = new Intl.DateTimeFormat('en-CA', { timeZone: WAREHOUSE_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
-  return info.iso > today;
+  return info.hasDate && info.iso <= todayIso(now);
+}
+
+function addBusinessDays(iso, n) {
+  const d = new Date(`${iso}T12:00:00Z`);
+  let left = n;
+  while (left > 0) {
+    d.setUTCDate(d.getUTCDate() + 1);
+    const wd = d.getUTCDay();
+    if (wd !== 0 && wd !== 6) left--;
+  }
+  return d.toISOString().split('T')[0];
+}
+
+/**
+ * The date a preorder is expected to be available to ship, as an ISO day.
+ * Before release: the release date. After release, while stock is still
+ * awaited: today plus the stated dispatch window, so the feed and the
+ * schema never carry an availability_date in the past (Google treats that
+ * as wrong availability) and say honestly that it is days away.
+ */
+function expectedAvailability(product, now = new Date()) {
+  const info = releaseInfo(product);
+  if (!info.hasDate) return null;
+  const today = todayIso(now);
+  return info.iso > today ? info.iso : addBusinessDays(today, AFTER_RELEASE);
+}
+
+function displayIso(iso) {
+  return new Date(`${iso}T12:00:00Z`).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
 }
 
 /** Start of today in the warehouse timezone, for database filters. */
@@ -134,9 +166,10 @@ function releaseInfo(product) {
  */
 function shortLine(product) {
   const info = releaseInfo(product);
+  if (awaitingStock(product)) return `Preorder — released ${info.display}, awaiting stock`;
   if (info.hasDate) return `Preorder — releases ${info.display}`;
   if (info.window) return `Preorder — ships ${info.window}`;
   return 'Preorder — release date to be confirmed';
 }
 
-module.exports = { TERMS, releaseInfo, shortLine, isPreorder, releasedCutoff, AFTER_RELEASE, DISPATCH_SHORT };
+module.exports = { TERMS, releaseInfo, shortLine, isPreorder, awaitingStock, expectedAvailability, displayIso, releasedCutoff, AFTER_RELEASE, DISPATCH_SHORT };

@@ -251,7 +251,10 @@ function description(product) {
      moves and reaches Google verbatim. The import wrote "Sold in packs of
      N: N units for $X, $Y each."; the pack is stated by `multipack` and
      the title instead. */
-  const base = plainText(product.description).replace(/\s*Sold in packs of \d+:[^.]*\$[\d.,]+[^.]*\.\s*/g, ' ').trim();
+  const base = plainText(product.description)
+    .replace(/\s*Sold in packs of \d+:[^.]*\$[\d.,]+[^.]*\.\s*/g, ' ')
+    .replace(/\s*Preorder\. Expected release[^]*?(full refund any time before dispatch\.|dispatch\.)/g, ' ')
+    .trim();
   /* A description built only from marketing copy loses the facts a
      Shopping shopper filters on. These are appended from real fields, and
      only when they are set, so nothing is invented. */
@@ -263,7 +266,9 @@ function description(product) {
   if (parseInt(product.packSize, 10) > 1) facts.push(`Sold as a pack of ${parseInt(product.packSize, 10)}; the price is for the pack`);
   if (preorderCfg.isPreorder(product)) {
     const rel = preorderCfg.releaseInfo(product);
-    facts.push(rel.hasDate ? `Preorder, releases ${rel.display}` : 'Preorder, not yet released');
+    facts.push(preorderCfg.awaitingStock(product)
+      ? `Preorder, released ${rel.display}, expected to ship by ${preorderCfg.displayIso(preorderCfg.expectedAvailability(product))}`
+      : (rel.hasDate ? `Preorder, releases ${rel.display}` : 'Preorder, not yet released'));
   }
   const tail = facts.join('. ') + '.';
   return plainText(base ? `${base}\n\n${tail}` : tail);
@@ -415,7 +420,7 @@ function build(product, { channel = 'google', market = null, country = null } = 
        barcode is allowed. Empty for a standalone product. */
     ...variants.feedFields(product),
 
-    ...(isPreorder && rel.hasDate ? { availabilityDate: `${rel.iso}T00:00:00Z` } : {}),
+    ...(isPreorder && rel.hasDate ? { availabilityDate: `${preorderCfg.expectedAvailability(product)}T00:00:00Z` } : {}),
     ...(m.shippingLabel ? { shippingLabel: m.shippingLabel } : {}),
     ...(m.taxCategory ? { taxCategory: m.taxCategory } : {}),
     ...(m.isBundle ? { isBundle: true } : {}),

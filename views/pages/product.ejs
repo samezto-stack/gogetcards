@@ -157,12 +157,19 @@
         <div class="pp__preorder-box">
           <div>
             <p class="pp__preorder-head">
-              Preorder<% if (rel.hasDate) { %> — releases <%= rel.display %><% } else if (rel.window) { %> — ships <%= rel.window %><% } %>
+              <% var _awaiting = preorder.awaitingStock(product); %>
+              Preorder<% if (_awaiting) { %> — released <%= rel.display %>, awaiting stock<% } else if (rel.hasDate) { %> — releases <%= rel.display %><% } else if (rel.window) { %> — ships <%= rel.window %><% } %>
             </p>
             <p class="pp__preorder-sub">
-              <strong>Your card is charged today.</strong> This item has not been released yet and
-              ships on the publisher's release date, or within <%= preorder.AFTER_RELEASE %> business days of it.
-              <% if (rel.hasDate && rel.window) { %>Expected dispatch <%= rel.window %>.<% } %>
+              <% if (_awaiting) { %>
+                <strong>Your card is charged today.</strong> This set has been released and our
+                allocation is on its way from the distributor; it has not reached us yet.
+                Expected to ship by <%= preorder.displayIso(preorder.expectedAvailability(product)) %>.
+              <% } else { %>
+                <strong>Your card is charged today.</strong> This item has not been released yet and
+                ships on the publisher's release date, or within <%= preorder.AFTER_RELEASE %> business days of it.
+                <% if (rel.hasDate && rel.window) { %>Expected dispatch <%= rel.window %>.<% } %>
+              <% } %>
               Cancel any time before dispatch for a full refund.
             </p>
             <button type="button" class="pp__preorder-toggle" aria-expanded="false" aria-controls="preorder-terms" data-preorder-toggle>
@@ -498,7 +505,20 @@
         <% if (product.setCode) { %>
           <div class="pp__spec-row"><dt>Set code</dt><dd><%= product.setCode %></dd></div>
         <% } %>
-        <% (product.specs || []).forEach(function(spec) { %>
+        <%/* Free-form spec rows, minus any whose label is already a row above
+             or below (Language, Edition, Set code, Type, Availability,
+             Release date, SKU, GTIN, MPN), and minus exact repeats. The
+             import wrote some of those facts into both places, so the page
+             said "Language: English" twice. */%>
+        <% var _seenSpec = { 'type': 1, 'availability': 1, 'release date': 1, 'sku': 1, 'barcode (gtin)': 1, 'gtin': 1, 'upc': 1, 'mpn': 1, 'manufacturer part no.': 1 };
+           if (product.language) _seenSpec['language'] = 1;
+           if (product.edition) _seenSpec['edition'] = 1;
+           if (product.setCode) { _seenSpec['set code'] = 1; _seenSpec['set'] = 1; } %>
+        <% (product.specs || []).filter(function (spec) {
+             var k = String(spec && spec.label || '').trim().toLowerCase();
+             if (!k || _seenSpec[k]) return false;
+             _seenSpec[k] = 1; return true;
+           }).forEach(function(spec) { %>
           <div class="pp__spec-row">
             <dt><%= spec.label %></dt>
             <dd><%= spec.value %></dd>
@@ -522,7 +542,7 @@
         <div class="pp__spec-row">
           <dt>Availability</dt>
           <dd>
-            <% if (!product.available) { %>Sold Out<% } else if (isPreorder) { %>Preorder — not yet released<% } else { %>In Stock<% } %>
+            <% if (!product.available) { %>Sold Out<% } else if (isPreorder && preorder.awaitingStock(product)) { %>Preorder — released, awaiting stock<% } else if (isPreorder) { %>Preorder — not yet released<% } else { %>In Stock<% } %>
           </dd>
         </div>
         <% if (isPreorder && rel.hasDate) { %>

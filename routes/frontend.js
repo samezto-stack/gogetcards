@@ -249,7 +249,7 @@ router.get('/', async (req, res) => {
   }
   try {
     const featuredProducts = await Product.find({ featured: true, available: true }).limit(4).lean();
-    const preorderProducts = await Product.find({ preorder: true, available: true, $or: [{ releaseDate: null }, { releaseDate: { $gte: preorderCfg.releasedCutoff() } }] }).limit(2).lean();
+    const preorderProducts = await Product.find({ preorder: true, available: true }).limit(2).lean();
     renderPage(res, 'home', {
       pageTitle: 'GoGetCards — Premium Sealed TCG Marketplace',
       /* From config/catalog.js, so the snippet Google shows names exactly
@@ -700,6 +700,22 @@ router.post('/api/checkout/payment-recorded', express.json({ limit: '32kb' }), a
  * the count of each word matters. Used only to recognise a slug that was
  * rebuilt from the same product title in a different order.
  */
+/**
+ * Sentences the import wrote into stored descriptions that are stated
+ * live elsewhere on the page, from the product's current data: the pack
+ * price ("Sold in packs of 4: 4 units for $149.97, $37.49 each.") and the
+ * preorder status ("Preorder. Expected release 2026-11-06; ships on
+ * release day ..."). Stored copies go stale the day the price or the
+ * status changes, and then contradict the page around them.
+ */
+function cleanDescription(html) {
+  return String(html)
+    .replace(/<p>\s*Sold in packs of \d+:[^<]*<\/p>/g, '')
+    .replace(/\s*Sold in packs of \d+:[^.]*\$[\d.,]+[^.]*\./g, '')
+    .replace(/<p>\s*Preorder\.[^<]*<\/p>/g, '')
+    .replace(/\s*Preorder\. Expected release[^<]*?(full refund any time before dispatch\.|dispatch\.)/g, '');
+}
+
 function slugSignature(slug) {
   return String(slug || '').toLowerCase().split('-').filter(Boolean).sort().join('-');
 }
@@ -887,8 +903,9 @@ router.get('/products/:slug', async (req, res) => {
     const rel = preorderCfg.releaseInfo(product);
     const isPreorderItem = preorderCfg.isPreorder(product);
     const oneYearOut = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
-    const priceValidUntil = (isPreorderItem && rel.hasDate && new Date(rel.iso) < oneYearOut)
-      ? rel.iso
+    const availIso = isPreorderItem ? preorderCfg.expectedAvailability(product) : null;
+    const priceValidUntil = (availIso && new Date(availIso) < oneYearOut)
+      ? availIso
       : oneYearOut.toISOString().split('T')[0];
 
     const availability = !product.available
@@ -982,7 +999,7 @@ router.get('/products/:slug', async (req, res) => {
                than omitting it: it becomes a date the store is held to.
                `preorderShips` ("Q2 2026") is deliberately not used here —
                it is not a date. */
-            ...(isPreorderItem && rel.hasDate ? { availabilityStarts: rel.iso, availabilityDate: rel.iso } : {}),
+            ...(availIso ? { availabilityStarts: availIso, availabilityDate: availIso } : {}),
             seller: { '@type': 'Organization', '@id': `${origin}/#organization`, name: 'GoGetCards' },
             // Driven by config/shipping.js, which the announcement bar
             // reads too. Previously hardcoded '0' for every product, so a
@@ -1096,7 +1113,7 @@ router.get('/products/:slug', async (req, res) => {
 
     /* The import wrote the pack price into descriptions; it is rendered
        live from the price instead (and stripped from the feed the same way). */
-    if (product.description) product.description = String(product.description).replace(/<p>\s*Sold in packs of \d+:[^<]*<\/p>/g, '').replace(/\s*Sold in packs of \d+:[^.]*\$[\d.,]+[^.]*\./g, '');
+    if (product.description) product.description = cleanDescription(product.description);
     renderPage(res, 'product', {
       caseOffer,
       pageTitle: variantTitle,
@@ -1147,8 +1164,7 @@ router.get('/collection/:handle', async (req, res) => {
     if (handle === 'all') {
       query = {};
     } else if (handle === 'preorders') {
-      /* Still unreleased only: a preorder whose date has passed is stock. */
-      query = { preorder: true, $or: [{ releaseDate: null }, { releaseDate: { $gte: preorderCfg.releasedCutoff() } }] };
+      query = { preorder: true };
       collectionTitle = 'Preorders';
       collectionDescription = 'Lock in your price today. We ship directly from our distributor on release day.';
     } else {
@@ -1243,7 +1259,7 @@ router.get('/collection/:handle', async (req, res) => {
     };
     const clauses = [];
     if (filters.avail[0] === 'in-stock') clauses.push({ preorder: { $ne: true }, available: true });
-    if (filters.avail[0] === 'preorder') clauses.push({ preorder: true, $or: [{ releaseDate: null }, { releaseDate: { $gte: preorderCfg.releasedCutoff() } }] });
+    if (filters.avail[0] === 'preorder') clauses.push({ preorder: true });
     if (filters.line.length) clauses.push({ collections: { $in: filters.line } });
     if (filters.type.length) clauses.push({ productType: { $in: filters.type } });
     if (filters.lang.length) clauses.push({ language: { $in: filters.lang } });
