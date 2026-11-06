@@ -885,7 +885,7 @@ router.get('/products/:slug', async (req, res) => {
     const packImage = require('../services/multipackImage').urlFor(product, site.origin());
     if (packImage) productImages.unshift(packImage);
     const cleanDesc = product.description
-      ? product.description.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().substring(0, 500)
+      ? cleanDescription(product.description).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().substring(0, 500)
       : `${variantTitle}. Factory sealed, sourced through authorized distribution.`;
 
     /* Availability, and the two dates that qualify it.
