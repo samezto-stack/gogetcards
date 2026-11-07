@@ -2527,3 +2527,7 @@ function parseProductBody(body) {
 
 // eslint-disable-next-line no-unused-vars
 module.exports = router;
+/* Exposed for the CSV-import dry run / tests: the exact body→model mapping
+   the import route applies before writing. Keeping it on the router export
+   avoids a second code path drifting from the real one. */
+module.exports.parseProductBody = parseProductBody;
