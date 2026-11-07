@@ -39,7 +39,7 @@ const FIXTURES = [
   { _id: 'p5', title: 'Pokémon TCG 30th Celebration Booster Bundle – 6 Booster Packs', slug: 'celebration-bundle',
     price: 19996, packSize: 3, imageUrl: 'https://example.com/b.jpg', images: [],
     description: '<p>Six booster packs in a bundle, factory sealed and ready to open.</p><p>Sold in packs of 3: 3 units for $199.96, $66.65 each.</p>',
-    vendor: 'The Pokémon Company', brand: 'The Pokémon Company', productType: 'Booster Bundle', tags: ['launch-30'],
+    vendor: 'The Pokémon Company', brand: 'The Pokémon Company', productType: 'Booster Bundle', tags: ['ads-launch', 'pokemon'],
     available: true, sku: 'GGC-30TH-BB', gtin: '', mpn: '',
     language: 'English', preorder: false, releaseDate: null },
   /* Deliberately broken: no description, no image. Must NOT appear. */
@@ -113,7 +113,9 @@ const server = http.createServer(app).listen(0, async () => {
     && /<g:additional_image_link>https:\/\/example\.com\/b\.jpg<\/g:additional_image_link>/.test(packItem));
   check('pack: the stale price sentence is out of the description, the pack fact is in',
     !/\$199\.96/.test(packItem) && /Sold as a pack of 3/.test(packItem));
-  check('pack: custom labels', /<g:custom_label_0>launch_30<\/g:custom_label_0>/.test(packItem) && /<g:custom_label_1>multipack<\/g:custom_label_1>/.test(packItem));
+  check('pack: custom labels', /<g:custom_label_0>ads_launch<\/g:custom_label_0>/.test(packItem) && /<g:custom_label_1>multipack<\/g:custom_label_1>/.test(packItem)
+    && /<g:custom_label_2>pokemon<\/g:custom_label_2>/.test(packItem) && /<g:custom_label_3>price_050_199<\/g:custom_label_3>/.test(packItem)
+    && /<g:custom_label_4>in_stock<\/g:custom_label_4>/.test(packItem));
   check('carries free shipping', /<g:price>0\.00 USD<\/g:price>/.test(xml.body));
   check('carries the GTIN', /<g:gtin>4570118083104<\/g:gtin>/.test(xml.body));
   check('no admin data leaks', !/merchantId|refreshToken|quota|lastSyncHash/i.test(xml.body));

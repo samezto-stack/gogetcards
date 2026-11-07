@@ -421,6 +421,11 @@ async function boot() {
        owner maintains by hand; SHOW_STOCK_COUNTS=false hides every number. */
     res.locals.showStockCounts = process.env.SHOW_STOCK_COUNTS !== 'false';
     res.locals.googleAdsPurchaseLabel = process.env.GOOGLE_ADS_PURCHASE_LABEL || '';
+    /* Merchant Center account id (digits only). Set, it turns the purchase
+       conversion into a "conversion with cart data": Google can then report
+       which advertised product was bought, in what quantity, against the
+       feed offer id. Unset, the conversion still fires, without the cart. */
+    res.locals.googleMerchantId = /^\d{5,15}$/.test(String(process.env.GOOGLE_MERCHANT_ID || '')) ? String(process.env.GOOGLE_MERCHANT_ID) : '';
     // Free-shipping copy comes from config/shipping.js, the same module
     // the Product Offer schema uses, so the promise shown to customers
     // and the rate declared to Google can never drift apart.

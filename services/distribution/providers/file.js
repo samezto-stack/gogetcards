@@ -75,6 +75,9 @@ function itemXml(p) {
     ...(p.adult ? [['g:adult', 'yes']] : []),
     ...(p.customLabel0 ? [['g:custom_label_0', p.customLabel0]] : []),
     ...(p.customLabel1 ? [['g:custom_label_1', p.customLabel1]] : []),
+    ...(p.customLabel2 ? [['g:custom_label_2', p.customLabel2]] : []),
+    ...(p.customLabel3 ? [['g:custom_label_3', p.customLabel3]] : []),
+    ...(p.customLabel4 ? [['g:custom_label_4', p.customLabel4]] : []),
     ...(p.excludedDestinations || []).map((d) => ['g:excluded_destination', d]),
   ].filter(([, v]) => v !== undefined && v !== null && v !== '');
 

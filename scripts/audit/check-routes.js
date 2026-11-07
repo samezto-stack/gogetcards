@@ -67,6 +67,8 @@ app.use((req, res, next) => {
     metaPixelId: '',
     googleAdsId: '',
     googleAdsPurchaseLabel: '',
+    googleMerchantId: '',
+    variants: require(path.join(ROOT, 'services/variants')),
     fx: require(path.join(ROOT, 'services/fx')).snapshot(),
     shippingCopy: shippingCfg.copy,
     company: require(path.join(ROOT, 'config/company')),

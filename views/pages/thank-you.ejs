@@ -639,13 +639,18 @@
     var key = 'ggc_purchase_' + <%- jsonForScript(String(gaOrder.orderId)) %>;
     try { if (sessionStorage.getItem(key)) return; sessionStorage.setItem(key, '1'); } catch (e) {}
     if (typeof gtag !== 'function') return;
+    /* send_to the GA4 property only: without it a 'purchase' event is
+       delivered to every configured tag, including the Ads tag, which has
+       its own conversion below. item_id is the feed offer id so GA4,
+       Google Ads and Merchant Center all name the product the same way. */
     gtag('event', 'purchase', <%- jsonForScript({
+      send_to: ga4Id,
       transaction_id: String(gaOrder.orderId),
       value: (Number(gaOrder.totalPrice) || 0) / 100,
       currency: gaOrder.currency || 'USD',
       shipping: 0,
       items: [{
-        item_id: gaOrder.productSlug || String(gaOrder.orderId),
+        item_id: (typeof adsItemId !== 'undefined' && adsItemId) || gaOrder.productSlug || String(gaOrder.orderId),
         item_name: (Array.isArray(gaOrder.products) && gaOrder.products[0]) ? String(gaOrder.products[0]) : (gaOrder.productSlug || ''),
         quantity: Math.max(1, parseInt(gaOrder.quantity, 10) || 1),
         price: Math.round(((Number(gaOrder.totalPrice) || 0) / Math.max(1, parseInt(gaOrder.quantity, 10) || 1))) / 100,
@@ -655,13 +660,40 @@
 </script>
 <% } %>
 <% if (gaFire) { %>
+<%
+  /* Conversion WITH CART DATA when the Merchant Center id is configured:
+     the advertised offer id, the quantity bought and the unit price, so
+     Google Ads can report revenue per product and units per order (the
+     $49.99 multi-unit test is read from exactly this). The order is one
+     product per checkout, so there is one line. Every figure is the
+     server-confirmed order's; nothing comes from the URL. */
+  const gaQty = Math.max(1, parseInt(gaOrder.quantity, 10) || 1);
+  const gaValue = (Number(gaOrder.totalPrice) || 0) / 100;
+  const gaMerchant = typeof googleMerchantId !== 'undefined' ? googleMerchantId : '';
+  const gaItemId = typeof adsItemId !== 'undefined' ? adsItemId : '';
+  const gaMkt = String(gaOrder.market || 'US').toUpperCase();
+  const gaConv = {
+    send_to: gaId + '/' + gaLabel,
+    value: gaValue,
+    currency: gaOrder.currency || 'USD',
+    transaction_id: String(gaOrder.orderId),
+  };
+  if (gaNewCustomer !== null) gaConv.new_customer = gaNewCustomer;
+  if (gaMerchant && gaItemId) {
+    gaConv.aw_merchant_id = gaMerchant;
+    gaConv.aw_feed_country = gaMkt;
+    gaConv.aw_feed_language = 'en';
+    gaConv.items = [{ id: gaItemId, quantity: gaQty, price: Math.round((gaValue / gaQty) * 100) / 100 }];
+  }
+%>
 <script>
-  gtag('event', 'conversion', {
-    send_to: '<%= gaId %>/<%= gaLabel %>',
-    value: <%= (Number(gaOrder.totalPrice) || 0) / 100 %>,
-    currency: '<%= gaOrder.currency || 'USD' %>',
-    transaction_id: '<%= gaOrder.orderId %>'<% if (gaNewCustomer !== null) { %>,
-    new_customer: <%= gaNewCustomer %><% } %>
-  });
+  /* Guarded per browser like the GA4 event; Google also de-duplicates on
+     transaction_id, so a reload is counted once either way. */
+  (function () {
+    var key = 'ggc_ads_conv_' + <%- jsonForScript(String(gaOrder.orderId)) %>;
+    try { if (sessionStorage.getItem(key)) return; sessionStorage.setItem(key, '1'); } catch (e) {}
+    if (typeof gtag !== 'function') return;
+    gtag('event', 'purchase', <%- jsonForScript(gaConv) %>);
+  })();
 </script>
 <% } %>

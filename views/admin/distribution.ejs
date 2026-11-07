@@ -144,13 +144,16 @@
              nothing else under review" path. */%>
         <div class="admin-panel__foot" style="border-top:1px solid var(--admin-border,#e5e7eb)">
           <form method="POST" action="/admin/distribution/select-launch" style="display:inline"
-                onsubmit="return confirm('Send ONLY the launch-30 products to Google and hold back everything else?');">
+                onsubmit="return confirm('Add every product tagged ads-launch to the Google selection? Products already selected stay selected.');">
             <input type="hidden" name="channel" value="<%= channel %>">
-            <button class="admin-btn">Send only the launch set (launch-30) to Google</button>
+            <button class="admin-btn">Add the ads set (ads-launch) to Google</button>
           </form>
           <span class="small muted">
-            Sets “only the products I choose” and selects exactly the products tagged
-            <code>launch-30</code>. Use this to put only the products you advertise in the feed.
+            Sets “only the products I choose” and adds every product tagged
+            <code>ads-launch</code> to it. Nothing already selected is removed, so products
+            Google has already reviewed keep their history. Only <code>ads-launch</code>
+            products carry <code>custom_label_0 = ads_launch</code>, which is what the paid
+            campaigns filter on.
           </span>
         </div>
       </section>

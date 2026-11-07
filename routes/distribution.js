@@ -297,28 +297,32 @@ router.post('/selection-mode', requireAuth, async (req, res) => {
 /**
  * One click: feed only the launch set.
  *
- * Switches the channel to "selected" and includes exactly the products
- * tagged `launch-30`, holding back everything else. This is the deliberate
- * "advertise a short, clean list" path — only the products that will run
- * ads reach Google, so nothing else is under review or can trip a
- * misrepresentation finding. Idempotent: run it again after the tags change
- * and the feed matches the tag set again. lastSyncHash is cleared so the
- * next sync actually re-evaluates each product.
+ * Switches the channel to "selected" and ADDS the products tagged
+ * `ads-launch` (the validated paid-Shopping set) to it.
+ *
+ * ADDITIVE, NOT A RESET. It used to also untick every other product, which
+ * would pull items Merchant Center had already reviewed and approved out of
+ * the account — they would come back later as brand-new offers with no
+ * history. Products already selected stay selected; to take one out, untick
+ * it on its own row. (In "selected" mode the feed submits ads-launch
+ * products even without this click — see feedBuilder.isExcluded — so this
+ * mainly makes the choice visible in the panel.) lastSyncHash is cleared so
+ * the next sync re-evaluates each product.
  */
+const SELECTABLE_CHANNELS = ['google'];
+
 router.post('/select-launch', requireAuth, async (req, res) => {
   try {
-    const channel = req.body.channel || 'google';
-    const tag = 'launch-30';
+    /* The channel becomes part of a field path below, so it is checked
+       against a fixed list rather than trusted from the body. */
+    const channel = SELECTABLE_CHANNELS.includes(String(req.body.channel)) ? String(req.body.channel) : 'google';
+    const tag = 'ads-launch';
     const cfg = await getConfig(channel);
     cfg.selectionMode = 'selected';
     await cfg.save();
     const inc = await Product.updateMany(
       { tags: tag },
       { $set: { [`merchant.included.${channel}`]: true, 'merchant.lastSyncHash': '' } },
-    );
-    await Product.updateMany(
-      { tags: { $ne: tag } },
-      { $set: { [`merchant.included.${channel}`]: false, 'merchant.lastSyncHash': '' } },
     );
     res.redirect(`/admin/distribution?channel=${channel}&bulk=${inc.modifiedCount}&action=send`);
   } catch (err) {

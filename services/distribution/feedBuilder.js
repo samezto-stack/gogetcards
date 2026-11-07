@@ -446,14 +446,20 @@ function build(product, { channel = 'google', market = null, country = null } = 
     ...(m.adult ? { adult: true } : {}),
     ...(m.excludedDestinations && m.excludedDestinations.length
       ? { excludedDestinations: m.excludedDestinations } : {}),
-    /* Campaign grouping. The whole catalogue is listed; ads are run on a
-       chosen set. The "launch-30" tag (set in the import CSV) marks that
-       set; everything else is catalog_only, which a Shopping campaign can
-       exclude. Both values travel in the feed so they survive a re-fetch. */
-    customLabel0: (product.tags || []).some((t) => /^launch[-_]30$/i.test(String(t))) ? 'launch_30' : 'catalog_only',
-    /* Pack-sold or single: a campaign can bid differently, or leave packs
-       out, without touching the product data. */
-    customLabel1: parseInt(product.packSize, 10) > 1 ? 'multipack' : 'single',
+    /* ── Campaign labels (see adLabels below) ──
+       0  inclusion: ads_launch | catalog_only — the ONE label a paid
+          campaign filters on, so only the validated ad set can spend.
+       1  pack: multipack | single (unchanged).
+       2  campaign: pokemon | mtg | one_piece | lorcana | sports — derived
+          from the product line, so a product can only ever match one
+          category campaign and nothing is typed by hand.
+       3  price tier: price_049 | price_050_199 | price_200_449 |
+          price_450_plus — the bid subdivision, derived from this row's
+          price, so a repricing moves the product to the right group.
+       4  availability: in_stock | preorder | backorder | out_of_stock —
+          derived from the same state as `availability`, so a preorder
+          gets its own bid and moves to in_stock on release day by itself. */
+    ...adLabels(product, local.amount, local.available === false ? 'OUT_OF_STOCK' : availability(product)),
     /* Unit pricing: Google shows "US$66.65 / ct" beside the pack price in
        the ad, which is the per-unit figure a shopper compares on. "ct"
        (count) is Google's unit for pieces. */
@@ -490,9 +496,54 @@ function hash(payload) {
  *              product is therefore not advertised until somebody says so,
  *              which is the safe direction for this mode to fail in.
  */
+/* ── Paid-advertising labels ─────────────────────────────────────────
+   THE AD SET IS A TAG, NOT A CHECKBOX. `ads-launch` on a product (set by
+   the import CSV) puts it in the paid Shopping set; everything else is
+   catalog_only and a campaign filtered on custom_label_0 = ads_launch can
+   never spend on it. The old `launch-30` tag is deliberately no longer
+   read: it named a 26-product list that has been superseded, and keeping
+   it live would leave two definitions of "the ad set" at once. */
+const AD_TAG = 'ads-launch';
+const CAMPAIGN_OF_LINE = { pokemon: 'pokemon', mtg: 'mtg', 'one-piece': 'one_piece', lorcana: 'lorcana' };
+
+function hasAdTag(product) {
+  return (product.tags || []).some((t) => String(t).trim().toLowerCase() === AD_TAG);
+}
+
+function campaignOf(product) {
+  const line = require('../../config/catalog').detect(product);
+  if (!line) return 'other';
+  if (line.kind === 'sport') return 'sports';
+  return CAMPAIGN_OF_LINE[line.handle] || 'other';
+}
+
+/** Price tier in this row's own minor units (cents for USD). */
+function priceTier(amountMinor) {
+  const v = Number(amountMinor) || 0;
+  if (v <= 4999) return 'price_049';
+  if (v <= 19999) return 'price_050_199';
+  if (v <= 44999) return 'price_200_449';
+  return 'price_450_plus';
+}
+
+function adLabels(product, amountMinor, availabilityConst) {
+  return {
+    customLabel0: hasAdTag(product) ? 'ads_launch' : 'catalog_only',
+    customLabel1: parseInt(product.packSize, 10) > 1 ? 'multipack' : 'single',
+    customLabel2: campaignOf(product),
+    customLabel3: priceTier(amountMinor),
+    customLabel4: String(availabilityConst || 'IN_STOCK').toLowerCase(),
+  };
+}
+
 function isExcluded(product, channel = 'google', { selectionMode = 'all' } = {}) {
   const m = product.merchant || {};
   if (selectionMode === 'selected') {
+    /* The validated ad set is always submitted: a paid campaign cannot
+       serve a product Merchant Center never received. This is additive —
+       whatever was already hand-selected stays, so nothing Google has
+       already reviewed is pulled out of the account. */
+    if (channel === 'google' && hasAdTag(product)) return false;
     return !(m.included && m.included[channel]);
   }
   return !!(m.excluded && m.excluded[channel]);
@@ -502,6 +553,10 @@ module.exports = {
   build,
   hash,
   isExcluded,
+  adLabels,
+  priceTier,
+  campaignOf,
+  AD_TAG,
   // exported for the preview panel and the validators
   title,
   description,

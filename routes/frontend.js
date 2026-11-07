@@ -2168,10 +2168,27 @@ router.get('/thank-you', async (req, res) => {
       ? await provisionFromOrder(result.order, req, res, { signIn: !!result.isNew })
       : { customer: null, created: false, signedIn: false };
 
+    /* The id the purchase is reported under must be the FEED's offer id
+       (sku || slug, suffixed per market exactly as feedBuilder does), or
+       Google cannot join the sale to the product it advertised. Looked up
+       rather than stored on the order, and never allowed to fail the page. */
+    let adsItemId = '';
+    if (result.ok && result.order && result.order.productSlug) {
+      try {
+        const p = await Product.findOne({ slug: String(result.order.productSlug) }).select('sku slug').lean();
+        const base = (p && (p.sku || p.slug)) || String(result.order.productSlug);
+        const mkt = String(result.order.market || 'US').toUpperCase();
+        adsItemId = mkt === 'US' ? base : `${base}-${mkt.toLowerCase()}`;
+      } catch (e) {
+        console.error('[thank-you] ads item id lookup failed:', e.message);
+      }
+    }
+
     return renderPage(res, 'thank-you', {
       pageTitle: 'Order Confirmed | GoGetCards',
       metaDescription: 'Thank you for your purchase from GoGetCards.',
       ...extras,
+      adsItemId,
       account,
       order_id: result.ok ? result.order.orderId : (req.query.order_id || null),
       value: result.ok ? (result.order.totalPrice / 100).toFixed(2) : (req.query.value || null),
