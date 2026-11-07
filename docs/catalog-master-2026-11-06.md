@@ -10,11 +10,11 @@
 |---|---|---|
 | Products | 142 | 143 (OP-16 master case recreated) |
 | Retailer-created multipacks | 62 | 33 |
-| Prices changed | — | 108 |
+| Prices changed | — | 109 |
 | Products with a GTIN | 68 | 134 (66 newly verified) |
-| Above the lowest credible offer | 18 (previous audit, vs TCGplayer market) | 8 (vs lowest credible *delivered* offer) |
+| Above the lowest credible offer | 18 (previous audit, vs TCGplayer market) | 7 (vs lowest credible *delivered* offer) |
 | 0–10% below | 43 | 9 |
-| 10–20% below | 50 | 9 |
+| 10–20% below | 50 | 10 |
 | 20–25% below | — | 12 |
 | 25–30% below | — | 34 |
 | 30–40% below | — | 50 |
@@ -57,26 +57,26 @@ Of the 62 retailer-created multipacks, **29 become single retail units** (your 2
 | MTG Reality Fracture Multiverse Reforged Commander Deck | 4 × @ $149.97 | 3 × @ $99.98 | $33.33 | single unit cannot be priced on the $49.99 ladder below the $48.00 market: pack of 3 retained (31% below per unit) |
 | MTG Reality Fracture Prerelease Pack | 2 × @ $49.99 | 2 × @ $49.99 | $25.00 | single unit cannot be priced on the $49.99 ladder below the $34.59 market: pack of 2 retained (28% below per unit) |
 | MTG Secrets of Strixhaven Bundle | 3 × @ $99.98 | 2 × @ $49.99 | $25.00 | single unit cannot be priced on the $49.99 ladder below the $43.90 market: pack of 2 retained (43% below per unit) |
-| MTG Secrets of Strixhaven Commander Deck | 3 × @ $99.98 | 2 × @ $49.99 | $25.00 | single unit cannot be priced on the $49.99 ladder below the $39.35 market: pack of 2 retained (36% below per unit) |
-| MTG Secrets of Strixhaven Commander Deck | 3 × @ $99.98 | 2 × @ $49.99 | $25.00 | single unit cannot be priced on the $49.99 ladder below the $34.99 market: pack of 2 retained (29% below per unit) |
-| MTG Secrets of Strixhaven Commander Deck | 3 × @ $99.98 | 2 × @ $49.99 | $25.00 | single unit cannot be priced on the $49.99 ladder below the $34.99 market: pack of 2 retained (29% below per unit) |
-| MTG Secrets of Strixhaven Commander Deck | 6 × @ $249.95 | 3 × @ $99.98 | $33.33 | single unit cannot be priced on the $49.99 ladder below the $49.99 market: pack of 3 retained (33% below per unit) |
+| MTG Secrets of Strixhaven Commander Deck [Lorehold Spirit] | 3 × @ $99.98 | 2 × @ $49.99 | $25.00 | single unit cannot be priced on the $49.99 ladder below the $39.35 market: pack of 2 retained (36% below per unit) |
+| MTG Secrets of Strixhaven Commander Deck [Prismari Artistry] | 3 × @ $99.98 | 2 × @ $49.99 | $25.00 | single unit cannot be priced on the $49.99 ladder below the $34.99 market: pack of 2 retained (29% below per unit) |
+| MTG Secrets of Strixhaven Commander Deck [Quandrix Unlimited] | 3 × @ $99.98 | 2 × @ $49.99 | $25.00 | single unit cannot be priced on the $49.99 ladder below the $34.99 market: pack of 2 retained (29% below per unit) |
+| MTG Secrets of Strixhaven Commander Deck [Witherbloom Pestilence] | 6 × @ $249.95 | 3 × @ $99.98 | $33.33 | single unit cannot be priced on the $49.99 ladder below the $49.99 market: pack of 3 retained (33% below per unit) |
 | MTG Star Trek Bundle | 6 × @ $249.95 | 3 × @ $99.98 | $33.33 | single unit cannot be priced on the $49.99 ladder below the $49.81 market: pack of 3 retained (33% below per unit) |
 | MTG Star Trek Prerelease Pack | 3 × @ $99.98 | 2 × @ $49.99 | $25.00 | single unit cannot be priced on the $49.99 ladder below the $33.20 market: pack of 2 retained (25% below per unit) |
-| MTG Star Trek Scene Box | 3 × @ $99.98 | 3 × @ $49.99 | $16.66 | single unit cannot be priced on the $49.99 ladder below the $24.99 market: pack of 3 retained (33% below per unit) |
-| MTG Star Trek Scene Box | 3 × @ $99.98 | 3 × @ $49.99 | $16.66 | single unit cannot be priced on the $49.99 ladder below the $24.99 market: pack of 3 retained (33% below per unit) |
+| MTG Star Trek Scene Box [Divergent Timeline] | 3 × @ $99.98 | 3 × @ $49.99 | $16.66 | single unit cannot be priced on the $49.99 ladder below the $24.99 market: pack of 3 retained (33% below per unit) |
+| MTG Star Trek Scene Box [Enterprise-Q] | 3 × @ $99.98 | 3 × @ $49.99 | $16.66 | single unit cannot be priced on the $49.99 ladder below the $24.99 market: pack of 3 retained (33% below per unit) |
 | MTG Teenage Mutant Ninja Turtles Bundle | 3 × @ $99.98 | 2 × @ $49.99 | $25.00 | single unit cannot be priced on the $49.99 ladder below the $39.99 market: pack of 2 retained (37% below per unit) |
 | MTG Teenage Mutant Ninja Turtles Commander Deck | 3 × @ $99.98 | 3 × @ $99.98 | $33.33 | single unit cannot be priced on the $49.99 ladder below the $53.13 market: pack of 3 retained (37% below per unit) |
 | MTG The Hobbit Bundle | 3 × @ $99.98 | 3 × @ $99.98 | $33.33 | single unit cannot be priced on the $49.99 ladder below the $47.94 market: pack of 3 retained (30% below per unit) |
-| One Piece Card Game EB-05 One Piece Heroines Edition Vol. 2 Booster Pack (English) | 6 × @ $49.99 | 6 × @ $49.99 | $8.33 | no pack of 6 or smaller reaches 20% below the $7.95 market on the ladder; current configuration kept, needs a decision (a larger pack was no |
-| One Piece Card Game OP-15 Adventure on Kami's Island Booster Pack (English) | 7 × @ $49.99 | 7 × @ $49.99 | $7.14 | no pack of 7 or smaller reaches 20% below the $7.75 market on the ladder; current configuration kept, needs a decision (a larger pack was no |
+| One Piece Card Game EB-05 One Piece Heroines Edition Vol. 2 Booster Pack (English) | 6 × @ $49.99 | 6 × @ $49.99 | $8.33 | no pack of 6 or smaller reaches 10% below the $7.95 market on the ladder; current configuration kept, needs a decision (a larger pack was no |
+| One Piece Card Game OP-15 Adventure on Kami's Island Booster Pack (English) | 7 × @ $49.99 | 7 × @ $49.99 | $7.14 | no pack of 7 or smaller reaches 10% below the $7.75 market on the ladder; current configuration kept, needs a decision (a larger pack was no |
 | One Piece Card Game OP-16 The Time of Battle Booster Pack (English) | 9 × @ $49.99 | 9 × @ $49.99 | $5.55 | single unit cannot be priced on the $49.99 ladder below the $7.12 market: pack of 9 retained (22% below per unit) |
-| One Piece Card Game OP-17 The World's Strongest Warriors Booster Pack (English) | 7 × @ $49.99 | 7 × @ $49.99 | $7.14 | no pack of 7 or smaller reaches 20% below the $8.55 market on the ladder; current configuration kept, needs a decision (a larger pack was no |
-| One Piece Card Game OP-18 The Dominance of God Booster Pack (English) | 5 × @ $99.98 | 5 × @ $99.98 | $20.00 | no pack of 5 or smaller reaches 20% below the $11.99 market on the ladder; current configuration kept, needs a decision (a larger pack was n |
-| Pokémon TCG 30th Celebration Battle Deck | 2 × @ $49.99 | 2 × @ $49.99 | $25.00 | single unit cannot be priced on the $49.99 ladder below the $31.85 market: pack of 2 retained (22% below per unit) |
-| Pokémon TCG 30th Celebration Battle Deck | 7 × @ $149.97 | 3 × @ $49.99 | $16.66 | single unit cannot be priced on the $49.99 ladder below the $26.64 market: pack of 3 retained (37% below per unit) |
-| Pokémon TCG 30th Celebration Booster Pack | 6 × @ $49.99 | 6 × @ $49.99 | $8.33 | no pack of 6 or smaller reaches 20% below the $10.24 market on the ladder; current configuration kept, needs a decision (a larger pack was n |
-| Pokémon TCG 30th Celebration ex Tin (Retail Version) | 5 × @ $199.96 | 4 × @ $149.97 | $37.49 | single unit cannot be priced on the $49.99 ladder below the $58.49 market: pack of 4 retained (36% below per unit) |
+| One Piece Card Game OP-17 The World's Strongest Warriors Booster Pack (English) | 7 × @ $49.99 | 7 × @ $49.99 | $7.14 | no pack of 7 or smaller reaches 20% below the $8.55 market on the ladder; pack of 7 at 16% below is the best available (a larger pack was no |
+| One Piece Card Game OP-18 The Dominance of God Booster Pack (English) | 5 × @ $99.98 | 5 × @ $49.99 | $10.00 | no pack of 5 or smaller reaches 20% below the $11.99 market on the ladder; pack of 5 at 17% below is the best available (a larger pack was n |
+| Pokémon TCG 30th Celebration Battle Deck [Espeon ex] | 2 × @ $49.99 | 2 × @ $49.99 | $25.00 | single unit cannot be priced on the $49.99 ladder below the $31.85 market: pack of 2 retained (22% below per unit) |
+| Pokémon TCG 30th Celebration Battle Deck [Umbreon ex] | 7 × @ $149.97 | 3 × @ $49.99 | $16.66 | single unit cannot be priced on the $49.99 ladder below the $26.64 market: pack of 3 retained (37% below per unit) |
+| Pokémon TCG 30th Celebration Booster Pack | 6 × @ $49.99 | 6 × @ $49.99 | $8.33 | no pack of 6 or smaller reaches 20% below the $10.24 market on the ladder; pack of 6 at 19% below is the best available (a larger pack was n |
+| Pokémon TCG 30th Celebration ex Tin (Retail Version) [Sylveon ex] | 5 × @ $199.96 | 4 × @ $149.97 | $37.49 | single unit cannot be priced on the $49.99 ladder below the $58.49 market: pack of 4 retained (36% below per unit) |
 | Pokémon TCG 30th Celebration Greninja ex Box | 5 × @ $149.97 | 3 × @ $99.98 | $33.33 | single unit cannot be priced on the $49.99 ladder below the $44.73 market: pack of 3 retained (25% below per unit) |
 | Pokémon TCG 30th Celebration Knock Out Collection | 3 × @ $49.99 | 3 × @ $49.99 | $16.66 | single unit cannot be priced on the $49.99 ladder below the $23.00 market: pack of 3 retained (28% below per unit) |
 | Pokémon TCG 30th Celebration Poster Collection | 7 × @ $149.97 | 5 × @ $99.98 | $20.00 | single unit cannot be priced on the $49.99 ladder below the $32.95 market: pack of 5 retained (39% below per unit) |
@@ -95,14 +95,14 @@ Rule applied to every product without an owner price: **single unit, on the $49.
 |---|---|---|---|---|---|
 | One Piece Card Game Double Pack Set Vol.13 [DP-13] | $49.99 | $29.99 | -66.7% | medium | ABOVE the lowest credible offer by 67% |
 | Pokémon TCG 30th Celebration Classic Collection Pack | $99.98 | $76.50 | -30.7% | medium | ABOVE the lowest credible offer by 31%; nearest ladder price at 20%+ below is $49.99 (35% below) |
-| Pokémon TCG 30th Celebration Figure Collection | $99.98 | $77.99 | -28.2% | medium | ABOVE the lowest credible offer by 28%; nearest ladder price at 20%+ below is $49.99 (36% below) |
-| Pokémon TCG 30th Celebration Figure Collection | $99.98 | $89.95 | -11.2% | medium | ABOVE the lowest credible offer by 11%; nearest ladder price at 20%+ below is $49.99 (44% below) |
+| Pokémon TCG 30th Celebration Figure Collection [Mew] | $99.98 | $77.99 | -28.2% | medium | ABOVE the lowest credible offer by 28%; nearest ladder price at 20%+ below is $49.99 (36% below) |
+| Pokémon TCG 30th Celebration Figure Collection [Mewtwo] | $99.98 | $89.95 | -11.2% | medium | ABOVE the lowest credible offer by 11%; nearest ladder price at 20%+ below is $49.99 (44% below) |
 | Pokémon TCG 30th Celebration Ditto Premium Collection | $99.98 | $97.49 | -2.6% | high | ABOVE the lowest credible offer by 3%; nearest ladder price at 20%+ below is $49.99 (49% below) |
 | MTG Reality Fracture Secret Lair Bundle | $99.98 | $116.99 | 14.5% | high | only 15% below the lowest credible offer; nearest ladder price at 20%+ below is $49.99 (57% below) |
-| Disney Lorcana Hyperia City Booster Display Box (24 Packs) | $99.98 | $127.94 | 21.9% | high | inside 20–25% or above 40% |
-| Pokémon TCG 30th Celebration Booster Bundle | $49.99 | $64.47 | 22.5% | high | inside 20–25% or above 40% |
-| MTG The Hobbit Play Booster Box (30 Packs) | $99.98 | $129.99 | 23.1% | high | inside 20–25% or above 40% |
-| MTG Star Trek Commander Deck | $49.99 | $66.24 | 24.5% | medium | inside 20–25% or above 40% |
+| Disney Lorcana Hyperia City Booster Display Box (24 Packs) | $99.98 | $127.94 | 21.9% | high | 20–25%: just short of the 25% target |
+| Pokémon TCG 30th Celebration Booster Bundle | $49.99 | $64.47 | 22.5% | high | 20–25%: just short of the 25% target |
+| MTG The Hobbit Play Booster Box (30 Packs) | $99.98 | $129.99 | 23.1% | high | 20–25%: just short of the 25% target |
+| MTG Star Trek Commander Deck [We Are the Borg] | $49.99 | $66.24 | 24.5% | medium | 20–25%: just short of the 25% target |
 | One Piece Card Game OP-16 The Time of Battle Booster Box – English Edi | $149.97 | $209.98 | 28.6% | high | meets the 25–40% target |
 | MTG Secrets of Strixhaven Play Booster Box (30 Packs) | $99.98 | $144.29 | 30.7% | high | meets the 25–40% target |
 | Pokémon TCG Pitch Black Elite Trainer Box (9 Packs) | $49.99 | $72.50 | 31.0% | high | meets the 25–40% target |
@@ -115,7 +115,7 @@ Rule applied to every product without an owner price: **single unit, on the $49.
 | MTG Lorwyn Eclipsed Draft Night | $49.99 | $86.99 | 42.5% | medium | 43% below: deeper than the 25-40% target; confirm cost |
 | MTG Star Trek Draft Night | $49.99 | $92.55 | 46.0% | medium | 46% below: deeper than the 25-40% target; confirm cost |
 | One Piece TCG OP-16 The Time of Battle Factory Sealed Master Case (12  | $1,199.76 | $2,252.99 | 46.7% | high | 47% below: deeper than the 25-40% target; confirm cost |
-| Pokémon TCG 30th Celebration ex Tin (International Version) | $49.99 | $94.39 | 47.0% | low | 47% below: deeper than the 25-40% target; confirm cost; low-confidence comparison |
+| Pokémon TCG 30th Celebration ex Tin (International Version) [Sylveon e | $49.99 | $94.39 | 47.0% | low | 47% below: deeper than the 25-40% target; confirm cost; low-confidence comparison |
 | Pokémon TCG 30th Celebration Binder Collection | $49.99 | $94.89 | 47.3% | medium | 47% below: deeper than the 25-40% target; confirm cost |
 | MTG Marvel Super Heroes Jumpstart Booster Box (20 Packs) | $49.99 | $96.99 | 48.5% | high | 48% below: deeper than the 25-40% target; confirm cost |
 | 2026 Bowman Chrome Baseball Mega Box (6 Packs) | $49.99 | $97.90 | 48.9% | high | 49% below: deeper than the 25-40% target; confirm cost |
@@ -125,8 +125,8 @@ Rule applied to every product without an owner price: **single unit, on the $49.
 
 The four you asked about specifically, re-verified against the lowest currently buyable offer rather than TCGplayer market:
 
-- **Pokémon TCG 30th Celebration Figure Collection**: your $99.98 vs lowest credible $77.99 (medium): -28.2%. ABOVE the lowest credible offer by 28%; nearest ladder price at 20%+ below is $49.99 (36% below). Kept at $99.98 in the file; marked `approval_required`.
-- **Pokémon TCG 30th Celebration Figure Collection**: your $99.98 vs lowest credible $89.95 (medium): -11.2%. ABOVE the lowest credible offer by 11%; nearest ladder price at 20%+ below is $49.99 (44% below). Kept at $99.98 in the file; marked `approval_required`.
+- **Pokémon TCG 30th Celebration Figure Collection [Mew]**: your $99.98 vs lowest credible $77.99 (medium): -28.2%. ABOVE the lowest credible offer by 28%; nearest ladder price at 20%+ below is $49.99 (36% below). Kept at $99.98 in the file; marked `approval_required`.
+- **Pokémon TCG 30th Celebration Figure Collection [Mewtwo]**: your $99.98 vs lowest credible $89.95 (medium): -11.2%. ABOVE the lowest credible offer by 11%; nearest ladder price at 20%+ below is $49.99 (44% below). Kept at $99.98 in the file; marked `approval_required`.
 - **Pokémon TCG 30th Celebration Ditto Premium Collection**: your $99.98 vs lowest credible $97.49 (high): -2.6%. ABOVE the lowest credible offer by 3%; nearest ladder price at 20%+ below is $49.99 (49% below). Kept at $99.98 in the file; marked `approval_required`.
 - **MTG Reality Fracture Secret Lair Bundle**: your $99.98 vs lowest credible $116.99 (high): 14.5%. only 15% below the lowest credible offer; nearest ladder price at 20%+ below is $49.99 (57% below). Kept at $99.98 in the file; marked `approval_required`.
 
@@ -142,21 +142,21 @@ The four you asked about specifically, re-verified against the lowest currently 
 | MTG Marvel Super Heroes Play Booster Box (30 Packs) | $99.98 (×1) | $105.90 | 5.6% | $49.99 | no ladder rung lands between 10% and 50% below market; needs a decision; only 6% below the lowest credible offer; nearest ladder price at 20%+ below i |
 | MTG Reality Fracture Play Booster Box (30 Packs) | $99.98 (×1) | $121.00 | 17.4% | $49.99 | ladder coarseness: only 17% below is possible on a single unit; the next rung down would be 59% below (likely under cost); only 17% below the lowest c |
 | MTG Secrets of Strixhaven Bundle | $49.99 (×2) | $43.90 | 43.1% | — | single unit cannot be priced on the $49.99 ladder below the $43.90 market: pack of 2 retained (43% below per unit); 43% below: deeper than the 25-40%  |
-| MTG Secrets of Strixhaven Commander Deck | $49.99 (×1) | $49.99 | 0.0% | — | single unit at the $49.99 ladder floor would be at or above the $49.99 market; current price kept, needs a decision; only 0% below the lowest credible |
-| MTG Star Trek Collectors Edition Commander Deck | $49.99 (×1) | $94.00 | 46.8% | — | 47% below: deeper than the 25-40% target; confirm cost; low-confidence comparison |
-| MTG Star Trek Collectors Edition Commander Deck | $99.98 (×1) | $179.99 | 44.5% | — | 44% below: deeper than the 25-40% target; confirm cost |
-| MTG Star Trek Commander Deck | $49.99 (×1) | $49.99 | 0.0% | — | single unit at the $49.99 ladder floor would be at or above the $49.99 market; current price kept, needs a decision; only 0% below the lowest credible |
-| MTG Star Trek Commander Deck | $49.99 (×1) | $49.99 | 0.0% | — | single unit at the $49.99 ladder floor would be at or above the $49.99 market; current price kept, needs a decision; only 0% below the lowest credible |
-| MTG Star Trek Commander Deck | $49.99 (×1) | $49.99 | 0.0% | — | single unit at the $49.99 ladder floor would be at or above the $49.99 market; current price kept, needs a decision; only 0% below the lowest credible |
+| MTG Secrets of Strixhaven Commander Deck [Silverquill Influe | $49.99 (×1) | $49.99 | 0.0% | — | single unit at the $49.99 ladder floor would be at or above the $49.99 market; current price kept, needs a decision; only 0% below the lowest credible |
+| MTG Star Trek Collectors Edition Commander Deck [Klingon Fur | $49.99 (×1) | $94.00 | 46.8% | — | 47% below: deeper than the 25-40% target; confirm cost; low-confidence comparison |
+| MTG Star Trek Collectors Edition Commander Deck [We Are the  | $99.98 (×1) | $179.99 | 44.5% | — | 44% below: deeper than the 25-40% target; confirm cost |
+| MTG Star Trek Commander Deck [Federation Fleet] | $49.99 (×1) | $49.99 | 0.0% | — | single unit at the $49.99 ladder floor would be at or above the $49.99 market; current price kept, needs a decision; only 0% below the lowest credible |
+| MTG Star Trek Commander Deck [Klingon Fury] | $49.99 (×1) | $49.99 | 0.0% | — | single unit at the $49.99 ladder floor would be at or above the $49.99 market; current price kept, needs a decision; only 0% below the lowest credible |
+| MTG Star Trek Commander Deck [Landing Party] | $49.99 (×1) | $49.99 | 0.0% | — | single unit at the $49.99 ladder floor would be at or above the $49.99 market; current price kept, needs a decision; only 0% below the lowest credible |
 | MTG Star Trek Play Booster Box (30 Packs) | $99.98 (×1) | $114.89 | 13.0% | $49.99 | ladder coarseness: only 13% below is possible on a single unit; the next rung down would be 56% below (likely under cost); only 13% below the lowest c |
 | MTG Teenage Mutant Ninja Turtles Play Booster Box (14 Packs) | $99.98 (×1) | $106.99 | 6.6% | $49.99 | no ladder rung lands between 10% and 50% below market; needs a decision; only 7% below the lowest credible offer; nearest ladder price at 20%+ below i |
 | MTG The Hobbit Draft Night | $99.98 (×1) | $108.98 | 8.3% | $49.99 | no ladder rung lands between 10% and 50% below market; needs a decision; only 8% below the lowest credible offer; nearest ladder price at 20%+ below i |
-| One Piece Card Game EB-05 One Piece Heroines Edition Vol. 2  | $49.99 (×6) | $7.95 | -4.8% | — | no pack of 6 or smaller reaches 20% below the $7.95 market on the ladder; current configuration kept, needs a decision (a larger pack was not used, pe |
-| One Piece Card Game OP-15 Adventure on Kami's Island Booster | $49.99 (×7) | $7.75 | 7.9% | — | no pack of 7 or smaller reaches 20% below the $7.75 market on the ladder; current configuration kept, needs a decision (a larger pack was not used, pe |
-| One Piece Card Game OP-17 The World's Strongest Warriors Boo | $49.99 (×7) | $8.55 | 16.5% | — | no pack of 7 or smaller reaches 20% below the $8.55 market on the ladder; current configuration kept, needs a decision (a larger pack was not used, pe |
-| One Piece Card Game OP-18 The Dominance of God Booster Pack  | $99.98 (×5) | $11.99 | -66.8% | — | no pack of 5 or smaller reaches 20% below the $11.99 market on the ladder; current configuration kept, needs a decision (a larger pack was not used, p |
+| One Piece Card Game EB-05 One Piece Heroines Edition Vol. 2  | $49.99 (×6) | $7.95 | -4.8% | — | no pack of 6 or smaller reaches 10% below the $7.95 market on the ladder; current configuration kept, needs a decision (a larger pack was not used, pe |
+| One Piece Card Game OP-15 Adventure on Kami's Island Booster | $49.99 (×7) | $7.75 | 7.9% | — | no pack of 7 or smaller reaches 10% below the $7.75 market on the ladder; current configuration kept, needs a decision (a larger pack was not used, pe |
+| One Piece Card Game OP-17 The World's Strongest Warriors Boo | $49.99 (×7) | $8.55 | 16.5% | — | no pack of 7 or smaller reaches 20% below the $8.55 market on the ladder; pack of 7 at 16% below is the best available (a larger pack was not used, pe |
+| One Piece Card Game OP-18 The Dominance of God Booster Pack  | $49.99 (×5) | $11.99 | 16.6% | — | no pack of 5 or smaller reaches 20% below the $11.99 market on the ladder; pack of 5 at 17% below is the best available (a larger pack was not used, p |
 | Pokémon TCG 30th Celebration 2-Pack Blister | $49.99 (×1) | $58.20 | 14.1% | — | single kept at the $49.99 ladder floor: only 14% below the $58.20 market; a pack was not created, per instruction; only 14% below the lowest credible  |
-| Pokémon TCG 30th Celebration Booster Pack | $49.99 (×6) | $10.24 | 18.6% | — | no pack of 6 or smaller reaches 20% below the $10.24 market on the ladder; current configuration kept, needs a decision (a larger pack was not used, p |
+| Pokémon TCG 30th Celebration Booster Pack | $49.99 (×6) | $10.24 | 18.6% | — | no pack of 6 or smaller reaches 20% below the $10.24 market on the ladder; pack of 6 at 19% below is the best available (a larger pack was not used, p |
 | Pokémon TCG 30th Celebration Elite Trainer Box | $99.98 (×1) | $104.92 | 4.7% | $49.99 | no ladder rung lands between 10% and 50% below market; needs a decision; only 5% below the lowest credible offer; nearest ladder price at 20%+ below i |
 | Pokémon TCG Chaos Rising Booster Box | $99.98 (×1) | $181.97 | 45.1% | — | 45% below: deeper than the 25-40% target; confirm cost |
 | Pokémon TCG Delta Reign Booster Bundle (6 Packs) | $49.99 (×1) | $46.87 | -6.7% | — | single unit at the $49.99 ladder floor would be at or above the $46.87 market; current price kept, needs a decision; ABOVE the lowest credible offer b |
@@ -170,7 +170,7 @@ The four you asked about specifically, re-verified against the lowest currently 
 
 ## 5. Identifiers, availability, Merchant Center, tracking
 
-**GTINs.** 68 products already carried one. Of the 74 without, 66 codes are imported: each was read on a manufacturer or distributor page or on two independent retailer pages for the exact product, passes the check digit, and is either unique to the product or a manufacturer assortment code on products that are already variant-grouped (UPC Day/Night, Espeon/Umbreon Battle Decks, Mew/Mewtwo Figure Collections, both ex Tin versions, Star Trek Collector's Edition decks now use their per-deck codes). 9 are **held**: MTG Star Trek Collectors Edition Commander De (review-medium); MTG Star Trek Scene Box (review-conflict); MTG Star Trek Scene Box (review-conflict); Pokémon TCG 30th Celebration Booster Pack (none); Pokémon TCG 30th Celebration Classic Collecti (none); Pokémon TCG 30th Celebration Greninja ex Box (review-shared); Pokémon TCG 30th Celebration Sylveon ex Box (review-shared); Pokémon TCG Delta Reign Pokémon Center Elite  (none); Pokémon TCG Pitch Black Pokémon Center Elite  (none). The Greninja/Sylveon ex Boxes share one assortment code and are not variant-grouped on the site: group them in the admin first, then import the code. Phantasmal Flames resolved to the 36-pack box code 196214143364 (196214143357 is the single pack). The Star Trek Scene Boxes have two sources disagreeing on which per-box code is which, so neither is imported. Nothing is marked `identifier_exists=false`. Full list: `docs/gogetcards-gtin-review.csv`.
+**GTINs.** 68 products already carried one. Of the 74 without, 66 codes are imported: each was read on a manufacturer or distributor page or on two independent retailer pages for the exact product, passes the check digit, and is either unique to the product or a manufacturer assortment code on products that are already variant-grouped (UPC Day/Night, Espeon/Umbreon Battle Decks, Mew/Mewtwo Figure Collections, both ex Tin versions, Star Trek Collector's Edition decks now use their per-deck codes). 9 are **held**: MTG Star Trek Collectors Edition Commander De (review-medium); MTG Star Trek Scene Box [Divergent Timeline] (review-conflict); MTG Star Trek Scene Box [Enterprise-Q] (review-conflict); Pokémon TCG 30th Celebration Booster Pack (none); Pokémon TCG 30th Celebration Classic Collecti (none); Pokémon TCG 30th Celebration Greninja ex Box (review-shared); Pokémon TCG 30th Celebration Sylveon ex Box (review-shared); Pokémon TCG Delta Reign Pokémon Center Elite  (none); Pokémon TCG Pitch Black Pokémon Center Elite  (none). The Greninja/Sylveon ex Boxes share one assortment code and are not variant-grouped on the site: group them in the admin first, then import the code. Phantasmal Flames resolved to the 36-pack box code 196214143364 (196214143357 is the single pack). The Star Trek Scene Boxes have two sources disagreeing on which per-box code is which, so neither is imported. Nothing is marked `identifier_exists=false`. Full list: `docs/gogetcards-gtin-review.csv`.
 
 **Availability.** The file keeps every product's current `preorder` flag and `release_date` (nothing is lost; 37 preorders keep their dates). The 17 released-but-still-flagged products stay flagged, because only you know whether their stock has arrived: the page says "released, awaiting stock" and the feed sends `preorder` with a dated availability, which is Google's accepted shape for a released item on order; the moment stock lands, untick Preorder (the feed then says `in_stock`). One product, 2026 Topps Heritage Football, carried a stale `preorder` **tag** while its flag was off; the tag alone would have made the feed send PREORDER for an in-stock item, so the file drops it. `backorder` is not something this storefront can express (the model has in-stock, preorder and sold-out), so no product is set to it.
 
