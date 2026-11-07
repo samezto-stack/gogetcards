@@ -2491,6 +2491,12 @@ function parseProductBody(body) {
     badge: body.badge || null,
     preorder: body.preorder === 'on' || body.preorder === 'true',
     preorderShips: body.preorderShips || null,
+    /* Google availability override. Only the four accepted values are
+       stored; anything else (including blank) means "derive it", which is
+       the default and the common case. Never synthesised. */
+    availabilityOverride: ['in_stock', 'preorder', 'backorder', 'out_of_stock'].includes(String(body.availabilityOverride || '').toLowerCase())
+      ? String(body.availabilityOverride).toLowerCase()
+      : '',
     allocationLimit: parseInt(body.allocationLimit) || 0,
     /* See helpers/packs.js. Never below one. */
     packSize: Math.max(1, parseInt(body.packSize, 10) || 1),

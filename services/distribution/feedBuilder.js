@@ -139,8 +139,10 @@ function availability(product) {
      The lever is `available`. Unticking it reports OUT_OF_STOCK from the
      line above and refuses at session start — that is the honest path and
      it is one click away. */
-  if (preorderCfg.isPreorder(product)) return 'PREORDER';
-  return 'IN_STOCK';
+  /* in_stock / preorder / backorder, decided in one place so the feed, the
+     schema and the landing page agree. A released-but-still-flagged product
+     is a backorder, not a preorder (see config/preorder.js). */
+  return preorderCfg.availabilityState(product);
 }
 
 /**

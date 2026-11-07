@@ -79,6 +79,8 @@ const BASE_COLUMNS = [
     get: (p) => (p.preorder ? 'true' : 'false'), set: (b, v) => { b.preorder = bool(v); } },
   { key: 'preorder_ships', header: 'preorder_ships', hint: 'Display text for a preorder: "Q2 2026".',
     get: (p) => p.preorderShips || '', set: (b, v) => { b.preorderShips = v.trim(); } },
+  { key: 'availability', header: 'availability', hint: 'Force a Google state: in_stock, preorder, backorder, out_of_stock. Blank derives it from the preorder flag and release date (released + still flagged = backorder).',
+    get: (p) => p.availabilityOverride || '', set: (b, v) => { b.availabilityOverride = v.trim().toLowerCase(); } },
   { key: 'release_date', header: 'release_date', hint: 'YYYY-MM-DD. Drives the page and Google availabilityDate.',
     get: (p) => dateOnly(p.releaseDate), set: (b, v) => { b.releaseDate = v.trim(); } },
   { key: 'featured', header: 'featured', hint: 'true/false: on the home page.',
@@ -330,6 +332,7 @@ function plan(text, { lookup, knownCollections = null } = {}) {
     if (body.badge && !['Hot', 'Limited', 'Preorder', 'Rare', 'New'].includes(body.badge)) warnings.push(`badge "${body.badge}" is not one of Hot, Limited, Preorder, Rare, New`);
     if (body.gtin && !/^\d{8}$|^\d{12,14}$/.test(body.gtin.replace(/\s/g, ''))) warnings.push(`gtin "${body.gtin}" does not look like a barcode (8, 12, 13 or 14 digits)`);
     if (body.preorder === 'true' && !body.releaseDate && !existing) warnings.push('a preorder with no release_date competes as a mislabelled in-stock item on Google');
+    if (body.availabilityOverride && !['in_stock', 'preorder', 'backorder', 'out_of_stock'].includes(body.availabilityOverride)) warnings.push(`availability "${body.availabilityOverride}" is not one of in_stock, preorder, backorder, out_of_stock — it will be ignored and the state derived instead`);
 
     const cols = (body.collections || '').split(',').map((s) => s.trim()).filter(Boolean);
     if (knownCollections) {

@@ -166,10 +166,68 @@ function releaseInfo(product) {
  */
 function shortLine(product) {
   const info = releaseInfo(product);
-  if (awaitingStock(product)) return `Preorder — released ${info.display}, awaiting stock`;
+  if (awaitingStock(product)) return `Backorder — released ${info.display}, awaiting restock`;
   if (info.hasDate) return `Preorder — releases ${info.display}`;
   if (info.window) return `Preorder — ships ${info.window}`;
   return 'Preorder — release date to be confirmed';
 }
 
-module.exports = { TERMS, releaseInfo, shortLine, isPreorder, awaitingStock, expectedAvailability, displayIso, releasedCutoff, AFTER_RELEASE, DISPATCH_SHORT };
+/**
+ * The four states, in one place, so the feed, the schema and the page can
+ * never disagree about which one a product is in.
+ *
+ * WHY BACKORDER EXISTS (added 2026-11-07). Google's availability vocabulary
+ * separates two things this store used to collapse into "preorder":
+ *   - PREORDER  — the product is NOT released yet; it ships on its release
+ *                 date, which is the availability_date.
+ *   - BACKORDER — the product IS released, is temporarily out of stock
+ *                 here, and orders are taken for fulfilment when our
+ *                 allocation lands; the availability_date is when we expect
+ *                 to ship it.
+ * Sending `preorder` for a product whose release date has already passed is
+ * an availability misrepresentation: Google can see the set is out. A
+ * released-but-still-flagged product (what the owner leaves marked while
+ * the allocation is in transit) is a BACKORDER, not a preorder.
+ *
+ * THE FLAG STILL DECIDES, NOT THE CALENDAR. `isPreorder` is the owner's
+ * "not on the shelf here yet" switch; the release date only decides whether
+ * that absence reads as preorder (date ahead) or backorder (date passed).
+ * The moment stock lands the owner unticks it and the product is in_stock.
+ *
+ * An explicit `product.availabilityOverride` (one of the four lowercase
+ * values) wins over the derivation, so the owner can force a state — e.g.
+ * mark a released item out_of_stock — without touching the flag.
+ */
+const AVAIL_VALUES = ['in_stock', 'preorder', 'backorder', 'out_of_stock'];
+const AVAIL_CONST = { in_stock: 'IN_STOCK', preorder: 'PREORDER', backorder: 'BACKORDER', out_of_stock: 'OUT_OF_STOCK' };
+const SCHEMA_URL = {
+  IN_STOCK: 'https://schema.org/InStock',
+  PREORDER: 'https://schema.org/PreOrder',
+  BACKORDER: 'https://schema.org/BackOrder',
+  OUT_OF_STOCK: 'https://schema.org/OutOfStock',
+};
+
+/** The feed-side constant (IN_STOCK / PREORDER / BACKORDER / OUT_OF_STOCK). */
+function availabilityState(product, now = new Date()) {
+  const o = product && String(product.availabilityOverride || '').toLowerCase();
+  if (o && AVAIL_VALUES.includes(o)) return AVAIL_CONST[o];
+  if (product && product.available === false) return 'OUT_OF_STOCK';
+  if (!isPreorder(product)) return 'IN_STOCK';
+  return awaitingStock(product, now) ? 'BACKORDER' : 'PREORDER';
+}
+
+/** The schema.org availability URL for the same state. */
+function schemaAvailability(product, now = new Date()) {
+  return SCHEMA_URL[availabilityState(product, now)];
+}
+
+/** True when the product is released but awaiting restock (Google backorder). */
+function isBackorder(product, now = new Date()) {
+  return availabilityState(product, now) === 'BACKORDER';
+}
+
+module.exports = {
+  TERMS, releaseInfo, shortLine, isPreorder, awaitingStock, isBackorder,
+  expectedAvailability, displayIso, releasedCutoff, AFTER_RELEASE, DISPATCH_SHORT,
+  availabilityState, schemaAvailability, AVAIL_VALUES,
+};

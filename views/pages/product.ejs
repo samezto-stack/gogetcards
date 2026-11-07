@@ -158,7 +158,7 @@
           <div>
             <p class="pp__preorder-head">
               <% var _awaiting = preorder.awaitingStock(product); %>
-              Preorder<% if (_awaiting) { %> — released <%= rel.display %>, awaiting stock<% } else if (rel.hasDate) { %> — releases <%= rel.display %><% } else if (rel.window) { %> — ships <%= rel.window %><% } %>
+<% if (_awaiting) { %>Backorder — released <%= rel.display %>, awaiting restock<% } else { %>Preorder<% if (rel.hasDate) { %> — releases <%= rel.display %><% } else if (rel.window) { %> — ships <%= rel.window %><% } %><% } %>
             </p>
             <p class="pp__preorder-sub">
               <% if (_awaiting) { %>
@@ -542,7 +542,7 @@
         <div class="pp__spec-row">
           <dt>Availability</dt>
           <dd>
-            <% if (!product.available) { %>Sold Out<% } else if (isPreorder && preorder.awaitingStock(product)) { %>Preorder — released, awaiting stock<% } else if (isPreorder) { %>Preorder — not yet released<% } else { %>In Stock<% } %>
+            <% if (!product.available) { %>Sold Out<% } else if (isPreorder && preorder.awaitingStock(product)) { %>Backorder — released, awaiting restock<% } else if (isPreorder) { %>Preorder — not yet released<% } else { %>In Stock<% } %>
           </dd>
         </div>
         <% if (isPreorder && rel.hasDate) { %>
@@ -666,7 +666,7 @@
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
     </svg>
-    <span><%= isPreorder ? 'Secure Preorder' : 'Checkout' %></span>
+    <span><%= (isPreorder && preorder.awaitingStock(product)) ? 'Secure Backorder' : (isPreorder ? 'Secure Preorder' : 'Checkout') %></span>
     <span class="mobile-sticky-cta__price" data-sticky-price><%= (typeof marketMoney !== 'undefined' && typeof priced !== 'undefined' && priced) ? marketMoney(priced.amount, priced.currency) : 'US$' + formatPrice(product.price) %></span>
   </button>
 </div>

@@ -908,9 +908,10 @@ router.get('/products/:slug', async (req, res) => {
       ? availIso
       : oneYearOut.toISOString().split('T')[0];
 
-    const availability = !product.available
-      ? 'https://schema.org/OutOfStock'
-      : (isPreorderItem ? 'https://schema.org/PreOrder' : 'https://schema.org/InStock');
+    /* in_stock / preorder / backorder / out_of_stock, decided once in
+       config/preorder.js so the schema matches the feed and the page. A
+       released-but-still-flagged product is schema.org/BackOrder. */
+    const availability = preorderCfg.schemaAvailability(product);
 
     const jsonLd = {
       '@context': 'https://schema.org',

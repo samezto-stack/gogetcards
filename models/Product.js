@@ -179,6 +179,13 @@ const productSchema = new mongoose.Schema({
   badge: { type: String, default: null }, // Hot, Limited, Preorder, Rare, New
   preorder: { type: Boolean, default: false },
   preorderShips: { type: String, default: null },
+  /* Forces a Google availability state, overriding the one derived from
+     `available` + `preorder` + the release date. One of 'in_stock',
+     'preorder', 'backorder', 'out_of_stock', or '' to derive it (the
+     default). Lets the owner mark, say, a released item as backorder or
+     out_of_stock without touching the preorder flag. See config/preorder.js
+     (availabilityState); the feed, the schema and the page all read it. */
+  availabilityOverride: { type: String, default: '', trim: true },
   allocationLimit: { type: Number, default: 0 }, // Max units one customer may order (0 = unlimited)
   /* Sold only in multiples. `price` is the price of ONE PACK of this many
      units, so it sits on the partner ladder like any other price, while

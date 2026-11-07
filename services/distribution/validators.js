@@ -355,18 +355,30 @@ function validate(product, opts = {}) {
         'Google accepts the preorder availability value only with an availability_date. Without one the item is disapproved, and the listing cannot tell a shopper when they would receive it.',
         `Set Release date on the product. The free-text "ships" window is not a date and cannot be sent. If this is not actually a preorder, clear ${preorderSource} instead.`,
         'releaseDate'));
-    } else if (preorderCfg.awaitingStock(product)) {
-      issues.push(issue('preorder_awaiting_stock', 'warning',
-        `Released ${rel.display}, still marked preorder`,
-        'The feed sends preorder with an availability date a few business days out, which is accurate while stock is on its way. Once it arrives, the listing should say in stock.',
-        `Clear ${preorderSource} when the stock arrives.`,
-        'preorder'));
     } else if (new Date(rel.iso) > new Date(Date.now() + 365 * 86400e3)) {
       issues.push(issue('availability_date_too_far', 'error',
         `Release date ${rel.display} is more than a year away`,
         'Google rejects an availability_date more than one year ahead.',
         'Set a date within a year, or hold the product back until one is known.',
         'releaseDate'));
+    }
+  } else if (payload.availability === 'BACKORDER') {
+    /* Released, still flagged: the set is out but our allocation has not
+       reached us, so Google is told backorder (released, temporarily out of
+       stock, orderable for fulfilment on the availability_date) rather than
+       preorder. Backorder also requires a date. */
+    if (!rel.hasDate) {
+      issues.push(issue('backorder_no_date', 'error',
+        'Backorder has no availability date',
+        'Google accepts the backorder availability value only with an availability_date — the date the item is expected back in stock and shipping.',
+        `Set Release date, or untick ${preorderSource || 'the preorder flag'} if the stock has arrived.`,
+        'releaseDate'));
+    } else {
+      issues.push(issue('backorder_awaiting_stock', 'warning',
+        `Released ${rel.display}, sent as backorder`,
+        'The product is released and still flagged, so the feed sends backorder with an availability_date a few business days out. That is the correct Google value for a released item awaiting restock, but the date must be one you can actually meet.',
+        `Confirm the availability_date is a restock date you can hold to, and untick ${preorderSource || 'the preorder flag'} the moment the stock lands so it reads in_stock.`,
+        'preorder'));
     }
   } else if (isPreorder && payload.availability === 'OUT_OF_STOCK') {
     /* Correct, and stated so nobody goes looking for the bug. A preorder
