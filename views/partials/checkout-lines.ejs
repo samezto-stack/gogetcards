@@ -1,0 +1,33 @@
+<%/* Every line of a MIXED CART on the checkout summary. Rendered only when
+     the order holds two or more products (priced.lines from
+     services/checkout/session.priceCart); a single product keeps the page's
+     own one-product block. Prices are the server's, from the catalogue —
+     the same figures the single plan for the total was chosen from.
+
+     Locals: lines, money (the page's money formatter), productImage. */%>
+<% lines.forEach(function (l) { %>
+  <% const units = (Number(l.quantity) || 1) * Math.max(1, Number(l.packSize) || 1); %>
+  <div class="ck-line-item" style="margin-bottom:0.75rem">
+    <div class="ck-thumb">
+      <% if (l.imageUrl) { %>
+        <img src="<%= productImage.at(l.imageUrl, 160) %>" alt="<%= l.title %>" width="64" height="64" loading="lazy">
+      <% } %>
+      <% if (units > 1) { %>
+        <span class="ck-thumb-qty" style="display:grid" aria-label="Quantity <%= units %>"><%= units %></span>
+      <% } %>
+    </div>
+    <div class="ck-item-main">
+      <p class="ck-item-name"><%= l.title %></p>
+      <p class="ck-item-meta">
+        <span class="ck-item-badge"><%= l.isPreorder ? 'Preorder' : 'In stock' %></span>
+        <span class="ck-item-badge ck-item-qty">Qty: <%= units %></span>
+      </p>
+      <p class="ck-item-pricing">
+        <span class="ck-item-price"><%= money(l.lineTotal) %></span>
+        <% if (units > 1 && l.quantity > 1) { %>
+          <span class="ck-item-unit"><%= money(l.unitPrice) %> each</span>
+        <% } %>
+      </p>
+    </div>
+  </div>
+<% }); %>

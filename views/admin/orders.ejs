@@ -308,9 +308,18 @@
                 </td>
 
                 <td>
-                  <div class="ot-product" title="<%= r.title %>"><%= r.title || '—' %></div>
+                  <% var otLines = Array.isArray(order.items) && order.items.length > 1 ? order.items : null; %>
+                  <% if (otLines) { %>
+                    <%/* A mixed-cart order: every line, so it can be picked
+                         and packed from this row. */%>
+                    <% otLines.forEach(function (it) { %>
+                      <div class="ot-product" title="<%= it.title %>"><%= it.title || it.slug || '—' %> <span class="faint">&times;<%= Number(it.quantity) || 1 %></span></div>
+                    <% }); %>
+                  <% } else { %>
+                    <div class="ot-product" title="<%= r.title %>"><%= r.title || '—' %></div>
+                  <% } %>
                   <div class="ot-sub">
-                    <% var otUnits = (Number(order.quantity) || 1) * (Number(order.packSize) > 1 ? Number(order.packSize) : 1); %>
+                    <% var otUnits = otLines ? 0 : (Number(order.quantity) || 1) * (Number(order.packSize) > 1 ? Number(order.packSize) : 1); %>
                     <% if (otUnits > 1) { %>Qty <%= otUnits %><% if (Number(order.packSize) > 1) { %> <span class="faint">(<%= order.quantity %> &times; pack of <%= order.packSize %>)</span><% } %><% } %>
                     <% if (r.isPreorder) { %>
                       <span class="ot-pre">Preorder<% if (r.release && r.release.hasDate) { %> &middot; <%= r.release.display %><% } %></span>

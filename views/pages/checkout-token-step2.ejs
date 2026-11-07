@@ -103,6 +103,9 @@
     <div class="ck-summary-body">
       <h2 class="ck-summary-h">Your order</h2>
 
+      <% if (priced.lines && priced.lines.length > 1) { %>
+        <%- include('../partials/checkout-lines', { lines: priced.lines, money: money, productImage: productImage }) %>
+      <% } else { %>
       <div class="ck-item">
         <div class="ck-thumb">
           <% if (priced.product.imageUrl) { %>
@@ -123,6 +126,8 @@
           <span class="ck-item-price"><%= money(priced.total) %></span>
         </div>
       </div>
+
+      <% } %>
 
       <div class="ck-totals">
         <div class="ck-total-row"><span>Subtotal</span><span><%= money(priced.total) %></span></div>

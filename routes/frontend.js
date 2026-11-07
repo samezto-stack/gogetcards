@@ -333,8 +333,16 @@ async function resolvePartnerRedirect(slug, qty, buyer) {
        picks whoever is up next — see services/partnerRotation.js for why the
        cursor is a site id rather than an index into a list that changes
        whenever anything is paused. */
+    /* A MIXED CART is charged as one plan for its whole total — every
+       price is a whole number of ladder steps, so the total is too. The
+       total was computed by services/checkout/session.priceCart from the
+       catalogue moments ago; the lines only describe the order. */
+    const isCart = Array.isArray(who.lines) && who.lines.length > 1 && Number(who.cartTotal) > 0;
+    const chargeAmount = isCart ? Math.round(Number(who.cartTotal)) : localPrice.amount;
+    const chargeQty = isCart ? 1 : quantity;
+
     const rotatedSite = partnerRotation.nextSite(partnerExperience, product,
-      { amount: localPrice.amount, market: market.id });
+      { amount: chargeAmount, market: market.id });
     if (!rotatedSite) {
       /* Say which of the three it is, per site, rather than "none matched" —
          the difference between a paused site, a missing link and a price off
@@ -356,13 +364,17 @@ async function resolvePartnerRedirect(slug, qty, buyer) {
        partner hop is abandoned and the buyer takes the ordinary checkout,
        because Whop charges what the plan id says regardless of what was
        displayed, and a near-miss is a wrong charge rather than a near-miss. */
-    const chosen = partnerRotation.planFor(rotatedSite, localPrice.amount, quantity, market.id);
+    const chosen = partnerRotation.planFor(rotatedSite, chargeAmount, chargeQty, market.id);
     if (!chosen) {
-      const steps = partnerRotation.unitsFor(rotatedSite, localPrice.amount, market.id);
+      const steps = partnerRotation.unitsFor(rotatedSite, chargeAmount, market.id);
       return decline(steps
-        ? `${rotatedSite.name} has no plan at step ${steps * quantity} (${steps} steps x ${quantity}; the ladder stops at ${partnerRotation.LADDER_STEPS})`
-        : `${markets.format(localPrice.amount, localPrice.currency)} is not a multiple of this site's ${market.id} step price`);
+        ? `${rotatedSite.name} has no plan at step ${steps * chargeQty} (${steps} steps x ${chargeQty}; the ladder stops at ${partnerRotation.LADDER_STEPS})`
+        : `${markets.format(chargeAmount, localPrice.currency)} is not a multiple of this site's ${market.id} step price`);
     }
+    const cartName = isCart
+      ? `GoGetCards order (${who.lines.reduce((n, l) => n + (Number(l.quantity) || 1), 0)} items): `
+        + who.lines.map((l) => `${l.title || l.slug} x${Number(l.quantity) || 1}`).join(', ')
+      : null;
 
     const matchedRoute = {
       label: rotatedSite.name || rotatedSite.url,
@@ -436,7 +448,7 @@ async function resolvePartnerRedirect(slug, qty, buyer) {
         buyerState: trim(who.state),
         buyerPostalCode: trim(who.postalCode),
         buyerCountry: trim(who.country),
-        productName: product ? product.title : undefined,
+        productName: cartName ? trim(cartName) : (product ? product.title : undefined),
         productImage: product ? (product.imageUrl || (product.images && product.images[0])) : undefined,
         productSlug: product ? product.slug : undefined,
         whopPlanId,
@@ -445,7 +457,7 @@ async function resolvePartnerRedirect(slug, qty, buyer) {
            without this the host would have to assume, and an assumption
            here is a receipt in the wrong currency. */
         productCurrency: chosen.currency,
-        productQuantity: quantity > 1 ? String(quantity) : undefined,
+        productQuantity: !isCart && quantity > 1 ? String(quantity) : undefined,
       }
     });
 
@@ -2173,12 +2185,27 @@ router.get('/thank-you', async (req, res) => {
        Google cannot join the sale to the product it advertised. Looked up
        rather than stored on the order, and never allowed to fail the page. */
     let adsItemId = '';
+    /* One entry per line — every product of a mixed cart — each under
+       its feed offer id, with packs and the unit price in major units. */
+    let adsItems = [];
     if (result.ok && result.order && result.order.productSlug) {
       try {
-        const p = await Product.findOne({ slug: String(result.order.productSlug) }).select('sku slug').lean();
-        const base = (p && (p.sku || p.slug)) || String(result.order.productSlug);
-        const mkt = String(result.order.market || 'US').toUpperCase();
-        adsItemId = mkt === 'US' ? base : `${base}-${mkt.toLowerCase()}`;
+        const ord = result.order;
+        const mkt = String(ord.market || 'US').toUpperCase();
+        const lines = Array.isArray(ord.items) && ord.items.length > 1
+          ? ord.items.map((it) => ({ slug: String(it.slug || ''), packs: Math.max(1, parseInt(it.packs, 10) || 1), unitPrice: Number(it.unitPrice) || 0 }))
+          : [{ slug: String(ord.productSlug), packs: Math.max(1, parseInt(ord.quantity, 10) || 1), unitPrice: Math.round((Number(ord.totalPrice) || 0) / Math.max(1, parseInt(ord.quantity, 10) || 1)) }];
+        const found = await Product.find({ slug: { $in: lines.map((l) => l.slug) } }).select('sku slug').lean();
+        const skuOf = new Map(found.map((p) => [p.slug, p.sku || p.slug]));
+        adsItems = lines.map((l) => {
+          const base = skuOf.get(l.slug) || l.slug;
+          return {
+            id: mkt === 'US' ? base : `${base}-${mkt.toLowerCase()}`,
+            quantity: l.packs,
+            price: Math.round(l.unitPrice) / 100,
+          };
+        });
+        adsItemId = adsItems[0] ? adsItems[0].id : '';
       } catch (e) {
         console.error('[thank-you] ads item id lookup failed:', e.message);
       }
@@ -2189,6 +2216,7 @@ router.get('/thank-you', async (req, res) => {
       metaDescription: 'Thank you for your purchase from GoGetCards.',
       ...extras,
       adsItemId,
+      adsItems,
       account,
       order_id: result.ok ? result.order.orderId : (req.query.order_id || null),
       value: result.ok ? (result.order.totalPrice / 100).toFixed(2) : (req.query.value || null),
@@ -2276,11 +2304,38 @@ router.get('/api/chat', chatLimiter, async (req, res) => {
  * sees after a decline is about their order instead of about a store they
  * were never told existed.
  *
- * A slug in the query means one product; otherwise the session cart's first
- * line is used, exactly as it was. */
+ * A slug in the query means one product; a cart of one line uses that line,
+ * exactly as it was; a cart of several lines checks out as one order. */
 router.get('/checkout-redirect', async (req, res) => {
   const slug = String(req.query.slug || '').trim();
   const cart = req.session.cart;
+
+  /* A CART OF SEVERAL PRODUCTS checks out as one order, charged as one
+     plan for its total (services/checkout/session.startCart). A slug in
+     the query still means "buy this one product now". */
+  const cartLines = !slug && cart && Array.isArray(cart.items) ? cart.items : [];
+  if (cartLines.length > 1) {
+    const first = cartLines[0];
+    try {
+      const units = cartLines.reduce((n, l) => n + (parseInt(l.quantity, 10) || 1), 0);
+      const checkoutId = trackCheckoutReached(req, units, 'two_step_checkout', first.slug);
+      const sessionService = require('../services/checkout/session');
+      const started = await sessionService.startCart(
+        cartLines.map((l) => ({ slug: String(l.slug || ''), quantity: l.quantity })),
+        {
+          checkoutId,
+          market: (req.market && req.market.id) || undefined,
+          userAgent: req.get('User-Agent') || '',
+          ip: req.ip,
+        },
+      );
+      if (started.ok) return res.redirect(303, `/checkout/${started.token}`);
+      console.warn(`[checkout-redirect] cart session refused (${cartLines.length} lines): ${started.reason || 'unknown'}`);
+    } catch (err) {
+      console.error('[checkout-redirect] cart start failed:', err.message);
+    }
+    return checkoutUnavailable(res, first.slug);
+  }
   const line = !slug && cart && Array.isArray(cart.items) && cart.items.length ? cart.items[0] : null;
 
   const wantedSlug = slug || (line ? line.slug : '');

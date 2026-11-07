@@ -174,6 +174,175 @@ async function resolveBundle(slug, quantity, market) {
   return null;
 }
 
+/* ── Mixed carts ───────────────────────────────────────────────────────
+ *
+ * SEVERAL PRODUCTS, ONE CHARGE. Every price in the catalogue is a whole
+ * number of ladder steps ($49.99 in the US), so the sum of any cart is a
+ * whole number of steps too, and the partner ladder already sells every
+ * step from 1 to 24. A cart is therefore charged with exactly the plan a
+ * single product of the same total would use: nothing new on the partner
+ * side, and the figure charged is the figure shown by construction.
+ *
+ * THE CEILING IS THE LADDER. 24 steps — $1,199.76 in the US — for the
+ * whole order, not per line. A cart past it has no plan that charges it,
+ * so it is refused here and the cart itself never lets one be built.
+ *
+ * The lines live on the checkout session and are copied onto the order by
+ * the pipeline, which already trusts the session (not the payment host)
+ * for everything about the buyer. The single-product fields stay filled
+ * with the first line so nothing that reads them breaks. */
+const MAX_CART_LINES = 12;
+
+/** Merge duplicate slugs, drop junk, keep order. Quantities are packs. */
+function normaliseLines(lines) {
+  const out = [];
+  for (const l of Array.isArray(lines) ? lines : []) {
+    const slug = String((l && l.slug) || '').trim();
+    const qty = Math.max(1, parseInt(l && l.quantity, 10) || 1);
+    if (!slug) continue;
+    const hit = out.find((x) => x.slug === slug);
+    if (hit) hit.quantity += qty; else out.push({ slug, quantity: qty });
+    if (out.length >= MAX_CART_LINES) break;
+  }
+  return out;
+}
+
+/** The single plan that charges a whole cart total, or null. */
+async function resolveCartPlan(firstProduct, totalMinor, market) {
+  try {
+    const partnerExperience = await SiteConfig.getValue('partnerExperience', null);
+    if (!partnerExperience || !partnerExperience.enabled) return null;
+    const mkt = market || markets.defaultMarket();
+    const site = partnerRotation.nextSite(partnerExperience, firstProduct, { amount: totalMinor, market: mkt.id });
+    if (!site) return null;
+    const chosen = partnerRotation.planFor(site, totalMinor, 1, mkt.id);
+    if (!chosen) return null;
+    return { whopPlanId: chosen.whopPlanId, amount: chosen.priceCents, currency: chosen.currency };
+  } catch (err) {
+    console.error('[checkout/session] cart plan lookup failed:', err.message);
+  }
+  return null;
+}
+
+/**
+ * Prices a cart. One line is exactly priceFor (unchanged path); two or
+ * more are priced line by line from the catalogue and charged as one plan.
+ * Returns priceFor's shape — product/quantity/unitPrice describe the FIRST
+ * line — plus `lines` for anything that shows the whole order.
+ */
+async function priceCart(lines, opts = {}) {
+  const clean = normaliseLines(lines);
+  if (!clean.length) return { ok: false, reason: 'not_found' };
+  if (clean.length === 1) return priceFor(clean[0].slug, clean[0].quantity, opts);
+
+  const market = markets.byId(opts.market) || markets.defaultMarket();
+  const out = [];
+  let total = 0;
+  let currency = null;
+  for (const l of clean) {
+    const product = await Product.findOne({ slug: l.slug }).lean();
+    if (!product) return { ok: false, reason: 'not_found' };
+    const local = marketService.priceFor(product, market);
+    if (!local) return { ok: false, reason: 'not_found', product };
+    if (product.available === false) return { ok: false, reason: 'unavailable', product };
+    if (opts.enforceStock && product.stockHold) return { ok: false, reason: 'sold_out', product, replacement: null };
+    let quantity = orderCap.clamp(product, l.quantity, local.amount);
+    if (process.env.STOCK_LEDGER === 'true' && opts.enforceStock && typeof product.stock === 'number' && product.stock > 0 && quantity > product.stock) {
+      quantity = product.stock;
+    }
+    const release = preorderCfg.releaseInfo(product);
+    out.push({
+      product,
+      slug: product.slug,
+      title: product.title,
+      imageUrl: product.imageUrl || (product.images && product.images[0]) || '',
+      packSize: Math.max(1, parseInt(product.packSize, 10) || 1),
+      quantity,
+      unitPrice: local.amount,
+      lineTotal: local.amount * quantity,
+      isPreorder: preorderCfg.isActivePreorder(product),
+      release,
+    });
+    total += local.amount * quantity;
+    currency = local.currency;
+  }
+
+  /* The ceiling, stated in the default market's money where it is known
+     exactly; every other market is held to the same 24 steps by the plan
+     lookup below, which has no rung past it. */
+  if (market.id === markets.defaultMarket().id && total > orderCap.MAX_ORDER_CENTS) {
+    return { ok: false, reason: 'over_cap', product: out[0].product, total };
+  }
+
+  const plan = await resolveCartPlan(out[0].product, total, market);
+  if (!plan) return { ok: false, reason: 'no_bundle_plan', product: out[0].product, total };
+
+  const first = out[0];
+  const preorderLine = out.find((x) => x.isPreorder) || null;
+  return {
+    ok: true,
+    product: first.product,
+    quantity: first.quantity,
+    unitPrice: first.unitPrice,
+    total,
+    shippingCents: 0,
+    taxCents: 0,
+    market: market.id,
+    currency: plan.currency || currency,
+    whopPlanId: plan.whopPlanId,
+    isPreorder: !!preorderLine,
+    release: preorderLine ? preorderLine.release : first.release,
+    lines: out,
+  };
+}
+
+/** Prices whatever a session holds: its cart lines, or its one product. */
+function priceForSession(session, opts = {}) {
+  const lines = (session && Array.isArray(session.items)) ? session.items : [];
+  if (lines.length > 1) return priceCart(lines, { market: session.market, ...opts });
+  return priceFor(session.productSlug, session.quantity, { market: session.market, ...opts });
+}
+
+/** Creates a session for a whole cart (two or more products). */
+async function startCart(lines, meta = {}) {
+  const clean = normaliseLines(lines);
+  if (clean.length < 2) {
+    return clean.length ? start(clean[0].slug, clean[0].quantity, meta) : { ok: false, reason: 'not_found' };
+  }
+  const priced = await priceCart(clean, { market: meta.market });
+  if (!priced.ok) return priced;
+
+  const { doc, token } = await CheckoutSession.issue({
+    checkoutId: meta.checkoutId || '',
+    productSlug: priced.product.slug,
+    items: priced.lines.map(itemRecord),
+    market: priced.market,
+    quantity: priced.quantity,
+    unitPrice: priced.unitPrice,
+    total: priced.total,
+    currency: priced.currency,
+    shippingCents: priced.shippingCents,
+    taxCents: priced.taxCents,
+    whopPlanId: priced.whopPlanId,
+    userAgent: (meta.userAgent || '').slice(0, 300),
+    ip: meta.ip || '',
+  });
+  return { ok: true, session: doc, token, priced };
+}
+
+/** What a session stores about a priced line (the order copies it). */
+function itemRecord(l) {
+  return {
+    slug: l.slug,
+    title: l.title,
+    quantity: l.quantity,
+    packSize: l.packSize,
+    unitPrice: l.unitPrice,
+    lineTotal: l.lineTotal,
+    imageUrl: l.imageUrl,
+  };
+}
+
 /** Creates a session for a product, or explains why it cannot. */
 async function start(slug, quantity, meta = {}) {
   const priced = await priceFor(slug, quantity, { market: meta.market });
@@ -273,7 +442,7 @@ async function completeStep1(session, body) {
   if (!check.ok) return { ok: false, reason: 'invalid', errors: check.errors, values: check.values };
 
   /* RE-PRICE. The customer may have had this page open for an hour. */
-  const priced = await priceFor(session.productSlug, session.quantity, { market: session.market });
+  const priced = await priceForSession(session);
   if (!priced.ok) return { ok: false, reason: priced.reason, product: priced.product };
 
   if (priced.total !== session.total) {
@@ -283,6 +452,7 @@ async function completeStep1(session, body) {
     session.unitPrice = priced.unitPrice;
     session.total = priced.total;
     session.whopPlanId = priced.whopPlanId;
+    if (priced.lines) session.items = priced.lines.map(itemRecord);
     Object.assign(session, check.values);
     session.lastActivityAt = new Date();
     await session.save();
@@ -293,6 +463,7 @@ async function completeStep1(session, body) {
   session.unitPrice = priced.unitPrice;
   session.total = priced.total;
   session.whopPlanId = priced.whopPlanId;
+  if (priced.lines) session.items = priced.lines.map(itemRecord);
   session.status = session.status === 'paid' ? 'paid' : 'step1_completed';
   session.lastActivityAt = new Date();
   await session.save();
@@ -346,7 +517,13 @@ async function markFailed(session) {
 
 module.exports = {
   priceFor,
+  priceCart,
+  priceForSession,
   start,
+  startCart,
+  itemRecord,
+  normaliseLines,
+  MAX_CART_LINES,
   validateDetails,
   completeStep1,
   markHandedOff,

@@ -66,24 +66,9 @@
             y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
         })(window, document, "clarity", "script", "xlgaj8np2e");
         <% if (gtagId) { %>
-        <%/* The Google tag (Ads and/or GA4), INSIDE the consent gate with the others.
-             Google's published snippet loads unconditionally; putting it
-             here instead is the entire point of having a gate — a tracker
-             that ignores a refusal turns the banner into a lie. The cost is
-             that a visitor who declines is invisible to Ads, which is
-             exactly what the refusal asked for. */%>
-        (function () {
-          var s = document.createElement('script');
-          s.async = true;
-          s.src = 'https://www.googletagmanager.com/gtag/js?id=<%= gtagId %>';
-          document.head.appendChild(s);
-        })();
-        /* Consent Mode v2: the visitor just accepted, say so before the
-           first hit so Ads and GA4 model nothing and store everything. */
-        gtag('consent', 'update', { ad_storage: 'granted', analytics_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted' });
-        gtag('js', new Date());
-        <% if (adsId) { %>gtag('config', '<%= adsId %>');<% } %>
-        <% if (ga4) { %>gtag('config', '<%= ga4 %>', { send_page_view: true });<% } %>
+        /* The Google tag itself loads on every page (below, outside this
+           gate). Accepting only upgrades its consent state. */
+        if (typeof gtag === 'function') gtag('consent', 'update', { ad_storage: 'granted', analytics_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted' });
         <% } %>
       }
     };
@@ -96,10 +81,28 @@
          consent check of its own and no risk of a ReferenceError. */%>
     window.dataLayer = window.dataLayer || [];
     window.gtag = function () { window.dataLayer.push(arguments); };
-    /* Consent Mode v2 defaults, queued before anything else: everything
-       denied until the banner is accepted. Google reads this as the
-       "basic" implementation (tags load only after consent). */
-    gtag('consent', 'default', { ad_storage: 'denied', analytics_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', wait_for_update: 500 });
+    <%/* THE GOOGLE TAG LOADS ON EVERY PAGE (owner's decision, 2026-11-07).
+         It used to wait for "Accept", so every visitor who ignored the
+         banner — most of them — was never tagged, their ad click was never
+         stored, and their purchase could not be credited to it.
+
+         An explicit "Decline" is still honoured through Consent Mode v2:
+         the tag loads, but with storage denied, so it sets no ad or
+         analytics cookies for that visitor and sends only cookieless
+         pings. Everyone who has not declined is tracked normally. Meta and
+         Clarity are unchanged and still wait for "Accept". */%>
+    (function () {
+      var declined = window.__gogetcardsConsent.get() === 'declined';
+      var state = declined ? 'denied' : 'granted';
+      gtag('consent', 'default', { ad_storage: state, analytics_storage: state, ad_user_data: state, ad_personalization: state });
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=<%= gtagId %>';
+      document.head.appendChild(s);
+      gtag('js', new Date());
+      <% if (adsId) { %>gtag('config', '<%= adsId %>');<% } %>
+      <% if (ga4) { %>gtag('config', '<%= ga4 %>', { send_page_view: true });<% } %>
+    })();
     <% } %>
     if (window.__gogetcardsConsent.get() === 'accepted') window.__gogetcardsConsent.load();
   </script>

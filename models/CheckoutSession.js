@@ -66,6 +66,25 @@ const checkoutSessionSchema = new mongoose.Schema(
     /* ---- what is being bought (server-owned) ---- */
     productSlug: { type: String, required: true, index: true },
     quantity: { type: Number, default: 1, min: 1 },
+    /* A MIXED CART: two or more products charged as one plan. Empty for a
+       single-product checkout, which keeps using productSlug/quantity
+       exactly as before; when present, productSlug/quantity mirror the
+       FIRST line and these are the whole order. Written only by the
+       server from catalogue prices (services/checkout/session.priceCart),
+       and copied onto the Order by the pipeline. */
+    items: {
+      type: [{
+        _id: false,
+        slug: { type: String, required: true },
+        title: { type: String, default: '' },
+        quantity: { type: Number, default: 1, min: 1 },
+        packSize: { type: Number, default: 1 },
+        unitPrice: { type: Number, default: 0 },
+        lineTotal: { type: Number, default: 0 },
+        imageUrl: { type: String, default: '' },
+      }],
+      default: [],
+    },
     /* Cents, snapshotted from Product at Step 1 and re-verified before
        handoff. `total` is quantity * unitPrice unless a fixed bundle plan
        overrides it, which is the only case where they differ. */

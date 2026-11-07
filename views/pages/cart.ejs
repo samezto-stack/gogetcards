@@ -114,12 +114,10 @@
           <a href="<%= marketPath('/collection/all') %>" class="btn btn-ghost btn-sm" id="cart-continue-btn">
             ← Continue Shopping
           </a>
-          <%/* States the rule before it bites. Adding a second product
-               replaces this one, which is correct — the checkout takes one
-               product per order — but a customer who learns that by
-               watching their cart empty reasonably reads it as a bug. */%>
+          <%/* States the one rule before it bites: the whole order is charged
+               as a single plan, and the plans stop at $1,199.76. */%>
           <p style="font-size:0.75rem;color:var(--color-text-faint);margin:0">
-            One product per order. Adding a different product replaces what is here.
+            Mix any products in one order, up to $1,199.76 per order.
           </p>
         </div>
       </div>

@@ -29,9 +29,22 @@
 const Product = require('../../models/Product');
 const Order = require('../../models/Order');
 
+/* A mixed-cart order takes stock for EVERY line, each exactly as a
+   single-product order of that line would. */
 async function consume(order) {
-  const slug = order && order.productSlug;
-  const qty = Math.max(1, parseInt(order && order.quantity, 10) || 1);
+  const lines = order && Array.isArray(order.items) && order.items.length > 1
+    && order.items.every((it) => it && it.slug && it.packs) ? order.items : null;
+  if (lines) {
+    const results = [];
+    for (const it of lines) results.push(await consumeOne(order, it.slug, it.packs));
+    return { tracked: results.some((r) => r.tracked), oversold: results.some((r) => r.oversold), lines: results };
+  }
+  return consumeOne(order, order && order.productSlug, order && order.quantity);
+}
+
+async function consumeOne(order, slugIn, qtyIn) {
+  const slug = slugIn;
+  const qty = Math.max(1, parseInt(qtyIn, 10) || 1);
   if (!slug) return { tracked: false };
   const product = await Product.findOne({ slug }).select('stock stockHold').lean();
   if (!product || typeof product.stock !== 'number' || product.stock <= 0) return { tracked: false };
@@ -43,7 +56,7 @@ async function consume(order) {
     return { tracked: true, oversold: false, remaining: after ? after.stock : null };
   }
   await Product.updateOne({ slug }, { $set: { stock: 0, stockHold: true } });
-  await Order.updateOne({ _id: order._id }, { $set: { note: `OVERSOLD: paid for ${qty} but stock was ${product.stock}. ${order.note || ''}`.trim() } });
+  await Order.updateOne({ _id: order._id }, { $set: { note: `OVERSOLD ${slug}: paid for ${qty} but stock was ${product.stock}. ${order.note || ''}`.trim() } });
   console.error(`[stock] OVERSOLD ${slug}: order ${order.orderId} paid for ${qty}, stock was ${product.stock}`);
   return { tracked: true, oversold: true, remaining: 0 };
 }

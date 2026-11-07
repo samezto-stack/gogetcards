@@ -477,7 +477,7 @@ const PAGES = {
              naming a company that never receives your data is a small
              untruth in the one document specifically about who does. */
           `Carriers (${[...new Set(shipping.REGIONS.flatMap((r) => r.carrier.split(/\s*\/\s*/)).map((c) => c.replace(/\s+(Ground Advantage|Express)$/, '')))].join(', ')}, depending on destination), who need your name and address to deliver the parcel.`,
-          'Analytics providers, which currently means Microsoft Clarity, and Meta where advertising is running. These see usage data, not your order details. The Cookie Policy explains this in more detail.',
+          'Analytics and advertising providers: Google (Google Analytics and Google Ads), Microsoft Clarity, and Meta where advertising is running. These see usage data and, for Google Ads and Meta, that a purchase happened and its value, not your card details. The Cookie Policy explains this in more detail.',
           'Legal authorities, where we are legally required to disclose something.',
         ),
         note('We do not sell, rent or trade personal data. There is no circumstance in which we would.')),
@@ -525,8 +525,8 @@ const PAGES = {
       s('What we use, and why',
         dl(
           ['Essential', 'A session cookie that remembers your cart and keeps you logged in through checkout. The site cannot function without it, so it is set without asking and cannot be turned off from here.'],
-          ['Analytics', 'Microsoft Clarity, which records aggregate usage so we can see where the site confuses people. It captures interactions, not card details or passwords.'],
-          ['Advertising', 'The Meta pixel, when advertising is running, which reports that a purchase happened so we can tell which ads work. It is only loaded when a pixel is configured.'],
+          ['Analytics', 'Google Analytics, and Microsoft Clarity, which record aggregate usage so we can see where the site confuses people. They capture interactions, not card details or passwords.'],
+          ['Advertising', 'The Google tag (Google Ads) and the Meta pixel, when advertising is running, which report that a purchase happened and its value so we can tell which ads work. The Google tag loads on every page; if you decline cookies it runs without setting any cookies (Google Consent Mode). Meta and Clarity load only if you accept.'],
         )),
       s('Turning them off',
         p('You can block or delete cookies in your browser settings, and every major browser lets you do it per site. Blocking essential cookies will break the cart and checkout, because those are what the cookie is for.'),

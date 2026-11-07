@@ -97,68 +97,95 @@ router.get('/search', searchLimiter, async (req, res) => {
 });
 
 /* ── Add to Cart ───────────────────────────────────────── */
+/* SEVERAL PRODUCTS PER ORDER, ONE CEILING. The checkout charges a whole
+   cart as a single ladder plan (services/checkout/session.priceCart), and
+   the ladder stops at 24 steps — $1,199.76 — so that is the most a cart
+   can hold, across every line together. The cart enforces it here, at the
+   moment of adding, so a customer is never allowed to build a cart the
+   checkout would then refuse. Each product's own allocation limit still
+   applies to its line. */
+const MAX_CART_LINES = 12;
+
+function cartValueExcept(cart, slug) {
+  return cart.items
+    .filter((i) => i.slug !== slug)
+    .reduce((sum, i) => sum + (Number(i.price) || 0) * (Number(i.quantity) || 0), 0);
+}
+
+/** The most of `product` this cart can hold, given everything else in it. */
+function roomFor(cart, product) {
+  const price = Number(product.price) || 0;
+  if (price <= 0) return 0;
+  const byOrder = Math.floor((orderCap.MAX_ORDER_CENTS - cartValueExcept(cart, product.slug)) / price);
+  const byProduct = orderCap.maxQuantity(product);
+  return Math.max(0, byProduct > 0 ? Math.min(byOrder, byProduct) : byOrder);
+}
+
+function cartLine(product, quantity) {
+  return {
+    slug: product.slug,
+    title: product.title,
+    price: product.price,
+    imageUrl: product.imageUrl || (product.images && product.images[0]) || '',
+    vendor: product.vendor,
+    productType: product.productType,
+    variantId: product.variantId || '',
+    preorder: product.preorder || false,
+    /* Packs: `quantity` counts packs, `packSize` says how many units
+       each one is, so the drawer can show the count the customer
+       chose. helpers/packs.js. */
+    packSize: Math.max(1, parseInt(product.packSize, 10) || 1),
+    quantity,
+  };
+}
+
 router.post('/cart/add', async (req, res) => {
   try {
     const slug = String(req.body.slug || '');
-    const qty = Math.max(1, parseInt(req.body.quantity) || 1);
+    const qty = Math.max(1, parseInt(req.body.quantity, 10) || 1);
 
     const product = await Product.findOne({ slug }).lean();
     if (!product) return res.json({ success: false, error: 'Product not found' });
 
     const cart = getCart(req);
-    const existing = cart.items.find(i => i.slug === slug);
+    const existing = cart.items.find((i) => i.slug === slug);
     const limit = orderCap.maxQuantity(product);
+    const room = roomFor(cart, product);
+    const orderMax = (orderCap.MAX_ORDER_CENTS / 100).toFixed(2);
 
-    /* What the cart held before, so the response can tell the customer
-       what happened to it. The replacement below was already correct and
-       already silent: someone added a second product, their first one
-       vanished, and nothing on screen said so. Losing a customer's cart
-       without a word is worse than the multi-product checkout this
-       prevents. */
-    const displaced = (!existing && cart.items.length) ? cart.items[0].title : null;
-
-    if (existing) {
-      // Same product already in the cart — just bump its quantity.
-      existing.quantity += qty;
-      if (limit > 0 && existing.quantity > limit) existing.quantity = limit;
-    } else {
-      // Single-product cart: adding a different product replaces the cart
-      // entirely, so it never holds more than one distinct product. The
-      // partner/Whop checkout handles exactly one product per order, and the
-      // cart's Secure Checkout routes that single product to it.
-      cart.items = [{
-        slug: product.slug,
-        title: product.title,
-        price: product.price,
-        imageUrl: product.imageUrl || (product.images && product.images[0]) || '',
-        vendor: product.vendor,
-        productType: product.productType,
-        variantId: product.variantId || '',
-        preorder: product.preorder || false,
-        /* Packs: `quantity` counts packs, `packSize` says how many units
-           each one is, so the drawer can show the count the customer
-           chose. helpers/packs.js. */
-        packSize: Math.max(1, parseInt(product.packSize, 10) || 1),
-        quantity: limit > 0 ? Math.min(qty, limit) : qty,
-      }];
+    if (!existing && cart.items.length >= MAX_CART_LINES) {
+      return res.json({ success: false, error: 'cart_lines', message: `A cart can hold up to ${MAX_CART_LINES} different products.` });
     }
+    if (room < 1) {
+      /* Nothing more fits under the order ceiling. Say so plainly rather
+         than adding nothing and reporting success. */
+      return res.json({
+        success: false,
+        error: 'cart_full',
+        message: `Orders are limited to $${orderMax}. Remove something from your cart or check out what is there first.`,
+        cart,
+      });
+    }
+
+    const wanted = (existing ? existing.quantity : 0) + qty;
+    const granted = Math.min(wanted, room);
+    if (existing) existing.quantity = granted;
+    else cart.items.push(cartLine(product, granted));
 
     recalcCart(cart);
 
-    /* Flags the client uses to explain what just happened, rather than
-       leaving the customer to notice on their own. `capped` fires when an
-       allocation limit trimmed the requested quantity, which was also
-       silent before. */
-    const requested = existing ? qty : Math.max(1, qty);
-    const nowInCart = (cart.items[0] && cart.items[0].quantity) || 0;
-    const capped = limit > 0 && nowInCart === limit && (existing ? true : requested > limit);
-
+    /* `capped`: the product's own allocation limit trimmed the request.
+       `orderLimit`: the $1,199.76 ceiling trimmed it. Both were silent
+       once; both are now explained in the drawer. */
+    const trimmed = granted < wanted;
+    const byProduct = trimmed && limit > 0 && granted === limit;
     req.session.save(() => {
       res.json({
         success: true,
         cart,
-        replaced: displaced,
-        capped: capped ? limit : null,
+        replaced: null,
+        capped: byProduct ? limit : null,
+        orderLimit: trimmed && !byProduct ? orderMax : null,
       });
     });
   } catch (err) {
@@ -185,7 +212,9 @@ router.post('/cart/update', async (req, res) => {
       cart.items = cart.items.filter(i => i.slug !== slug);
     } else {
       const product = await Product.findOne({ slug }).lean();
-      item.quantity = product ? orderCap.clamp(product, qty) : qty;
+      /* Held to the product's own limit AND to what still fits under the
+         order ceiling alongside the rest of the cart. */
+      item.quantity = product ? Math.max(1, Math.min(qty, roomFor(cart, product) || 1)) : 1;
     }
     recalcCart(cart);
   }
@@ -197,7 +226,7 @@ router.post('/cart/update', async (req, res) => {
 
 /* ── Remove Cart Item ──────────────────────────────────── */
 router.post('/cart/remove', (req, res) => {
-  const { slug } = req.body;
+  const slug = String(req.body.slug || '');
   const cart = getCart(req);
   cart.items = cart.items.filter(i => i.slug !== slug);
   recalcCart(cart);

@@ -29,9 +29,22 @@ function fromOrder(order, product = null, extra = {}) {
   const isPreorder = preorderCfg.isPreorder(product);
   const release = isPreorder && product ? preorderCfg.releaseInfo(product) : null;
 
-  const title = (product && product.title) || (o.products || [])[0] || 'Your order';
+  /* A MIXED CART lists every line; every template that speaks of "the"
+     product in a sentence gets a title that names the whole order. */
+  const lines = Array.isArray(o.items) && o.items.length > 1
+    ? o.items.map((it) => ({
+      title: String((it && (it.title || it.slug)) || 'Item'),
+      quantity: Math.max(1, Number(it && it.quantity) || 1),
+      price: Number(it && it.price) || 0,
+      image: productImage.at((it && it.image) || '', 144),
+    }))
+    : [];
+  const firstTitle = (product && product.title) || (o.products || [])[0] || 'Your order';
+  const title = lines.length ? `${lines[0].title} and ${lines.length - 1} more item${lines.length > 2 ? 's' : ''}` : firstTitle;
   /* Units, not packs: see helpers/packs.js and Order.packSize. */
-  const quantity = Math.max(1, Number(o.quantity) || 1) * Math.max(1, Number(o.packSize) || 1);
+  const quantity = lines.length
+    ? lines.reduce((n, l) => n + l.quantity, 0)
+    : Math.max(1, Number(o.quantity) || 1) * Math.max(1, Number(o.packSize) || 1);
 
   /* The address the ORDER captured. A profile edited later must never
      rewrite where a parcel actually went, and a receipt is a record. */
@@ -52,6 +65,7 @@ function fromOrder(order, product = null, extra = {}) {
 
     title,
     quantity,
+    lines,
     /* The email tile is 72px; 144 covers retina screens. */
     image: productImage.at((product && (product.imageUrl || (product.images || [])[0])) || o.productImage || '', 144),
     slug: o.productSlug || (product && product.slug) || '',

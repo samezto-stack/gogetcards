@@ -177,22 +177,26 @@
              the drawer has re-rendered — the refresh replaces innerHTML,
              so a notice added before it lands is thrown away.
 
-             The cart holds one product at a time because the checkout
-             takes one product per order, so adding a second replaces the
-             first. That was already true and entirely silent: the previous
-             item simply disappeared. */
+             The cart holds several products; the whole order is limited
+             to $1,199.76, and each product to its own allocation. */
           refreshCartDrawerHTML().then(() => {
-            if (data.replaced) {
-              showCartNotice('"' + data.replaced + '" was removed. Your cart holds one product at a time, '
-                + 'because each order is checked out on its own.');
-            } else if (data.capped) {
+            if (data.capped) {
               showCartNotice('Limited to ' + data.capped + ' per customer, so the quantity was adjusted.');
+            } else if (data.orderLimit) {
+              showCartNotice('Orders are limited to $' + data.orderLimit + ', so the quantity was adjusted to fit your cart.');
             }
           });
 
           // Track add_to_cart event
           trackEvent('add_to_cart', slug, qty);
           gaEvent('add_to_cart', form, qty);
+        } else if (data.message) {
+          /* A refusal with a reason (the cart is at the order limit, or
+             holds the most different products it can). Show the reason in
+             the drawer, where the cart it is about is visible. */
+          if (btn) { btn.innerHTML = originalText; btn.disabled = false; }
+          openCartDrawer();
+          refreshCartDrawerHTML().then(() => showCartNotice(data.message));
         } else {
           if (btn) { btn.innerHTML = '❌ Error — retry'; btn.disabled = false; }
         }
@@ -623,8 +627,9 @@
      Shown only when no choice has been recorded, so a returning visitor
      never sees it again. Accepting loads the analytics and advertising
      scripts immediately (the loader is defined in layout.ejs and is a
-     no-op if already run); declining records the refusal and loads
-     nothing, now or on any future visit.
+     no-op if already run); declining records the refusal, loads no Meta or
+     Clarity script, and switches the (always-loaded) Google tag to
+     Consent Mode "denied", now and on every future visit.
 
      Both buttons are the same size and weight in the markup. Making
      refusal the harder path is the dark pattern regulators name
@@ -637,6 +642,11 @@
       consent.set(value);
       notice.hidden = true;
       if (value === 'accepted' && typeof consent.load === 'function') consent.load();
+      /* The Google tag is already loaded on every page; a refusal turns
+         its storage off rather than unloading it. */
+      if (value === 'declined' && typeof window.gtag === 'function') {
+        window.gtag('consent', 'update', { ad_storage: 'denied', analytics_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
+      }
     };
     const accept = document.getElementById('cookie-accept');
     const decline = document.getElementById('cookie-decline');

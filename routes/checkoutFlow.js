@@ -128,8 +128,7 @@ router.get('/checkout/:token', tokenLimiter, async (req, res, next) => {
      second order be created from a link somebody kept. */
   if (session.isComplete()) return renderComplete(res, session);
 
-  const priced = await sessionService.priceFor(session.productSlug, session.quantity,
-    { market: session.market });
+  const priced = await sessionService.priceForSession(session);
   if (!priced.ok) return renderUnavailable(res, priced);
 
   session.lastActivityAt = new Date();
@@ -174,8 +173,7 @@ router.post('/checkout/:token', tokenLimiter, express.urlencoded({ extended: tru
 
   if (!result.ok) {
     if (result.reason === 'invalid') {
-      const priced = await sessionService.priceFor(session.productSlug, session.quantity,
-        { market: session.market });
+      const priced = await sessionService.priceForSession(session);
       return renderStep1(res, {
         session, token, priced,
         errors: result.errors,
@@ -242,7 +240,9 @@ async function applyStep1Complete(req, session, result) {
         city: session.city, state: session.state, postalCode: session.postalCode,
       },
       productSlug: session.productSlug,
-      productName: result.priced.product.title,
+      productName: result.priced.lines && result.priced.lines.length > 1
+        ? `${result.priced.product.title} + ${result.priced.lines.length - 1} more`
+        : result.priced.product.title,
       productImage: result.priced.product.imageUrl || '',
       quantity: session.quantity,
       total: (session.total / 100).toFixed(2),
@@ -304,8 +304,7 @@ async function preparePayment(req, session, token) {
        with no active partner ladder is not a place to send a buyer. */
     const servable = (req.sellableMarkets || []).some((m) => m.id === addressMarket.id);
     if (servable) {
-      const there = await sessionService.priceFor(session.productSlug, session.quantity,
-        { market: addressMarket.id });
+      const there = await sessionService.priceForSession(session, { market: addressMarket.id });
       /* And only if the product is genuinely sold there. Moving somebody
          into a storefront that cannot price this item would replace a
          currency mismatch with a dead end, which is worse. When it cannot
@@ -315,6 +314,7 @@ async function preparePayment(req, session, token) {
         session.currency = there.currency;
         session.unitPrice = there.unitPrice;
         session.total = there.total;
+        if (there.lines) session.items = there.lines.map(sessionService.itemRecord);
         await session.save();
 
         /* The abandoned record was written at Step 1, in the storefront
@@ -354,14 +354,14 @@ async function preparePayment(req, session, token) {
   /* THE ONLY CALL THAT ENFORCES THE STOCK HOLD. A held product renders
      Step 1 and accepts the form; it is stopped here, one step before any
      money could be involved, and offered its successor. */
-  const priced = await sessionService.priceFor(session.productSlug, session.quantity,
-    { enforceStock: true, market: session.market });
+  const priced = await sessionService.priceForSession(session, { enforceStock: true });
   if (!priced.ok) return { kind: 'unavailable', info: priced };
 
   /* FINAL PRICE CHECK before any money can be involved. */
   if (priced.total !== session.total) {
     session.total = priced.total;
     session.unitPrice = priced.unitPrice;
+    if (priced.lines) session.items = priced.lines.map(sessionService.itemRecord);
     await session.save();
     return {
       kind: 'redirect', status: 303,
@@ -380,6 +380,10 @@ async function preparePayment(req, session, token) {
        for the address they just gave us. Carried as signed claims — never
        as query parameters. */
     payment = await frontend.resolvePartnerRedirect(session.productSlug, session.quantity, {
+      /* A mixed cart is charged as ONE plan for its total; the lines are
+         only used to describe the order on the payment page. */
+      lines: priced.lines || null,
+      cartTotal: priced.lines ? priced.total : null,
       market: session.market,
       checkoutId: session.checkoutId,
       email: session.email,
@@ -735,6 +739,7 @@ function renderUnavailable(res, info) {
     not_found: 'This product is no longer in our catalogue.',
     no_bundle_plan: 'That quantity is not available to order right now. Try a different quantity from the product page.',
     payment_unavailable: 'Our payment step is temporarily unavailable. Nothing was charged. Please try again shortly.',
+    over_cap: 'Orders are limited to $1,199.76. Remove something from your cart and check out again. Nothing was charged.',
   };
 
   /* ── Sold out, told here ──────────────────────────────────────────────

@@ -71,11 +71,16 @@ function build(v) {
 
     /* ── What was bought ── */
     L.section(
-      L.lineItem({
-        image: v.image, title: v.title, quantity: v.quantity,
-        price: v.total, currency: v.currency,
-        note: preorder && v.release.hasDate ? `Releases ${v.release.display}` : 'Factory sealed',
-      }),
+      (v.lines && v.lines.length
+        ? v.lines.map((l) => L.lineItem({
+          image: l.image, title: l.title, quantity: l.quantity,
+          price: l.price, currency: v.currency, note: 'Factory sealed',
+        })).join('')
+        : L.lineItem({
+          image: v.image, title: v.title, quantity: v.quantity,
+          price: v.total, currency: v.currency,
+          note: preorder && v.release.hasDate ? `Releases ${v.release.display}` : 'Factory sealed',
+        })),
       { pad: '24px 32px' }
     ),
     L.rule(),
@@ -149,8 +154,9 @@ function build(v) {
     `Order number: ${v.reference}`,
     `Order date:   ${L.day(v.placedOn)}`,
     '',
-    `${v.title}`,
-    `Quantity ${v.quantity}`,
+    ...(v.lines && v.lines.length
+      ? v.lines.map((l) => `${l.title} — Quantity ${l.quantity} — ${L.money(l.price, v.currency)}`)
+      : [`${v.title}`, `Quantity ${v.quantity}`]),
     preorder && v.release.hasDate ? `Releases ${v.release.display}` : null,
     '',
     `Subtotal    ${L.money(v.total, v.currency)}`,

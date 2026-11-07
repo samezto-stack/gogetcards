@@ -177,6 +177,9 @@ function decorate(order, product) {
        discontinued line, is worse than not offering it. */
     reorderable: !!(product && product.available),
     image: (product && (product.imageUrl || (product.images || [])[0])) || order.productImage || '',
+    /* A mixed-cart order is named by its first product; this says how
+       many more products the same order holds. */
+    moreItems: Array.isArray(order.items) && order.items.length > 1 ? order.items.length - 1 : 0,
   };
 }
 

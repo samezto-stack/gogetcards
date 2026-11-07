@@ -1,4 +1,27 @@
-# GoGetCards: Google Shopping strategy review and launch preparation, 2026-11-07
+# GoGetCards: Google Shopping strategy, 2026-11-07
+
+## Update: your decisions (these override anything below that differs)
+
+1. **The eight cost-flagged products are approved.** You confirmed you source them well under MSRP, so the deep discount is sustainable:
+   - Chaos Rising, Perfect Order and Pitch Black booster boxes
+   - Attack of the Vine and Hyperia City booster displays
+   - Lorwyn Eclipsed Play Booster Box
+   - Reality Fracture Draft Night
+   - Bowman Chrome Mega Box
+
+   **The ad set is now 37 products:** Pokémon 10, MTG 9, One Piece 6, Sports 8, Lorcana 4. All 37 pass the feed validator. `docs/gogetcards-ads-set-tags-2026-11-07.csv` now has 37 rows; dry run through the real importer: **0 create, 37 update, 0 errors, only `tags` changes**. After import the feed holds **46 items** (the 15 already there + 31 new).
+
+   Still held, for demand reasons, not cost: the 30th ETB Case (case market falling), OP-15 (74 sales/30d), the Binder Collection (thin market), the Winterspell and Wilds Unknown Troves (old sets, little evidence), and the OP-16 Master Case.
+
+2. **Lorcana launches now, not in phase 2.** With the Hyperia City display (2,240 sales/30d) in, give it **$25/day from the $25 reserve**. Launch allocation: Pokémon $150, MTG $100, One Piece $100, Sports $125, Lorcana $25 = $500.
+
+3. **The Google tag loads on every page** (deployed). It no longer waits for "Accept". A visitor who explicitly clicks "Decline" is put in Google Consent Mode "denied": the tag still loads, but sets no cookies for them. Meta and Clarity still wait for "Accept". The banner and the Cookie/Privacy policy text now say this accurately. **Purchase tracking still needs the four env vars** (`GOOGLE_ADS_ID`, `GOOGLE_ADS_PURCHASE_LABEL`, `GA4_MEASUREMENT_ID`, `GOOGLE_MERCHANT_ID`), which you'll add later. Until then no tag renders and **no ad spend should start**.
+
+4. **Mixed carts are live** (deployed). Customers can put different products in one cart and pay once, up to **$1,199.76 for the whole order**. The cart enforces the limit as items are added, and each product's own per-customer limit still applies. The order is charged as one partner plan for the cart total, which always exists because every price is a whole number of $49.99 steps. Every line appears on the checkout, the thank-you page, the confirmation email, the customer's account and the admin order list, and the purchase conversion reports each line separately. **This changes the $49.99 test (Report B):** a $49.99 entry product can now lead to a mixed cart, so judge `price_049` groups on whole-order value per click, and use the conversion's cart data to see what else was bought.
+
+The tables below are regenerated from the current data. Where the narrative mentions holds for cost or one-product checkout, the points above replace it.
+
+---
 
 **Bottom line.** The five-campaign Standard Shopping structure is right, and I've kept it. The 35-product list isn't. I recommend **29 products**, not 35. Of ChatGPT's 35: **20 kept, 3 replaced, 11 held, 1 rejected**. Plus **9 additions**: 7 at launch and 2 Lorcana Troves for phase 2. (The OP-16 Master Case, which ChatGPT didn't propose, is also held.) The biggest problems were not in the product names:
 
@@ -48,9 +71,9 @@ Database `_id`s are not exposed by the site and the database is unreachable from
 | Pokémon | Pokémon TCG Pitch Black Elite Trainer Box (9 Packs)<br>`pokemon-tcg-pitch-black-elite-trainer-box` | GC-073 | $49.99 | $72.50 | 31.0% | 597, flat | yes | 53 (in stock) | **APPROVE** |
 | Pokémon | Pokémon TCG Delta Reign Elite Trainer Box (9 Packs) *(added)*<br>`pokemon-tcg-delta-reign-elite-trainer-box` | GC-031 | $49.99 | $86.48 | 42.2% | 3331, falling | no | 63 (in stock) | **APPROVE** |
 | Pokémon | Pokémon TCG 30th Celebration Elite Trainer Box Case<br>`pokemon-tcg-30th-celebration-elite-trainer-box-case` | GC-033 | $749.85 | $1,049.96 | 28.6% | 92, falling | no | 50 (in stock) | **HOLD** |
-| Pokémon | Pokémon TCG Chaos Rising Booster Box<br>`pokemon-tcg-chaos-rising-booster-box` | GC-025 | $99.98 | $181.97 | 45.1% | 415, flat | no | 53 (in stock) | **HOLD** |
-| Pokémon | Pokémon TCG Perfect Order Booster Box (36 Packs)<br>`pokemon-tcg-perfect-order-booster-box` | GC-058 | $99.98 | $172.84 | 42.2% | 294, flat | no | 77 (in stock) | **HOLD** |
-| Pokémon | Pokémon TCG Pitch Black Booster Box (36 Packs)<br>`pokemon-tcg-pitch-black-booster-box` | GC-016 | $99.98 | $177.77 | 43.8% | 789, falling | no | 68 (in stock) | **HOLD** |
+| Pokémon | Pokémon TCG Chaos Rising Booster Box<br>`pokemon-tcg-chaos-rising-booster-box` | GC-025 | $99.98 | $181.97 | 45.1% | 415, flat | no | 53 (in stock) | **APPROVE** |
+| Pokémon | Pokémon TCG Perfect Order Booster Box (36 Packs)<br>`pokemon-tcg-perfect-order-booster-box` | GC-058 | $99.98 | $172.84 | 42.2% | 294, flat | no | 77 (in stock) | **APPROVE** |
+| Pokémon | Pokémon TCG Pitch Black Booster Box (36 Packs)<br>`pokemon-tcg-pitch-black-booster-box` | GC-016 | $99.98 | $177.77 | 43.8% | 789, falling | no | 68 (in stock) | **APPROVE** |
 | Pokémon | Pokémon TCG 30th Celebration Binder Collection<br>`pokemon-tcg-30th-celebration-binder-collection` | GC-049 | $49.99 | $94.89 | 47.3% | not available | no | 62 (in stock) | **REPLACE** |
 | MTG | MTG The Hobbit Collector Booster Box (12 Packs)<br>`mtg-the-hobbit-collector-booster-box` | GC-023 | $399.92 | $596.00 | 32.9% | 456, falling | no | 52 (in stock) | **APPROVE** |
 | MTG | MTG Marvel Super Heroes Collector Booster Box (12 Packs)<br>`mtg-marvel-super-heroes-collector-booster-box` | GC-037 | $299.94 | $449.99 | 33.3% | 82, flat | yes | 52 (in stock) | **APPROVE** |
@@ -59,9 +82,9 @@ Database `_id`s are not exposed by the site and the database is unreachable from
 | MTG | MTG The Hobbit Play Booster Box (30 Packs)<br>`mtg-the-hobbit-play-booster-box` | GC-032 | $99.98 | $129.99 | 23.1% | 708, falling | no | 51 (in stock) | **APPROVE** |
 | MTG | MTG Secrets of Strixhaven Play Booster Box (30 Packs)<br>`mtg-secrets-of-strixhaven-play-booster-box` | GC-071 | $99.98 | $144.29 | 30.7% | 204, flat | no | 83 (in stock) | **APPROVE** |
 | MTG | MTG Marvel Super Heroes Gift Bundle<br>`mtg-marvel-super-heroes-gift-bundle` | GC-092 | $49.99 | $74.99 | 33.3% | not available | no | 37 (in stock) | **APPROVE** |
-| MTG | MTG Reality Fracture Draft Night<br>`mtg-reality-fracture-draft-night` | GC-060 | $49.99 | $84.00 | 40.5% | not available | no | 92 (in stock) | **HOLD** |
+| MTG | MTG Reality Fracture Draft Night<br>`mtg-reality-fracture-draft-night` | GC-060 | $49.99 | $84.00 | 40.5% | not available | no | 92 (in stock) | **APPROVE** |
 | MTG | MTG Secrets of Strixhaven Collector Booster Box (12 Packs)<br>`mtg-secrets-of-strixhaven-collector-booster-box` | GC-038 | $299.94 | $450.00 | 33.3% | 82, flat | no | 57 (in stock) | **REPLACE** |
-| MTG | MTG Lorwyn Eclipsed Play Booster Box (30 Packs)<br>`mtg-lorwyn-eclipsed-play-booster-box` | GC-117 | $49.99 | $101.42 | 50.7% | 657, falling | no | 61 (in stock) | **REJECT** |
+| MTG | MTG Lorwyn Eclipsed Play Booster Box (30 Packs)<br>`mtg-lorwyn-eclipsed-play-booster-box` | GC-117 | $49.99 | $101.42 | 50.7% | 657, falling | no | 61 (in stock) | **APPROVE** |
 | One Piece | One Piece Card Game OP-13 Carrying On His Will Booster Box (English, 24 packs)<br>`one-piece-card-game-op-13-carrying-on-his-will-booster-box-english-24-packs` | GC-078 | $249.95 | $385.99 | 35.2% | 112, falling | no | 48 (in stock) | **APPROVE** |
 | One Piece | One Piece Card Game OP-17 The World's Strongest Warriors Booster Box (English, 24 packs)<br>`one-piece-card-game-op-17-the-world-s-strongest-warriors-booster-box-english-24-packs` | GC-005 | $199.96 | $294.99 | 32.2% | 526, flat | yes | 30 (in stock) | **APPROVE** |
 | One Piece | One Piece Card Game EB-03 One Piece Heroines Edition Booster Box (English, 24 packs)<br>`one-piece-card-game-eb-03-one-piece-heroines-edition-booster-box-english-24-packs` | GC-076 | $199.96 | $280.95 | 28.8% | 129, falling | no | 47 (in stock) | **APPROVE** |
@@ -77,12 +100,12 @@ Database `_id`s are not exposed by the site and the database is unreachable from
 | Sports | 2026 Topps Inception Football Hobby Box *(added)*<br>`2026-topps-inception-football-hobby-box` | GC-022 | $349.93 | $499.94 | 30.0% | not tracked (sports) | no | 54 (in stock) | **APPROVE** |
 | Sports | 2025-26 Panini Prizm Basketball Hobby Box (12 Packs)<br>`2025-26-panini-prizm-basketball-hobby-box` | GC-046 | $199.96 | $259.95 | 23.1% | not tracked (sports) | no | 46 (in stock) | **APPROVE** |
 | Sports | 2026-27 Topps Flagship Basketball Hobby Box (20 Packs) *(added)*<br>`2026-27-topps-flagship-basketball-hobby-box` | GC-020 | $149.97 | $209.94 | 28.6% | not tracked (sports) | no | 59 (in stock) | **APPROVE** |
-| Sports | 2026 Bowman Chrome Baseball Mega Box (6 Packs)<br>`2026-bowman-chrome-baseball-mega-box` | GC-129 | $49.99 | $97.90 | 48.9% | not tracked (sports) | no | 36 (in stock) | **HOLD** |
+| Sports | 2026 Bowman Chrome Baseball Mega Box (6 Packs)<br>`2026-bowman-chrome-baseball-mega-box` | GC-129 | $49.99 | $97.90 | 48.9% | not tracked (sports) | no | 36 (in stock) | **APPROVE** |
 | Sports | 2026 Topps Series 1 Baseball Hobby Box (20 Packs)<br>`2026-topps-series-1-baseball-hobby-box` | GC-096 | $149.97 | $209.95 | 28.6% | not tracked (sports) | no | 102 (in stock) | **REPLACE** |
 | Lorcana | Disney Lorcana Hyperia City Illumineer's Trove *(added)*<br>`disney-lorcana-hyperia-city-illumineers-trove` | GC-106 | $49.99 | $70.49 | 29.1% | not available | no | 52 (in stock) | **APPROVE** |
 | Lorcana | Disney Lorcana Attack of the Vine! Illumineer's Trove *(added)*<br>`disney-lorcana-attack-of-the-vine-illumineers-trove` | GC-105 | $49.99 | $84.46 | 40.8% | not available | no | 50 (in stock) | **APPROVE** |
-| Lorcana | Disney Lorcana Attack of the Vine! Booster Display Box (24 Packs)<br>`disney-lorcana-attack-of-the-vine-booster-display-box` | GC-050 | $99.98 | $178.93 | 44.1% | 254, falling | no | 65 (in stock) | **HOLD** |
-| Lorcana | Disney Lorcana Hyperia City Booster Display Box (24 Packs)<br>`disney-lorcana-hyperia-city-booster-display-box` | GC-051 | $99.98 | $127.94 | 21.9% | 2240, falling | no | 50 (in stock) | **HOLD** |
+| Lorcana | Disney Lorcana Attack of the Vine! Booster Display Box (24 Packs)<br>`disney-lorcana-attack-of-the-vine-booster-display-box` | GC-050 | $99.98 | $178.93 | 44.1% | 254, falling | no | 65 (in stock) | **APPROVE** |
+| Lorcana | Disney Lorcana Hyperia City Booster Display Box (24 Packs)<br>`disney-lorcana-hyperia-city-booster-display-box` | GC-051 | $99.98 | $127.94 | 21.9% | 2240, falling | no | 50 (in stock) | **APPROVE** |
 | Lorcana | Disney Lorcana Winterspell Illumineer's Trove<br>`disney-lorcana-winterspell-illumineers-trove` | GC-131 | $49.99 | $97.99 | 49.0% | not available | no | 23 (in stock) | **HOLD** |
 | Lorcana | Disney Lorcana Wilds Unknown Illumineer's Trove<br>`disney-lorcana-wilds-unknown-illumineers-trove` | GC-130 | $49.99 | $100.99 | 50.5% | not available | no | 20 (in stock) | **HOLD** |
 
@@ -100,9 +123,9 @@ Full data per row (competitor source, research date, today's TCGplayer market an
 | Pokémon TCG Pitch Black Elite Trainer Box (9 Packs) | APPROVE | 31% under; priced at the $49.99 MSRP, so the margin is plausible; 597 sold/30d, 226 listings. $49.99 test. |
 | Pokémon TCG Delta Reign Elite Trainer Box (9 Packs) | APPROVE | ADDED. Released Nov 6 (release-week search peak); 3,331 sold/30d; 42% under the delivered low while priced at MSRP ($49.99), so the deep discount is a genuine retail price, not a loss. Stronger than the Binder on every criterion. |
 | Pokémon TCG 30th Celebration Elite Trainer Box Case | HOLD | Price is fine (28.6% under) but the case market fell 29% in 30 days, so the advantage is eroding; $749.85 one-unit orders need proven conversion first. Add from the waiting list once the Bundle Case converts. |
-| Pokémon TCG Chaos Rising Booster Box | HOLD | 45% under the market and 38% under the $161.64 MSRP. At $99.98 this is at or below typical distributor cost for a booster box, and above your own 25–40% band. Advertising it scales a probable loss, and deep below-MSRP pricing on a new Merchant Center account is a misrepresentation-review risk. Approve only once you confirm the landed cost. |
-| Pokémon TCG Perfect Order Booster Box (36 Packs) | HOLD | 42% under the market, 38% under MSRP: same cost and trust risk as Chaos Rising. |
-| Pokémon TCG Pitch Black Booster Box (36 Packs) | HOLD | 44% under the market, 38% under MSRP: same cost and trust risk as Chaos Rising. |
+| Pokémon TCG Chaos Rising Booster Box | APPROVE | APPROVED (owner decision 2026-11-07): sourced well under MSRP, so the deep discount is sustainable. 45.1% under the lowest delivered competitor; demand: TCGplayer 30-day units 415. |
+| Pokémon TCG Perfect Order Booster Box (36 Packs) | APPROVE | APPROVED (owner decision 2026-11-07): sourced well under MSRP, so the deep discount is sustainable. 42.2% under the lowest delivered competitor; demand: TCGplayer 30-day units 294. |
+| Pokémon TCG Pitch Black Booster Box (36 Packs) | APPROVE | APPROVED (owner decision 2026-11-07): sourced well under MSRP, so the deep discount is sustainable. 43.8% under the lowest delivered competitor; demand: TCGplayer 30-day units 789. |
 | Pokémon TCG 30th Celebration Binder Collection | REPLACE | 47% under a thin secondary market (11 listings today; no sales count available). The "market" is scarcity-inflated and MSRP is $31.99, so the advantage will not survive a retailer restock. Replaced by the Delta Reign ETB. |
 | MTG The Hobbit Collector Booster Box (12 Packs) | APPROVE | 32.9% under (comp $596, medium confidence); 456 sold/30d. The market fell 19% in 30 days, so re-check the advantage weekly. |
 | MTG Marvel Super Heroes Collector Booster Box (12 Packs) | APPROVE | 33.3% under; 82 sold/30d (modest, flat). A crossover brand with broader search demand than Strixhaven. Low bid. |
@@ -111,9 +134,9 @@ Full data per row (competitor source, research date, today's TCGplayer market an
 | MTG The Hobbit Play Booster Box (30 Packs) | APPROVE | 23.1% under (just below your 25% target); 708 sold/30d. Margin likely thin at $99.98: confirm cost. |
 | MTG Secrets of Strixhaven Play Booster Box (30 Packs) | APPROVE | 30.7% under; 204 sold/30d; TCGplayer market is the only MTG one rising (+2%). Margin likely thin: confirm cost. |
 | MTG Marvel Super Heroes Gift Bundle | APPROVE | 33.3% under (TCGplayer low $69.80 today); 44 listings, no sales count. MTG $49.99 multi-unit test; margin unverified. |
-| MTG Reality Fracture Draft Night | HOLD | 40.5% under: past the top of your 25–40% band, with an unknown MSRP, so the cost is unverified. Approve on cost confirmation. |
+| MTG Reality Fracture Draft Night | APPROVE | APPROVED (owner decision 2026-11-07): sourced well under MSRP, so the deep discount is sustainable. 40.5% under the lowest delivered competitor; demand: TCGplayer 30-day units not available. |
 | MTG Secrets of Strixhaven Collector Booster Box (12 Packs) | REPLACE | 33.3% under but only 82 sold/30d on a set from April. Replaced by the Star Trek Collector Booster Box (1,781 pre-sold, releases Nov 13). |
-| MTG Lorwyn Eclipsed Play Booster Box (30 Packs) | REJECT | The title, description, specs and feed are now consistent (30 packs, verified live). But $49.99 for a 30-pack Play Booster display is 51% under the $101.42 delivered low and roughly half of normal wholesale for that box. Every unit sold probably loses money, and multi-unit orders multiply the loss. Do not advertise. Review the price (not changed by me). |
+| MTG Lorwyn Eclipsed Play Booster Box (30 Packs) | APPROVE | APPROVED (owner decision 2026-11-07): sourced well under MSRP, so the deep discount is sustainable. 50.7% under the lowest delivered competitor; demand: TCGplayer 30-day units 657. |
 | One Piece Card Game OP-13 Carrying On His Will Booster Box (English, 24 packs) | APPROVE | 35.2% under; 112 sold/30d; out-of-print set with no reprint found, so demand is steady. |
 | One Piece Card Game OP-17 The World's Strongest Warriors Booster Box (English, 24 packs) | APPROVE | 32.2% under; 526 sold/30d, the only One Piece market rising. Already in Merchant Center. |
 | One Piece Card Game EB-03 One Piece Heroines Edition Booster Box (English, 24 packs) | APPROVE | 28.8% under; 129 sold/30d. Shares the "Heroines" search demand with EB-05. |
@@ -129,12 +152,12 @@ Full data per row (competitor source, research date, today's TCGplayer market an
 | 2026 Topps Inception Football Hobby Box | APPROVE | ADDED. Released Nov 6, Topps direct sold out; 30% under (comp $499.94, high confidence); football in season. |
 | 2025-26 Panini Prizm Basketball Hobby Box (12 Packs) | APPROVE | 23.1% under (Midwest Cards $259.95; Panini direct $299.95); basketball in season. Just below your 25% target. |
 | 2026-27 Topps Flagship Basketball Hobby Box (20 Packs) | APPROVE | ADDED. Released Nov 5; Topps' first flagship NBA release (strong hobby coverage); 28.6% under (comp $209.94, high confidence). |
-| 2026 Bowman Chrome Baseball Mega Box (6 Packs) | HOLD | 48.9% under: past your 40% band, below the usual mega-box retail price, with the cost unverified. Also, a $49.99 retail-format box mostly competes with big-box retail. Approve on cost confirmation. |
+| 2026 Bowman Chrome Baseball Mega Box (6 Packs) | APPROVE | APPROVED (owner decision 2026-11-07): sourced well under MSRP, so the deep discount is sustainable. 48.9% under the lowest delivered competitor; demand: TCGplayer 30-day units not tracked (sports). |
 | 2026 Topps Series 1 Baseball Hobby Box (20 Packs) | REPLACE | 28.6% under, but a February release with prices drifting down and medium demand. Replaced by 2026-27 Topps Flagship Basketball Hobby at the same $149.97. |
 | Disney Lorcana Hyperia City Illumineer's Trove | APPROVE | ADDED (phase 2). Current set (Oct 23) with the strongest Lorcana demand; at the $49.99 MSRP; 29% under the delivered low; 47 listings. |
 | Disney Lorcana Attack of the Vine! Illumineer's Trove | APPROVE | ADDED (phase 2). At the $49.99 MSRP; 40.8% under ($84.46 low); 34 listings. |
-| Disney Lorcana Attack of the Vine! Booster Display Box (24 Packs) | HOLD | 44% under the market and 30% under the $143.76 MSRP: probable below-cost pricing. Approve on cost confirmation. |
-| Disney Lorcana Hyperia City Booster Display Box (24 Packs) | HOLD | 2,240 sold/30d, so the demand is real. But $99.98 is 70% of the $143.76 MSRP, about distributor cost, and only 20–22% under the market. Approve once the cost shows a positive margin. |
+| Disney Lorcana Attack of the Vine! Booster Display Box (24 Packs) | APPROVE | APPROVED (owner decision 2026-11-07): sourced well under MSRP, so the deep discount is sustainable. 44.1% under the lowest delivered competitor; demand: TCGplayer 30-day units 254. |
+| Disney Lorcana Hyperia City Booster Display Box (24 Packs) | APPROVE | APPROVED (owner decision 2026-11-07): sourced well under MSRP, so the deep discount is sustainable. 21.9% under the lowest delivered competitor; demand: TCGplayer 30-day units 2240. |
 | Disney Lorcana Winterspell Illumineer's Trove | HOLD | At MSRP, but an out-of-print February set with 15 listings and no sales count. Sourcing at wholesale is doubtful now and demand is unverified. |
 | Disney Lorcana Wilds Unknown Illumineer's Trove | HOLD | Same as Winterspell: an older May set, 23 listings, no sales count. |
 
@@ -258,6 +281,9 @@ The remaining checks have to be done by you in Merchant Center: approval, the Sh
 | GC-011 | `pokemon-tcg-30th-celebration-booster-bundle` | pokemon | price_049 | $49.99 | in_stock | **Already present** (hand-selected earlier) | Unverified: not readable from here |
 | GC-073 | `pokemon-tcg-pitch-black-elite-trainer-box` | pokemon | price_049 | $49.99 | in_stock | **Already present** (hand-selected earlier) | Unverified: not readable from here |
 | GC-031 | `pokemon-tcg-delta-reign-elite-trainer-box` | pokemon | price_049 | $49.99 | in_stock | Not yet in feed: enters on import | Unverified: not readable from here |
+| GC-025 | `pokemon-tcg-chaos-rising-booster-box` | pokemon | price_050_199 | $99.98 | in_stock | Not yet in feed: enters on import | Unverified: not readable from here |
+| GC-058 | `pokemon-tcg-perfect-order-booster-box` | pokemon | price_050_199 | $99.98 | in_stock | Not yet in feed: enters on import | Unverified: not readable from here |
+| GC-016 | `pokemon-tcg-pitch-black-booster-box` | pokemon | price_050_199 | $99.98 | in_stock | Not yet in feed: enters on import | Unverified: not readable from here |
 | GC-023 | `mtg-the-hobbit-collector-booster-box` | mtg | price_200_449 | $399.92 | in_stock | Not yet in feed: enters on import | Unverified: not readable from here |
 | GC-037 | `mtg-marvel-super-heroes-collector-booster-box` | mtg | price_200_449 | $299.94 | in_stock | **Already present** (hand-selected earlier) | Unverified: not readable from here |
 | GC-007 | `mtg-star-trek-collector-booster-box` | mtg | price_200_449 | $299.94 | preorder (date 2026-11-13) | Not yet in feed: enters on import | Unverified: not readable from here |
@@ -265,6 +291,8 @@ The remaining checks have to be done by you in Merchant Center: approval, the Sh
 | GC-032 | `mtg-the-hobbit-play-booster-box` | mtg | price_050_199 | $99.98 | in_stock | Not yet in feed: enters on import | Unverified: not readable from here |
 | GC-071 | `mtg-secrets-of-strixhaven-play-booster-box` | mtg | price_050_199 | $99.98 | in_stock | Not yet in feed: enters on import | Unverified: not readable from here |
 | GC-092 | `mtg-marvel-super-heroes-gift-bundle` | mtg | price_049 | $49.99 | in_stock | Not yet in feed: enters on import | Unverified: not readable from here |
+| GC-060 | `mtg-reality-fracture-draft-night` | mtg | price_049 | $49.99 | in_stock | Not yet in feed: enters on import | Unverified: not readable from here |
+| GC-117 | `mtg-lorwyn-eclipsed-play-booster-box` | mtg | price_049 | $49.99 | in_stock | Not yet in feed: enters on import | Unverified: not readable from here |
 | GC-078 | `one-piece-card-game-op-13-carrying-on-his-will-booster-box-english-24-packs` | one_piece | price_200_449 | $249.95 | in_stock | Not yet in feed: enters on import | Unverified: not readable from here |
 | GC-005 | `one-piece-card-game-op-17-the-world-s-strongest-warriors-booster-box-english-24-packs` | one_piece | price_050_199 | $199.96 | in_stock | **Already present** (hand-selected earlier) | Unverified: not readable from here |
 | GC-076 | `one-piece-card-game-eb-03-one-piece-heroines-edition-booster-box-english-24-packs` | one_piece | price_050_199 | $199.96 | in_stock | Not yet in feed: enters on import | Unverified: not readable from here |
@@ -278,8 +306,11 @@ The remaining checks have to be done by you in Merchant Center: approval, the Sh
 | GC-022 | `2026-topps-inception-football-hobby-box` | sports | price_200_449 | $349.93 | in_stock | Not yet in feed: enters on import | Unverified: not readable from here |
 | GC-046 | `2025-26-panini-prizm-basketball-hobby-box` | sports | price_050_199 | $199.96 | in_stock | Not yet in feed: enters on import | Unverified: not readable from here |
 | GC-020 | `2026-27-topps-flagship-basketball-hobby-box` | sports | price_050_199 | $149.97 | in_stock | Not yet in feed: enters on import | Unverified: not readable from here |
+| GC-129 | `2026-bowman-chrome-baseball-mega-box` | sports | price_049 | $49.99 | in_stock | Not yet in feed: enters on import | Unverified: not readable from here |
 | GC-106 | `disney-lorcana-hyperia-city-illumineers-trove` | lorcana | price_049 | $49.99 | in_stock | Not yet in feed: enters on import | Unverified: not readable from here |
 | GC-105 | `disney-lorcana-attack-of-the-vine-illumineers-trove` | lorcana | price_049 | $49.99 | in_stock | Not yet in feed: enters on import | Unverified: not readable from here |
+| GC-050 | `disney-lorcana-attack-of-the-vine-booster-display-box` | lorcana | price_050_199 | $99.98 | in_stock | Not yet in feed: enters on import | Unverified: not readable from here |
+| GC-051 | `disney-lorcana-hyperia-city-booster-display-box` | lorcana | price_050_199 | $99.98 | in_stock | Not yet in feed: enters on import | Unverified: not readable from here |
 
 **Already present (6):** GC-005, GC-008, GC-011, GC-024, GC-037, GC-073, with their existing offer IDs preserved.
 **Enters on import (23):** the rest.

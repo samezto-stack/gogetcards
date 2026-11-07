@@ -33,9 +33,14 @@
 
   const order = o.order;
   const cur = order.currency || 'USD';
-  const title = (o.product && o.product.title) || (order.products || [])[0] || 'Order';
+  /* A mixed-cart order carries every line in order.items. */
+  const lines = Array.isArray(order.items) && order.items.length > 1 ? order.items : [];
+  const firstTitle = (o.product && o.product.title) || (order.products || [])[0] || 'Order';
+  const title = lines.length ? `${firstTitle} and ${lines.length - 1} more` : firstTitle;
   /* Units: packs times the pack size recorded on the order. */
-  const qty = (Number(order.quantity) || 1) * (Number(order.packSize) > 1 ? Number(order.packSize) : 1);
+  const qty = lines.length
+    ? lines.reduce((n, it) => n + (Number(it.quantity) || 1), 0)
+    : (Number(order.quantity) || 1) * (Number(order.packSize) > 1 ? Number(order.packSize) : 1);
 
   /* The address the ORDER captured, not the one on the profile. A profile
      edited after the fact must not rewrite where a parcel actually went. */
@@ -70,8 +75,27 @@
     </p>
   </div>
 
-  <%/* The line item. One product per order is what this pipeline records;
-       quantity carries the rest. */%>
+  <%/* The line items: every product of a mixed-cart order, or the one
+       product (with its quantity) of a single-product order. */%>
+  <% if (lines.length) { %>
+    <% lines.forEach(function (it) { %>
+      <div class="ac__order ac__order--static">
+        <% if (it.image) { %>
+          <img class="ac__thumb" <%- productImage.attrs(it.image, 90) %> alt="" width="72" height="72" loading="lazy" decoding="async">
+        <% } else { %><span class="ac__thumb ac__thumb--blank"></span><% } %>
+        <div class="ac__order-main">
+          <span class="ac__order-title"><%= it.title || it.slug || 'Item' %></span>
+          <p class="ac__order-meta">
+            <span>Quantity <%= Number(it.quantity) || 1 %></span>
+            <span>Factory sealed</span>
+          </p>
+        </div>
+        <div class="ac__order-right">
+          <p class="ac__price"><%= money(Number(it.price) || 0, cur) %></p>
+        </div>
+      </div>
+    <% }); %>
+  <% } else { %>
   <div class="ac__order ac__order--static">
     <% if (o.image) { %>
       <img class="ac__thumb" <%- productImage.attrs(o.image, 90) %> alt="" width="72" height="72" loading="lazy" decoding="async">
@@ -90,6 +114,7 @@
       <p class="ac__price"><%= money(order.totalPrice, cur) %></p>
     </div>
   </div>
+  <% } %>
 </section>
 
 <% if (order.trackingNumber || order.trackingUrl) { %>

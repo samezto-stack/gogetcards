@@ -229,12 +229,16 @@ async function runThankYouPipeline(query) {
      checkout, never by the payload. See the guard just below for the other
      half of that. */
   let isTestOrder = false;
+  /* A mixed cart's lines, from OUR session for this checkout (never from
+     the payment host, which only ever learns a total). */
+  let sessionItems = null;
 
   if (raw.zcid) {
     try {
       const CheckoutSession = require('../../models/CheckoutSession');
       const cs = await CheckoutSession.findOne({ checkoutId: String(raw.zcid) }).lean();
       if (cs && cs.isTest) isTestOrder = true;
+      if (cs && Array.isArray(cs.items) && cs.items.length > 1) sessionItems = cs.items;
       if (cs && cs.email) {
         raw.email = cs.email;
         raw.first_name = cs.firstName || raw.first_name;
@@ -282,6 +286,34 @@ async function runThankYouPipeline(query) {
      testOrder.isTestOrder() already recognises. Forced here rather than
      trusted from the payload so it cannot be dropped in transit. */
   if (isTestOrder) orderData.originalCheckoutMethod = testOrder.MARKER;
+
+  /* MIXED CART. Every line onto the order in the shape the confirmation
+     page, the emails and the account pages read (`items`: title, quantity
+     in units, price = line total in minor units, image), with the packs
+     kept separately for the stock ledger. The single-product fields keep
+     the first line so every older reader still finds a real product;
+     `products` lists every title. */
+  if (sessionItems) {
+    orderData.items = sessionItems.map((it) => {
+      const packSize = Math.max(1, parseInt(it.packSize, 10) || 1);
+      const packs = Math.max(1, parseInt(it.quantity, 10) || 1);
+      return {
+        slug: String(it.slug || ''),
+        title: String(it.title || it.slug || 'Item'),
+        packs,
+        packSize,
+        quantity: packs * packSize,
+        unitPrice: Number(it.unitPrice) || 0,
+        price: Number(it.lineTotal) || 0,
+        image: String(it.imageUrl || ''),
+      };
+    });
+    orderData.products = orderData.items.map((it) => it.title);
+    orderData.productSlug = orderData.items[0].slug;
+    orderData.quantity = orderData.items[0].packs;
+    orderData.packSize = orderData.items[0].packSize;
+    if (!orderData.productImage) orderData.productImage = orderData.items[0].image;
+  }
 
   const { order, isNew } = await createOrRetrieveOrder(orderData);
 
