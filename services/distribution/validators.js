@@ -363,22 +363,23 @@ function validate(product, opts = {}) {
         'releaseDate'));
     }
   } else if (payload.availability === 'BACKORDER') {
-    /* Released, still flagged: the set is out but our allocation has not
-       reached us, so Google is told backorder (released, temporarily out of
-       stock, orderable for fulfilment on the availability_date) rather than
-       preorder. Backorder also requires a date. */
+    /* Backorder is now only reached by an explicit availabilityOverride of
+       'backorder' — a released item the owner is taking orders on while the
+       restock is in transit. (A released product is otherwise in stock: the
+       calendar advances the state, so nothing auto-flips to backorder.)
+       Google accepts backorder only with an availability_date. */
     if (!rel.hasDate) {
       issues.push(issue('backorder_no_date', 'error',
         'Backorder has no availability date',
         'Google accepts the backorder availability value only with an availability_date — the date the item is expected back in stock and shipping.',
-        `Set Release date, or untick ${preorderSource || 'the preorder flag'} if the stock has arrived.`,
+        'Set Release date, or clear the backorder override once the stock has arrived.',
         'releaseDate'));
     } else {
       issues.push(issue('backorder_awaiting_stock', 'warning',
-        `Released ${rel.display}, sent as backorder`,
-        'The product is released and still flagged, so the feed sends backorder with an availability_date a few business days out. That is the correct Google value for a released item awaiting restock, but the date must be one you can actually meet.',
-        `Confirm the availability_date is a restock date you can hold to, and untick ${preorderSource || 'the preorder flag'} the moment the stock lands so it reads in_stock.`,
-        'preorder'));
+        `Sent as backorder, expected back ${rel.display}`,
+        'The product carries a backorder override, so the feed sends backorder with an availability_date. That is the correct Google value for a released item awaiting restock, but the date must be one you can actually meet.',
+        'Confirm the availability_date is a restock date you can hold to, and clear the backorder override the moment the stock lands so it reads in_stock.',
+        'availabilityOverride'));
     }
   } else if (isPreorder && payload.availability === 'OUT_OF_STOCK') {
     /* Correct, and stated so nobody goes looking for the bug. A preorder

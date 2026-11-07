@@ -1,5 +1,17 @@
 <%
-  var isPreorder = preorder.isPreorder(product);
+  /* "Preorder" for the page means an ACTIVE preorder — flagged and not yet
+     released. Once the release date passes the product is in stock, so the
+     preorder terms, the preorder button and the preorder stock wording all
+     switch off automatically. The availability row and the buy button read
+     the one derived state below, so the page can never disagree with the
+     feed. */
+  var isPreorder = preorder.isActivePreorder(product);
+  var availState = preorder.availabilityState(product);
+  /* A backorder is a released product the owner is taking orders on while
+     its restock is in transit — set per-product with availabilityOverride,
+     never reached by the calendar. It charges today and ships on a date,
+     like a preorder, so it shares the preorder box and allocation wording. */
+  var isBackorder = (availState === 'BACKORDER');
   var savingsPct = product.comparePrice && product.comparePrice > product.price
     ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100) : 0;
   /* Stock meter shows ONLY when a real figure was recorded. This used to
@@ -153,18 +165,18 @@
            information, and it is an account-level finding. Full terms live
            in config/preorder.js and are repeated in the FAQ and the Terms
            of Service, so all three say the same thing. */%>
-      <% if (isPreorder) { %>
+      <% if (isPreorder || isBackorder) { %>
         <div class="pp__preorder-box">
           <div>
             <p class="pp__preorder-head">
-              <% var _awaiting = preorder.awaitingStock(product); %>
-<% if (_awaiting) { %>Backorder — released <%= rel.display %>, awaiting restock<% } else { %>Preorder<% if (rel.hasDate) { %> — releases <%= rel.display %><% } else if (rel.window) { %> — ships <%= rel.window %><% } %><% } %>
+              <% var _awaiting = isBackorder; %>
+<% if (_awaiting) { %>Backorder<% if (rel.hasDate) { %> — released <%= rel.display %>, awaiting restock<% } else { %> — awaiting restock<% } %><% } else { %>Preorder<% if (rel.hasDate) { %> — releases <%= rel.display %><% } else if (rel.window) { %> — ships <%= rel.window %><% } %><% } %>
             </p>
             <p class="pp__preorder-sub">
               <% if (_awaiting) { %>
                 <strong>Your card is charged today.</strong> This set has been released and our
                 allocation is on its way from the distributor; it has not reached us yet.
-                Expected to ship by <%= preorder.displayIso(preorder.expectedAvailability(product)) %>.
+                <% if (preorder.expectedAvailability(product)) { %>Expected to ship by <%= preorder.displayIso(preorder.expectedAvailability(product)) %>.<% } %>
               <% } else { %>
                 <strong>Your card is charged today.</strong> This item has not been released yet and
                 ships on the publisher's release date, or within <%= preorder.AFTER_RELEASE %> business days of it.
@@ -206,7 +218,7 @@
            The countdown script binds to #dynamic-stock-wrapper, so
            preorders deliberately use a different container and get a
            static figure instead of urgency animation. */%>
-      <% if (product.available && hasRealStock && !isPreorder) { %>
+      <% if (product.available && hasRealStock && !isPreorder && !isBackorder) { %>
         <div class="pp__stock" id="dynamic-stock-wrapper" data-stock-total="<%= stockQty %>">
           <div class="pp__stock-row">
             <span class="pp__stock-dot pp__stock-dot--ok" id="dynamic-stock-dot"></span>
@@ -216,7 +228,7 @@
             <div class="progress-bar__fill" id="dynamic-stock-fill" style="width:100%"></div>
           </div>
         </div>
-      <% } else if (product.available && hasRealStock && isPreorder) { %>
+      <% } else if (product.available && hasRealStock && (isPreorder || isBackorder)) { %>
         <div class="pp__stock">
           <div class="pp__stock-row">
             <span class="pp__stock-dot pp__stock-dot--ok"></span>
@@ -542,7 +554,7 @@
         <div class="pp__spec-row">
           <dt>Availability</dt>
           <dd>
-            <% if (!product.available) { %>Sold Out<% } else if (isPreorder && preorder.awaitingStock(product)) { %>Backorder — released, awaiting restock<% } else if (isPreorder) { %>Preorder — not yet released<% } else { %>In Stock<% } %>
+            <% if (availState === 'OUT_OF_STOCK') { %>Sold Out<% } else if (availState === 'BACKORDER') { %>Backorder — awaiting restock<% } else if (availState === 'PREORDER') { %>Preorder — not yet released<% } else { %>In Stock<% } %>
           </dd>
         </div>
         <% if (isPreorder && rel.hasDate) { %>
@@ -666,7 +678,7 @@
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
     </svg>
-    <span><%= (isPreorder && preorder.awaitingStock(product)) ? 'Secure Backorder' : (isPreorder ? 'Secure Preorder' : 'Checkout') %></span>
+    <span><%= availState === 'BACKORDER' ? 'Secure Backorder' : (availState === 'PREORDER' ? 'Secure Preorder' : 'Checkout') %></span>
     <span class="mobile-sticky-cta__price" data-sticky-price><%= (typeof marketMoney !== 'undefined' && typeof priced !== 'undefined' && priced) ? marketMoney(priced.amount, priced.currency) : 'US$' + formatPrice(product.price) %></span>
   </button>
 </div>

@@ -266,11 +266,18 @@ function description(product) {
   if (product.setCode) facts.push(`Set: ${product.setCode}`);
   facts.push('Condition: factory sealed');
   if (parseInt(product.packSize, 10) > 1) facts.push(`Sold as a pack of ${parseInt(product.packSize, 10)}; the price is for the pack`);
-  if (preorderCfg.isPreorder(product)) {
+  /* A preorder fact is added only while the product is an ACTIVE preorder
+     (flagged AND not yet released). The moment the release date passes the
+     product is in stock, so its description must not keep calling it a
+     preorder — that would be the availability misrepresentation Google
+     acts on at account level. A released product awaiting restock is a
+     backorder, which is set per-product via availabilityOverride. */
+  if (preorderCfg.isActivePreorder(product)) {
     const rel = preorderCfg.releaseInfo(product);
-    facts.push(preorderCfg.awaitingStock(product)
-      ? `Preorder, released ${rel.display}, expected to ship by ${preorderCfg.displayIso(preorderCfg.expectedAvailability(product))}`
-      : (rel.hasDate ? `Preorder, releases ${rel.display}` : 'Preorder, not yet released'));
+    facts.push(rel.hasDate ? `Preorder, releases ${rel.display}` : 'Preorder, not yet released');
+  } else if (preorderCfg.isBackorder(product)) {
+    const rel = preorderCfg.releaseInfo(product);
+    facts.push(`Backorder, expected to ship by ${preorderCfg.displayIso(preorderCfg.expectedAvailability(product))}`);
   }
   const tail = facts.join('. ') + '.';
   return plainText(base ? `${base}\n\n${tail}` : tail);
@@ -300,7 +307,12 @@ function images(product) {
 function build(product, { channel = 'google', market = null, country = null } = {}) {
   const m = product.merchant || {};
   const origin = siteOrigin();
-  const isPreorder = preorderCfg.isPreorder(product);
+  /* availabilityDate is required for PREORDER and BACKORDER and must never
+     be sent for an in-stock item. It is driven off the derived state (which
+     advances by the calendar) rather than the raw preorder flag, so a
+     product whose release date has passed is in stock and carries no date. */
+  const availState = preorderCfg.availabilityState(product);
+  const wantsAvailabilityDate = availState === 'PREORDER' || availState === 'BACKORDER';
   const rel = preorderCfg.releaseInfo(product);
   const imgs = images(product);
   /* A pack is pictured as a pack: the composite of N copies leads, the
@@ -422,7 +434,7 @@ function build(product, { channel = 'google', market = null, country = null } = 
        barcode is allowed. Empty for a standalone product. */
     ...variants.feedFields(product),
 
-    ...(isPreorder && rel.hasDate ? { availabilityDate: `${preorderCfg.expectedAvailability(product)}T00:00:00Z` } : {}),
+    ...(wantsAvailabilityDate && rel.hasDate ? { availabilityDate: `${preorderCfg.expectedAvailability(product)}T00:00:00Z` } : {}),
     ...(m.shippingLabel ? { shippingLabel: m.shippingLabel } : {}),
     ...(m.taxCategory ? { taxCategory: m.taxCategory } : {}),
     ...(m.isBundle ? { isBundle: true } : {}),

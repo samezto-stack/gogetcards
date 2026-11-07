@@ -166,7 +166,10 @@ function releaseInfo(product) {
  */
 function shortLine(product) {
   const info = releaseInfo(product);
-  if (awaitingStock(product)) return `Backorder — released ${info.display}, awaiting restock`;
+  /* Only an ACTIVE (not-yet-released) preorder gets a preorder line; a
+     released product is in stock and its card shows price and stock, not a
+     "preorder" strip. */
+  if (!isActivePreorder(product)) return '';
   if (info.hasDate) return `Preorder — releases ${info.display}`;
   if (info.window) return `Preorder — ships ${info.window}`;
   return 'Preorder — release date to be confirmed';
@@ -208,12 +211,33 @@ const SCHEMA_URL = {
 };
 
 /** The feed-side constant (IN_STOCK / PREORDER / BACKORDER / OUT_OF_STOCK). */
+/**
+ * An ACTIVE preorder: flagged AND not yet released.
+ *
+ * THE CALENDAR NOW ADVANCES THE STATE. A product stays a preorder only while
+ * its release date is still ahead. The moment the date passes it is in stock
+ * — the owner's allocation arrives on, or just before, street date, so a
+ * released product is treated as sellable without anyone having to untick
+ * the box. A product that genuinely has not arrived is the exception, marked
+ * per-product with availabilityOverride 'backorder' (or sold out), which
+ * availabilityState honours above this.
+ *
+ * A flagged product with NO date stays a preorder (there is no date to pass),
+ * which also keeps the "preorder needs a date" feed check meaningful.
+ */
+function isActivePreorder(product, now = new Date()) {
+  if (!isPreorder(product)) return false;
+  const info = releaseInfo(product);
+  if (info.hasDate && info.iso <= todayIso(now)) return false; // released → in stock
+  return true;
+}
+
 function availabilityState(product, now = new Date()) {
   const o = product && String(product.availabilityOverride || '').toLowerCase();
   if (o && AVAIL_VALUES.includes(o)) return AVAIL_CONST[o];
   if (product && product.available === false) return 'OUT_OF_STOCK';
-  if (!isPreorder(product)) return 'IN_STOCK';
-  return awaitingStock(product, now) ? 'BACKORDER' : 'PREORDER';
+  if (isActivePreorder(product, now)) return 'PREORDER';
+  return 'IN_STOCK';
 }
 
 /** The schema.org availability URL for the same state. */
@@ -227,7 +251,7 @@ function isBackorder(product, now = new Date()) {
 }
 
 module.exports = {
-  TERMS, releaseInfo, shortLine, isPreorder, awaitingStock, isBackorder,
+  TERMS, releaseInfo, shortLine, isPreorder, isActivePreorder, awaitingStock, isBackorder,
   expectedAvailability, displayIso, releasedCutoff, AFTER_RELEASE, DISPATCH_SHORT,
   availabilityState, schemaAvailability, AVAIL_VALUES,
 };

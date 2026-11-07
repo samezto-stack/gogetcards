@@ -901,9 +901,19 @@ router.get('/products/:slug', async (req, res) => {
      * from an in-stock one, which is the availability misrepresentation
      * that suspends accounts rather than disapproving items. */
     const rel = preorderCfg.releaseInfo(product);
-    const isPreorderItem = preorderCfg.isPreorder(product);
+    /* An ACTIVE preorder (flagged AND not yet released) shows the preorder
+       strip. The moment the release date passes the product is in stock, so
+       the strip and the preorder price-validity window disappear on their
+       own, with no restock and no untick needed. */
+    const isPreorderItem = preorderCfg.isActivePreorder(product);
     const oneYearOut = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
-    const availIso = isPreorderItem ? preorderCfg.expectedAvailability(product) : null;
+    /* availabilityDate is required for schema.org PreOrder and BackOrder and
+       must never appear on an in-stock item. Driven off the derived state
+       (which advances by the calendar), not the raw flag. */
+    const availState = preorderCfg.availabilityState(product);
+    const availIso = (availState === 'PREORDER' || availState === 'BACKORDER')
+      ? preorderCfg.expectedAvailability(product)
+      : null;
     const priceValidUntil = (availIso && new Date(availIso) < oneYearOut)
       ? availIso
       : oneYearOut.toISOString().split('T')[0];

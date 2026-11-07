@@ -9,7 +9,11 @@
      actually agreeing to, everything else is neutral. */
   var badgeLabel = '';
   var badgeClass = '';
-  if (preorder.isPreorder(product)) {
+  /* Only an ACTIVE preorder (flagged AND not yet released) wears the
+     preorder badge. Once the release date passes the product is in stock,
+     so the badge switches off automatically — the calendar decides, and a
+     released product is never advertised as a preorder. */
+  if (preorder.isActivePreorder(product)) {
     badgeLabel = 'Preorder';
     badgeClass = 'badge--preorder';
   } else if (product.badge === 'Hot' || (product.tags && product.tags.includes('hot'))) {

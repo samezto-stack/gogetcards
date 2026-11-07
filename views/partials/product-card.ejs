@@ -1,6 +1,10 @@
 <%
   var lowStock = showStockCounts && product.stock > 0 && product.stock <= 5;
-  var isPreorder = preorder.isPreorder(product);
+  /* An ACTIVE preorder only (flagged AND not yet released). A product whose
+     release date has passed is in stock, so its card shows price and stock,
+     not a preorder strip or bell — the calendar switches it over with no
+     restock and no untick. Matches the badge, the product page and the feed. */
+  var isPreorder = preorder.isActivePreorder(product);
 
   /* PRICED IN THE MARKET BEING RENDERED, never in the base currency.
      This card is the related strip, the collection grid and the featured
