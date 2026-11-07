@@ -294,6 +294,38 @@ router.post('/selection-mode', requireAuth, async (req, res) => {
  * match its stored hash and be skipped as "unchanged", and the admin would
  * watch a sync run and see nothing happen.
  */
+/**
+ * One click: feed only the launch set.
+ *
+ * Switches the channel to "selected" and includes exactly the products
+ * tagged `launch-30`, holding back everything else. This is the deliberate
+ * "advertise a short, clean list" path — only the products that will run
+ * ads reach Google, so nothing else is under review or can trip a
+ * misrepresentation finding. Idempotent: run it again after the tags change
+ * and the feed matches the tag set again. lastSyncHash is cleared so the
+ * next sync actually re-evaluates each product.
+ */
+router.post('/select-launch', requireAuth, async (req, res) => {
+  try {
+    const channel = req.body.channel || 'google';
+    const tag = 'launch-30';
+    const cfg = await getConfig(channel);
+    cfg.selectionMode = 'selected';
+    await cfg.save();
+    const inc = await Product.updateMany(
+      { tags: tag },
+      { $set: { [`merchant.included.${channel}`]: true, 'merchant.lastSyncHash': '' } },
+    );
+    await Product.updateMany(
+      { tags: { $ne: tag } },
+      { $set: { [`merchant.included.${channel}`]: false, 'merchant.lastSyncHash': '' } },
+    );
+    res.redirect(`/admin/distribution?channel=${channel}&bulk=${inc.modifiedCount}&action=send`);
+  } catch (err) {
+    res.status(500).send('Server error. Check the server logs.');
+  }
+});
+
 router.post('/bulk', requireAuth, async (req, res) => {
   try {
     const channel = req.body.channel || 'google';

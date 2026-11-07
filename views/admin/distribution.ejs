@@ -137,6 +137,22 @@
             <% } %>
           </div>
         </form>
+
+        <%/* One click: feed only the advertised set. Switches to "only the
+             products I choose" and ticks exactly the launch-30 products,
+             holding everything else — the "advertise a short, clean list,
+             nothing else under review" path. */%>
+        <div class="admin-panel__foot" style="border-top:1px solid var(--admin-border,#e5e7eb)">
+          <form method="POST" action="/admin/distribution/select-launch" style="display:inline"
+                onsubmit="return confirm('Send ONLY the launch-30 products to Google and hold back everything else?');">
+            <input type="hidden" name="channel" value="<%= channel %>">
+            <button class="admin-btn">Send only the launch set (launch-30) to Google</button>
+          </form>
+          <span class="small muted">
+            Sets “only the products I choose” and selects exactly the products tagged
+            <code>launch-30</code>. Use this to put only the products you advertise in the feed.
+          </span>
+        </div>
       </section>
 
       <!-- ── Catalogue summary ── -->
