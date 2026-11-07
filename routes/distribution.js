@@ -320,11 +320,15 @@ router.post('/select-launch', requireAuth, async (req, res) => {
     const cfg = await getConfig(channel);
     cfg.selectionMode = 'selected';
     await cfg.save();
+    const tagged = await Product.countDocuments({ tags: tag });
     const inc = await Product.updateMany(
       { tags: tag },
       { $set: { [`merchant.included.${channel}`]: true, 'merchant.lastSyncHash': '' } },
     );
-    res.redirect(`/admin/distribution?channel=${channel}&bulk=${inc.modifiedCount}&action=send`);
+    /* Report how many carry the tag, not just how many changed: a second
+       click changes nothing and must not read as "nothing is in the set",
+       and zero tagged products is a different problem with its own fix. */
+    res.redirect(`/admin/distribution?channel=${channel}&adsset=${tagged}&adsnew=${inc.modifiedCount}`);
   } catch (err) {
     res.status(500).send('Server error. Check the server logs.');
   }

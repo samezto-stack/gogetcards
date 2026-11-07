@@ -31,6 +31,25 @@
           <%= Number(query.fixed) === 0 ? 'Nothing needed fixing.' : `Applied safe fixes to ${query.fixed} product${Number(query.fixed) === 1 ? '' : 's'}.` %>
         </div>
       <% } %>
+      <% if (query.adsset !== undefined) { %>
+        <% if (Number(query.adsset) === 0) { %>
+          <div class="admin-alert admin-alert--error">
+            <span>
+              No product is tagged <code>ads-launch</code> yet, so nothing was added. Import
+              <code>docs/gogetcards-ads-set-tags-2026-11-07.csv</code> in Products &rarr; Import first,
+              then click this button again.
+            </span>
+          </div>
+        <% } else { %>
+          <div class="admin-alert admin-alert--success">
+            <span>
+              <%= query.adsset %> product<%= Number(query.adsset) === 1 ? ' is' : 's are' %> in the ads set and selected for Google
+              (<%= query.adsnew %> newly selected). They are in the feed now; Google picks them up on its next fetch,
+              or immediately with "Fetch now" in Merchant Center.
+            </span>
+          </div>
+        <% } %>
+      <% } %>
       <% if (query.bulk !== undefined) { %>
         <div class="admin-alert admin-alert--success">
           <span>

@@ -109,6 +109,18 @@ async function serveFeed(req, res, market) {
       .filter((r) => r.eligible)
       .map((r) => r.payload);
 
+    /* NEVER PUBLISH AN EMPTY FEED. Google reads a successfully fetched
+       empty file as "this merchant now sells nothing" and removes every
+       product it has reviewed — approvals and history included. An empty
+       result here is always an accident (nothing selected yet, a selection
+       cleared), so answer 503: Google keeps its last good fetch and retries.
+       To genuinely withdraw everything, delete the feed in Merchant Center. */
+    if (!payloads.length) {
+      console.warn(`[feed] ${market.id}: 0 eligible products — refusing to publish an empty feed (503)`);
+      res.set('Retry-After', '3600');
+      return res.status(503).type('text/plain').send('Feed temporarily unavailable.');
+    }
+
     res.set('Cache-Control', `public, max-age=${CACHE_SECONDS}`);
     /* The file is data, not a page. Without this a feed URL can end up in
        the index as a bare XML document competing with the product pages it
