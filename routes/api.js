@@ -151,7 +151,7 @@ router.post('/cart/add', async (req, res) => {
     const existing = cart.items.find((i) => i.slug === slug);
     const limit = orderCap.maxQuantity(product);
     const room = roomFor(cart, product);
-    const orderMax = (orderCap.MAX_ORDER_CENTS / 100).toFixed(2);
+    const orderMax = (orderCap.MAX_ORDER_CENTS / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     if (!existing && cart.items.length >= MAX_CART_LINES) {
       return res.json({ success: false, error: 'cart_lines', message: `A cart can hold up to ${MAX_CART_LINES} different products.` });
