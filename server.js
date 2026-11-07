@@ -444,6 +444,11 @@ async function boot() {
        on whichever page forgot to pass it. */
     res.locals.preorder = require('./config/preorder');
     res.locals.packs = require('./helpers/packs');
+    /* Variant-aware display title (appends " — Night", " — Mew", …). The
+       product page already used it; the product card did not, so grouped
+       products showed the same generic name on collection grids. Exposed
+       here so the shared card partial can render the distinguishing name. */
+    res.locals.variants = require('./services/variants');
     res.locals.shippingCfg = require('./config/shipping');
     res.locals.returnWindowDays = require('./config/faq').RETURN_WINDOW_DAYS;
     res.locals.freeReturns = require('./config/faq').FREE_RETURNS;

@@ -261,6 +261,31 @@ function productToBody(p) {
 
 /* ── Validation, before anything is written ────────────────────────── */
 
+/* ── Pack-count sanity (packs per box vs cards per pack) ────────────────
+   A title that says "(15 Packs)" for a box whose specs say "12 Collector
+   Boosters per box, 15 cards per pack" is the exact error this guards: the
+   title took the cards-per-pack number. These read the per-box pack count
+   the same way the storefront does and warn on a contradiction rather than
+   rewriting anyone's data. */
+function boxPackCount(text) {
+  const s = String(text || '');
+  let m = s.match(/\b(\d+)\s+[A-Za-z!’'\-,/ ]{0,40}?(?:boosters?|packs?)\s+per\s+(?:box|display|case)\b/i);
+  if (m) return parseInt(m[1], 10);
+  m = s.match(/\b(\d+)\s+(?:[A-Za-z!’'\- ]{0,40}?\s)?packs?\b/i);
+  if (m && !/card/i.test(s.slice(m.index, m.index + m[0].length))) return parseInt(m[1], 10);
+  m = s.match(/\b(\d+)\s+(?:play|collector|jumpstart)?\s*boosters?\b/i);
+  if (m) return parseInt(m[1], 10);
+  return null;
+}
+function titlePackCount(title) {
+  const m = String(title || '').match(/\(\s*(?:english,\s*)?(\d+)\s*packs?\s*\)/i);
+  return m ? parseInt(m[1], 10) : null;
+}
+function configFromSpecs(specsText) {
+  const line = String(specsText || '').split('\n').find((l) => /^\s*config/i.test(l));
+  return line ? line.replace(/^\s*[^:]*:\s*/, '') : '';
+}
+
 function offGrid(priceText) {
   const cents = Math.round((parseFloat(priceText) || 0) * 100);
   if (!cents) return null;
@@ -333,6 +358,12 @@ function plan(text, { lookup, knownCollections = null } = {}) {
     if (body.gtin && !/^\d{8}$|^\d{12,14}$/.test(body.gtin.replace(/\s/g, ''))) warnings.push(`gtin "${body.gtin}" does not look like a barcode (8, 12, 13 or 14 digits)`);
     if (body.preorder === 'true' && !body.releaseDate && !existing) warnings.push('a preorder with no release_date competes as a mislabelled in-stock item on Google');
     if (body.availabilityOverride && !['in_stock', 'preorder', 'backorder', 'out_of_stock'].includes(body.availabilityOverride)) warnings.push(`availability "${body.availabilityOverride}" is not one of in_stock, preorder, backorder, out_of_stock — it will be ignored and the state derived instead`);
+    /* Packs-per-box vs cards-per-pack: flag a title whose pack count does
+       not match the configuration, the error that made a 12-pack box read
+       "(15 Packs)". Flagged for review, never auto-corrected. */
+    const tP = titlePackCount(body.title);
+    const cP = boxPackCount(configFromSpecs(body.specs));
+    if (tP != null && cP != null && tP !== cP) warnings.push(`title says ${tP} packs but the configuration says ${cP} per box — check whether the title took the cards-per-pack number`);
 
     const cols = (body.collections || '').split(',').map((s) => s.trim()).filter(Boolean);
     if (knownCollections) {
@@ -426,4 +457,4 @@ function draftFromImageUrls(text) {
   return { csv: toCsv(products), count: products.length, urls: urls.length };
 }
 
-module.exports = { COLUMNS, LIST_SEP, parseCsv, csvCell, normaliseHeader, resolveHeaders, rowToBody, productToBody, plan, toCsv, template, draftFromImageUrls, slugify, offGrid };
+module.exports = { COLUMNS, LIST_SEP, parseCsv, csvCell, normaliseHeader, resolveHeaders, rowToBody, productToBody, plan, toCsv, template, draftFromImageUrls, slugify, offGrid, boxPackCount, titlePackCount, configFromSpecs };

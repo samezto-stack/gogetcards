@@ -22,6 +22,14 @@
     : '/products/' + product.slug;
   var savingsPct = pcPriced && pcPriced.compareAmount && pcPriced.compareAmount > pcPriced.amount
     ? Math.round(((pcPriced.compareAmount - pcPriced.amount) / pcPriced.compareAmount) * 100) : 0;
+  /* The variant-aware display title ("… — Night", "… — Mew"), the SAME
+     helper the product page and the Google feed use, so a Day and a Night
+     box, or a Mew and a Mewtwo collection, read differently on the grid
+     instead of sharing one generic name. Falls back to the pack title and
+     then the raw title for any caller that has not been given `variants`. */
+  var pcTitle = (typeof variants !== 'undefined' && variants && variants.displayTitle)
+    ? variants.displayTitle(product)
+    : ((typeof packs !== 'undefined' && packs && packs.titleFor) ? packs.titleFor(product) : product.title);
 %>
 <% if (pcPriced) { %>
 <article class="pc" id="product-card-<%= product.slug %>">
@@ -35,7 +43,7 @@
         class="pc__img"
         <% var pcImg = ((typeof packs !== 'undefined' && packs && packs.imageFor) ? packs.imageFor(product) : '') || product.imageUrl || product.images[0]; %>
         <%- productImage.attrs(pcImg, 270, '(max-width: 640px) calc(92vw - 3.7rem), (max-width: 1024px) 45vw, 270px') %>
-        alt="<%= product.title %>"
+        alt="<%= pcTitle %>"
         width="480" height="480"
         loading="lazy"
         decoding="async"
@@ -80,8 +88,11 @@
       if (product.vendor) metaBits.push(product.vendor);
     %>
     <p class="pc__meta"><%= metaBits.join(' · ') %></p>
-    <% var pcTitle = (typeof packs !== 'undefined' && packs && packs.titleFor) ? packs.titleFor(product) : product.title; %>
-    <a href="<%= pcHref %>" class="pc__title" style="text-decoration:none"><%= pcTitle.length > 72 ? pcTitle.substring(0, 72) + '...' : pcTitle %></a>
+    <%/* pcTitle is defined once at the top (variant-aware). No hard
+         character cut here: truncating at 72 chars dropped exactly the
+         distinguishing suffix ("… — Witherbloom Pestilence"), so the title
+         now wraps and the CSS clamps it to three lines instead. */%>
+    <a href="<%= pcHref %>" class="pc__title" style="text-decoration:none"><%= pcTitle %></a>
     <p class="pc__type"><%= product.productType %></p>
 
     <%/* Every preorder card says so, even with no ship window set. The
@@ -133,7 +144,7 @@
             class="btn btn-primary btn-sm"
             data-atc-btn
             id="atc-quick-<%= product.slug %>"
-            aria-label="Add <%= product.title %> to cart"
+            aria-label="Add <%= pcTitle %> to cart"
           >
             <% if (isPreorder) { %><%- include('icon', { name: 'bell', size: 14, color: '#fff' }) %><% } else { %>+<% } %>
           </button>

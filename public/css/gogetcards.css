@@ -195,7 +195,7 @@ ul, ol { list-style: none; }
 .pc__low-stock { position: absolute; top: 8px; right: 8px; background: var(--color-accent); color: var(--color-white); font-size: 0.66rem; font-weight: 700; font-family: var(--font-heading); letter-spacing: 0.02em; padding: 4px 8px; border-radius: 4px; z-index: 2; }
 .pc__body { padding: 0.9rem 1rem 1rem; display: flex; flex-direction: column; gap: 3px; flex: 1; }
 .pc__meta { font-size: 0.72rem; font-weight: 500; color: var(--color-text-faint); font-family: var(--font-heading); }
-.pc__title { font-size: 0.92rem; font-weight: 600; line-height: 1.35; color: var(--color-text); margin: 4px 0 2px; font-family: var(--font-heading); }
+.pc__title { font-size: 0.92rem; font-weight: 600; line-height: 1.35; color: var(--color-text); margin: 4px 0 2px; font-family: var(--font-heading); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; }
 .pc__type { font-size: 0.76rem; font-weight: 400; color: var(--color-text-faint); }
 .pc__promise { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; font-size: 0.72rem; color: var(--color-text-faint); margin: 0.35rem 0 0; line-height: 1.4; }
 .pc__promise-strong { color: var(--color-green); font-weight: 700; }
