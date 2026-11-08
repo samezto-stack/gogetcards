@@ -117,7 +117,8 @@ async function priceFor(slug, requestedQty, opts = {}) {
     market: market.id,
     currency: localPrice.currency,
     whopPlanId,
-    isPreorder: !!product.preorder,
+    /* Unreleased only: a passed release date is in stock (config/preorder). */
+    isPreorder: preorderCfg.isActivePreorder(product),
     release,
   };
 }

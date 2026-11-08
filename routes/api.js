@@ -61,7 +61,7 @@ router.get('/search', searchLimiter, async (req, res) => {
     const catalog = require('../config/catalog');
     const market = (req.market && markets.byId(req.market.id)) || markets.defaultMarket();
     const found = await Product.find({ $or: [{ title: rx }, { setCode: rx }, { vendor: rx }, { productType: rx }, { tags: rx }] })
-      .select('slug title setCode vendor productType tags collections price marketPrices imageUrl images preorder available packSize')
+      .select('slug title setCode vendor productType tags collections price marketPrices imageUrl images preorder releaseDate available packSize')
       .sort({ available: -1, featured: -1, createdAt: -1 })
       .limit(24)
       .lean();
@@ -82,7 +82,7 @@ router.get('/search', searchLimiter, async (req, res) => {
           type: p.productType || '',
           setCode: p.setCode || '',
           price: markets.format(Math.round(local.amount / pack), local.currency) + (pack > 1 ? ' each' : ''),
-          preorder: !!p.preorder,
+          preorder: require('../config/preorder').isActivePreorder(p),
           available: p.available !== false,
           image: img ? productImage.at(img, 96) : '',
           url: markets.path(market, `/products/${p.slug}`),

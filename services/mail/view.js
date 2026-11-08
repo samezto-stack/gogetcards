@@ -32,7 +32,7 @@ function fromOrder(order, product = null, extra = {}) {
   const mixedLines = Array.isArray(o.items) && o.items.length > 1 ? o.items : null;
   const isPreorder = mixedLines
     ? mixedLines.every((it) => it && it.preorder)
-    : preorderCfg.isPreorder(product);
+    : preorderCfg.isActivePreorder(product);
   /* One release date is only meaningful for one product; a mixed cart
      shows each line's own date instead. */
   const release = isPreorder && product && !mixedLines ? preorderCfg.releaseInfo(product) : null;

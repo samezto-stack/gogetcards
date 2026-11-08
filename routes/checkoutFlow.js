@@ -790,7 +790,7 @@ function renderUnavailable(res, info) {
         })(),
         stock: typeof a.stock === 'number' && a.stock > 0 ? a.stock : 0,
         limit: require('../helpers/orderCap').maxQuantity(a),
-        isPreorder: !!a.preorder,
+        isPreorder: require('../config/preorder').isActivePreorder(a),
         release: rel && rel.hasDate ? rel.display : '',
       } : null,
     });

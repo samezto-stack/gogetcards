@@ -62,7 +62,7 @@ function view(doc, product, token, step) {
 
   const releaseValue = (product && product.releaseDate) || doc.releaseDate;
   const display = displayDate(releaseValue);
-  const isPreorder = product ? !!product.preorder : doc.availability !== 'in_stock';
+  const isPreorder = product ? require('../../config/preorder').isActivePreorder(product) : doc.availability !== 'in_stock';
 
   const unsubToken = EmailSuppression.unsubscribeToken(doc.email, doc.checkoutId);
 

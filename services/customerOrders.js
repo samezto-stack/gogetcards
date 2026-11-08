@@ -160,7 +160,9 @@ async function productsFor(orders) {
 
 /** Decorates one order with everything the portal renders. */
 function decorate(order, product) {
-  const isPreorder = preorderCfg.isPreorder(product);
+  /* Unreleased only. A product whose release date has passed is in stock,
+     so its orders read as ordinary orders, not "Preorder secured". */
+  const isPreorder = preorderCfg.isActivePreorder(product);
   const release = isPreorder && product ? preorderCfg.releaseInfo(product) : null;
   return {
     order,
