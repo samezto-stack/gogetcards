@@ -340,6 +340,11 @@ function itemRecord(l) {
     unitPrice: l.unitPrice,
     lineTotal: l.lineTotal,
     imageUrl: l.imageUrl,
+    /* Snapshot at purchase time: was this line an unreleased preorder, and
+       when does it release. The confirmation page and email read these, so
+       a mixed order says which items ship now and which ship on release. */
+    isPreorder: !!l.isPreorder,
+    releaseDisplay: (l.isPreorder && l.release && l.release.hasDate) ? l.release.display : '',
   };
 }
 

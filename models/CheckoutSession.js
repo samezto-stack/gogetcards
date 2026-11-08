@@ -82,6 +82,8 @@ const checkoutSessionSchema = new mongoose.Schema(
         unitPrice: { type: Number, default: 0 },
         lineTotal: { type: Number, default: 0 },
         imageUrl: { type: String, default: '' },
+        isPreorder: { type: Boolean, default: false },
+        releaseDisplay: { type: String, default: '' },
       }],
       default: [],
     },

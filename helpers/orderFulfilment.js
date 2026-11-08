@@ -33,7 +33,10 @@ function fulfilmentFor(order, product) {
      the product cannot be resolved — a deleted listing, an order imported
      without a slug — the in-stock wording is the safe default, because it
      promises a dispatch window rather than a release date nobody has. */
-  const isPreorder = !!(product && preorderCfg.isPreorder(product));
+  /* ACTIVE preorders only: a product whose release date has passed is in
+     stock (config/preorder.isActivePreorder), so its buyer is told it ships
+     within the in-stock window, exactly as the product page said. */
+  const isPreorder = !!(product && preorderCfg.isActivePreorder(product));
 
   const release = isPreorder && product ? preorderCfg.releaseInfo(product) : null;
   const dispatchDays = shipping.DISPATCH.inStockBusinessDays;
@@ -88,4 +91,52 @@ function fulfilmentFor(order, product) {
   };
 }
 
+/**
+ * The same, for a MIXED-CART order: every line carries its own preorder
+ * snapshot from the moment of purchase (order.items[].preorder and
+ * .releaseDisplay). All in stock or all preorder reads exactly like a single
+ * product; a mix says which items go now and which wait for their release,
+ * without promising one parcel or two.
+ *
+ * @param {Array} items  order.items
+ */
+function fulfilmentForItems(items) {
+  const lines = Array.isArray(items) ? items : [];
+  const pre = lines.filter((it) => it && it.preorder);
+  const dispatchDays = shipping.DISPATCH.inStockBusinessDays;
+  const afterRelease = shipping.DISPATCH.preorderBusinessDaysAfterRelease;
+  const plural = (n) => (n === 1 ? 'business day' : 'business days');
+  const releases = pre
+    .map((it) => (it.releaseDisplay ? `${it.title} releases ${it.releaseDisplay}` : `${it.title}: release date to be confirmed`))
+    .join('; ');
+
+  if (!pre.length) {
+    const out = fulfilmentFor({}, null);
+    return { ...out, mixed: false, allPreorder: false };
+  }
+  if (pre.length === lines.length) {
+    return {
+      isPreorder: true, mixed: false, allPreorder: true, release: null,
+      steps: [
+        { key: 'confirmed', label: 'Confirmed', state: 'done', detail: 'Your preorder allocations are secured and paid for.' },
+        { key: 'release', label: 'Release', state: 'next', detail: `${releases}. We prepare each item for fulfilment after its official release.` },
+        { key: 'shipped', label: 'Shipped', state: 'pending', detail: `Dispatched within ${afterRelease} ${plural(afterRelease)} of release. Tracking is emailed when it ships.` },
+      ],
+    };
+  }
+  return {
+    isPreorder: false, mixed: true, allPreorder: false, release: null,
+    steps: [
+      { key: 'confirmed', label: 'Confirmed', state: 'done', detail: 'Your order is secured and paid for, including your preorder items.' },
+      {
+        key: 'processing', label: 'Processing', state: 'next',
+        detail: `In-stock items are picked and packed within ${dispatchDays} ${plural(dispatchDays)}. `
+          + `Preorder items ship within ${afterRelease} ${plural(afterRelease)} of their release (${releases}).`,
+      },
+      { key: 'shipped', label: 'Shipped', state: 'pending', detail: 'Tracking is emailed as soon as your items ship.' },
+    ],
+  };
+}
+
 module.exports = fulfilmentFor;
+module.exports.fulfilmentForItems = fulfilmentForItems;

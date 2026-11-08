@@ -30,6 +30,9 @@
         quantity: Number(it.quantity) || 1,
         price: typeof it.price === 'number' ? it.price : null,
         image: it.image || it.imageUrl || '',
+        /* Per line, for a mixed cart; undefined on older shapes. */
+        preorder: typeof it.preorder === 'boolean' ? it.preorder : undefined,
+        releaseDisplay: it.releaseDisplay || '',
       }));
     }
     if (Array.isArray(order.products) && order.products.length) {
@@ -158,7 +161,7 @@
         <% if (ful) { %>
           <div class="oc__band-meta">
             <span class="oc__label">Status</span>
-            <span class="oc__status"><%= ful.isPreorder ? 'Preorder secured' : 'Confirmed' %></span>
+            <span class="oc__status"><%= ful.mixed ? 'Confirmed · includes preorders' : (ful.isPreorder ? 'Preorder secured' : 'Confirmed') %></span>
           </div>
         <% } %>
       </div>
@@ -178,7 +181,8 @@
             <div class="oc__item-main">
               <p class="oc__item-title"><%= it.title %></p>
               <p class="oc__item-meta">
-                Qty <%= it.quantity %><% if (ful && ful.isPreorder) { %> &middot; <span class="oc__tag">Preorder</span><% } %>
+                <% var itPre = typeof it.preorder === 'boolean' ? it.preorder : !!(ful && ful.isPreorder); %>
+                Qty <%= it.quantity %><% if (itPre) { %> &middot; <span class="oc__tag">Preorder</span><% if (it.releaseDisplay) { %> &middot; releases <%= it.releaseDisplay %><% } %><% } %>
               </p>
             </div>
             <% if (it.price !== null) { %>

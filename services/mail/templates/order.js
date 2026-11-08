@@ -74,7 +74,8 @@ function build(v) {
       (v.lines && v.lines.length
         ? v.lines.map((l) => L.lineItem({
           image: l.image, title: l.title, quantity: l.quantity,
-          price: l.price, currency: v.currency, note: 'Factory sealed',
+          price: l.price, currency: v.currency,
+          note: l.preorder ? (l.releaseDisplay ? `Preorder · releases ${l.releaseDisplay}` : 'Preorder') : 'Factory sealed',
         })).join('')
         : L.lineItem({
           image: v.image, title: v.title, quantity: v.quantity,
@@ -155,7 +156,7 @@ function build(v) {
     `Order date:   ${L.day(v.placedOn)}`,
     '',
     ...(v.lines && v.lines.length
-      ? v.lines.map((l) => `${l.title} — Quantity ${l.quantity} — ${L.money(l.price, v.currency)}`)
+      ? v.lines.map((l) => `${l.title} — Quantity ${l.quantity} — ${L.money(l.price, v.currency)}${l.preorder ? (l.releaseDisplay ? ` — Preorder, releases ${l.releaseDisplay}` : ' — Preorder') : ''}`)
       : [`${v.title}`, `Quantity ${v.quantity}`]),
     preorder && v.release.hasDate ? `Releases ${v.release.display}` : null,
     '',

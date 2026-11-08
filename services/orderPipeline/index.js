@@ -306,6 +306,8 @@ async function runThankYouPipeline(query) {
         unitPrice: Number(it.unitPrice) || 0,
         price: Number(it.lineTotal) || 0,
         image: String(it.imageUrl || ''),
+        preorder: !!it.isPreorder,
+        releaseDisplay: String(it.releaseDisplay || ''),
       };
     });
     orderData.products = orderData.items.map((it) => it.title);

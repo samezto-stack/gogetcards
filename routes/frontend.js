@@ -2106,6 +2106,11 @@ async function confirmationExtras(order) {
   } catch (err) {
     console.error('[thank-you] product lookup failed:', err.message);
   }
+  /* A mixed-cart order is described by ALL its lines (each carries its own
+     preorder snapshot), not by whichever product happens to be first. */
+  if (Array.isArray(order.items) && order.items.length > 1) {
+    return { orderRef: orderReference(order), fulfilment: fulfilmentFor.fulfilmentForItems(order.items) };
+  }
   return { orderRef: orderReference(order), fulfilment: fulfilmentFor(order, product) };
 }
 

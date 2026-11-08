@@ -26,8 +26,16 @@ const productImage = require('../../helpers/productImage');
  */
 function fromOrder(order, product = null, extra = {}) {
   const o = order || {};
-  const isPreorder = preorderCfg.isPreorder(product);
-  const release = isPreorder && product ? preorderCfg.releaseInfo(product) : null;
+  /* Single product: the product decides. A mixed cart is a "preorder"
+     confirmation only when EVERY line is one; otherwise it is an order
+     confirmation whose lines say which items wait for their release. */
+  const mixedLines = Array.isArray(o.items) && o.items.length > 1 ? o.items : null;
+  const isPreorder = mixedLines
+    ? mixedLines.every((it) => it && it.preorder)
+    : preorderCfg.isPreorder(product);
+  /* One release date is only meaningful for one product; a mixed cart
+     shows each line's own date instead. */
+  const release = isPreorder && product && !mixedLines ? preorderCfg.releaseInfo(product) : null;
 
   /* A MIXED CART lists every line; every template that speaks of "the"
      product in a sentence gets a title that names the whole order. */
@@ -37,6 +45,8 @@ function fromOrder(order, product = null, extra = {}) {
       quantity: Math.max(1, Number(it && it.quantity) || 1),
       price: Number(it && it.price) || 0,
       image: productImage.at((it && it.image) || '', 144),
+      preorder: !!(it && it.preorder),
+      releaseDisplay: String((it && it.releaseDisplay) || ''),
     }))
     : [];
   const firstTitle = (product && product.title) || (o.products || [])[0] || 'Your order';
