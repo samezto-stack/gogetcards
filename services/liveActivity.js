@@ -93,7 +93,7 @@ async function describe(visitors) {
   const sessions = rows.filter((r) => r.a.token);
   const [products, checkoutDocs] = await Promise.all([
     slugs.length
-      ? Product.find({ slug: { $in: slugs } }).select('slug title price imageUrl images preorder').lean()
+      ? Product.find({ slug: { $in: slugs } }).select('slug title price imageUrl images preorder tags releaseDate').lean()
       : [],
     Promise.all(sessions.map((r) => CheckoutSession.resolve(r.a.token).catch(() => null))),
   ]);
@@ -103,7 +103,7 @@ async function describe(visitors) {
 
   const checkoutSlugs = [...new Set(sessions.map((r) => r.session && r.session.productSlug).filter((s) => s && !bySlug.has(s)))];
   if (checkoutSlugs.length) {
-    (await Product.find({ slug: { $in: checkoutSlugs } }).select('slug title price imageUrl images preorder').lean())
+    (await Product.find({ slug: { $in: checkoutSlugs } }).select('slug title price imageUrl images preorder tags releaseDate').lean())
       .forEach((p) => bySlug.set(p.slug, p));
   }
 
@@ -118,7 +118,7 @@ async function describe(visitors) {
       const p = bySlug.get(a.slug);
       if (p) {
         activity.label = p.title;
-        activity.detail = p.preorder ? 'Viewing a preorder' : 'Viewing product';
+        activity.detail = require('../config/preorder').isActivePreorder(p) ? 'Viewing a preorder' : 'Viewing product';
         activity.image = thumb(p);
         activity.href = `/products/${p.slug}`;
       } else {
