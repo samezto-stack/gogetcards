@@ -82,20 +82,14 @@
       <span>Subtotal</span>
       <span class="cd__subtotal-amount" data-usd-cents="<%= ctTotal %>" data-usd-label="<%= ctMoney(ctTotal) %>"><%= ctMoney(ctTotal) %></span>
     </div>
-    <%/* The one rule, stated before it bites: the whole order is charged
-         as a single plan, and the plans stop at $1,199.76. */%>
-    <p style="font-size:0.68rem;color:var(--color-text-faint);text-align:center;margin-bottom:0.5rem">
-      Mix any products in one order, up to $1,199.76 per order.
+    <%/* Two short lines instead of three, so the item list keeps its room
+         on a laptop screen. Same facts: free shipping, the one order limit
+         (the whole cart is charged as one plan, and plans stop at
+         $1,199.76), and who collects import duty. */%>
+    <p style="font-size:0.72rem;color:var(--color-accent);text-align:center;font-weight:600;margin:0">
+      <%= shippingCopy.short %> &middot; mix any products, up to $1,199.76 per order
     </p>
-    <%/* Was "Taxes and shipping calculated at checkout", which told a
-         shopper the number in front of them was not the number they
-         would pay. Shipping is free on every order, so the only thing
-         that can still be added is destination-country import duty,
-         which the carrier collects and we never see. */%>
-    <p style="font-size:0.72rem;color:var(--color-accent);text-align:center;font-weight:600">
-      <%= shippingCopy.short %>
-    </p>
-    <p style="font-size:0.68rem;color:var(--color-text-faint);text-align:center;margin-top:2px">
+    <p style="font-size:0.66rem;color:var(--color-text-faint);text-align:center;margin:0">
       Import duty, where it applies, is collected by the carrier
     </p>
     <a href="<%= marketPath('/cart') %>" class="btn btn-ghost btn-full" id="cd-view-cart">
