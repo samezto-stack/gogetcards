@@ -133,6 +133,14 @@ async function resolveTrafficSource(req) {
         .lean();
       const acquired = views.find(v => isAcquisitionSource(v.source));
       if (acquired) return acquired.source;
+      /* Google's own click cookie. gtag writes _gcl_aw when a visitor lands
+         from a Google ad (auto-tagging) and keeps it for 90 days, so a buyer
+         who clicked an ad and came back later — a new session, or out of the
+         Google app's in-app browser into Safari on the same device — still
+         carries it. That is how Google Ads itself credits the sale; the
+         dashboard now agrees with it instead of calling the order Direct.
+         Only consulted when the session names no acquisition channel. */
+      if (/(?:^|;\s*)_gcl_(?:aw|gb)=/.test(String((req.headers && req.headers.cookie) || ''))) return 'Google Ads';
       const external = views.find(v => v.source && v.source !== 'Internal');
       if (external) return external.source;
     }
