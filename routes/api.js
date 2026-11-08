@@ -132,7 +132,9 @@ function cartLine(product, quantity) {
     vendor: product.vendor,
     productType: product.productType,
     variantId: product.variantId || '',
-    preorder: product.preorder || false,
+    /* An UNRELEASED preorder only; a passed release date is in stock,
+       exactly as the product page and the feed say. */
+    preorder: require('../config/preorder').isActivePreorder(product),
     /* Packs: `quantity` counts packs, `packSize` says how many units
        each one is, so the drawer can show the count the customer
        chose. helpers/packs.js. */
