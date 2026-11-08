@@ -124,7 +124,9 @@ function roomFor(cart, product) {
 function cartLine(product, quantity) {
   return {
     slug: product.slug,
-    title: product.title,
+    /* The distinguishing name ("— Night", "— Umbreon ex"), so two
+       variants in one cart do not read as the same product twice. */
+    title: require('../services/variants').displayTitle(product),
     price: product.price,
     imageUrl: product.imageUrl || (product.images && product.images[0]) || '',
     vendor: product.vendor,

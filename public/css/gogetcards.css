@@ -362,7 +362,12 @@ ul, ol { list-style: none; }
 .cd__title { font-family: var(--font-heading); font-size: 1.1rem; font-weight: 800; color: var(--color-heading); }
 .cd__close { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: var(--color-white); border-radius: var(--radius-sm); border: 1px solid var(--color-border-light); color: var(--color-text-muted); transition: all var(--transition-fast); font-size: 1.2rem; }
 .cd__close:hover { border-color: var(--color-border); color: var(--color-heading); }
-.cd__body { flex: 1; overflow-y: auto; padding: 1rem 1.5rem; }
+.cd__body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 1rem 1.5rem; }
+/* The swap target for AJAX refreshes sits between the drawer and its
+   header/body/footer, so it must be part of the flex column itself.
+   Without this the item list grows past the screen and pushes the
+   checkout footer out of reach once a cart holds more than a few lines. */
+#cart-drawer-inner { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .cd__empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.75rem; height: 100%; text-align: center; padding: 2rem; }
 .cd__empty-icon { font-size: 3.5rem; }
 .cd__empty-title { font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; color: var(--color-heading); }
