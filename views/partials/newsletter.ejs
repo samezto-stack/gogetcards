@@ -1,13 +1,14 @@
 <section class="nl-section">
-  <div class="nl-section__orb" aria-hidden="true"></div>
-  <div class="container">
+    <div class="container">
     <div class="nl-inner">
-      <div class="label-overline" style="text-align:center;margin-bottom:0.75rem">Zyphera</div>
-      <h2 class="heading-section" style="text-align:center">The Collector's List</h2>
-      <p style="text-align:center;color:var(--color-text-muted);font-size:0.95rem;font-weight:300;line-height:1.8;max-width:490px">
-        Allocation alerts the day preorders open, price-lock windows before they close, and restock notices on sealed product. Sent before anything is posted publicly.
-      </p>
-
+      <div class="nl-copy">
+        <span class="zy-meta">Subscription slip</span>
+        <h2 class="heading-section">The Collector's List</h2>
+        <p>
+          Allocation alerts the day preorders open, price-lock windows before they close, and restock notices on sealed product. Sent before anything is posted publicly.
+        </p>
+      </div>
+      <div>
       <form data-newsletter-form>
         <div data-nl-fields>
           <div class="nl-form">
@@ -17,13 +18,13 @@
               class="form-input nl-input"
               id="nl-email"
               name="email"
-              placeholder="Enter your email address..."
+              placeholder="Your email address"
               required
               autocorrect="off"
               autocapitalize="off"
             >
             <button type="submit" class="btn btn-primary btn-lg" id="newsletter-submit">
-              Get Early Access →
+              Get early access
             </button>
           </div>
         </div>
@@ -37,17 +38,16 @@
         </div>
       </form>
 
-      <p style="font-size:0.72rem;color:var(--color-text-faint);text-align:center">
-        No spam. Unsubscribe anytime. Drop alerts only.
-      </p>
+        <p class="nl-fine">No spam. Unsubscribe anytime. Drop alerts only.</p>
+      </div>
     </div>
   </div>
 </section>
 
 <style>
   .nl-input { flex:1; }
-  .nl-success { background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:var(--radius-md);padding:1rem 1.75rem;color:var(--color-accent);font-weight:600;font-family:var(--font-heading);text-align:center; }
-  .nl-error { background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.35);border-radius:var(--radius-md);padding:0.875rem 1.5rem;color:#FCA5A5;font-weight:500;font-family:var(--font-heading);text-align:center;font-size:0.9rem;margin-top:0.75rem; }
+  .nl-success { background:var(--color-accent-soft);border:1px solid var(--color-accent);padding:1rem 1.25rem;color:var(--color-accent-dark);font-weight:600; }
+  .nl-error { background:var(--color-red-soft);border:1px solid var(--color-red);padding:0.85rem 1.25rem;color:var(--color-red);font-weight:500;font-size:0.9rem;margin-top:0.75rem; }
   .visually-hidden { position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap; }
 </style>
 <script>
@@ -83,7 +83,7 @@
         } catch (err) {
           error.style.display = 'block';
           btn.disabled = false;
-          btn.innerText = 'Get Early Access →';
+          btn.innerText = 'Get early access';
         }
       });
     }

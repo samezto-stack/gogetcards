@@ -69,6 +69,11 @@
           <%- include('../partials/badge', { product: product }) %>
         <% } %>
       </div>
+      <%/* The plate caption, as a catalogue prints one under a photograph. */%>
+      <p class="pp__plate-caption" aria-hidden="true">
+        <span>Plate i<%= product.setCode ? ' · ' + product.setCode : '' %></span>
+        <span><%= isPreorder ? 'Preorder allocation' : 'Factory sealed' %></span>
+      </p>
       <% if (product.images && product.images.length > 1) { %>
         <div class="pp__thumbs">
           <% product.images.forEach(function(img, idx) { %>
@@ -312,10 +317,10 @@
               onclick="document.getElementById('partner-checkout-form').submit()"
             >
               <% if (isPreorder) { %>
-                <%- include('../partials/icon', { name: 'bell', size: 18, color: '#fff' }) %>
+                <%- include('../partials/icon', { name: 'bell', size: 16, color: 'currentColor' }) %>
                 <span style="margin-left:0.5rem">Secure Preorder</span>
               <% } else { %>
-                <%- include('../partials/icon', { name: 'zap', size: 18, color: '#fff' }) %>
+                <%- include('../partials/icon', { name: 'zap', size: 16, color: 'currentColor' }) %>
                 <span style="margin-left:0.5rem">Express Checkout</span>
               <% } %>
             </button>
@@ -339,15 +344,15 @@
       <!-- Trust signals -->
       <div class="pp__trust-grid">
         <div class="pp__trust-item">
-          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'factory', size: 15, color: 'var(--color-text-muted)' }) %></span>
+          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'factory', size: 15, color: 'var(--color-ink)' }) %></span>
           <span>Factory Sealed Guarantee</span>
         </div>
         <div class="pp__trust-item">
-          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'lock', size: 15, color: 'var(--color-text-muted)' }) %></span>
+          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'lock', size: 15, color: 'var(--color-ink)' }) %></span>
           <span>Original Distributor Allocation</span>
         </div>
         <div class="pp__trust-item">
-          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'package', size: 15, color: 'var(--color-text-muted)' }) %></span>
+          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'package', size: 15, color: 'var(--color-ink)' }) %></span>
           <span>Ships in Original Distributor Packaging</span>
         </div>
         <%/* Was "Secure PayPal Checkout" on every product page. PayPal is
@@ -355,11 +360,11 @@
              payment method the buyer would never be offered. Reads from
              config/payments.js now. */%>
         <div class="pp__trust-item">
-          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'credit-card', size: 15, color: 'var(--color-text-muted)' }) %></span>
+          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'credit-card', size: 15, color: 'var(--color-ink)' }) %></span>
           <span><%= payments.copy.secureCheckout %></span>
         </div>
         <div class="pp__trust-item">
-          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'globe', size: 15, color: 'var(--color-text-muted)' }) %></span>
+          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'globe', size: 15, color: 'var(--color-ink)' }) %></span>
           <span><%= shippingCopy.short %>, worldwide</span>
         </div>
         <%/* Was hardcoded "14-Day Return Window". The same figure appears
@@ -368,7 +373,7 @@
              those drift, and a return window that differs between the page
              and the markup is a rich-result violation. */%>
         <div class="pp__trust-item">
-          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'undo', size: 15, color: 'var(--color-text-muted)' }) %></span>
+          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'undo', size: 15, color: 'var(--color-ink)' }) %></span>
           <span><%= returnWindowDays %>-Day Return Window</span>
         </div>
       </div>
@@ -514,13 +519,13 @@
 
   <!-- Related Products -->
   <% if (typeof relatedProducts !== 'undefined' && relatedProducts.length > 0) { %>
-    <div style="margin-top:0;padding-bottom:4rem">
-      <div class="section-header" style="margin-bottom:var(--space-xl)">
-        <div class="label-overline" style="margin-bottom:0.5rem">You May Also Like</div>
-        <h2 class="heading-section">Related Products</h2>
-        <div class="divider-accent"></div>
+    <div style="padding-bottom:2rem">
+      <div class="reg-head" style="margin-bottom:1.25rem">
+        <span class="reg-head__num">See also</span>
+        <h2 class="heading-section reg-head__title">Related products</h2>
+        <a href="<%= marketPath('/collection/all') %>" class="reg-head__aside">View all &rarr;</a>
       </div>
-      <div class="grid-4">
+      <div class="lot-grid">
         <% relatedProducts.forEach(function(rp) { %>
           <%- include('../partials/product-card', { product: rp }) %>
         <% }); %>
@@ -571,13 +576,13 @@
 <% } %>
 
 <style>
-  .pp__preorder-head { font-family:var(--font-heading); font-size:0.9rem; font-weight:700; color:var(--color-cyan); }
+  .pp__preorder-head { font-family:var(--font-mono); font-size:0.72rem; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--color-cyan); }
   .pp__preorder-sub { font-size:0.8rem; color:var(--color-text-muted); margin-top:4px; line-height:1.65; }
   .pp__preorder-sub strong { color:var(--color-text); }
-  .pp__preorder-toggle { margin-top:0.6rem; background:none; border:none; padding:0; font:inherit; font-size:0.78rem; font-weight:600; color:var(--color-cyan); cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+  .pp__preorder-toggle { margin-top:0.6rem; background:none; border:none; padding:0; font:inherit; font-size:0.8rem; font-weight:600; color:var(--color-ink); cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
   .pp__preorder-terms { margin-top:0.75rem; background:var(--color-bg-card); border:1px solid var(--color-border-light); border-radius:var(--radius-md); padding:1.1rem 1.25rem; }
   .pp__preorder-terms dl { margin:0; display:flex; flex-direction:column; gap:0.85rem; }
-  .pp__preorder-terms dt { font-family:var(--font-heading); font-size:0.82rem; font-weight:700; color:var(--color-white); }
+  .pp__preorder-terms dt { font-family:var(--font-display); font-size:1rem; font-weight:500; color:var(--color-ink); }
   .pp__preorder-terms dd { margin:0.2rem 0 0; font-size:0.8rem; color:var(--color-text-muted); line-height:1.7; }
   .pp__preorder-terms-foot { margin-top:1rem; padding-top:0.8rem; border-top:1px solid var(--color-border-light); font-size:0.75rem; color:var(--color-text-faint); }
   .pp__preorder-terms-foot a { color:var(--color-primary); }

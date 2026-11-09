@@ -18,32 +18,30 @@
   var v = typeof formValues !== 'undefined' && formValues ? formValues : {};
 %>
 
-<nav class="col-page__breadcrumb container" style="padding-top:1rem" aria-label="Breadcrumb">
-  <a href="<%= marketPath('/') %>">Home</a>
-  <span aria-hidden="true">/</span>
-  <span aria-current="page">Contact</span>
-</nav>
-
 <div class="contact-page">
   <!-- Header -->
-  <div class="contact-hero">
-    <div class="contact-hero__orb" aria-hidden="true"></div>
-    <div class="container" style="position:relative; z-index:2">
+  <header class="contact-hero">
+    <div class="container">
+      <nav class="col-page__breadcrumb" aria-label="Breadcrumb">
+        <a href="<%= marketPath('/') %>">Home</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Contact</span>
+      </nav>
       <div class="label-overline" style="margin-bottom:0.75rem">Get in Touch</div>
-      <h1 class="heading-section">Support &amp; Contact</h1>
+      <h1 class="contact-hero__title">Support &amp; Contact</h1>
       <p class="contact-hero__sub">
         Every message reaches a person, not a queue. <%= responseCopy %>,
         <%= b.supportHours ? b.supportHours.charAt(0).toLowerCase() + b.supportHours.slice(1) : 'every business day' %>.
       </p>
     </div>
-  </div>
+  </header>
 
-  <div class="container" style="padding-top:3rem; padding-bottom:5rem">
+  <div class="container" style="padding-top:3rem; padding-bottom:4rem">
     <div class="contact-layout">
 
       <!-- Column 1: how to reach us, and who we are -->
       <div>
-        <h2 class="contact-section-title">Direct Contact</h2>
+        <h2 class="contact-section-title"><span class="contact-section-title__n" aria-hidden="true">01</span>Direct Contact</h2>
         <div class="contact-info-cards">
 
           <%/* mailto:, not plain text. The address used to be unlinked, so
@@ -103,7 +101,7 @@
              rather than filled with something plausible: an invented
              registration number is a Misrepresentation suspension, not a
              missing-detail warning. */%>
-        <h2 class="contact-section-title" style="margin-top:2.5rem">Business Details</h2>
+        <h2 class="contact-section-title" style="margin-top:3rem"><span class="contact-section-title__n" aria-hidden="true">02</span>Business Details</h2>
         <div class="contact-business">
           <dl class="contact-business__list">
             <div class="contact-business__row">
@@ -158,7 +156,7 @@
 
       <!-- Column 2: the form, then the FAQs -->
       <div>
-        <h2 class="contact-section-title" id="contact-form">Send Us a Message</h2>
+        <h2 class="contact-section-title" id="contact-form"><span class="contact-section-title__n" aria-hidden="true">03</span>Send Us a Message</h2>
 
         <% if (typeof sent !== 'undefined' && sent) { %>
           <%/* role=status so a screen reader announces the confirmation
@@ -260,7 +258,7 @@
           </p>
         </form>
 
-        <h2 class="contact-section-title" style="margin-top:3rem">Frequently Asked Questions</h2>
+        <h2 class="contact-section-title" style="margin-top:3.5rem"><span class="contact-section-title__n" aria-hidden="true">04</span>Frequently Asked Questions</h2>
         <div class="faq-list">
           <%/* Rendered from config/faq.js, which also builds the FAQPage
                JSON-LD on this route. Same array, so the marked-up answer
@@ -289,62 +287,75 @@
 </div>
 
 <style>
-  .contact-page { padding-bottom:0; }
-  .contact-hero { position:relative; overflow:hidden; background:var(--color-bg-elevated); border-bottom:1px solid var(--color-border-light); padding:3.5rem 0 2.75rem; }
-  .contact-hero__orb { position:absolute; width:500px; height:300px; top:50%; right:-100px; transform:translateY(-50%); background:radial-gradient(ellipse,rgba(124,58,237,0.1) 0%,transparent 70%); pointer-events:none; }
-  .contact-hero__sub { color:var(--color-text-muted); margin-top:0.625rem; max-width:560px; line-height:1.7; }
-  .contact-layout { display:grid; grid-template-columns:1fr 1.4fr; gap:4rem; align-items:start; }
-  .contact-section-title { font-family:var(--font-heading); font-size:1.05rem; font-weight:800; color:var(--color-white); margin-bottom:1.5rem; text-transform:uppercase; letter-spacing:0.04em; scroll-margin-top:6rem; }
-  .contact-info-cards { display:flex; flex-direction:column; gap:0.875rem; }
-  .contact-info-card { display:flex; align-items:center; gap:1rem; background:var(--color-bg-card); border:1px solid var(--color-border-light); border-radius:var(--radius-md); padding:1rem 1.25rem; transition:border-color var(--transition-fast); }
-  .contact-info-card:hover { border-color:rgba(124,58,237,0.35); }
-  .contact-info-card__icon { display:flex; align-items:center; justify-content:center; color:var(--color-text-muted); }
-  .contact-info-card__label { font-size:0.7rem; font-weight:700; color:var(--color-primary); font-family:var(--font-heading); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:2px; }
-  .contact-info-card__value { font-family:var(--font-heading); font-size:0.9rem; font-weight:700; color:var(--color-white); word-break:break-word; }
-  .contact-info-card__value a { color:inherit; text-decoration:none; }
-  .contact-info-card__value a:hover { text-decoration:underline; }
-  .contact-info-card__sub { font-size:0.72rem; color:var(--color-text-faint); margin-top:2px; }
+  .contact-page { padding-bottom: 0; }
+  .contact-hero { padding: 1.25rem 0 0; }
+  .contact-hero .col-page__breadcrumb { margin-bottom: 1.75rem; }
+  .contact-hero__title { font-family: var(--font-display); font-size: clamp(2.2rem, 5vw, 3.6rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1; color: var(--color-ink); font-variation-settings: 'opsz' 144; padding-bottom: 1.1rem; border-bottom: 1.5px solid var(--color-ink); }
+  .contact-hero__sub { font-family: var(--font-display); font-weight: 300; font-size: 1.2rem; color: var(--color-text); margin-top: 1.1rem; max-width: 52ch; line-height: 1.55; }
 
-  .contact-business { background:var(--color-bg-card); border:1px solid var(--color-border-light); border-radius:var(--radius-md); padding:1.25rem; }
-  .contact-business__list { display:flex; flex-direction:column; gap:0.625rem; margin:0; }
-  .contact-business__row { display:grid; grid-template-columns:9rem 1fr; gap:0.75rem; font-size:0.82rem; }
-  .contact-business__row dt { color:var(--color-text-faint); }
-  .contact-business__row dd { color:var(--color-text); margin:0; }
-  .contact-business__note { font-size:0.75rem; color:var(--color-text-faint); line-height:1.7; margin-top:1rem; padding-top:0.875rem; border-top:1px solid var(--color-border-light); }
-  .contact-business__note a { color:var(--color-primary); }
+  .contact-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 4.5rem; align-items: start; }
+  .contact-section-title { display: flex; align-items: baseline; gap: 0.85rem; font-family: var(--font-display); font-size: 1.5rem; font-weight: 400; color: var(--color-ink); padding-bottom: 0.7rem; margin-bottom: 0; border-bottom: 1.5px solid var(--color-ink); scroll-margin-top: 6rem; }
+  .contact-section-title__n { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em; color: var(--color-text-faint); }
 
-  .contact-alert { display:flex; flex-direction:column; gap:0.25rem; border-radius:var(--radius-md); padding:0.9rem 1.1rem; margin-bottom:1.25rem; font-size:0.85rem; line-height:1.65; }
-  .contact-alert strong { font-family:var(--font-heading); }
-  .contact-alert a { color:inherit; text-decoration:underline; }
-  .contact-alert--ok { background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.35); color:#6EE7B7; }
-  .contact-alert--err { background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.35); color:#FCA5A5; }
+  /* Direct contact: ruled rows */
+  .contact-info-cards { display: flex; flex-direction: column; }
+  .contact-info-card { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr); align-items: start; gap: 0.9rem; padding: 1rem 0; border-bottom: 1px solid var(--color-border-light); }
+  .contact-info-card__icon { display: flex; padding-top: 2px; color: var(--color-ink); }
+  .contact-info-card__icon svg { width: 18px; height: 18px; }
+  .contact-info-card__label { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 3px; }
+  .contact-info-card__value { font-family: var(--font-display); font-size: 1.15rem; font-weight: 400; color: var(--color-ink); word-break: break-word; }
+  .contact-info-card__value a { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: var(--color-border-light); }
+  .contact-info-card__value a:hover { color: var(--color-primary); text-decoration-color: currentColor; }
+  .contact-info-card__sub { font-size: 0.78rem; color: var(--color-text-muted); margin-top: 2px; }
 
-  .contact-form { display:flex; flex-direction:column; gap:1.1rem; }
-  .contact-form__row { display:grid; grid-template-columns:1fr 1fr; gap:1.1rem; }
-  .contact-form__field { display:flex; flex-direction:column; gap:0.35rem; }
-  .contact-form__hint { font-size:0.72rem; color:var(--color-text-faint); }
-  .contact-form__optional { color:var(--color-text-faint); font-weight:400; text-transform:none; letter-spacing:0; }
-  .contact-form__legal { font-size:0.75rem; color:var(--color-text-faint); line-height:1.7; }
-  .contact-form__legal a { color:var(--color-primary); }
-  .contact-form__hp { position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
+  /* Business details: a ledger */
+  .contact-business { padding: 0; }
+  .contact-business__list { display: flex; flex-direction: column; margin: 0; }
+  .contact-business__row { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: 0.75rem; padding: 0.65rem 0; border-bottom: 1px solid var(--color-border-light); font-size: 0.86rem; }
+  .contact-business__row dt { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text-faint); padding-top: 3px; }
+  .contact-business__row dd { color: var(--color-ink); margin: 0; }
+  .contact-business__note { font-size: 0.78rem; color: var(--color-text-muted); line-height: 1.7; margin-top: 1rem; }
+  .contact-business__note a { color: var(--color-primary); text-decoration: underline; text-underline-offset: 2px; }
 
-  .faq-list { display:flex; flex-direction:column; gap:0.5rem; }
-  .faq-item { background:var(--color-bg-card); border:1px solid var(--color-border-light); border-radius:var(--radius-md); overflow:hidden; transition:border-color var(--transition-fast); }
-  .faq-item[open] { border-color:rgba(124,58,237,0.35); }
-  .faq-item__q { width:100%; display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1rem 1.25rem; background:none; border:none; text-align:left; font-size:0.88rem; font-weight:600; color:var(--color-text); font-family:var(--font-heading); cursor:pointer; transition:color var(--transition-fast); list-style:none; }
-  .faq-item__q::-webkit-details-marker { display:none; }
-  .faq-item__q:hover { color:var(--color-white); }
-  .faq-item[open] .faq-item__q { color:var(--color-white); }
-  .faq-item__chevron { font-size:1.2rem; color:var(--color-primary); flex-shrink:0; font-weight:400; transition:transform 0.2s; }
-  .faq-item[open] .faq-item__chevron { transform:rotate(45deg); }
-  .faq-item__a { padding:0 1.25rem 1rem; font-size:0.85rem; color:var(--color-text-muted); line-height:1.75; border-top:1px solid var(--color-border-light); padding-top:0.875rem; }
+  /* Confirmation and error notes */
+  .contact-alert { display: flex; flex-direction: column; gap: 0.25rem; border-radius: 0; padding: 0.9rem 1.1rem; margin: 1.25rem 0 0; font-size: 0.86rem; line-height: 1.65; color: var(--color-text); border: 1px solid var(--color-border-light); border-left-width: 3px; }
+  .contact-alert strong { font-family: var(--font-display); font-weight: 500; font-size: 1.05rem; }
+  .contact-alert a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+  .contact-alert--ok { background: var(--color-accent-soft); border-left-color: var(--color-accent); }
+  .contact-alert--ok strong { color: var(--color-accent); }
+  .contact-alert--err { background: var(--color-red-soft); border-left-color: var(--color-red); }
+  .contact-alert--err strong { color: var(--color-red); }
 
-  .contact-more-help { font-size:0.82rem; color:var(--color-text-muted); line-height:1.8; margin-top:1.5rem; }
-  .contact-more-help a { color:var(--color-primary); }
+  .contact-form { display: flex; flex-direction: column; gap: 1.2rem; padding-top: 1.5rem; }
+  .contact-form__row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+  .contact-form__field { display: flex; flex-direction: column; gap: 0.4rem; }
+  .contact-form__hint { font-size: 0.74rem; color: var(--color-text-muted); }
+  .contact-form__optional { color: var(--color-text-faint); font-weight: 400; text-transform: none; letter-spacing: 0; font-family: var(--font-body); }
+  .contact-form select.form-input { appearance: none; cursor: pointer; background-image: linear-gradient(45deg, transparent 50%, var(--color-ink) 50%), linear-gradient(135deg, var(--color-ink) 50%, transparent 50%); background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 2rem; }
+  .contact-form textarea.form-input { resize: vertical; min-height: 140px; }
+  .contact-form #contact-submit { align-self: flex-start; }
+  .contact-form__legal { font-size: 0.76rem; color: var(--color-text-muted); line-height: 1.7; }
+  .contact-form__legal a { color: var(--color-primary); text-decoration: underline; text-underline-offset: 2px; }
+  .contact-form__hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 
-  @media (max-width:1024px) { .contact-layout { grid-template-columns:1fr; gap:3rem; } }
-  @media (max-width:640px) {
-    .contact-form__row { grid-template-columns:1fr; }
-    .contact-business__row { grid-template-columns:1fr; gap:0.15rem; }
+  /* FAQ: ruled rows, not boxes */
+  .faq-list { display: flex; flex-direction: column; }
+  .faq-item { border-bottom: 1px solid var(--color-border-light); }
+  .faq-item__q { width: 100%; display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding: 1rem 0; background: none; border: none; text-align: left; font-family: var(--font-display); font-size: 1.08rem; font-weight: 400; color: var(--color-ink); cursor: pointer; list-style: none; transition: color var(--transition-fast); }
+  .faq-item__q::-webkit-details-marker { display: none; }
+  .faq-item__q:hover { color: var(--color-primary); }
+  .faq-item__chevron { font-family: var(--font-mono); font-size: 1rem; color: var(--color-ink); flex-shrink: 0; transition: transform 0.2s; }
+  .faq-item[open] .faq-item__chevron { transform: rotate(45deg); }
+  .faq-item__a { padding: 0 2rem 1.15rem 0; font-size: 0.9rem; color: var(--color-text-muted); line-height: 1.75; max-width: 65ch; }
+
+  .contact-more-help { font-size: 0.86rem; color: var(--color-text-muted); line-height: 1.8; margin-top: 1.5rem; }
+  .contact-more-help a { color: var(--color-primary); text-decoration: underline; text-underline-offset: 2px; }
+
+  @media (max-width: 1024px) { .contact-layout { grid-template-columns: 1fr; gap: 3rem; } }
+  @media (max-width: 640px) {
+    .contact-hero__sub { font-size: 1.05rem; }
+    .contact-form__row { grid-template-columns: 1fr; }
+    .contact-business__row { grid-template-columns: 1fr; gap: 0.15rem; }
+    .contact-form #contact-submit { align-self: stretch; }
   }
 </style>

@@ -79,6 +79,7 @@ app.use((req, res, next) => {
        here fails only in this harness, which reads as a broken audit
        rather than a missing local. */
     productImage: require(path.join(ROOT, 'helpers/productImage')),
+    jsonForScript: require(path.join(ROOT, 'helpers/jsonForScript')),
     testOrder: require(path.join(ROOT, 'services/testOrder')),
     script: '',
   });
@@ -370,7 +371,7 @@ const server = app.listen(0, async () => {
     const page = trustPages.bySlug(slug);
     const canonical = `rel="canonical" href="https://zypheratcg.com/${slug}"`;
     const ok = r.status === 200
-      && r.body.includes(page.title)
+      && decode(r.body).includes(page.title)   /* EJS escapes "&" in "Refund & Return" */
       && /name="description" content="[^"]{60,}"/.test(r.body)
       && r.body.includes(canonical)
       && (r.body.match(/<h1[\s>]/g) || []).length === 1;

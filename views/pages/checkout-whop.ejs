@@ -6,17 +6,20 @@
      deliberately untouched. */
 %>
 <style>
+  /* The partner's embed sits on a white plate under an ink rule, the
+     same way a product photo sits in the register. */
   .checkout-container {
     max-width: 800px;
-    margin: 60px auto;
+    margin: 48px auto 60px;
     padding: 0 20px;
     min-height: 60vh;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-body);
   }
   .whop-checkout-wrapper {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    background: var(--color-plate);
+    border: 1px solid var(--color-border-light);
+    border-top: 1.5px solid var(--color-ink);
+    border-radius: 0;
     overflow: hidden;
     min-height: 500px;
     display: flex;

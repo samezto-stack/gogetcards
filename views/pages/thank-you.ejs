@@ -110,15 +110,10 @@
              load and then stops. */%>
         <svg viewBox="0 0 56 56" width="52" height="52" fill="none" aria-hidden="true">
           <path class="oc__mark-hex" d="M28 4 48 15v22L28 48 8 37V15z"
-                stroke="url(#ocEdge)" stroke-width="1.5" stroke-linejoin="round"/>
+                stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
           <path class="oc__mark-tick" d="M19 28.5 25.5 35 38 21.5"
-                stroke="var(--color-accent)" stroke-width="2.5"
+                stroke="currentColor" stroke-width="2.5"
                 stroke-linecap="round" stroke-linejoin="round"/>
-          <defs>
-            <linearGradient id="ocEdge" x1="8" y1="4" x2="48" y2="48" gradientUnits="userSpaceOnUse">
-              <stop stop-color="var(--color-primary)"/><stop offset="1" stop-color="var(--color-cyan)"/>
-            </linearGradient>
-          </defs>
         </svg>
       </div>
 
@@ -158,7 +153,7 @@
         <% if (ful) { %>
           <div class="oc__band-meta">
             <span class="oc__label">Status</span>
-            <span class="oc__status"><%= ful.isPreorder ? 'Preorder secured' : 'Confirmed' %></span>
+            <span class="oc__status<%= ful.isPreorder ? ' is-preorder' : '' %>"><%= ful.isPreorder ? 'Preorder secured' : 'Confirmed' %></span>
           </div>
         <% } %>
       </div>
@@ -291,10 +286,8 @@
     <header class="oc__head">
       <div class="oc__mark" aria-hidden="true">
         <svg viewBox="0 0 56 56" width="52" height="52" fill="none">
-          <path class="oc__mark-hex" d="M28 4 48 15v22L28 48 8 37V15z" stroke="url(#ocEdge2)" stroke-width="1.5" stroke-linejoin="round"/>
-          <path class="oc__mark-tick" d="M19 28.5 25.5 35 38 21.5" stroke="var(--color-accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <defs><linearGradient id="ocEdge2" x1="8" y1="4" x2="48" y2="48" gradientUnits="userSpaceOnUse">
-            <stop stop-color="var(--color-primary)"/><stop offset="1" stop-color="var(--color-cyan)"/></linearGradient></defs>
+          <path class="oc__mark-hex" d="M28 4 48 15v22L28 48 8 37V15z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          <path class="oc__mark-tick" d="M19 28.5 25.5 35 38 21.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
       <h1 class="oc__title">Order confirmed</h1>
@@ -346,16 +339,17 @@
 
 <style>
 /* ── Order confirmation ─────────────────────────────────────────────
-   Built entirely on the tokens in zyphera.css. No new palette, no new
-   type family. The one flourish is the gradient hairline at the top of
-   the sheet; everything else is restraint. */
+   A receipt from the register: one leaf under an ink rule, ruled rows,
+   every figure and reference in mono, a serif heading. Built on the
+   tokens in zyphera.css. No gradients, no glow, square corners. */
 
-.oc { padding: clamp(1rem, 2vh, 1.5rem) var(--space-md) clamp(1.75rem, 3.5vh, 2.5rem); }
+.oc { padding: clamp(1.5rem, 3vh, 2.25rem) var(--space-md) clamp(2rem, 4vh, 3rem); }
 .oc__inner { max-width: 1040px; margin: 0 auto; }
 
 /* ── Head ── */
-.oc__head { text-align: center; margin-bottom: clamp(0.85rem, 1.6vh, 1.15rem); }
-.oc__mark { color: var(--color-primary-text); display: inline-flex; margin-bottom: 0.4rem; }
+.oc__head { text-align: center; margin-bottom: clamp(1.1rem, 2.2vh, 1.6rem); }
+.oc__mark { color: var(--color-ink); display: inline-flex; margin-bottom: 0.5rem; }
+.oc__mark .oc__mark-tick { stroke: var(--color-accent); }
 .oc__mark--warn { color: var(--color-gold); }
 
 /* Drawn once, then still. A confirmation is not a celebration. */
@@ -364,170 +358,171 @@
 @keyframes ocDraw { to { stroke-dashoffset: 0; } }
 
 .oc__title {
-  font-family: var(--font-heading); font-size: clamp(1.55rem, 2.8vw, 2rem);
-  font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; margin: 0 0 0.4rem;
-  color: var(--color-white); text-wrap: balance;
+  font-family: var(--font-display); font-size: clamp(2rem, 4.2vw, 3rem);
+  font-weight: 400; letter-spacing: -0.025em; line-height: 1.02; margin: 0 0 0.55rem;
+  color: var(--color-ink); text-wrap: balance; font-variation-settings: 'opsz' 144;
 }
-.oc__lede { color: var(--color-text-muted); font-size: 0.92rem; margin: 0; text-wrap: balance; }
+.oc__lede { color: var(--color-text-muted); font-size: 0.95rem; margin: 0; text-wrap: balance; }
 
 /* ── The sheet ── */
 .oc__sheet {
   position: relative; overflow: hidden;
-  background: var(--color-bg-elevated);
+  background: var(--color-bg-card);
   border: 1px solid var(--color-border-light);
-  border-radius: 14px;
-}
-/* The single accent. A 2px rule across the top edge, purple into cyan. */
-.oc__sheet::before {
-  content: ''; position: absolute; inset: 0 0 auto 0; height: 2px;
-  background: linear-gradient(90deg, var(--color-primary), var(--color-cyan));
+  border-top: 1.5px solid var(--color-ink);
+  border-radius: 0;
 }
 .oc__watermark {
-  position: absolute; right: 0.5rem; bottom: -1.5rem; z-index: 0;
-  font-family: var(--font-heading); font-size: 7rem; font-weight: 700; line-height: 1;
-  color: var(--color-white); opacity: 0.018; pointer-events: none; user-select: none;
+  position: absolute; right: 1rem; bottom: -2.2rem; z-index: 0;
+  font-family: var(--font-display); font-size: 9rem; font-weight: 300; font-style: italic; line-height: 1;
+  color: var(--color-ink); opacity: 0.035; pointer-events: none; user-select: none;
 }
 /* Everything EXCEPT the watermark gets lifted above it. Without the
    :not(), this rule overrode the watermark's own `position: absolute` —
-   same specificity, later in the file — and dropped a 7rem glyph into
+   same specificity, later in the file — and dropped the glyph into
    normal flow at the top of the sheet. */
 .oc__sheet > *:not(.oc__watermark) { position: relative; z-index: 1; }
 
 /* ── Reference band ── */
 .oc__band {
-  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1rem 2rem;
-  padding: 0.95rem 1.4rem;
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1rem 2.5rem;
+  padding: 1rem 1.5rem;
+  background: var(--color-bg-elevated);
   border-bottom: 1px solid var(--color-border-light);
 }
 .oc__ref { margin-right: auto; }
 .oc__label {
-  display: block; font-size: 0.66rem; font-weight: 600; letter-spacing: 0.11em;
-  text-transform: uppercase; color: var(--color-text-faint); margin-bottom: 0.3rem;
+  display: block; font-family: var(--font-mono); font-size: 0.64rem; font-weight: 500; letter-spacing: 0.13em;
+  text-transform: uppercase; color: var(--color-text-faint); margin-bottom: 0.35rem;
 }
-.oc__ref-row { display: flex; align-items: center; gap: 0.6rem; }
+.oc__ref-row { display: flex; align-items: center; gap: 0.75rem; }
 .oc__ref-no {
   font-family: var(--font-mono); font-size: clamp(1.1rem, 2.4vw, 1.4rem);
-  font-weight: 600; letter-spacing: 0.01em; color: var(--color-white);
+  font-weight: 500; letter-spacing: 0.02em; color: var(--color-ink);
 }
 .oc__copy {
-  display: inline-flex; align-items: center; gap: 0.3rem;
-  background: transparent; border: 1px solid var(--color-border-light);
-  border-radius: 6px; color: var(--color-text-muted);
-  font-family: var(--font-body); font-size: 0.72rem;
-  padding: 0.24rem 0.5rem; cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  background: var(--color-plate); border: 1px solid var(--color-border-light);
+  border-radius: 0; color: var(--color-ink);
+  font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 0.3rem 0.55rem; cursor: pointer;
+  transition: color 0.12s, border-color 0.12s;
 }
-.oc__copy:hover { color: var(--color-primary-text); border-color: var(--color-primary); }
-.oc__copy:focus-visible { outline: 2px solid var(--color-primary-text); outline-offset: 2px; }
+.oc__copy:hover { color: var(--color-primary); border-color: var(--color-primary); }
+.oc__copy:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 .oc__copy.is-done { color: var(--color-accent); border-color: var(--color-accent); }
 .oc__band-meta { text-align: right; }
-.oc__mono { font-family: var(--font-mono); font-size: 0.84rem; color: var(--color-text); }
-.oc__status { font-size: 0.84rem; font-weight: 600; color: var(--color-cyan); }
+.oc__mono { font-family: var(--font-mono); font-size: 0.86rem; color: var(--color-ink); font-variant-numeric: tabular-nums; }
+/* A stamp in the ink of what it says: green confirmed, vermilion preorder. */
+.oc__status {
+  display: inline-block; padding: 2px 7px;
+  font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--color-accent); border: 1px solid currentColor; background: var(--color-plate);
+}
+.oc__status.is-preorder { color: var(--color-cyan); }
 
-/* ── Items ── */
-.oc__items { padding: 0.25rem 1.4rem; }
-.oc__item { display: flex; align-items: center; gap: 0.9rem; padding: 0.7rem 0; }
+/* ── Items: ruled ledger rows ── */
+.oc__items { padding: 0.25rem 1.5rem; }
+.oc__item { display: flex; align-items: center; gap: 1rem; padding: 0.85rem 0; }
 .oc__item + .oc__item { border-top: 1px solid var(--color-border-light); }
 .oc__thumb {
-  width: 54px; height: 54px; flex: none; border-radius: 8px;
-  object-fit: contain; background: var(--color-bg-card);
+  width: 60px; height: 60px; flex: none; border-radius: 0;
+  object-fit: contain; background: var(--color-plate);
   border: 1px solid var(--color-border-light); padding: 5px;
-  transition: transform 0.25s ease;
 }
-.oc__item:hover .oc__thumb { transform: scale(1.03); }
 .oc__thumb--blank { display: block; }
 .oc__item-main { min-width: 0; flex: 1; }
-.oc__item-title { font-size: 0.96rem; font-weight: 500; color: var(--color-text); margin: 0 0 0.2rem; line-height: 1.35; }
-.oc__item-meta { font-size: 0.8rem; color: var(--color-text-faint); margin: 0; }
+.oc__item-title { font-family: var(--font-display); font-size: 1.08rem; font-weight: 400; color: var(--color-ink); margin: 0 0 0.25rem; line-height: 1.3; font-variation-settings: 'opsz' 36; }
+.oc__item-meta { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-faint); margin: 0; }
 .oc__tag {
-  display: inline-block; font-size: 0.66rem; font-weight: 600; letter-spacing: 0.06em;
+  display: inline-block; font-size: 0.62rem; font-weight: 500; letter-spacing: 0.12em;
   text-transform: uppercase; color: var(--color-cyan);
-  border: 1px solid rgba(6, 182, 212, 0.35); border-radius: 4px; padding: 0.05rem 0.34rem;
+  border: 1px solid currentColor; border-radius: 0; padding: 0.05rem 0.34rem;
 }
-.oc__item-price { font-family: var(--font-mono); font-size: 0.95rem; color: var(--color-white); margin: 0; white-space: nowrap; }
+.oc__item-price { font-family: var(--font-mono); font-size: 0.98rem; color: var(--color-ink); margin: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
 /* ── Totals ── */
-.oc__totals { padding: 0.8rem 1.4rem 0.95rem; border-top: 1px solid var(--color-border-light); }
-.oc__total-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.88rem; color: var(--color-text-muted); }
-.oc__total-row + .oc__total-row { margin-top: 0.45rem; }
-.oc__free { color: var(--color-accent); font-weight: 600; }
-.oc__total-row--grand { font-size: 1.05rem; font-weight: 600; color: var(--color-white); padding-top: 0.15rem; }
-.oc__total-row--grand > span:last-child { font-family: var(--font-mono); font-size: 1.16rem; }
-.oc__cur { font-size: 0.72rem; color: var(--color-text-faint); font-weight: 400; }
+.oc__totals { padding: 0.3rem 1.5rem 1rem; border-top: 1px solid var(--color-border-light); }
+.oc__total-row { display: flex; justify-content: space-between; align-items: baseline; padding: 0.55rem 0; font-size: 0.88rem; color: var(--color-text-muted); }
+.oc__total-row + .oc__total-row { margin-top: 0; }
+.oc__free { font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-accent); font-weight: 500; }
+.oc__total-row--grand { border-top: 1.5px solid var(--color-ink); padding-top: 0.8rem; color: var(--color-ink); }
+.oc__total-row--grand > span:first-child { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; }
+.oc__total-row--grand > span:last-child { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 500; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.oc__cur { font-size: 0.68rem; letter-spacing: 0.1em; color: var(--color-text-faint); font-weight: 400; }
 
 /* ── Two columns ── */
 .oc__cols {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem 2.5rem;
-  padding: 0.95rem 1.4rem; border-top: 1px solid var(--color-border-light);
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  padding: 0 1.5rem; border-top: 1px solid var(--color-border-light);
 }
+.oc__col { padding: 1rem 0; }
+.oc__col + .oc__col { border-left: 1px solid var(--color-border-light); padding-left: 1.5rem; }
 .oc__col h2 { margin: 0; }
-.oc__addr, .oc__contact { display: flex; flex-direction: column; gap: 0.14rem; font-style: normal; font-size: 0.87rem; color: var(--color-text-muted); line-height: 1.5; }
-.oc__addr-name { color: var(--color-text); font-weight: 500; }
-.oc__contact span:first-child { color: var(--color-text); word-break: break-word; }
-.oc__muted { color: var(--color-text-faint); font-size: 0.8rem; }
+.oc__addr, .oc__contact { display: flex; flex-direction: column; gap: 0.14rem; font-style: normal; font-size: 0.9rem; color: var(--color-text-muted); line-height: 1.5; }
+.oc__addr-name { color: var(--color-ink); font-weight: 500; }
+.oc__contact span:first-child { color: var(--color-ink); word-break: break-word; }
+.oc__muted { color: var(--color-text-faint); font-size: 0.82rem; }
 
-/* ── Next steps ── */
-.oc__next { padding: 0.85rem 1.4rem 0.95rem; border-top: 1px solid var(--color-border-light); }
-.oc__steps { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; padding: 0; margin: 0.15rem 0 0; counter-reset: none; }
-.oc__step { position: relative; padding-top: 0.9rem; }
-/* The rail: a hairline across the top of each step with a node on it, so
-   the three read as a sequence without needing arrow glyphs between them. */
+/* ── Next steps: a rail with square nodes ── */
+.oc__next { padding: 1rem 1.5rem 1.1rem; border-top: 1px solid var(--color-border-light); }
+.oc__steps { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; padding: 0; margin: 0.35rem 0 0; counter-reset: none; }
+.oc__step { position: relative; padding-top: 1rem; }
 .oc__step::before { content: ''; position: absolute; top: 3px; left: 0; right: 0; height: 1px; background: var(--color-border-light); }
 .oc__step::after {
   content: ''; position: absolute; top: 0; left: 0; width: 7px; height: 7px;
-  border-radius: 50%; background: var(--color-bg-elevated); border: 1.5px solid var(--color-text-faint);
+  border-radius: 50%; background: var(--color-bg-card); border: 1.5px solid var(--color-text-faint);
 }
-.oc__step--done::before { background: linear-gradient(90deg, var(--color-primary), var(--color-cyan)); }
+.oc__step--done::before { background: var(--color-ink); }
 .oc__step--done::after { background: var(--color-accent); border-color: var(--color-accent); }
-.oc__step--next::after { border-color: var(--color-cyan); }
-.oc__step-name { display: block; font-size: 0.8rem; font-weight: 600; color: var(--color-text); margin-bottom: 0.2rem; }
-.oc__step--pending .oc__step-name { color: var(--color-text-faint); }
-.oc__step-detail { display: block; font-size: 0.79rem; color: var(--color-text-faint); line-height: 1.5; }
+.oc__step--next::after { border-color: var(--color-primary); background: var(--color-primary-soft); }
+.oc__step-name { display: block; font-size: 0.86rem; font-weight: 600; color: var(--color-ink); margin-bottom: 0.2rem; }
+.oc__step--pending .oc__step-name { color: var(--color-text-muted); }
+.oc__step-detail { display: block; font-size: 0.82rem; color: var(--color-text-muted); line-height: 1.5; }
 
 /* ── Trust line ── */
 .oc__trust {
-  display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; justify-content: center;
-  margin: 0; padding: 0.7rem 1.4rem;
+  display: flex; flex-wrap: wrap; gap: 0.5rem 1.75rem; justify-content: center;
+  margin: 0; padding: 0.75rem 1.5rem;
   border-top: 1px solid var(--color-border-light);
-  background: rgba(255, 255, 255, 0.012);
-  font-size: 0.72rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--color-text-faint);
+  background: var(--color-bg-elevated);
+  font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-text-muted);
 }
-.oc__trust span { display: inline-flex; align-items: center; gap: 0.4rem; }
-.oc__trust span::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--color-primary); opacity: 0.7; }
+.oc__trust span { display: inline-flex; align-items: center; gap: 0.45rem; }
+.oc__trust span::before { content: ''; width: 5px; height: 5px; background: var(--color-accent); }
+
+/* Account line. Reads as a footnote to the receipt, not a second card. */
+.oc__account {
+  margin: 1rem 0 0; padding-top: 0.9rem; font-size: 0.88rem; line-height: 1.6;
+  color: var(--color-text-muted);
+  border-top: 1px solid var(--color-border-light);
+}
+.oc__account strong { color: var(--color-ink); font-weight: 600; }
+.oc__account a { color: var(--color-primary); white-space: nowrap; text-decoration: underline; text-underline-offset: 3px; }
 
 /* ── Actions ── */
-/* Account line. Reads as a footnote to the receipt, not a second card:
-   hairline top rule, no background, no border box. */
-.oc__account {
-  margin: 0.9rem 0 0; font-size: 0.85rem; line-height: 1.6;
-  color: var(--color-text-muted);
-}
-.oc__account strong { color: var(--color-text); font-weight: 500; }
-.oc__account a { color: var(--color-primary-text); white-space: nowrap; }
-
-.oc__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.5rem; margin-top: 1rem; }
+.oc__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.75rem; margin-top: 1.25rem; }
 .oc__actions--centred { justify-content: center; }
 .oc__btn {
   display: inline-flex; align-items: center; justify-content: center;
-  border-radius: 8px; font-size: 0.9rem; font-weight: 500;
-  padding: 0.7rem 1.5rem; text-decoration: none; transition: all 0.18s ease;
+  border-radius: 0; border: 1.5px solid transparent;
+  font-family: var(--font-heading); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 0.9rem 1.6rem; text-decoration: none; transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
 }
-.oc__btn--primary { background: var(--color-primary); color: var(--color-white); }
-.oc__btn--primary:hover { background: var(--color-primary-dark); transform: translateY(-1px); }
-/* Deliberately not a second filled button. Two equally loud calls to
-   action leave the customer choosing between them instead of leaving. */
-.oc__btn--quiet { color: var(--color-text-muted); padding-left: 0; padding-right: 0; }
-.oc__btn--quiet::after { content: '\2192'; margin-left: 0.4rem; transition: transform 0.18s ease; }
-.oc__btn--quiet:hover { color: var(--color-primary-text); }
+.oc__btn--primary { background: var(--color-ink); border-color: var(--color-ink); color: var(--color-on-ink); }
+.oc__btn--primary:hover { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+/* Deliberately not a second filled button: a quiet ruled link. */
+.oc__btn--quiet { color: var(--color-ink); padding-left: 0; padding-right: 0; text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 1px; }
+.oc__btn--quiet::after { content: '\2192'; margin-left: 0.45rem; transition: transform 0.12s ease; }
+.oc__btn--quiet:hover { color: var(--color-primary); }
 .oc__btn--quiet:hover::after { transform: translateX(3px); }
-.oc__btn:focus-visible { outline: 2px solid var(--color-primary-text); outline-offset: 3px; }
+.oc__btn:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
 
 /* ── Tablet ── */
 @media (max-width: 860px) {
   .oc__steps { grid-template-columns: 1fr; gap: 0.9rem; }
   .oc__step { padding-top: 0; padding-left: 1.15rem; }
   .oc__step::before { top: 0; bottom: 0; left: 3px; right: auto; width: 1px; height: auto; }
-  .oc__step--done::before { background: linear-gradient(180deg, var(--color-primary), var(--color-cyan)); }
   .oc__step::after { top: 2px; }
 }
 
@@ -538,16 +533,16 @@
   .oc__band-meta { text-align: left; }
   .oc__items { padding: 0.25rem 1.1rem; }
   .oc__totals, .oc__cols, .oc__next, .oc__trust { padding-left: 1.1rem; padding-right: 1.1rem; }
-  .oc__cols { grid-template-columns: 1fr; gap: 1.15rem; }
-  .oc__watermark { font-size: 5rem; bottom: -1rem; }
+  .oc__cols { grid-template-columns: 1fr; }
+  .oc__col + .oc__col { border-left: 0; padding-left: 0; border-top: 1px solid var(--color-border-light); }
+  .oc__watermark { font-size: 6rem; bottom: -1.4rem; }
   .oc__actions { flex-direction: column; align-items: stretch; text-align: center; }
   .oc__btn--quiet { padding: 0.5rem 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .oc__mark-hex, .oc__mark-tick { animation: none; stroke-dashoffset: 0; }
-  .oc__btn, .oc__thumb { transition: none; }
-  .oc__btn--primary:hover { transform: none; }
+  .oc__btn { transition: none; }
 }
 </style>
 

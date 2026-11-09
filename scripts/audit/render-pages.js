@@ -75,6 +75,8 @@ const base = {
   assetVersion: 'test', shippingCopy: shippingCfg.copy,
   company, payments, preorder, shippingCfg, returnWindowDays: faqCfg.RETURN_WINDOW_DAYS,
   formatPrice, productImage, script: '',
+  jsonForScript: require(path.join(ROOT, 'helpers/jsonForScript')),
+  testOrder: require(path.join(ROOT, 'services/testOrder')),
 
   /* ── The market locals every customer template now depends on ────────
      middleware/market sets these on every real request, and the templates

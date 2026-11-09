@@ -1,63 +1,36 @@
-<section class="section-padding--sm" style="background:var(--color-bg-elevated);border-top:1px solid var(--color-border-light)">
+<%/* THE INDEX OF GAMES. A ruled index, the way a register lists its
+     departments: number, mark, name, what is in it. The publisher marks
+     are printed in grey and take their colour on hover, so four brand
+     palettes do not fight the page. */%>
+<%
+  var catRows = [
+    { id: 'cat-pokemon', href: '/collection/pokemon', img: '/images/pokemon.svg', name: 'Pokémon', desc: 'Booster boxes, ETBs, Master Cases & vintage lots', cta: 'Shop Pokémon' },
+    { id: 'cat-yugioh', href: '/collection/yugioh', img: '/images/yugioh.svg', name: 'Yu-Gi-Oh!', desc: 'Booster boxes, tins, collector sets & tournament staples', cta: 'Shop Yu-Gi-Oh!' },
+    { id: 'cat-mtg', href: '/collection/mtg', img: '/images/mtg.svg', name: 'MTG', desc: 'Draft boosters, collector boxes & sealed Commander sets', cta: 'Shop MTG' },
+    { id: 'cat-one-piece', href: '/collection/one-piece', img: '/images/onepiece.svg', name: 'One Piece', desc: 'Japanese & English booster boxes, starter decks & cases', cta: 'Shop One Piece' },
+  ];
+%>
+<section class="section-padding--sm">
   <div class="container">
-    <div class="section-header text-center" style="margin-bottom:var(--space-2xl)">
-      <div class="label-overline" style="margin-bottom:0.5rem">Browse by Game</div>
-      <h2 class="heading-section">Shop by Collection</h2>
-      <div class="divider-accent"></div>
+    <div class="reg-head">
+      <span class="reg-head__num">&sect; 02</span>
+      <h2 class="heading-section reg-head__title">Shop by collection</h2>
+      <a href="<%= marketPath('/collection/all') %>" class="reg-head__aside">All games &rarr;</a>
     </div>
-
     <div class="cat__grid">
-      <a href="<%= marketPath('/collection/pokemon') %>" class="cat__card" style="--cat-accent:#FACC15" id="cat-pokemon">
-        <div class="cat__emoji" aria-hidden="true">
-          <img src="/images/pokemon.svg" alt="Pokémon" width="120" height="40" loading="lazy" decoding="async" style="height:40px;width:auto;object-fit:contain;filter:drop-shadow(0 0 8px rgba(255,255,255,0.1))">
-        </div>
-        <div class="cat__info">
-          <h3 class="cat__title">Pokémon</h3>
-          <p class="cat__desc">Booster boxes, ETBs, Master Cases & vintage lots</p>
-          <span class="cat__link" style="color:var(--cat-accent)">Shop Pokémon →</span>
-        </div>
-        <div class="cat__glow" aria-hidden="true" style="background:var(--cat-accent)"></div>
-      </a>
-      <a href="<%= marketPath('/collection/yugioh') %>" class="cat__card" style="--cat-accent:#A78BFA" id="cat-yugioh">
-        <div class="cat__emoji" aria-hidden="true">
-          <img src="/images/yugioh.svg" alt="Yu-Gi-Oh!" width="120" height="40" loading="lazy" decoding="async" style="height:40px;width:auto;object-fit:contain;filter:drop-shadow(0 0 8px rgba(255,255,255,0.1))">
-        </div>
-        <div class="cat__info">
-          <h3 class="cat__title">Yu-Gi-Oh!</h3>
-          <p class="cat__desc">Booster boxes, tins, collector sets & tournament staples</p>
-          <span class="cat__link" style="color:var(--cat-accent)">Shop Yu-Gi-Oh! →</span>
-        </div>
-        <div class="cat__glow" aria-hidden="true" style="background:var(--cat-accent)"></div>
-      </a>
-      <a href="<%= marketPath('/collection/mtg') %>" class="cat__card" style="--cat-accent:#06B6D4" id="cat-mtg">
-        <div class="cat__emoji" aria-hidden="true">
-          <img src="/images/mtg.svg" alt="MTG" width="120" height="40" loading="lazy" decoding="async" style="height:40px;width:auto;object-fit:contain;filter:drop-shadow(0 0 8px rgba(255,255,255,0.1))">
-        </div>
-        <div class="cat__info">
-          <h3 class="cat__title">MTG</h3>
-          <p class="cat__desc">Draft boosters, collector boxes & sealed Commander sets</p>
-          <span class="cat__link" style="color:var(--cat-accent)">Shop MTG →</span>
-        </div>
-        <div class="cat__glow" aria-hidden="true" style="background:var(--cat-accent)"></div>
-      </a>
-      <a href="<%= marketPath('/collection/one-piece') %>" class="cat__card" style="--cat-accent:#22C55E" id="cat-one-piece">
-        <div class="cat__emoji" aria-hidden="true">
-          <img src="/images/onepiece.svg" alt="One Piece" width="120" height="40" loading="lazy" decoding="async" style="height:40px;width:auto;object-fit:contain;filter:drop-shadow(0 0 8px rgba(255,255,255,0.1))">
-        </div>
-        <div class="cat__info">
-          <h3 class="cat__title">One Piece</h3>
-          <p class="cat__desc">Japanese & English booster boxes, starter decks & cases</p>
-          <span class="cat__link" style="color:var(--cat-accent)">Shop One Piece →</span>
-        </div>
-        <div class="cat__glow" aria-hidden="true" style="background:var(--cat-accent)"></div>
-      </a>
+      <% catRows.forEach(function (c, i) { %>
+        <a href="<%= marketPath(c.href) %>" class="cat__card" id="<%= c.id %>">
+          <span class="cat__num"><%= String(i + 1).padStart(2, '0') %></span>
+          <span class="cat__emoji" aria-hidden="true">
+            <img src="<%= c.img %>" alt="" width="120" height="40" loading="lazy" decoding="async">
+          </span>
+          <div class="cat__info">
+            <h3 class="cat__title"><%= c.name %></h3>
+            <p class="cat__desc"><%= c.desc %></p>
+          </div>
+          <span class="cat__link"><%= c.cta %> &rarr;</span>
+        </a>
+      <% }); %>
     </div>
   </div>
 </section>
-
-<style>
-  .cat__glow { position:absolute; top:0; right:0; width:80px; height:80px; border-radius:50%; opacity:0.06; filter:blur(30px); pointer-events:none; transition:opacity var(--transition-normal); }
-  .cat__card:hover .cat__glow { opacity:0.15; }
-  .cat__card:hover { border-color:var(--cat-accent); box-shadow:0 12px 40px rgba(0,0,0,0.4),0 0 30px color-mix(in srgb,var(--cat-accent) 20%,transparent); }
-  .cat__link { font-size:0.8rem;font-weight:700;font-family:var(--font-heading);margin-top:0.5rem;display:block; }
-</style>

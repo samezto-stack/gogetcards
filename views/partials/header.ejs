@@ -1,59 +1,52 @@
+<%/* THE MASTHEAD. The storefront is designed as a printed collector's
+     register (docs/storefront-design.md), so the header is set like the
+     masthead of one: search on the left, the wordmark centred, utilities on
+     the right, and the sections on a ruled row underneath. On a phone it
+     collapses to wordmark, cart and menu. Every id and class the script in
+     public/js/zyphera.js looks up is unchanged. */%>
 <header class="site-header" role="banner" id="site-header">
   <div class="container">
     <div class="header__inner">
 
-      <!-- Logo -->
-      <a href="<%= marketPath('/') %>" class="header__logo" id="nav-logo" aria-label="Zyphera TCG">
-        <%/* Was a gradient hexagon with a dot. Every generated asset —
-             favicon, apple-touch icon, PWA icon, OG share card, order push
-             icon — renders the three-card Z from brand/mark.js, so the tab
-             icon and the on-page logo were two different marks. */%>
-        <div class="header__logo-icon" style="color:var(--color-primary)">
-          <%- include('logomark', { size: 28 }) %>
-        </div>
-        <span class="header__logo-text">
-          Zyphera<span class="header__logo-tcg">TCG</span>
-        </span>
-      </a>
+      <div class="header__left">
+          <%/* Search. The sitewide WebSite schema has always declared a
+               SearchAction pointing at /collection/all?q=, so Google was
+               entitled to render a sitelinks search box for this site — and
+               nothing on the site read `q` or offered a box, so every search
+               returned the whole unfiltered catalogue. Both halves exist
+               now: the collection route filters on the term, and this is
+               where a person types it. */%>
+          <form class="header__search hide-mobile" action="<%= marketPath('/collection/all') %>" method="GET" role="search">
+            <label class="sr-only" for="site-search">Search products</label>
+            <input
+              type="search"
+              id="site-search"
+              name="q"
+              placeholder="Search sealed product"
+              autocomplete="off"
+              maxlength="80"
+              value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>"
+            >
+            <button type="submit" aria-label="Search">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </button>
+          </form>
+      </div>
 
-      <!-- Desktop Nav -->
-      <nav class="header__nav hide-mobile" role="navigation" aria-label="Main navigation">
-        <a href="<%= marketPath('/') %>" class="header__nav-link<%= currentPath === '/' ? ' active' : '' %>" id="nav-home">Home</a>
-        <a href="<%= marketPath('/collection/all') %>" class="header__nav-link<%= currentPath.startsWith('/collection') ? ' active' : '' %>" id="nav-shop">Shop All</a>
-        <a href="<%= marketPath('/collection/pokemon') %>" class="header__nav-link" id="nav-pokemon">Pokémon</a>
-        <a href="<%= marketPath('/collection/yugioh') %>" class="header__nav-link" id="nav-yugioh">Yu-Gi-Oh!</a>
-        <a href="<%= marketPath('/collection/mtg') %>" class="header__nav-link" id="nav-mtg">MTG</a>
-        <a href="<%= marketPath('/collection/palworld') %>" class="header__nav-link" id="nav-palworld">Palworld</a>
-        <a href="<%= marketPath('/collection/preorders') %>" class="header__nav-link" id="nav-preorders">Preorders</a>
-        <a href="<%= marketPath('/about') %>" class="header__nav-link<%= currentPath === '/about' ? ' active' : '' %>" id="nav-about">About</a>
-        <a href="<%= marketPath('/contact') %>" class="header__nav-link<%= currentPath === '/contact' ? ' active' : '' %>" id="nav-contact">Contact</a>
-      </nav>
+      <!-- Wordmark -->
+      <a href="<%= marketPath('/') %>" class="header__logo" id="nav-logo" aria-label="Zyphera TCG">
+        <%/* The three-card Z from brand/mark.js stays the mark: the favicon,
+             the app icons and the share card all render it. */%>
+        <span class="header__logo-row">
+          <span class="header__logo-icon"><%- include('logomark', { size: 22 }) %></span>
+          <span class="header__logo-text">Zyphera</span>
+        </span>
+        <span class="header__logo-tcg">Sealed TCG register</span>
+      </a>
 
       <!-- Actions -->
       <div class="header__actions">
         <%- include('market-selector') %>
-        <%/* Search. The sitewide WebSite schema has always declared a
-             SearchAction pointing at /collection/all?q=, so Google was
-             entitled to render a sitelinks search box for this site — and
-             nothing on the site read `q` or offered a box, so every search
-             returned the whole unfiltered catalogue. Both halves exist
-             now: the collection route filters on the term, and this is
-             where a person types it. */%>
-        <form class="header__search hide-mobile" action="<%= marketPath('/collection/all') %>" method="GET" role="search">
-          <label class="sr-only" for="site-search">Search products</label>
-          <input
-            type="search"
-            id="site-search"
-            name="q"
-            placeholder="Search sealed product"
-            autocomplete="off"
-            maxlength="80"
-            value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>"
-          >
-          <button type="submit" aria-label="Search">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          </button>
-        </form>
 
         <%/* Account. Rendered from res.locals.customer, which middleware/
              customer.js sets on every storefront request and which is null
@@ -79,11 +72,12 @@
           aria-label="Open cart"
           aria-expanded="false"
         >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
             <line x1="3" y1="6" x2="21" y2="6"/>
             <path d="M16 10a4 4 0 01-8 0"/>
           </svg>
+          <span class="header__cart-label">Cart</span>
           <span class="header__cart-count js-cart-count" <% if (!cart || cart.totalItems === 0) { %>style="display:none"<% } %>>
             <%= cart ? cart.totalItems : 0 %>
           </span>
@@ -100,6 +94,23 @@
           <span></span><span></span><span></span>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Sections -->
+  <div class="header__nav-row">
+    <div class="container">
+          <nav class="header__nav" role="navigation" aria-label="Main navigation">
+            <a href="<%= marketPath('/') %>" class="header__nav-link<%= currentPath === '/' ? ' active' : '' %>" id="nav-home">Home</a>
+            <a href="<%= marketPath('/collection/all') %>" class="header__nav-link<%= currentPath.startsWith('/collection') ? ' active' : '' %>" id="nav-shop">Shop All</a>
+            <a href="<%= marketPath('/collection/pokemon') %>" class="header__nav-link" id="nav-pokemon">Pokémon</a>
+            <a href="<%= marketPath('/collection/yugioh') %>" class="header__nav-link" id="nav-yugioh">Yu-Gi-Oh!</a>
+            <a href="<%= marketPath('/collection/mtg') %>" class="header__nav-link" id="nav-mtg">MTG</a>
+            <a href="<%= marketPath('/collection/palworld') %>" class="header__nav-link" id="nav-palworld">Palworld</a>
+            <a href="<%= marketPath('/collection/preorders') %>" class="header__nav-link header__nav-link--stamp" id="nav-preorders">Preorders</a>
+            <a href="<%= marketPath('/about') %>" class="header__nav-link<%= currentPath === '/about' ? ' active' : '' %>" id="nav-about">About</a>
+            <a href="<%= marketPath('/contact') %>" class="header__nav-link<%= currentPath === '/contact' ? ' active' : '' %>" id="nav-contact">Contact</a>
+          </nav>
     </div>
   </div>
 

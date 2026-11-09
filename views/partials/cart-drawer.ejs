@@ -27,7 +27,7 @@
       <h2 class="cd__title">
         Your Cart
         <% if (cart && cart.totalItems > 0) { %>
-          <span class="badge badge--new" style="margin-left:0.625rem"><%= cart.totalItems %></span>
+          <span class="cd__count"><%= cart.totalItems %></span>
         <% } %>
       </h2>
       <button class="cd__close" id="cart-drawer-close" aria-label="Close cart">
@@ -40,7 +40,7 @@
         <div class="cd__empty">
           <div class="cd__empty-icon" aria-hidden="true"><%- include('icon', { name: 'shopping-cart', size: 48, color: 'var(--color-text-faint)' }) %></div>
           <p class="cd__empty-title">Your cart is empty</p>
-          <p style="font-size:0.875rem;color:var(--color-text-muted);text-align:center">
+          <p class="cd__empty-body">
             Add some premium sealed product and come back here.
           </p>
           <a href="<%= marketPath('/collection/all') %>" class="btn btn-primary" id="cd-browse-btn" style="margin-top:1rem">
@@ -61,11 +61,11 @@
               <div class="cd__item-info">
                 <a href="<%= marketPath('/products/' + (item.slug)) %>" class="cd__item-title"><%= item.title %></a>
                 <% if (item.preorder) { %>
-                  <span class="badge badge--preorder" style="font-size:0.6rem;margin-top:4px">Preorder</span>
+                  <span class="badge badge--preorder" style="margin-top:5px">Preorder</span>
                 <% } %>
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.625rem">
+                <div class="cd__item-line">
                   <span class="cd__item-price"><%= ctMoney(ctLine(item) * item.quantity) %></span>
-                  <span style="font-size:0.72rem;color:var(--color-text-faint)">×<%= item.quantity %></span>
+                  <span class="cd__item-qty">×<%= item.quantity %></span>
                   <button class="cd__remove-btn" data-cart-remove="<%= item.slug %>" aria-label="Remove <%= item.title %>">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
                   </button>
@@ -87,7 +87,7 @@
              adding a second one silently clears the first. The checkout
              takes one product per order, so this is a real constraint and
              not a UI preference. */%>
-        <p style="font-size:0.68rem;color:var(--color-text-faint);text-align:center;margin-bottom:0.5rem">
+        <p class="cd__fine">
           One product per order. Adding another replaces this one.
         </p>
         <%/* Was "Taxes and shipping calculated at checkout", which told a
@@ -95,22 +95,24 @@
              would pay. Shipping is free on every order, so the only thing
              that can still be added is destination-country import duty,
              which the carrier collects and we never see. */%>
-        <p style="font-size:0.72rem;color:var(--color-accent);text-align:center;font-weight:600">
+        <div class="cd__terms">
+        <p class="cd__ship">
           <%= shippingCopy.short %>
         </p>
-        <p style="font-size:0.68rem;color:var(--color-text-faint);text-align:center;margin-top:2px">
+        <p class="cd__fine">
           Import duty, where it applies, is collected by the carrier
         </p>
+        </div>
         <a href="<%= marketPath('/cart') %>" class="btn btn-ghost btn-full" id="cd-view-cart">
           View Cart
         </a>
         <a href="<%= marketPath('/checkout-redirect') %>" class="btn btn-primary btn-full btn-lg" id="cd-checkout-btn">
-          <%- include('icon', { name: 'lock', size: 16, color: '#fff' }) %><span style="margin-left:0.5rem">Secure Checkout · <%= ctMoney(ctTotal) %></span>
+          <%- include('icon', { name: 'lock', size: 14, color: 'currentColor' }) %><span>Secure Checkout · <%= ctMoney(ctTotal) %></span>
         </a>
         <div class="cd__trust-row">
-          <span style="display:inline-flex;align-items:center;gap:4px"><%- include('icon', { name: 'lock', size: 12, color: 'var(--color-text-faint)' }) %> Secure</span>
-          <span style="display:inline-flex;align-items:center;gap:4px"><%- include('icon', { name: 'check-circle', size: 12, color: 'var(--color-text-faint)' }) %> Sealed</span>
-          <span style="display:inline-flex;align-items:center;gap:4px"><%- include('icon', { name: 'package', size: 12, color: 'var(--color-text-faint)' }) %> Tracked</span>
+          <span><%- include('icon', { name: 'lock', size: 11, color: 'currentColor' }) %> Secure</span>
+          <span><%- include('icon', { name: 'check-circle', size: 11, color: 'currentColor' }) %> Sealed</span>
+          <span><%- include('icon', { name: 'package', size: 11, color: 'currentColor' }) %> Tracked</span>
         </div>
       </div>
     <% } %>
@@ -118,8 +120,21 @@
 </aside>
 
 <style>
-  .cd__remove-btn { background:none;border:none;color:var(--color-text-faint);cursor:pointer;padding:4px;border-radius:4px;transition:color var(--transition-fast); }
-  .cd__remove-btn:hover { color:#FC8181; }
-  .cd__trust-row { display:flex;gap:1rem;justify-content:center;padding-top:0.625rem;border-top:1px solid var(--color-border-light); }
-  .cd__trust-row span { font-size:0.72rem;color:var(--color-text-faint); }
+  /* The drawer is a slip of the register: paper, an ink frame on the
+     leading edge, ruled rows. Base geometry lives in zyphera.css (.cd*). */
+  .cd__title { display: flex; align-items: baseline; gap: 0.6rem; }
+  .cd__count { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em; color: var(--color-text-muted); border: 1px solid var(--color-ink); padding: 1px 6px; line-height: 1.4; }
+  .cd__empty-body { font-size: 0.875rem; color: var(--color-text-muted); text-align: center; max-width: 30ch; }
+  .cd__item-title:hover { color: var(--color-primary); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  .cd__item-line { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-top: 0.6rem; }
+  .cd__item-qty { font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-text-faint); margin-left: auto; }
+  .cd__remove-btn { background: none; border: 1px solid transparent; color: var(--color-text-faint); cursor: pointer; padding: 4px; border-radius: 0; display: inline-flex; transition: color var(--transition-fast), border-color var(--transition-fast); }
+  .cd__remove-btn:hover { color: var(--color-red); border-color: var(--color-red); }
+  .cd__terms { display: flex; flex-direction: column; gap: 2px; text-align: center; padding: 0.15rem 0; }
+  .cd__ship { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-accent); }
+  .cd__fine { font-size: 0.7rem; color: var(--color-text-faint); text-align: center; }
+  .cd__footer > .cd__fine { margin-top: -0.35rem; }
+  #cd-checkout-btn { gap: 0.55rem; }
+  .cd__trust-row { display: flex; gap: 1.1rem; justify-content: center; padding-top: 0.7rem; border-top: 1px solid var(--color-border-light); }
+  .cd__trust-row span { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-text-faint); }
 </style>

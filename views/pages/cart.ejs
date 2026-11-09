@@ -19,93 +19,101 @@
   };
   var ctTotal = ctM ? ctM.totalPrice : cart.totalPrice;
 %>
-<div style="background:var(--color-bg-elevated);border-bottom:1px solid var(--color-border-light);padding:2rem 0">
+<header class="cart-head">
   <div class="container">
-    <h1 class="heading-section">Shopping Cart</h1>
-    <p style="color:var(--color-text-muted);margin-top:0.5rem">
-      <%= cart ? cart.totalItems : 0 %> item<%= (cart && cart.totalItems !== 1) ? 's' : '' %> in your cart
-    </p>
+    <nav class="col-page__breadcrumb" aria-label="Breadcrumb">
+      <a href="<%= marketPath('/') %>">Home</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">Cart</span>
+    </nav>
+    <div class="cart-head__row">
+      <h1 class="cart-head__title">Shopping Cart</h1>
+      <p class="cart-head__count zy-meta">
+        <%= cart ? cart.totalItems : 0 %> item<%= (cart && cart.totalItems !== 1) ? 's' : '' %> in your cart
+      </p>
+    </div>
   </div>
-</div>
+</header>
 
 <% if (!cart || cart.items.length === 0) { %>
-  <div class="container" style="min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;padding:4rem var(--space-xl)">
-    <div style="font-size:5rem" aria-hidden="true">🛒</div>
-    <h2 class="heading-section">Your cart is empty</h2>
-    <p style="color:var(--color-text-muted);max-width:400px;text-align:center">
-      You haven't added any products yet. Browse our sealed TCG collection and find your next chase.
-    </p>
-    <a href="<%= marketPath('/collection/all') %>" class="btn btn-primary btn-lg" id="cart-browse-btn">Browse Products →</a>
+  <div class="container">
+    <div class="cart-empty">
+      <span class="cart-empty__icon" aria-hidden="true"><%- include('../partials/icon', { name: 'shopping-cart', size: 40, color: 'currentColor' }) %></span>
+      <h2 class="cart-empty__title">Your cart is empty</h2>
+      <p class="cart-empty__body">
+        You haven't added any products yet. Browse our sealed TCG collection and find your next chase.
+      </p>
+      <a href="<%= marketPath('/collection/all') %>" class="btn btn-primary btn-lg" id="cart-browse-btn">Browse Products →</a>
+    </div>
   </div>
 <% } else { %>
-  <div class="container" style="padding:2.5rem var(--space-xl)">
+  <div class="container cart-page" style="padding-top:2.25rem">
     <div class="cart-page__layout">
 
-      <!-- Items -->
-      <div>
+      <!-- Items: a ruled ledger -->
+      <div class="cart-ledger">
         <div class="cart-page__table-head">
-          <span>Product</span><span>Price</span><span>Quantity</span><span>Total</span>
+          <span>Product</span><span class="cart-ledger__num">Price</span><span class="cart-ledger__mid">Quantity</span><span class="cart-ledger__num">Total</span>
         </div>
 
         <% cart.items.forEach(function(item) { %>
           <div class="cart-page__row" id="cart-row-<%= item.slug %>">
             <!-- Product info -->
-            <div style="display:flex;align-items:center;gap:1rem">
+            <div class="cart-ledger__product">
               <a href="<%= marketPath('/products/' + (item.slug)) %>" class="cart-page__img" aria-label="<%= item.title %>">
                 <% if (item.imageUrl) { %>
-                  <img <%- productImage.attrs(item.imageUrl, 80) %> alt="<%= item.title %>" width="80" height="80" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:6px">
+                  <img <%- productImage.attrs(item.imageUrl, 80) %> alt="<%= item.title %>" width="80" height="80" loading="lazy" decoding="async">
                 <% } else { %>
-                  <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem">🃏</div>
+                  <span class="cart-ledger__noimg" aria-hidden="true"><%- include('../partials/icon', { name: 'package', size: 26, color: 'currentColor' }) %></span>
                 <% } %>
               </a>
-              <div>
-                <p style="font-size:0.65rem;color:var(--color-primary);font-weight:700;font-family:var(--font-heading);text-transform:uppercase;letter-spacing:0.06em"><%= item.vendor %></p>
-                <a href="<%= marketPath('/products/' + (item.slug)) %>" style="font-family:var(--font-heading);font-size:0.9rem;font-weight:700;color:var(--color-white);text-decoration:none;display:block;margin-top:2px"><%= item.title %></a>
-                <p style="font-size:0.72rem;color:var(--color-text-faint)"><%= item.productType %></p>
+              <div class="cart-ledger__info">
+                <p class="cart-ledger__vendor"><%= item.vendor %></p>
+                <a href="<%= marketPath('/products/' + (item.slug)) %>" class="cart-ledger__title"><%= item.title %></a>
+                <p class="cart-ledger__type"><%= item.productType %></p>
                 <% if (item.preorder) { %>
-                  <span class="badge badge--preorder" style="font-size:0.65rem;margin-top:4px">🔔 Preorder</span>
+                  <span class="badge badge--preorder" style="margin-top:6px">Preorder</span>
                 <% } %>
               </div>
             </div>
 
             <!-- Price -->
-            <div style="text-align:center">
-              <span style="font-family:var(--font-heading);font-size:0.95rem;font-weight:700;color:var(--color-white)"><%= ctMoney(ctLine(item)) %></span>
+            <div class="cart-ledger__num">
+              <span class="cart-ledger__label" aria-hidden="true">Price</span>
+              <span class="cart-ledger__fig"><%= ctMoney(ctLine(item)) %></span>
             </div>
 
             <!-- Quantity -->
-            <div style="display:flex;align-items:center;justify-content:center">
-              <div style="display:flex;align-items:center;background:var(--color-bg-input);border:1.5px solid var(--color-border-light);border-radius:var(--radius-md)">
-                <input
-                  type="number"
-                  value="<%= item.quantity %>"
-                  min="0"
-                  class="cart-qty-input"
-                  data-cart-qty="<%= item.slug %>"
-                  aria-label="Quantity for <%= item.title %>"
-                  style="width:60px;text-align:center;background:transparent;border:none;color:var(--color-white);font-family:var(--font-heading);font-weight:700;padding:0.4rem"
-                >
-              </div>
+            <div class="cart-ledger__mid">
+              <span class="cart-ledger__label" aria-hidden="true">Quantity</span>
+              <input
+                type="number"
+                value="<%= item.quantity %>"
+                min="0"
+                class="cart-qty-input"
+                data-cart-qty="<%= item.slug %>"
+                aria-label="Quantity for <%= item.title %>"
+              >
             </div>
 
             <!-- Line total + remove -->
-            <div style="text-align:right">
-              <span style="font-family:var(--font-heading);font-size:1rem;font-weight:800;color:var(--color-white);display:block"><%= ctMoney(ctLine(item) * item.quantity) %></span>
+            <div class="cart-ledger__num">
+              <span class="cart-ledger__label" aria-hidden="true">Total</span>
+              <span class="cart-ledger__fig cart-ledger__fig--total"><%= ctMoney(ctLine(item) * item.quantity) %></span>
               <button
                 type="button"
                 class="cart-remove-btn"
                 data-remove-key="<%= item.slug %>"
                 aria-label="Remove <%= item.title %>"
-                style="font-size:0.72rem;color:var(--color-text-faint);background:none;border:none;cursor:pointer;margin-top:4px;display:inline-flex;align-items:center;gap:4px;transition:color var(--transition-fast)"
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
                 Remove
               </button>
             </div>
           </div>
         <% }); %>
 
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin-top:1.5rem">
+        <div class="cart-ledger__foot">
           <a href="<%= marketPath('/collection/all') %>" class="btn btn-ghost btn-sm" id="cart-continue-btn">
             ← Continue Shopping
           </a>
@@ -113,21 +121,21 @@
                replaces this one, which is correct — the checkout takes one
                product per order — but a customer who learns that by
                watching their cart empty reasonably reads it as a bug. */%>
-          <p style="font-size:0.75rem;color:var(--color-text-faint);margin:0">
+          <p class="cart-ledger__rule">
             One product per order. Adding a different product replaces what is here.
           </p>
         </div>
       </div>
 
-      <!-- Summary -->
+      <!-- Summary: a slip with an ink top rule -->
       <div>
         <div class="cart-page__summary-box">
-          <h2 style="font-family:var(--font-heading);font-size:1.05rem;font-weight:800;color:var(--color-white);margin-bottom:1.25rem">Order Summary</h2>
+          <h2 class="cart-slip__title">Order Summary</h2>
 
-          <div style="display:flex;flex-direction:column;gap:0.875rem">
-            <div style="display:flex;justify-content:space-between;font-size:0.875rem;color:var(--color-text-muted)">
+          <div class="cart-slip__rows">
+            <div class="cart-slip__row">
               <span>Subtotal (<%= cart.totalItems %> items)</span>
-              <span><%= ctMoney(ctTotal) %></span>
+              <span class="cart-slip__fig"><%= ctMoney(ctTotal) %></span>
             </div>
             <%/* "Calculated at checkout" was true when a threshold
                  existed; shipping is free on everything now, so the cart
@@ -135,18 +143,17 @@
                  that changes between the cart and the payment step is the
                  most common reason a cart is abandoned, and Merchant
                  Center reads it as a pricing inconsistency. */%>
-            <div style="display:flex;justify-content:space-between;font-size:0.875rem;color:var(--color-text-muted)">
+            <div class="cart-slip__row">
               <span>Shipping</span>
-              <span style="color:var(--color-accent);font-weight:600">Free</span>
+              <span class="cart-slip__fig cart-slip__fig--free">Free</span>
             </div>
 
-            <div class="divider" style="margin:0"></div>
             <%/* The cart drawer already carried the estimate and this page
                  did not, so a Canadian who opened the full cart lost the
                  figure the drawer had just shown them. The hook goes on the
                  amount; fx-approx appends to its parent, which is this row,
                  so the chip lands under the total on its own line. */%>
-            <div style="display:flex;justify-content:space-between;font-family:var(--font-heading);font-size:1.2rem;font-weight:900;color:var(--color-white)">
+            <div class="cart-slip__row cart-slip__row--total">
               <span>Total</span>
               <span class="cart-total-value"><span data-usd-cents="<%= ctTotal %>" data-usd-label="<%= ctMoney(ctTotal) %>"><%= ctMoney(ctTotal) %></span></span>
             </div>
@@ -154,27 +161,27 @@
 
           <% if (cart.items.length > 0) { %>
             <a href="<%= marketPath('/checkout-redirect') %>" class="btn btn-primary btn-full btn-lg" id="cart-checkout-btn" style="margin-top:1.5rem">
-              🔒 Secure Checkout →
+              <%- include('../partials/icon', { name: 'lock', size: 14, color: 'currentColor' }) %> Secure Checkout →
             </a>
           <% } else { %>
             <a href="<%= marketPath('/collection/all') %>" class="btn btn-primary btn-full btn-lg" id="cart-checkout-btn" style="margin-top:1.5rem">
-              🔒 Continue Shopping
+              <%- include('../partials/icon', { name: 'lock', size: 14, color: 'currentColor' }) %> Continue Shopping
             </a>
           <% } %>
 
-          <div style="display:flex;flex-direction:column;gap:0.625rem;margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--color-border-light)">
-            <div style="display:flex;align-items:center;gap:0.625rem;font-size:0.78rem;color:var(--color-text-muted)">🔒 SSL Secure Checkout</div>
-            <div style="display:flex;align-items:center;gap:0.625rem;font-size:0.78rem;color:var(--color-text-muted)">✅ Factory Sealed Guarantee</div>
-            <div style="display:flex;align-items:center;gap:0.625rem;font-size:0.78rem;color:var(--color-text-muted)">📦 <%= shippingCopy.medium %></div>
-            <div style="display:flex;align-items:center;gap:0.625rem;font-size:0.78rem;color:var(--color-text-muted)">↩️ <%= returnWindowDays %>-Day Return Policy</div>
-          </div>
+          <ul class="cart-slip__assure">
+            <li><%- include('../partials/icon', { name: 'lock', size: 13, color: 'currentColor' }) %> SSL Secure Checkout</li>
+            <li><%- include('../partials/icon', { name: 'check-circle', size: 13, color: 'currentColor' }) %> Factory Sealed Guarantee</li>
+            <li><%- include('../partials/icon', { name: 'package', size: 13, color: 'currentColor' }) %> <%= shippingCopy.medium %></li>
+            <li><%- include('../partials/icon', { name: 'undo', size: 13, color: 'currentColor' }) %> <%= returnWindowDays %>-Day Return Policy</li>
+          </ul>
 
           <%/* Same badge row as the footer, from config/payments.js.
                These two lists were separate hardcoded sets and had already
                drifted — the footer advertised six methods, this four — and
                the PayPal and Apple Pay marks here were unlabelled "Pay"
                rectangles standing in for methods no buyer could use. */%>
-          <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--color-border-light)">
+          <div class="cart-slip__pay">
             <%- include('../partials/payment-methods') %>
           </div>
         </div>
@@ -186,5 +193,61 @@
 
 
 <style>
-  .cart-remove-btn:hover { color:#FC8181 !important; }
+  .cart-head { padding: 1.25rem 0 0; }
+  .cart-head .col-page__breadcrumb { margin-bottom: 1.5rem; }
+  .cart-head__row { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; padding-bottom: 1rem; border-bottom: 1.5px solid var(--color-ink); }
+  .cart-head__title { font-family: var(--font-display); font-size: clamp(2rem, 4.2vw, 3.1rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1; color: var(--color-ink); font-variation-settings: 'opsz' 144; }
+  .cart-head__count { padding-bottom: 0.3rem; color: var(--color-text-muted); }
+
+  .cart-empty { min-height: 52vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.1rem; padding: 4rem 0; text-align: center; }
+  .cart-empty__icon { display: inline-flex; color: var(--color-text-faint); }
+  .cart-empty__title { font-family: var(--font-display); font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 400; color: var(--color-ink); }
+  .cart-empty__body { color: var(--color-text-muted); max-width: 42ch; line-height: 1.7; margin-bottom: 0.5rem; }
+
+  .cart-ledger__num { text-align: right; }
+  .cart-ledger__mid { text-align: center; display: flex; justify-content: center; align-items: center; gap: 0.6rem; }
+  .cart-page__table-head .cart-ledger__mid { display: block; }
+  .cart-ledger__product { display: flex; align-items: center; gap: 1rem; min-width: 0; }
+  .cart-page__img { flex-shrink: 0; display: block; }
+  .cart-ledger__noimg { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--color-text-faint); }
+  .cart-ledger__info { min-width: 0; }
+  .cart-ledger__vendor { font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-text-faint); }
+  .cart-ledger__title { display: block; margin-top: 3px; font-family: var(--font-display); font-size: 1.1rem; font-weight: 400; line-height: 1.25; color: var(--color-ink); font-variation-settings: 'opsz' 36; }
+  .cart-ledger__title:hover { color: var(--color-primary); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  .cart-ledger__type { font-size: 0.78rem; color: var(--color-text-muted); margin-top: 2px; }
+  .cart-ledger__label { display: none; }
+  .cart-ledger__fig { font-family: var(--font-mono); font-size: 0.92rem; font-variant-numeric: tabular-nums; color: var(--color-ink); white-space: nowrap; }
+  .cart-ledger__fig--total { display: block; font-weight: 500; font-size: 1rem; }
+  .cart-qty-input { width: 64px; text-align: center; background: var(--color-plate); border: 1px solid var(--color-ink); border-radius: 0; color: var(--color-ink); font-family: var(--font-mono); font-size: 0.92rem; padding: 0.45rem 0.25rem; }
+  .cart-qty-input:focus { box-shadow: 0 0 0 3px var(--color-primary-glow); }
+  .cart-remove-btn { margin-top: 6px; display: inline-flex; align-items: center; gap: 5px; background: none; border: none; padding: 0; cursor: pointer; font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-text-faint); transition: color var(--transition-fast); }
+  .cart-remove-btn:hover { color: var(--color-red); text-decoration: underline; text-underline-offset: 3px; }
+
+  .cart-ledger__foot { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 1.25rem; }
+  .cart-ledger__rule { margin: 0; font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-faint); }
+
+  .cart-slip__title { font-family: var(--font-display); font-size: 1.5rem; font-weight: 400; color: var(--color-ink); margin-bottom: 1rem; }
+  .cart-slip__rows { display: flex; flex-direction: column; border-top: 1px solid var(--color-border-light); }
+  .cart-slip__row { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; padding: 0.7rem 0; border-bottom: 1px solid var(--color-border-light); font-size: 0.86rem; color: var(--color-text-muted); }
+  .cart-slip__fig { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--color-ink); }
+  .cart-slip__fig--free { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-accent); }
+  .cart-slip__row--total { border-top: 1.5px solid var(--color-ink); border-bottom: 0; margin-top: -1px; padding-top: 0.9rem; align-items: flex-start; }
+  .cart-slip__row--total > span:first-child { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-ink); padding-top: 0.4rem; }
+  .cart-slip__row--total .cart-total-value > span:first-child { font-family: var(--font-mono); font-size: 1.45rem; font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; color: var(--color-ink); }
+  .cart-slip__assure { list-style: none; margin: 1.4rem 0 0; padding: 0; border-top: 1px solid var(--color-border-light); }
+  .cart-slip__assure li { display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem 0; border-bottom: 1px solid var(--color-border-light); font-size: 0.8rem; color: var(--color-text); }
+  .cart-slip__assure li svg { flex-shrink: 0; color: var(--color-ink); }
+  .cart-slip__pay { margin-top: 1rem; }
+
+  @media (max-width: 768px) {
+    .cart-head__title { font-size: 2.1rem; }
+    .cart-page__row { gap: 0.6rem; padding: 1.1rem 0; }
+    .cart-ledger__product { margin-bottom: 0.4rem; }
+    .cart-ledger__num, .cart-ledger__mid { display: flex; align-items: center; justify-content: space-between; gap: 1rem; text-align: left; padding-top: 0.45rem; border-top: 1px dashed var(--color-border-light); }
+    .cart-ledger__num:last-child { flex-wrap: wrap; }
+    .cart-ledger__label { display: inline; font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-text-faint); }
+    .cart-ledger__fig--total { display: inline; margin-left: auto; }
+    .cart-remove-btn { margin-top: 0; flex-basis: 100%; justify-content: flex-end; padding-top: 0.25rem; }
+    .cart-page__summary-box { position: static; padding: 1.25rem; }
+  }
 </style>

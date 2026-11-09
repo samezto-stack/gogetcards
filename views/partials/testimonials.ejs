@@ -14,7 +14,7 @@
   var reviewList = (typeof reviews !== 'undefined' && Array.isArray(reviews)) ? reviews : [];
 %>
 <% if (reviewList.length) { %>
-<section class="section-padding" style="background:var(--color-bg-elevated);border-top:1px solid var(--color-border-light)">
+<section class="section-padding" style="background:var(--color-bg-elevated);border-top:1.5px solid var(--color-ink)">
   <div class="container">
     <div class="section-header text-center" style="margin-bottom:var(--space-2xl)">
       <h2 class="heading-section">What customers say</h2>
@@ -38,7 +38,7 @@
             </div>
             <% if (r.verified) { %>
               <div style="margin-left:auto">
-                <p style="font-size:0.62rem;color:var(--color-text-faint)">Verified purchase</p>
+                <p class="zy-meta">Verified purchase</p>
               </div>
             <% } %>
           </div>

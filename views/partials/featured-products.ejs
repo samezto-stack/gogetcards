@@ -1,17 +1,13 @@
 <section class="section-padding">
   <div class="container">
-    <div class="section-header flex-between" style="flex-wrap:wrap;gap:1rem;margin-bottom:var(--space-2xl)">
-      <div>
-        <div class="label-overline" style="margin-bottom:0.5rem">Latest Releases</div>
-        <h2 class="heading-section">Featured Drops</h2>
-        <div class="divider-accent"></div>
-      </div>
-      <a href="<%= marketPath('/collection/all') %>" class="btn btn-outline" id="featured-view-all">
-        View All →
-      </a>
+    <div class="reg-head">
+      <span class="reg-head__num">&sect; 01</span>
+      <h2 class="heading-section reg-head__title">Featured drops</h2>
+      <a href="<%= marketPath('/collection/all') %>" class="reg-head__aside" id="featured-view-all">View all &rarr;</a>
     </div>
-
-    <div class="grid-4">
+    <div class="reg-sub" aria-hidden="true"><span>Latest releases</span><span>Factory sealed</span></div>
+    <div style="height:1.25rem"></div>
+    <div class="lot-grid">
       <% if (typeof featuredProducts !== 'undefined' && featuredProducts.length > 0) { %>
         <% featuredProducts.forEach(function(product) { %>
           <%- include('product-card', { product: product }) %>

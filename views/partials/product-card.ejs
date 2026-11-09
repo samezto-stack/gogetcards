@@ -78,8 +78,10 @@
       else if (lcType.includes('one piece') || lcVendor.includes('bandai') || pcTags.includes('one-piece')) metaBits.push('One Piece');
       if (product.vendor) metaBits.push(product.vendor);
     %>
-    <p class="pc__meta"><%= metaBits.join(' · ') %></p>
-    <a href="<%= pcHref %>" class="pc__title" style="text-decoration:none"><%= product.title.length > 60 ? product.title.substring(0, 60) + '...' : product.title %></a>
+    <%/* The lot line: game and publisher on the left, the set code on the
+         right where there is one, in mono like a catalogue reference. */%>
+    <p class="pc__lot pc__meta"><span><%= metaBits.join(' · ') %></span><% if (product.setCode) { %><span><%= product.setCode %></span><% } %></p>
+    <a href="<%= pcHref %>" class="pc__title"><%= product.title.length > 60 ? product.title.substring(0, 60) + '...' : product.title %></a>
     <p class="pc__type"><%= product.productType %></p>
 
     <%/* Every preorder card says so, even with no ship window set. The
@@ -110,11 +112,11 @@
             id="atc-quick-<%= product.slug %>"
             aria-label="Add <%= product.title %> to cart"
           >
-            <% if (isPreorder) { %><%- include('icon', { name: 'bell', size: 14, color: '#fff' }) %><% } else { %>+<% } %>
+            <%= isPreorder ? 'Reserve' : 'Add' %>
           </button>
         </form>
       <% } else { %>
-        <a href="<%= pcHref %>" class="btn btn-ghost btn-sm">View →</a>
+        <a href="<%= pcHref %>" class="btn btn-ghost btn-sm">Sold out</a>
       <% } %>
     </div>
   </div>
