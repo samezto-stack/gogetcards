@@ -370,7 +370,7 @@
 .oc__title {
   font-family: var(--font-heading); font-size: clamp(1.55rem, 2.8vw, 2rem);
   font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; margin: 0 0 0.4rem;
-  color: var(--color-heading); text-wrap: balance;
+  color: var(--color-white); text-wrap: balance;
 }
 .oc__lede { color: var(--color-text-muted); font-size: 0.92rem; margin: 0; text-wrap: balance; }
 
@@ -384,12 +384,12 @@
 /* The single accent. A 2px rule across the top edge, purple into cyan. */
 .oc__sheet::before {
   content: ''; position: absolute; inset: 0 0 auto 0; height: 2px;
-  background: var(--color-accent);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-cyan));
 }
 .oc__watermark {
   position: absolute; right: 0.5rem; bottom: -1.5rem; z-index: 0;
   font-family: var(--font-heading); font-size: 7rem; font-weight: 700; line-height: 1;
-  color: var(--color-heading); opacity: 0.018; pointer-events: none; user-select: none;
+  color: var(--color-white); opacity: 0.018; pointer-events: none; user-select: none;
 }
 /* Everything EXCEPT the watermark gets lifted above it. Without the
    :not(), this rule overrode the watermark's own `position: absolute` —
@@ -411,7 +411,7 @@
 .oc__ref-row { display: flex; align-items: center; gap: 0.6rem; }
 .oc__ref-no {
   font-family: var(--font-mono); font-size: clamp(1.1rem, 2.4vw, 1.4rem);
-  font-weight: 600; letter-spacing: 0.01em; color: var(--color-heading);
+  font-weight: 600; letter-spacing: 0.01em; color: var(--color-white);
 }
 .oc__copy {
   display: inline-flex; align-items: center; gap: 0.3rem;
@@ -446,16 +446,16 @@
 .oc__tag {
   display: inline-block; font-size: 0.66rem; font-weight: 600; letter-spacing: 0.06em;
   text-transform: uppercase; color: var(--color-cyan);
-  border: 1px solid rgba(29, 79, 184, 0.35); border-radius: 4px; padding: 0.05rem 0.34rem;
+  border: 1px solid rgba(6, 182, 212, 0.35); border-radius: 4px; padding: 0.05rem 0.34rem;
 }
-.oc__item-price { font-family: var(--font-mono); font-size: 0.95rem; color: var(--color-heading); margin: 0; white-space: nowrap; }
+.oc__item-price { font-family: var(--font-mono); font-size: 0.95rem; color: var(--color-white); margin: 0; white-space: nowrap; }
 
 /* ── Totals ── */
 .oc__totals { padding: 0.8rem 1.4rem 0.95rem; border-top: 1px solid var(--color-border-light); }
 .oc__total-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.88rem; color: var(--color-text-muted); }
 .oc__total-row + .oc__total-row { margin-top: 0.45rem; }
 .oc__free { color: var(--color-accent); font-weight: 600; }
-.oc__total-row--grand { font-size: 1.05rem; font-weight: 600; color: var(--color-heading); padding-top: 0.15rem; }
+.oc__total-row--grand { font-size: 1.05rem; font-weight: 600; color: var(--color-white); padding-top: 0.15rem; }
 .oc__total-row--grand > span:last-child { font-family: var(--font-mono); font-size: 1.16rem; }
 .oc__cur { font-size: 0.72rem; color: var(--color-text-faint); font-weight: 400; }
 
@@ -481,7 +481,7 @@
   content: ''; position: absolute; top: 0; left: 0; width: 7px; height: 7px;
   border-radius: 50%; background: var(--color-bg-elevated); border: 1.5px solid var(--color-text-faint);
 }
-.oc__step--done::before { background: var(--color-accent); }
+.oc__step--done::before { background: linear-gradient(90deg, var(--color-primary), var(--color-cyan)); }
 .oc__step--done::after { background: var(--color-accent); border-color: var(--color-accent); }
 .oc__step--next::after { border-color: var(--color-cyan); }
 .oc__step-name { display: block; font-size: 0.8rem; font-weight: 600; color: var(--color-text); margin-bottom: 0.2rem; }
@@ -493,7 +493,7 @@
   display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; justify-content: center;
   margin: 0; padding: 0.7rem 1.4rem;
   border-top: 1px solid var(--color-border-light);
-  background: rgba(15, 42, 74, 0.012);
+  background: rgba(255, 255, 255, 0.012);
   font-size: 0.72rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--color-text-faint);
 }
 .oc__trust span { display: inline-flex; align-items: center; gap: 0.4rem; }
@@ -531,7 +531,7 @@
   .oc__steps { grid-template-columns: 1fr; gap: 0.9rem; }
   .oc__step { padding-top: 0; padding-left: 1.15rem; }
   .oc__step::before { top: 0; bottom: 0; left: 3px; right: auto; width: 1px; height: auto; }
-  .oc__step--done::before { background: var(--color-primary); }
+  .oc__step--done::before { background: linear-gradient(180deg, var(--color-primary), var(--color-cyan)); }
   .oc__step::after { top: 2px; }
 }
 

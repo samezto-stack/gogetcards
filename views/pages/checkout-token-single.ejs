@@ -21,7 +21,7 @@
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0B0F14">
 <title><%= pageTitle %></title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%230F2A4A'/><rect x='190' y='104' width='196' height='272' rx='22' fill='none' stroke='%23ffffff' stroke-width='30' transform='rotate(14 288 240)'/><rect x='126' y='136' width='196' height='272' rx='22' fill='%23ffffff'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%230B0F14'/><g fill='%23A78BFA'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/checkout.css">
 <%/* googleAds:false — this one page carries the payment step, so it follows
@@ -63,7 +63,7 @@
   .ck-pay-reveal-head { margin: 0 0 4px; }
   .ck-pay-reveal-head h2 {
     font-family: var(--font-heading); font-size: 19px; font-weight: 700;
-    color: var(--color-heading); margin: 0;
+    color: var(--color-white); margin: 0;
   }
   .ck-pay-reveal-sub {
     margin: 6px 0 20px; font-size: 13px; color: var(--color-text-muted); line-height: 1.55;
@@ -79,14 +79,14 @@
   .ck-review-row {
     display: flex; align-items: flex-start; gap: 14px;
     padding: 14px 16px; border: 1px solid var(--color-border-light); border-radius: 12px;
-    background: rgba(15, 42, 74, 0.015);
+    background: rgba(255,255,255,0.015);
   }
   .ck-review-row + .ck-review-row { margin-top: 10px; }
   .ck-review-label {
     flex: 0 0 76px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
     text-transform: uppercase; color: var(--color-text-muted); padding-top: 2px;
   }
-  .ck-review-val { flex: 1 1 auto; font-size: 13.5px; color: var(--color-heading); line-height: 1.5; overflow-wrap: anywhere; }
+  .ck-review-val { flex: 1 1 auto; font-size: 13.5px; color: var(--color-white); line-height: 1.5; overflow-wrap: anywhere; }
   .ck-review-val .ck-review-2nd { display: block; color: var(--color-text-muted); font-size: 12.5px; margin-top: 3px; }
   .ck-review-edit {
     flex: 0 0 auto; background: none; border: 0; padding: 2px 0; cursor: pointer;
@@ -116,7 +116,7 @@
     max-width: 380px; margin: 0 auto; padding: 28px 24px; text-align: center;
     line-height: 1.6; font-size: 13.5px; color: var(--color-text-muted);
   }
-  .ck-embed-fallback h2 { font-family: var(--font-heading); font-size: 16px; color: var(--color-heading); margin: 0 0 10px; }
+  .ck-embed-fallback h2 { font-family: var(--font-heading); font-size: 16px; color: var(--color-white); margin: 0 0 10px; }
   .ck-embed-fallback a {
     display: inline-block; margin-top: 16px; padding: 12px 22px; border-radius: 8px;
     background: var(--color-primary); color: #fff; font-weight: 700;
@@ -134,12 +134,12 @@
   }
   .ck-paywin-wait {
     padding: 22px 20px; border-radius: 12px;
-    border: 1px solid var(--color-border-light); background: rgba(15, 42, 74, 0.02);
+    border: 1px solid var(--color-border-light); background: rgba(255,255,255,0.02);
   }
   .ck-paywin-wait[hidden], .ck-paywin-err[hidden] { display: none; }
   .ck-paywin-wait-h {
     display: flex; align-items: center; gap: 10px;
-    font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: var(--color-heading);
+    font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: var(--color-white);
   }
   .ck-paywin-wait p { margin: 10px 0 0; font-size: 13px; line-height: 1.6; color: var(--color-text-muted); }
   .ck-paywin-actions { display: flex; gap: 18px; margin-top: 16px; flex-wrap: wrap; }

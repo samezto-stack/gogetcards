@@ -30,49 +30,49 @@
    ============================================================ */
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 
   /* ── surfaces ── */
-  --color-bg:           #F3F4F7;
-  --color-bg-elevated:  #FFFFFF;
-  --color-bg-card:      #FFFFFF;
-  --color-bg-input:     #FFFFFF;
-  --color-border:       #C9CFD8;
-  --color-border-light: #E1E4EA;
+  --color-bg:           #0B0F14;
+  --color-bg-elevated:  #111821;
+  --color-bg-card:      #141C26;
+  --color-bg-input:     #1A2332;
+  --color-border:       rgba(124, 58, 237, 0.18);
+  --color-border-light: rgba(255, 255, 255, 0.06);
 
   /* ── brand ── */
-  --color-primary:      #0F2A4A;
-  --color-primary-text: #0F2A4A;
-  --color-primary-dark: #0B1F38;
+  --color-primary:      #7C3AED;
+  /* #7C3AED is 3.4:1 on the page background — fine as a button fill or a
+     border, below AA as text. Use this lighter tint wherever the brand
+     colour has to carry actual words. */
+  --color-primary-text: #A78BFA;
+  --color-primary-dark: #5B21B6;
 
-  --color-accent:       #15803D;   /* free / included / secure */
-  --color-cta:          #C2410C;   /* the pay button */
-  --color-cta-dark:     #9A3412;
-  --color-cyan:         #1D4FB8;   /* preorder marks */
-  --color-gold:         #B45309;
-  --color-red:          #DC2626;
+  --color-accent:       #22C55E;   /* free / included / secure */
+  --color-cyan:         #06B6D4;   /* the second brand note, used sparingly */
+  --color-gold:         #F59E0B;
+  --color-red:          #EF4444;
 
   /* ── ink ── */
-  --color-text:         #111827;
-  --color-text-muted:   #4B5563;
-  --color-text-faint:   #5B6472;
+  --color-text:         #E5E7EB;
+  --color-text-muted:   #9CA3AF;
+  --color-text-faint:   #808A98;
   --color-white:        #FFFFFF;
-  --color-heading:      #0F2A4A;
 
   /* Legacy alias: the payment-failure message is built as a string inside
      the page script and references this name. */
   --text-soft: var(--color-text-muted);
 
-  --font-heading: 'Public Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-body:    'Public Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
   --radius-sm:   6px;
-  --radius-md:   8px;
-  --radius-lg:   8px;
+  --radius-md:   10px;
+  --radius-lg:   16px;
   --radius-full: 9999px;
 
-  --shadow-card: 0 8px 24px rgba(15, 42, 74, 0.10), 0 1px 2px rgba(15, 42, 74, 0.06);
-  --shadow-deep: 0 8px 24px rgba(15, 42, 74, 0.10), 0 1px 2px rgba(15, 42, 74, 0.06);
+  --shadow-card: 0 4px 24px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.3);
+  --shadow-deep: 0 24px 64px -24px rgba(0,0,0,0.75), 0 2px 8px rgba(0,0,0,0.4);
 
   --transition-fast:   150ms ease;
   --transition-normal: 250ms ease;
@@ -94,7 +94,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--color-heading); margin: 0; }
+h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--color-white); margin: 0; }
 
 /* Money. Tabular figures stop a total shifting by a pixel when a digit
    changes — the kind of wobble that reads as "not a real store". */
@@ -129,7 +129,7 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
   display: inline-flex; align-items: center; gap: 10px;
   font-family: var(--font-heading);
   font-size: 19px; font-weight: 700; letter-spacing: -0.015em;
-  color: var(--color-heading); text-decoration: none;
+  color: var(--color-white); text-decoration: none;
 }
 
 .ck-logo-mark { width: 26px; height: 26px; display: grid; place-items: center; color: var(--color-primary-text); flex-shrink: 0; }
@@ -181,9 +181,9 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
    decoration. */
 .ck-main::before {
   content: "";
-  position: absolute; top: 0; left: 0; right: 0; height: 4px;
-  background: var(--color-cta);
-  opacity: 1;
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary) 42%, var(--color-cyan) 100%);
+  opacity: 0.85;
   z-index: 2;
 }
 
@@ -218,12 +218,12 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
 .ck-step-name { font-size: 13.5px; font-weight: 500; color: var(--color-text-faint); white-space: nowrap; }
 
 .ck-step.is-active .ck-step-dot { color: var(--color-primary-text); }
-.ck-step.is-active .ck-step-name { color: var(--color-heading); font-weight: 600; }
+.ck-step.is-active .ck-step-name { color: var(--color-white); font-weight: 600; }
 
 .ck-step-sep {
   flex: 1 1 auto; height: 1px; margin-top: 14px;
-  background: var(--color-border-light);
-  opacity: 1; min-width: 24px;
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-border-light) 100%);
+  opacity: 0.5; min-width: 24px;
 }
 
 /* ---------- Sections ---------- */
@@ -263,7 +263,7 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
 .ck-input, .ck-select {
   width: 100%; height: 48px; padding: 0 14px;
   background: var(--color-bg-input);
-  border: 1px solid rgba(15, 42, 74, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: var(--radius-sm);
   color: var(--color-text);
   font-family: inherit; font-size: 15px; outline: none;
@@ -274,14 +274,14 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
 @media (pointer: coarse) { .ck-input, .ck-select { font-size: 16px; height: 52px; } }
 
 .ck-input::placeholder { color: var(--color-text-faint); }
-.ck-input:hover, .ck-select:hover { border-color: rgba(15, 42, 74, 0.16); }
+.ck-input:hover, .ck-select:hover { border-color: rgba(255, 255, 255, 0.16); }
 
 .ck-input:focus, .ck-select:focus {
   border-color: var(--color-primary-text);
-  background: #FFFFFF;
+  background: #1D2739;
   /* A 3px ring, not a bloom. Enough that the active field is obvious at a
      glance; short of the neon halo that reads as a template. */
-  box-shadow: 0 0 0 3px rgba(15, 42, 74, 0.28);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.28);
 }
 
 .ck-input:focus-visible, .ck-select:focus-visible { outline: none; }
@@ -328,7 +328,7 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
   font-size: 14px; color: var(--color-text-muted); cursor: pointer;
 }
 
-.ck-combo-opt:hover, .ck-combo-opt.is-active { background: rgba(15, 42, 74, 0.16); color: var(--color-text); }
+.ck-combo-opt:hover, .ck-combo-opt.is-active { background: rgba(124, 58, 237, 0.16); color: var(--color-text); }
 .ck-combo-opt.is-selected { color: var(--color-primary-text); font-weight: 500; }
 .ck-combo-empty { padding: 12px 10px; font-size: 13.5px; color: var(--color-text-faint); }
 .ck-flag { font-size: 15px; line-height: 1; flex-shrink: 0; }
@@ -344,8 +344,8 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
 
 .ck-cta {
   width: 100%; min-height: 58px; padding: 13px 22px;
-  border: none; border-radius: var(--radius-full);
-  background: var(--color-cta);
+  border: none; border-radius: var(--radius-sm);
+  background: var(--color-primary);
   color: var(--color-white);
   font-family: var(--font-heading);
   cursor: pointer;
@@ -354,7 +354,7 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
   font-size: 15.5px; font-weight: 600; letter-spacing: 0.005em;
   /* One hairline of shading, not a glow. A full-width neon slab reads as a
      landing page; this reads as a control. */
-  box-shadow: none;
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.3);
   transition: background var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
 }
 
@@ -366,8 +366,8 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
 .ck-cta { line-height: 1.25; }
 .ck-cta + .ck-pay-icons { margin-top: 20px; }
 
-.ck-cta:hover { background: var(--color-cta-dark); box-shadow: none; }
-.ck-cta:active { background: var(--color-cta-dark); transform: translateY(1px); box-shadow: none; }
+.ck-cta:hover { background: #8B4CF0; box-shadow: inset 0 -1px 0 rgba(0,0,0,0.25), 0 4px 16px -4px rgba(124, 58, 237, 0.5); }
+.ck-cta:active { background: var(--color-primary-dark); transform: translateY(1px); box-shadow: inset 0 1px 3px rgba(0,0,0,0.35); }
 .ck-cta:disabled { cursor: default; opacity: 0.7; box-shadow: none; transform: none; }
 
 @media (max-width: 999px) { .ck-cta { position: sticky; bottom: 12px; z-index: 20; } }
@@ -412,7 +412,6 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
   height: 24px; width: auto; display: block;
   padding: 3px 6px;
   background: #FFFFFF;
-  border: 1px solid var(--color-border-light);
   border-radius: 3px;
 }
 
@@ -493,7 +492,7 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
 .ck-summary-toggle-label { display: inline-flex; align-items: center; gap: 7px; color: var(--color-primary-text); }
 .ck-summary-toggle-caret { display: inline-flex; transition: transform var(--transition-normal); }
 .ck-summary.is-open .ck-summary-toggle-caret { transform: rotate(180deg); }
-.ck-summary-total-compact { font-family: var(--font-heading); font-size: 17px; font-weight: 700; color: var(--color-heading); }
+.ck-summary-total-compact { font-family: var(--font-heading); font-size: 17px; font-weight: 700; color: var(--color-white); }
 
 .ck-summary-body { padding: 20px; }
 
@@ -534,7 +533,9 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
   border-radius: var(--radius-md);
   /* A faint lift behind the product so a dark box shot does not dissolve
      into the panel. */
-  background: var(--color-bg);
+  background:
+    radial-gradient(120% 80% at 50% 25%, rgba(124, 58, 237, 0.10) 0%, rgba(124, 58, 237, 0) 60%),
+    var(--color-bg-input);
   border: 1px solid var(--color-border-light);
   overflow: hidden;
 }
@@ -564,7 +565,7 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
 .ck-item-name {
   margin: 0 0 9px;
   font-size: 15px; font-weight: 500; line-height: 1.4;
-  color: var(--color-heading); overflow-wrap: anywhere;
+  color: var(--color-white); overflow-wrap: anywhere;
 }
 
 .ck-item-meta { margin: 0; font-size: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
@@ -573,13 +574,13 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
   display: inline-block; padding: 3px 9px;
   border-radius: var(--radius-full);
   border: 1px solid var(--color-border);
-  background: rgba(15, 42, 74, 0.14);
+  background: rgba(124, 58, 237, 0.14);
   font-family: var(--font-heading);
   font-size: 10px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase;
   color: var(--color-primary-text); margin: 0;
 }
 
-.ck-item-badge.ck-item-qty { color: var(--color-text-muted); background: rgba(15, 42, 74, 0.05); border-color: var(--color-border-light); }
+.ck-item-badge.ck-item-qty { color: var(--color-text-muted); background: rgba(255,255,255,0.05); border-color: var(--color-border-light); }
 .ck-item-fulfilment { color: var(--color-text-faint); font-size: 12px; }
 
 .ck-item-pricing { display: flex; align-items: baseline; flex-wrap: wrap; gap: 3px 8px; margin: 12px 0 0; }
@@ -621,7 +622,7 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
 
 .ck-fact dt { color: var(--color-text-faint); }
 .ck-fact dd { margin: 0; color: var(--color-text); }
-.ck-fact dd .ck-fact-em { color: var(--color-heading); font-weight: 600; }
+.ck-fact dd .ck-fact-em { color: var(--color-white); font-weight: 600; }
 
 /* Totals */
 
@@ -643,7 +644,7 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
 }
 
 .ck-grand-currency { font-size: 12px; color: var(--color-text-faint); font-weight: 500; margin-right: 8px; }
-.ck-grand-amount { font-family: var(--font-heading); font-size: 30px; font-weight: 700; letter-spacing: -0.025em; color: var(--color-heading); }
+.ck-grand-amount { font-family: var(--font-heading); font-size: 30px; font-weight: 700; letter-spacing: -0.025em; color: var(--color-white); }
 
 /* Approximate local amount under the grand total, appended by
    views/partials/fx-approx.ejs.
@@ -744,7 +745,7 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
 
 .ck-modal-overlay {
   position: fixed; inset: 0; z-index: 60;
-  background: rgba(15, 42, 74, 0.55);
+  background: rgba(5, 8, 12, 0.84);
   display: flex; align-items: flex-end; justify-content: center;
   opacity: 0; pointer-events: none;
   transition: opacity var(--transition-normal);
@@ -779,13 +780,13 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
   flex-shrink: 0;
 }
 
-.ck-modal-title { min-width: 0; flex: 1 1 auto; display: flex; flex-direction: column; gap: 1px; font-family: var(--font-heading); font-size: 14.5px; font-weight: 600; color: var(--color-heading); }
+.ck-modal-title { min-width: 0; flex: 1 1 auto; display: flex; flex-direction: column; gap: 1px; font-family: var(--font-heading); font-size: 14.5px; font-weight: 600; color: var(--color-white); }
 .ck-modal-title-row { display: flex; align-items: center; gap: 7px; }
 .ck-modal-title svg { color: var(--color-accent); flex-shrink: 0; }
 .ck-modal-title-email { font-family: var(--font-body); font-size: 11.5px; font-weight: 400; color: var(--color-text-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 210px; }
 
 .ck-modal-order-recap { flex-shrink: 0; margin-left: auto; text-align: right; font-size: 11px; color: var(--color-text-faint); line-height: 1.3; }
-.ck-modal-order-recap strong { display: block; font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: var(--color-heading); }
+.ck-modal-order-recap strong { display: block; font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: var(--color-white); }
 
 .ck-modal-close {
   flex-shrink: 0; width: 32px; height: 32px;
@@ -876,8 +877,8 @@ body.ck-modal-open { overflow: hidden; }
    warning above: this is not something going wrong, it is a rehearsal
    running as intended, and it is only ever visible to an admin. */
 .ck-notice-test {
-  border-color: rgba(15, 42, 74, 0.45);
-  background: rgba(15, 42, 74, 0.10);
+  border-color: rgba(124, 58, 237, 0.45);
+  background: rgba(124, 58, 237, 0.10);
 }
 .ck-notice-test svg { color: var(--color-primary-text); }
 
@@ -924,7 +925,7 @@ body.ck-modal-open { overflow: hidden; }
 }
 
 .ck-handoff-row.is-total > span:last-child {
-  font-family: var(--font-heading); font-size: 20px; font-weight: 700; color: var(--color-heading);
+  font-family: var(--font-heading); font-size: 20px; font-weight: 700; color: var(--color-white);
 }
 
 .ck-handoff-where {
@@ -965,7 +966,7 @@ body.ck-modal-open { overflow: hidden; }
   margin: 0 0 22px;
   font-family: var(--font-heading);
   font-size: 26px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.2;
-  color: var(--color-heading);
+  color: var(--color-white);
 }
 
 /* The spent item. Deliberately the smallest thing on the page. */
@@ -973,7 +974,7 @@ body.ck-modal-open { overflow: hidden; }
   display: flex; align-items: center; gap: 10px;
   padding: 9px 12px;
   border: 1px solid var(--color-border-light); border-radius: var(--radius-sm);
-  background: rgba(15, 42, 74, 0.015);
+  background: rgba(255, 255, 255, 0.015);
   text-align: left;
 }
 .ck-so-gone-img {
@@ -1010,9 +1011,9 @@ body.ck-modal-open { overflow: hidden; }
   overflow: hidden;
   transition: border-color var(--transition-fast), transform var(--transition-fast);
 }
-.ck-so-card:hover { border-color: var(--color-primary); transform: translateY(-1px); }
+.ck-so-card:hover { border-color: rgba(167, 139, 250, 0.45); transform: translateY(-1px); }
 
-.ck-so-card-media { background: var(--color-bg); line-height: 0; }
+.ck-so-card-media { background: #11161f; line-height: 0; }
 .ck-so-card-media img,
 .ck-so-card-media svg { width: 100%; height: auto; display: block; aspect-ratio: 4 / 3; object-fit: contain; }
 
@@ -1022,7 +1023,7 @@ body.ck-modal-open { overflow: hidden; }
   margin: 0 0 10px;
   font-family: var(--font-heading);
   font-size: 15px; font-weight: 600; line-height: 1.35; letter-spacing: -0.01em;
-  color: var(--color-heading);
+  color: var(--color-white);
 }
 
 .ck-so-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
@@ -1032,20 +1033,20 @@ body.ck-modal-open { overflow: hidden; }
   font-size: 10.5px; font-weight: 600; letter-spacing: 0.01em;
   color: var(--color-text-muted);
 }
-.ck-so-badge--in { border-color: #BBE5C8; color: #15803D; }
-.ck-so-badge--pre { border-color: #C4D2F0; color: #1D4FB8; }
-.ck-so-badge--low { border-color: #F2D9A6; color: #B45309; }
+.ck-so-badge--in { border-color: rgba(52, 211, 153, 0.32); color: #34D399; }
+.ck-so-badge--pre { border-color: rgba(167, 139, 250, 0.4); color: #A78BFA; }
+.ck-so-badge--low { border-color: rgba(251, 191, 36, 0.35); color: #FBBF24; }
 
 .ck-so-pricing { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
 .ck-so-price {
   font-family: var(--font-heading);
   font-size: 20px; font-weight: 700; letter-spacing: -0.02em;
-  color: var(--color-heading);
+  color: var(--color-white);
 }
 .ck-so-was { font-size: 12.5px; color: var(--color-text-faint); text-decoration: line-through; }
 .ck-so-save {
   font-size: 10.5px; font-weight: 700; letter-spacing: 0.02em;
-  color: #15803D;
+  color: #34D399;
 }
 
 .ck-so-alt { margin: 16px 0 0; font-size: 12px; }
