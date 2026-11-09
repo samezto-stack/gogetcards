@@ -233,7 +233,11 @@ router.post('/product/:slug', requireAuth, async (req, res) => {
            is left exactly as it was, so switching modes back restores the
            earlier decision instead of inheriting this one. */
         ...(selectionMode === 'selected'
-          ? { 'merchant.included.google': b.sendToGoogle === 'on' }
+          ? {
+            'merchant.included.google': b.sendToGoogle === 'on',
+            /* Unticking must take an ads-launch product out too. */
+            'merchant.held.google': b.sendToGoogle !== 'on',
+          }
           : { 'merchant.excluded.google': b.excludeGoogle === 'on' }),
         'merchant.title': (b.mTitle || '').trim(),
         'merchant.description': (b.mDescription || '').trim(),
@@ -358,7 +362,14 @@ router.post('/bulk', requireAuth, async (req, res) => {
 
     const result = await Product.updateMany(
       { slug: { $in: slugs } },
-      { $set: { [field]: value, 'merchant.lastSyncHash': '' } }
+      { $set: {
+        [field]: value,
+        /* In selected mode "hold" must also beat the ads-launch tag. Only
+           google has a held flag; other channels have no forced set. */
+        ...(selectionMode === 'selected' && channel === 'google'
+          ? { 'merchant.held.google': !wantsSend } : {}),
+        'merchant.lastSyncHash': '',
+      } }
     );
 
     res.redirect(`/admin/distribution?channel=${channel}&bulk=${result.modifiedCount}&action=${wantsSend ? 'send' : 'hold'}`);

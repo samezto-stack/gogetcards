@@ -137,6 +137,16 @@ const productSchema = new mongoose.Schema({
       tiktok: { type: Boolean, default: false },
     },
 
+    /* Per-channel HOLD: the admin unticked this product while the channel
+       was in 'selected' mode. Needed because ads-launch products are
+       submitted automatically in that mode, and `included: false` is also
+       the default — so without a separate flag "never ticked" and
+       "deliberately taken out" look the same and the untick did nothing.
+       A hold always wins; ticking the product again clears it. */
+    held: {
+      google: { type: Boolean, default: false },
+    },
+
     /* Overrides. Blank falls back to the storefront value. Held separately
        rather than editing the product so the two can differ deliberately
        and so clearing an override restores the derived value. */

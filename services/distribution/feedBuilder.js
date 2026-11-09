@@ -543,6 +543,8 @@ function isExcluded(product, channel = 'google', { selectionMode = 'all' } = {})
        serve a product Merchant Center never received. This is additive —
        whatever was already hand-selected stays, so nothing Google has
        already reviewed is pulled out of the account. */
+    /* ...unless the admin deliberately took it out on its own row. */
+    if (m.held && m.held[channel]) return true;
     if (channel === 'google' && hasAdTag(product)) return false;
     return !(m.included && m.included[channel]);
   }

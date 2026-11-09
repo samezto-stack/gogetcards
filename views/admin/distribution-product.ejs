@@ -145,7 +145,14 @@
                 <div class="form-group">
                   <% if (selectionMode === 'selected') { %>
                     <label class="check dh-check">
-                      <input type="checkbox" name="sendToGoogle" <%= (product.merchant && product.merchant.included && product.merchant.included.google) ? 'checked' : '' %>>
+                      <%/* Ticked when the feed actually sends it: hand-picked or in the ads
+                         set, and not held. Reading only `included` would show
+                         an ads-set product unticked, and saving the form
+                         unchanged would then take it out. */%>
+                      <% const mch = product.merchant || {};
+                         const sendsNow = !(mch.held && mch.held.google)
+                           && ((mch.included && mch.included.google) || (product.tags || []).includes('ads-launch')); %>
+                      <input type="checkbox" name="sendToGoogle" <%= sendsNow ? 'checked' : '' %>>
                       Send this product to Google
                     </label>
                   <% } else { %>

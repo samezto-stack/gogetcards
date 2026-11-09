@@ -42,6 +42,8 @@ test('selected mode: the ad set is always submitted, hand selections are kept', 
   assert.strictEqual(fb.isExcluded({ tags: ['ads-launch'] }, 'google', sel), false, 'ad set is in the feed');
   assert.strictEqual(fb.isExcluded({ tags: [], merchant: { included: { google: true } } }, 'google', sel), false, 'hand-picked stays');
   assert.strictEqual(fb.isExcluded({ tags: [] }, 'google', sel), true, 'everything else stays out');
+  assert.strictEqual(fb.isExcluded({ tags: ['ads-launch'], merchant: { held: { google: true } } }, 'google', sel), true, 'unticked ad product leaves the feed');
+  assert.strictEqual(fb.isExcluded({ tags: [], merchant: { included: { google: true }, held: { google: true } } }, 'google', sel), true, 'hold beats include');
   // "all" mode is unchanged.
   assert.strictEqual(fb.isExcluded({ tags: [] }, 'google', { selectionMode: 'all' }), false);
 });
