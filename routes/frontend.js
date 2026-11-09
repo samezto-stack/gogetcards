@@ -256,16 +256,88 @@ router.get('/', async (req, res) => {
     `);
   }
   try {
-    const featuredProducts = await Product.find({ featured: true, available: true }).limit(4).lean();
-    const preorderProducts = await Product.find({ preorder: true, available: true }).limit(2).lean();
+    /* ── Homepage merchandising: sports cards and TCG, side by side ─────
+       One pool of sellable products in the store's own ranking (Featured,
+       then newest release, then newest added). Each section takes from it
+       in turn and records what it showed, so a product appears once on the
+       page. `_family` is the catalogue line's kind: 'sport' or 'tcg'. */
+    const pool = await Product.find({ available: true, price: { $gt: 0 } })
+      .sort({ featured: -1, releaseDate: -1, createdAt: -1 })
+      .limit(200)
+      .lean();
+    const lineOf = (p) => catalog.detect(p);
+    for (const p of pool) {
+      const l = lineOf(p);
+      p._family = l ? l.kind : 'tcg';
+      p._line = l ? l.handle : '';
+      p._lineName = l ? l.shortName : '';
+      /* Sports sets are named by season: "2026 Topps Chrome", "2025-26 Prizm". */
+      p._year = (String(p.title || '').match(/^(\d{4}(?:-\d{2})?)\b/) || [])[1] || '';
+    }
+    const isPre = (p) => preorderCfg.isActivePreorder(p);
+    const shown = new Set();
+    const groups = new Set();
+    const pick = (list, n) => {
+      const out = [];
+      for (const p of list) {
+        if (out.length >= n) break;
+        if (shown.has(p.slug) || (p.variantGroup && groups.has(p.variantGroup))) continue;
+        out.push(p); shown.add(p.slug); if (p.variantGroup) groups.add(p.variantGroup);
+      }
+      return out;
+    };
+    const released = pool.filter((p) => !isPre(p));
+    const sports = released.filter((p) => p._family === 'sport');
+    const tcg = released.filter((p) => p._family === 'tcg');
+    const byNew = (a, b) => (new Date(b.releaseDate || b.createdAt) - new Date(a.releaseDate || a.createdAt));
+    const featuredFirst = (a, b) => (b.featured === true) - (a.featured === true) || byNew(a, b);
+
+    /* Hero: one sports box and one TCG release, each with its photo — the
+       store's own top pick in each family (Featured, then newest). */
+    const heroSport = pick([...sports].filter((p) => p.imageUrl).sort(featuredFirst), 1)[0] || null;
+    const heroTcg = pick([...tcg].filter((p) => p.imageUrl).sort(featuredFirst), 1)[0] || null;
+
+    /* Just landed: eight products, newest first, with both families in it
+       so the All / Sports / TCG switch always has something to show. */
+    const landedSports = pick([...sports].sort(featuredFirst), 3);
+    const landedTcg = pick([...tcg].sort(featuredFirst), 8 - landedSports.length);
+    const justLanded = [...landedSports, ...landedTcg].sort(featuredFirst);
+
+    /* The hobby room: the sports catalogue as a checklist, priciest first,
+       led by the most valuable remaining box. Preorders included and said. */
+    const sportRest = pool.filter((p) => p._family === 'sport' && !shown.has(p.slug)).sort((a, b) => b.price - a.price);
+    const hobbyLead = pick(sportRest.filter((p) => p.imageUrl), 1)[0] || null;
+    const hobbyRows = pick(sportRest, 6);
+    const sportTotal = pool.filter((p) => p._family === 'sport').length;
+
+    /* The TCG shelf: each game's two leading products, in catalogue order. */
+    const tcgShelf = catalog.ofKind('tcg').map((line) => ({
+      line,
+      products: pick([...tcg].filter((p) => p._line === line.handle).sort(featuredFirst), 2),
+      total: pool.filter((p) => p._line === line.handle).length,
+    })).filter((g) => g.products.length);
+
+    /* On the calendar: genuine upcoming releases, soonest first. */
+    const calendar = pool.filter(isPre).sort((a, b) => new Date(a.releaseDate || 0) - new Date(b.releaseDate || 0)).slice(0, 6);
+
+    /* Departments: every line with its real product count. */
+    const departments = catalog.all().map((line) => ({ line, n: pool.filter((p) => p._line === line.handle).length }));
+
+    /* Find your box: formats that exist (by product type, with counts, as
+       the collection filter matches them) and the filter's own price bands. */
+    const typeCounts = {};
+    for (const p of pool) if (p.productType) typeCounts[p.productType] = (typeCounts[p.productType] || 0) + 1;
+    const formats = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([type, n]) => ({ type, n }));
+    const { PRICE_BANDS } = require('../config/priceBands');
+    const priceBands = PRICE_BANDS.map((b) => ({ ...b, n: pool.filter((p) => p.price >= b.min && p.price < b.max).length })).filter((b) => b.n > 0);
+
     renderPage(res, 'home', {
-      pageTitle: 'GoGetCards — Premium Sealed TCG Marketplace',
-      /* From config/catalog.js, so the snippet Google shows names exactly
-         the lines this store sells. It was copied from Zyphera and listed
-         Yu-Gi-Oh!, which GoGetCards does not carry. */
-      metaDescription: `Factory-sealed booster boxes, ETBs and hobby boxes for ${catalog.listNames(catalog.all(), 'shortName')}, from authorized distribution.`,
-      featuredProducts,
-      preorderProducts,
+      pageTitle: 'GoGetCards — Sealed Sports Cards & Trading Card Games',
+      metaDescription: `Factory-sealed sports card hobby boxes and trading card game booster boxes: ${catalog.listNames(catalog.all(), 'shortName')}. Free tracked shipping on every order.`,
+      heroSport, heroTcg, justLanded, hobbyLead, hobbyRows, sportTotal, tcgShelf, calendar, departments, formats, priceBands,
+      shipDispatch: shipping.DISPATCH,
+      pageCss: 'home',
+      bodyClass: 'page-home',
     });
   } catch (err) {
     console.error(err);
@@ -1248,12 +1320,7 @@ router.get('/collection/:handle', async (req, res) => {
        filters then narrow the product query. Every value arriving from
        the URL is matched against the facet it came from, so nothing a
        buyer types reaches the database as anything but a known string. */
-    const PRICE_BANDS = [
-      { id: 'under-100', label: 'Under $100', min: 0, max: 10000 },
-      { id: '100-250', label: '$100 to $250', min: 10000, max: 25000 },
-      { id: '250-500', label: '$250 to $500', min: 25000, max: 50000 },
-      { id: 'over-500', label: '$500 and up', min: 50000, max: Infinity },
-    ];
+    const { PRICE_BANDS } = require('../config/priceBands');
     const lineHandles = catalog.handles();
     const onLinePage = lineHandles.includes(collectionHandle);
     const facetRows = (await Product.aggregate([

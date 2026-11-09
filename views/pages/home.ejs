@@ -1,20 +1,27 @@
 <%
-  /* Section order and spacing rhythm. The `zy-rhythm-*` classes give each
-     section a deliberately different vertical measure instead of the
-     uniform var(--space-4xl) every section used to share — even spacing
-     everywhere is part of what made the page read as generated.
+  /* GoGetCards homepage: sports cards and trading card games, side by side.
 
-     The testimonials partial is intentionally NOT included. It contained
-     three fabricated reviews (invented names, cities, and order values)
-     with no review system behind them. Beyond being the page's strongest
-     "generated" signal, fabricated testimonials are prohibited under the
-     FTC's consumer review rule (16 CFR Part 465). It should return only
-     when it can render real, attributable customer reviews. */
+       hero            navy     one headline, a sports slab and a TCG slab
+       departments     white    all seven lines, grouped sports / TCG
+       just landed     white    newest products, All / Sports / TCG switch
+       hobby room      ink      sports as a checklist, led by the top box
+       TCG shelf       paper    one column per game
+       on the calendar white    genuine upcoming releases, dated
+       find your box   grey     by format and by budget, across lines
+       why GoGetCards  white    four policy figures
+       drop alerts     orange   newsletter, into the navy footer
+
+     The testimonials partial stays out: it held fabricated reviews with no
+     review system behind them (FTC 16 CFR Part 465). */
 %>
-<%- include('../partials/hero') %>
-<%- include('../partials/trust-bar') %>
-<%- include('../partials/featured-products') %>
-<%- include('../partials/collection-grid') %>
-<%- include('../partials/preorder-section') %>
-<%- include('../partials/why-us') %>
-<%- include('../partials/newsletter') %>
+<div class="gg">
+  <%- include('../partials/home-hero') %>
+  <%- include('../partials/home-departments') %>
+  <%- include('../partials/home-landed') %>
+  <%- include('../partials/home-hobby-room') %>
+  <%- include('../partials/home-tcg-shelf') %>
+  <%- include('../partials/home-calendar') %>
+  <%- include('../partials/home-find') %>
+  <%- include('../partials/home-facts') %>
+  <%- include('../partials/home-alerts') %>
+</div>

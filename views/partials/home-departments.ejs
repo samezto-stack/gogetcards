@@ -1,0 +1,30 @@
+<%
+  /* Departments: every line, grouped the way the store is — sports cards
+     and trading card games — as one compact index under the hero, each
+     with its real product count. This replaces the big category tiles:
+     seven lines fit in one band instead of two rows of cards. */
+  var deps = (typeof departments !== 'undefined' && departments) ? departments : [];
+  var depGroups = [
+    { id: 'sport', label: 'Sports cards', items: deps.filter(function (d) { return d.line.kind === 'sport'; }) },
+    { id: 'tcg', label: 'Trading card games', items: deps.filter(function (d) { return d.line.kind === 'tcg'; }) },
+  ].filter(function (g) { return g.items.length; });
+%>
+<nav class="gg-dept" aria-label="Shop by department">
+  <div class="container gg-dept__inner">
+    <% depGroups.forEach(function (g) { %>
+    <div class="gg-dept__group gg-dept__group--<%= g.id %>">
+      <p class="gg-dept__label"><%= g.label %></p>
+      <ul class="gg-dept__list" style="--n:<%= g.items.length %>">
+        <% g.items.forEach(function (d) { %>
+        <li>
+          <a href="<%= marketPath('/collection/' + d.line.handle) %>" class="gg-dept__item" style="--c:<%= d.line.accent %>" id="cat-<%= d.line.handle %>">
+            <span class="gg-dept__name"><%= d.line.shortName %></span>
+            <span class="gg-dept__sub"><%= d.line.kind === 'sport' ? d.line.league : d.line.publisher %><% if (d.n) { %> · <%= d.n %><% } %></span>
+          </a>
+        </li>
+        <% }); %>
+      </ul>
+    </div>
+    <% }); %>
+  </div>
+</nav>

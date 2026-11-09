@@ -98,6 +98,7 @@ app.use((req, res, next) => {
        nav and collection pages. */
     jsonForScript: require(path.join(ROOT, 'helpers/jsonForScript')),
     catalog: require(path.join(ROOT, 'config/catalog')),
+    adminStores: require(path.join(ROOT, 'config/adminStores')),
     script: '',
   });
   Object.keys(res.locals).forEach((k) => mirroredLocals.add(k));

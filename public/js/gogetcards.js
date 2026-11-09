@@ -573,7 +573,7 @@
      it cannot be inflated by a page script looping. */
 
   /* ── Newsletter form ─────────────────────────────────── */
-  /* The real submit handler lives in views/partials/newsletter.ejs, where
+  /* The real submit handler lives in views/partials/home-alerts.ejs, where
      it POSTs to /api/leads. A second, document-level handler used to live
      here that swapped in the success message without sending anything, so
      both fired on one submit and the visitor saw "You're in!" whether or

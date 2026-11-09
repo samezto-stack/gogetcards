@@ -78,8 +78,23 @@ const VIEWS = [
   ['product card', 'views/partials/product-card.ejs', () => ({ product: PRODUCT })],
   ['header', 'views/partials/header.ejs', () => ({})],
   ['footer', 'views/partials/footer.ejs', () => ({})],
-  ['hero', 'views/partials/hero.ejs', () => ({})],
-  ['collection grid', 'views/partials/collection-grid.ejs', () => ({})],
+  /* The homepage sections: every one of them links into collections,
+     products or policies, so every one of them is a way out of a market. */
+  ...(() => {
+    const P = { ...PRODUCT, _family: 'tcg', _line: 'one-piece', _lineName: 'One Piece', _year: '' };
+    const S = { ...PRODUCT, slug: 'topps-chrome', title: '2026 Topps Chrome Baseball Hobby Box', productType: 'Hobby Box', _family: 'sport', _line: 'baseball', _lineName: 'Baseball', _year: '2026', releaseDate: '2026-12-01' };
+    const catalog = require(path.join(ROOT, 'config/catalog'));
+    const tcgLine = catalog.ofKind('tcg')[0];
+    const home = {
+      heroSport: S, heroTcg: P, justLanded: [S, P], hobbyLead: S, hobbyRows: [S], sportTotal: 1,
+      tcgShelf: [{ line: tcgLine, products: [P], total: 1 }], calendar: [S],
+      departments: catalog.all().map((line) => ({ line, n: 1 })),
+      formats: [{ type: 'Booster Box', n: 1 }], priceBands: [{ id: 'under-100', label: 'Under $100', n: 1 }],
+      shipDispatch: require(path.join(ROOT, 'config/shipping')).DISPATCH,
+    };
+    return ['hero', 'departments', 'landed', 'hobby-room', 'tcg-shelf', 'calendar', 'find', 'facts', 'alerts']
+      .map((s) => [`home ${s}`, `views/partials/home-${s}.ejs`, () => home]);
+  })(),
   ['cart drawer', 'views/partials/cart-drawer.ejs', () => ({})],
 ];
 

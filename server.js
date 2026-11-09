@@ -248,7 +248,7 @@ app.locals.assetVersion = (() => {
   try {
     const crypto = require('crypto');
     const h = crypto.createHash('md5');
-    for (const f of ['public/css/gogetcards.css', 'public/js/gogetcards.js']) h.update(require('fs').readFileSync(path.join(__dirname, f)));
+    for (const f of ['public/css/gogetcards.css', 'public/css/home.css', 'public/js/gogetcards.js']) h.update(require('fs').readFileSync(path.join(__dirname, f)));
     return h.digest('hex').slice(0, 12);
   } catch (_) {
     return (process.env.RENDER_GIT_COMMIT || String(Date.now())).slice(0, 12);

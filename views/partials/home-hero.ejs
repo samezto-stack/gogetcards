@@ -1,0 +1,64 @@
+<%
+  /* Hero: one headline over two "slabs" — a sports-card box and a TCG
+     release, each a real product with its own photo, label and price. The
+     slab is a graded-card case: a label bar on top (set, maker, season,
+     and the price where the grade would sit) over a clear window. Both
+     families on equal footing, from the first screen. */
+  var ggTitle = function (p) { return (typeof variants !== 'undefined' && variants && variants.displayTitle) ? variants.displayTitle(p) : p.title; };
+  var ggPrice = function (p) { var m = (typeof marketPrice === 'function') ? marketPrice(p) : null; return m ? marketMoney(m.amount, m.currency) : ''; };
+  var deps = (typeof departments !== 'undefined' && departments) ? departments : [];
+  var nSport = deps.filter(function (d) { return d.line.kind === 'sport'; }).reduce(function (a, d) { return a + d.n; }, 0);
+  var nTcg = deps.filter(function (d) { return d.line.kind === 'tcg'; }).reduce(function (a, d) { return a + d.n; }, 0);
+  var slabs = [
+    { p: (typeof heroSport !== 'undefined') ? heroSport : null, family: 'Sports cards', kind: 'sport', id: 'sport' },
+    { p: (typeof heroTcg !== 'undefined') ? heroTcg : null, family: 'Trading card games', kind: 'tcg', id: 'tcg' },
+  ].filter(function (s) { return s.p; });
+%>
+<section class="gg-hero" id="hero" aria-labelledby="gg-hero-h">
+  <div class="container">
+    <div class="gg-hero__grid<%= slabs.length ? '' : ' gg-hero__grid--solo' %>">
+      <div class="gg-hero__intro">
+        <div class="gg-hero__head">
+          <p class="gg-kicker gg-kicker--light">Sports cards <span aria-hidden="true">/</span> Trading card games</p>
+          <h1 class="gg-hero__title" id="gg-hero-h">Sealed cards.<br><span>Serious collecting.</span></h1>
+        </div>
+        <div class="gg-hero__body">
+        <p class="gg-hero__sub">Hobby boxes from Topps, Bowman and Panini. Booster boxes from Pokémon, Magic, One Piece and Lorcana. Factory sealed, priced in US dollars, shipped free and tracked.</p>
+        <div class="gg-hero__ctas">
+          <a href="<%= marketPath('/collection/all') %>?sort=newest" class="gg-btn gg-btn--accent" id="hero-shop-btn">Shop new arrivals</a>
+          <a href="<%= marketPath('/releases') %>" class="gg-btn gg-btn--ghost" id="hero-releases-btn">Release calendar</a>
+        </div>
+        <% if (nSport || nTcg) { %>
+        <dl class="gg-hero__counts">
+          <div><dt>Sports</dt><dd><%= nSport %></dd></div>
+          <div><dt>TCG</dt><dd><%= nTcg %></dd></div>
+          <div><dt>Lines</dt><dd><%= deps.length %></dd></div>
+        </dl>
+        <% } %>
+        </div>
+      </div>
+
+      <% slabs.forEach(function (s, i) { var p = s.p; var lines = catalog.ofKind(s.kind); %>
+      <article class="gg-slab gg-slab--<%= s.id %>" aria-label="<%= s.family %>">
+        <a href="<%= marketPath('/products/' + p.slug) %>" class="gg-slab__case" id="hero-product-<%= p.slug %>">
+          <span class="gg-slab__label">
+            <span class="gg-slab__meta">
+              <strong><%= s.family %></strong>
+              <span><%= [p._lineName, p.vendor, p._year].filter(Boolean).join(' · ') %></span>
+            </span>
+            <span class="gg-slab__grade"><%= ggPrice(p) %></span>
+          </span>
+          <span class="gg-slab__window">
+            <img <%- productImage.attrs(p.imageUrl, 420, '(max-width: 640px) 44vw, (max-width: 1100px) 30vw, 360px') %>
+                 alt="<%= ggTitle(p) %>" width="420" height="420" <%- i === 0 ? 'fetchpriority="high"' : 'loading="eager"' %> decoding="async">
+          </span>
+          <span class="gg-slab__name"><%= ggTitle(p) %></span>
+        </a>
+        <nav class="gg-slab__lines" aria-label="Shop <%= s.family.toLowerCase() %>">
+          <% lines.forEach(function (l) { %><a href="<%= marketPath('/collection/' + l.handle) %>"><%= l.shortName %></a><% }); %>
+        </nav>
+      </article>
+      <% }); %>
+    </div>
+  </div>
+</section>

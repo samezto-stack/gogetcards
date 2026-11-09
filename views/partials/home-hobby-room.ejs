@@ -1,0 +1,63 @@
+<%
+  /* The Hobby Room: sports cards the way a sports collector reads them —
+     season, set, sport, format, price — as a checklist, led by the most
+     valuable box on the shelf. Rows are real products, priciest first;
+     a preorder says so and shows its date. */
+  var hl = (typeof hobbyLead !== 'undefined') ? hobbyLead : null;
+  var rows = (typeof hobbyRows !== 'undefined' && hobbyRows) ? hobbyRows : [];
+  var hrPrice = function (p) { var m = (typeof marketPrice === 'function') ? marketPrice(p) : null; return m ? marketMoney(m.amount, m.currency) : ''; };
+  var hrSet = function (p) { return String(p.title || '').replace(/^\d{4}(?:-\d{2})?\s+/, '').replace(/\s*\(\d+\s+packs?\)\s*$/i, ''); };
+  var hrPacks = function (p) { var m = String(p.title || '').match(/\((\d+)\s+packs?\)/i); return m ? m[1] + ' packs' : ''; };
+  var sportLines = catalog.ofKind('sport');
+%>
+<% if (hl || rows.length) { %>
+<section class="gg-hobby" id="hobby-room" aria-labelledby="hobby-h">
+  <div class="container gg-hobby__grid">
+    <div class="gg-hobby__intro">
+      <p class="gg-kicker gg-kicker--light">The hobby room</p>
+      <h2 class="gg-h2 gg-h2--light" id="hobby-h">Hobby boxes, jumbos &amp; mega boxes</h2>
+      <p class="gg-hobby__text">Sealed sports-card boxes from Topps, Bowman and Panini, listed the way the hobby reads them: season, set, sport and format.</p>
+
+      <% if (hl) { %>
+      <a href="<%= marketPath('/products/' + hl.slug) %>" class="gg-slab gg-slab--lead" id="hobby-lead-<%= hl.slug %>">
+        <span class="gg-slab__case">
+          <span class="gg-slab__label">
+            <span class="gg-slab__meta"><strong><%= [hl._year, hl.vendor].filter(Boolean).join(' ') %></strong><span><%= [hl._lineName, hl.productType].filter(Boolean).join(' · ') %></span></span>
+            <span class="gg-slab__grade"><%= hrPrice(hl) %></span>
+          </span>
+          <span class="gg-slab__window"><img <%- productImage.attrs(hl.imageUrl, 360, '(max-width: 900px) 60vw, 300px') %> alt="<%= hl.title %>" width="360" height="360" loading="lazy" decoding="async"></span>
+          <span class="gg-slab__name"><%= hl.title %></span>
+        </span>
+      </a>
+      <% } %>
+    </div>
+
+    <div class="gg-hobby__list">
+      <table class="gg-ledger">
+        <caption class="sr-only">Sealed sports card boxes in stock and on preorder</caption>
+        <thead>
+          <tr><th scope="col">Season</th><th scope="col">Set</th><th scope="col">Sport</th><th scope="col">Format</th><th scope="col" class="gg-ledger__num">Price</th></tr>
+        </thead>
+        <tbody>
+          <% rows.forEach(function (p) { var pre = preorder.isActivePreorder(p); %>
+          <tr>
+            <td class="gg-ledger__year"><%= p._year || '—' %></td>
+            <th scope="row" class="gg-ledger__set">
+              <a href="<%= marketPath('/products/' + p.slug) %>"><%= hrSet(p) %></a>
+              <% if (pre) { %><span class="gg-tag gg-tag--pre"><%= preorder.shortLine(p).replace(/^Preorder\s*[—-]\s*/i, '') %></span><% } %>
+            </th>
+            <td><%= p._lineName %></td>
+            <td><%= p.productType %><% if (hrPacks(p)) { %><span class="gg-ledger__packs"><%= hrPacks(p) %></span><% } %></td>
+            <td class="gg-ledger__num"><%= hrPrice(p) %></td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <p class="gg-hobby__more">
+        <span>Shop by sport:</span>
+        <% sportLines.forEach(function (l) { %><a href="<%= marketPath('/collection/' + l.handle) %>" class="gg-link gg-link--light"><%= l.shortName %> <span aria-hidden="true">→</span></a><% }); %>
+      </p>
+    </div>
+  </div>
+</section>
+<% } %>

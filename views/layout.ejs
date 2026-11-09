@@ -102,11 +102,19 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <%
     var fontHref = 'https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap';
+    /* The homepage adds a condensed display face for its headlines, in the
+       same request so it costs no extra round trip. */
+    var hasPageCss = typeof pageCss !== 'undefined' && /^[a-z-]+$/.test(String(pageCss));
+    if (hasPageCss && pageCss === 'home') fontHref = 'https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Public+Sans:wght@400;500;600;700;800&display=swap';
   %>
   <link rel="stylesheet" href="<%= fontHref %>" media="print" onload="this.media='all';this.onload=null;">
   <noscript><link rel="stylesheet" href="<%= fontHref %>"></noscript>
 
   <link rel="stylesheet" href="/css/gogetcards.css?v=<%= assetVersion %>">
+  <%/* A page's own stylesheet, loaded only where that page renders. */%>
+  <% if (hasPageCss) { %>
+  <link rel="stylesheet" href="/css/<%= pageCss %>.css?v=<%= assetVersion %>">
+  <% } %>
 
   <%/* Sitewide entity graph. None of this existed before: search engines
        and AI answer engines had no Organization to attach the brand to, no

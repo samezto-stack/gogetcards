@@ -1,0 +1,42 @@
+<%
+  /* Why GoGetCards: four figures, each a policy the store states. Read
+     from config (shipping, preorders, returns) so the numbers and the
+     policy pages cannot drift apart. Not links: the footer already links
+     each policy page under its own name, and check-links rejects a second
+     differently worded link to the same page. */
+  var fd = (typeof shipDispatch !== 'undefined' && shipDispatch) ? shipDispatch : null;
+%>
+<section class="gg-facts" aria-labelledby="facts-h">
+  <div class="container">
+    <h2 class="gg-facts__h" id="facts-h">Why GoGetCards</h2>
+    <ul class="gg-facts__list">
+      <li>
+        <div>
+          <strong>$0</strong>
+          <span><%= shippingCopy.medium %>, no minimum spend</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>1 day</strong>
+          <span>In-stock orders ship within 1 business day<%= fd ? ' when placed by ' + fd.cutoffLocal + ' ' + fd.cutoffTimezone : '' %></span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong><%= preorder.AFTER_RELEASE %> days</strong>
+          <span>Preorders ship on release day or within <%= preorder.AFTER_RELEASE %> business days</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong><%= returnWindowDays %> days</strong>
+          <span>To return unopened, sealed product</span>
+        </div>
+      </li>
+    </ul>
+    <%/* From config/payments.js, as the old trust bar did, so the homepage
+         never names a payment method the checkout does not offer. */%>
+    <p class="gg-facts__pay"><strong><%= payments.copy.secureCheckout %></strong> · <%= payments.copy.secureCheckoutSub %></p>
+  </div>
+</section>

@@ -90,6 +90,12 @@
       var pcLine = catalog.detect(product);
       if (pcLine) metaBits.push(pcLine.shortName);
       if (product.vendor) metaBits.push(product.vendor);
+      /* Sports sets are known by season ("2026 Topps Chrome"), so a sports
+         card says the season in its label line as well as its title. */
+      if (pcLine && pcLine.kind === 'sport') {
+        var pcYear = (String(product.title || '').match(/^(\d{4}(?:-\d{2})?)\b/) || [])[1];
+        if (pcYear) metaBits.push(pcYear);
+      }
     %>
     <p class="pc__meta"><%= metaBits.join(' · ') %></p>
     <%/* pcTitle is defined once at the top (variant-aware). No hard
@@ -150,7 +156,12 @@
             id="atc-quick-<%= product.slug %>"
             aria-label="Add <%= pcTitle %> to cart"
           >
-            <% if (isPreorder) { %><%- include('icon', { name: 'bell', size: 14, color: '#fff' }) %><% } else { %>+<% } %>
+            <%/* atcLabel: the homepage asks for a worded button ("Add to
+                 cart" / "Preorder") instead of the bare glyph the dense
+                 collection grid uses. Same form, same handler. */%>
+            <% if (typeof atcLabel !== 'undefined' && atcLabel) { %>
+              <%- include('icon', { name: isPreorder ? 'bell' : 'shopping-cart', size: 15, color: '#fff' }) %><span><%= isPreorder ? 'Preorder' : 'Add to cart' %></span>
+            <% } else if (isPreorder) { %><%- include('icon', { name: 'bell', size: 14, color: '#fff' }) %><% } else { %>+<% } %>
           </button>
         </form>
       <% } else { %>

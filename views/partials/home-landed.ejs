@@ -1,0 +1,51 @@
+<%
+  /* Just landed: the newest products across both families, Featured first.
+     The All / Sports / TCG switch is a progressive enhancement — the grid
+     is complete without it, and the buttons stay hidden until the script
+     that drives them has run. */
+  var jl = (typeof justLanded !== 'undefined' && justLanded) ? justLanded : [];
+  var nS = jl.filter(function (p) { return p._family === 'sport'; }).length;
+%>
+<% if (jl.length) { %>
+<section class="gg-sec gg-sec--white" id="just-landed" aria-labelledby="landed-h">
+  <div class="container">
+    <div class="gg-head">
+      <div>
+        <p class="gg-kicker">New in stock</p>
+        <h2 class="gg-h2" id="landed-h">Just landed</h2>
+      </div>
+      <div class="gg-head__tools">
+        <div class="gg-seg" role="group" aria-label="Show" data-gg-seg hidden>
+          <button type="button" class="gg-seg__btn" data-f="all" aria-pressed="true">All</button>
+          <% if (nS) { %><button type="button" class="gg-seg__btn" data-f="sport" aria-pressed="false">Sports cards</button><% } %>
+          <button type="button" class="gg-seg__btn" data-f="tcg" aria-pressed="false">TCG</button>
+        </div>
+        <a href="<%= marketPath('/collection/all') %>?sort=newest" class="gg-link" id="landed-view-all">View all <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+
+    <div class="gg-grid" data-gg-grid>
+      <% jl.forEach(function (product) { %>
+        <div class="gg-grid__cell" data-family="<%= product._family %>">
+          <%- include('product-card', { product: product, atcLabel: true }) %>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+</section>
+<script>
+  (function () {
+    var seg = document.querySelector('[data-gg-seg]');
+    var grid = document.querySelector('[data-gg-grid]');
+    if (!seg || !grid) return;
+    seg.hidden = false;
+    seg.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-f]');
+      if (!b) return;
+      var f = b.getAttribute('data-f');
+      seg.querySelectorAll('[data-f]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      grid.querySelectorAll('[data-family]').forEach(function (c) { c.hidden = f !== 'all' && c.getAttribute('data-family') !== f; });
+    });
+  })();
+</script>
+<% } %>

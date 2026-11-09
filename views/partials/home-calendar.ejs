@@ -1,0 +1,42 @@
+<%
+  /* On the calendar: genuine upcoming releases from both families, soonest
+     first, each dated like a calendar page. No countdowns and no scarcity:
+     the date, the product, the price, and the preorder terms in one line. */
+  var cal = (typeof calendar !== 'undefined' && calendar) ? calendar : [];
+  var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var cPrice = function (p) { var m = (typeof marketPrice === 'function') ? marketPrice(p) : null; return m ? marketMoney(m.amount, m.currency) : ''; };
+%>
+<% if (cal.length) { %>
+<section class="gg-sec gg-sec--white" id="calendar" aria-labelledby="cal-h">
+  <div class="container">
+    <div class="gg-head">
+      <div>
+        <p class="gg-kicker">Preorders</p>
+        <h2 class="gg-h2" id="cal-h">On the calendar</h2>
+      </div>
+      <a href="<%= marketPath('/releases') %>" class="gg-link">Full release calendar <span aria-hidden="true">→</span></a>
+    </div>
+
+    <ol class="gg-cal">
+      <% cal.forEach(function (p) { var d = p.releaseDate ? new Date(p.releaseDate) : null; %>
+      <li>
+        <a href="<%= marketPath('/products/' + p.slug) %>" class="gg-cal__item" id="cal-<%= p.slug %>">
+          <% if (d && !isNaN(d)) { %>
+          <time class="gg-cal__date" datetime="<%= d.toISOString().slice(0, 10) %>"><span><%= MON[d.getUTCMonth()] %></span><strong><%= d.getUTCDate() %></strong><span><%= d.getUTCFullYear() %></span></time>
+          <% } else { %>
+          <span class="gg-cal__date gg-cal__date--tbc"><span>Date</span><strong>TBC</strong><span>&nbsp;</span></span>
+          <% } %>
+          <span class="gg-cal__img"><img <%- productImage.attrs(p.imageUrl, 160, '80px') %> alt="" width="160" height="160" loading="lazy" decoding="async"></span>
+          <span class="gg-cal__txt">
+            <span class="gg-cal__kicker"><%= p._family === 'sport' ? 'Sports cards' : 'TCG' %> · <%= p._lineName %></span>
+            <span class="gg-cal__name"><%= p.title %></span>
+            <span class="gg-cal__foot"><span class="gg-cal__price"><%= cPrice(p) %></span><span class="gg-cal__go">Preorder <span aria-hidden="true">→</span></span></span>
+          </span>
+        </a>
+      </li>
+      <% }); %>
+    </ol>
+    <p class="gg-cal__terms">Preorders are charged when you order and ship on release day or within <%= preorder.AFTER_RELEASE %> business days of it. Cancel any time before dispatch for a full refund. <a href="<%= marketPath('/preorder-policy') %>">Preorder policy</a></p>
+  </div>
+</section>
+<% } %>

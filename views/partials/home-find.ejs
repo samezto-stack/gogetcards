@@ -1,0 +1,39 @@
+<%
+  /* Find your box: across every line, by format and by budget. Formats are
+     the product types that exist in the catalogue, with real counts; each
+     links to the collection filter for that type. Budgets are the
+     collection filter's own price bands. */
+  var fm = (typeof formats !== 'undefined' && formats) ? formats : [];
+  var pb = (typeof priceBands !== 'undefined' && priceBands) ? priceBands : [];
+%>
+<% if (fm.length || pb.length) { %>
+<section class="gg-sec gg-sec--muted" id="find-your-box" aria-labelledby="find-h">
+  <div class="container gg-find">
+    <div class="gg-find__intro">
+      <p class="gg-kicker">Across every line</p>
+      <h2 class="gg-h2" id="find-h">Find your box</h2>
+      <p class="gg-find__text">Know the format you want, or what you want to spend? Start there, whatever the sport or game.</p>
+    </div>
+    <% if (fm.length) { %>
+    <div class="gg-find__block">
+      <h3 class="gg-find__h">By format</h3>
+      <ul class="gg-chips">
+        <% fm.forEach(function (f) { %>
+        <li><a href="<%= marketPath('/collection/all') %>?type=<%= encodeURIComponent(f.type) %>" class="gg-chip"><span><%= f.type %></span><em><%= f.n %></em></a></li>
+        <% }); %>
+      </ul>
+    </div>
+    <% } %>
+    <% if (pb.length) { %>
+    <div class="gg-find__block">
+      <h3 class="gg-find__h">By budget</h3>
+      <ul class="gg-budget">
+        <% pb.forEach(function (b) { %>
+        <li><a href="<%= marketPath('/collection/all') %>?price=<%= b.id %>" class="gg-budget__item" id="price-<%= b.id %>"><span class="gg-budget__label"><%= b.label %></span><span class="gg-budget__n"><%= b.n %> <%= b.n === 1 ? 'product' : 'products' %> <span aria-hidden="true">→</span></span></a></li>
+        <% }); %>
+      </ul>
+    </div>
+    <% } %>
+  </div>
+</section>
+<% } %>

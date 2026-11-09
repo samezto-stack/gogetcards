@@ -1,0 +1,50 @@
+<%
+  /* Drop alerts: the newsletter, in GoGetCards' own colour. Same form,
+     same /api/leads call, same field ids as before. The promise is what the
+     list sends — new releases, preorder openings and restocks — and nothing
+     it does not. */
+%>
+<section class="gg-alerts" id="drop-alerts" aria-labelledby="alerts-h">
+  <div class="container gg-alerts__grid">
+    <div>
+      <h2 class="gg-alerts__title" id="alerts-h">Get the drop alerts</h2>
+      <p class="gg-alerts__text">New sports releases, TCG drops, preorder openings and restocks, by email.</p>
+    </div>
+    <form class="gg-alerts__form" data-newsletter-form novalidate>
+      <div data-nl-fields>
+        <label for="nl-email" class="gg-alerts__label">Email address</label>
+        <div class="gg-alerts__row">
+          <input type="email" class="gg-alerts__input" id="nl-email" name="email" placeholder="you@example.com" required autocomplete="email" autocorrect="off" autocapitalize="off" inputmode="email">
+          <button type="submit" class="gg-btn gg-btn--ink" id="newsletter-submit">Sign me up</button>
+        </div>
+        <p class="gg-alerts__fine">No spam. Unsubscribe from any email in one click.</p>
+      </div>
+      <div data-nl-success hidden role="status"><p class="gg-alerts__ok">You're on the list. Watch your inbox for the next drop.</p></div>
+      <div data-nl-error hidden role="alert"><p class="gg-alerts__err">That didn't go through. Please try again in a moment.</p></div>
+    </form>
+  </div>
+</section>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var form = document.querySelector('[data-newsletter-form]');
+    if (!form) return;
+    var input = form.querySelector('input[name="email"]');
+    var btn = form.querySelector('#newsletter-submit');
+    var label = btn.textContent;
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      form.querySelector('[data-nl-error]').hidden = true;
+      if (!input.checkValidity()) { input.reportValidity(); return; }
+      btn.disabled = true; btn.textContent = 'Signing up…';
+      try {
+        var res = await fetch('/api/leads', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: input.value, source: 'newsletter' }) });
+        if (!res.ok) throw new Error('Request failed with ' + res.status);
+        form.querySelector('[data-nl-fields]').hidden = true;
+        form.querySelector('[data-nl-success]').hidden = false;
+      } catch (err) {
+        form.querySelector('[data-nl-error]').hidden = false;
+        btn.disabled = false; btn.textContent = label;
+      }
+    });
+  });
+</script>

@@ -1,0 +1,47 @@
+<%
+  /* The TCG shelf: one column per game, each with its two leading products
+     and a way into the whole line. Trading card games are browsed by game
+     and set first, so the game is the heading and the set leads each row. */
+  var shelf = (typeof tcgShelf !== 'undefined' && tcgShelf) ? tcgShelf : [];
+  var tsPrice = function (p) { var m = (typeof marketPrice === 'function') ? marketPrice(p) : null; return m ? marketMoney(m.amount, m.currency) : ''; };
+  var tsTitle = function (p) { return (typeof variants !== 'undefined' && variants && variants.displayTitle) ? variants.displayTitle(p) : p.title; };
+%>
+<% if (shelf.length) { %>
+<section class="gg-sec gg-sec--paper" id="tcg-shelf" aria-labelledby="shelf-h">
+  <div class="container">
+    <div class="gg-head">
+      <div>
+        <p class="gg-kicker">Trading card games</p>
+        <h2 class="gg-h2" id="shelf-h">The TCG shelf</h2>
+      </div>
+      <p class="gg-head__aside">Booster boxes, elite trainer boxes, bundles and collector sets, game by game.</p>
+    </div>
+
+    <div class="gg-shelf" style="--n:<%= shelf.length %>">
+      <% shelf.forEach(function (g) { %>
+      <section class="gg-shelf__col" style="--c:<%= g.line.accent %>" aria-labelledby="shelf-<%= g.line.handle %>">
+        <header class="gg-shelf__head">
+          <h3 id="shelf-<%= g.line.handle %>"><%= g.line.name %></h3>
+          <p><%= g.line.publisher %> · <%= g.total %> <%= g.total === 1 ? 'product' : 'products' %></p>
+        </header>
+        <ul class="gg-shelf__items">
+          <% g.products.forEach(function (p) { var pre = preorder.isActivePreorder(p); %>
+          <li>
+            <a href="<%= marketPath('/products/' + p.slug) %>" class="gg-shelf__item">
+              <span class="gg-shelf__img"><img <%- productImage.attrs(p.imageUrl, 160, '88px') %> alt="" width="160" height="160" loading="lazy" decoding="async"></span>
+              <span class="gg-shelf__txt">
+                <span class="gg-shelf__fmt"><%= p.productType %><% if (pre) { %> · Preorder<% } %></span>
+                <span class="gg-shelf__name"><%= tsTitle(p) %></span>
+                <span class="gg-shelf__price"><%= tsPrice(p) %></span>
+              </span>
+            </a>
+          </li>
+          <% }); %>
+        </ul>
+        <a href="<%= marketPath('/collection/' + g.line.handle) %>" class="gg-link gg-shelf__all">Shop <%= g.line.shortName %> <span aria-hidden="true">→</span></a>
+      </section>
+      <% }); %>
+    </div>
+  </div>
+</section>
+<% } %>

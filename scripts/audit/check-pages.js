@@ -46,7 +46,9 @@ check('footer: no badge for a method that is not configured', (() => {
   return rendered.length === paymentsCfg.METHODS.length
     && rendered.every(label => paymentsCfg.METHODS.some(m => m.label === label));
 })());
-check('trust bar: secure-checkout copy comes from config',
+/* The trust bar this was written for became the homepage's "Why
+   GoGetCards" figures; the line moved with it. */
+check('homepage: secure-checkout copy comes from config',
   pages.home.includes(paymentsCfg.copy.secureCheckout));
 
 /* ── Footer trust badges ──
