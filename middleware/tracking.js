@@ -122,7 +122,26 @@ function detectSource(req) {
 
   // 1. Check URL params first (most reliable for paid ads)
   if (query.fbclid || query.fb_action_ids) return 'Facebook';
-  if (query.gclid || query.gad_source) return 'Google Ads';
+  /* A Google ad click. gclid is the classic id; iPhone/iOS app clicks carry
+     gbraid/wbraid INSTEAD of gclid, so checking gclid alone filed those paid
+     clicks under organic 'Google'. gad_source/gad_campaignid are added to
+     every ad click. */
+  if (query.gclid || query.gbraid || query.wbraid || query.gad_source || query.gad_campaignid) {
+    /* Search Partners and YouTube ad clicks carry the same ids but arrive
+       from a non-Google site. When the browser sends that referrer, file it
+       separately so partner traffic can be judged on its own. No referrer
+       (common) stays 'Google Ads' — Google Ads' own Network segment is the
+       exact split. */
+    let refHost = '';
+    try { refHost = referrer ? new URL(referrer).hostname : ''; } catch { refHost = ''; }
+    const fromGoogle = /(^|\.)google\.[a-z.]+$/.test(refHost);
+    const fromSelf = SITE_HOST && refHost.endsWith(SITE_HOST);
+    if (refHost && !fromGoogle && !fromSelf) return 'Google Ads Partners';
+    return 'Google Ads';
+  }
+  /* Merchant Center auto-tagging marks free/organic product results with
+     srsltid. No ad id above, so this is unpaid Google. */
+  if (query.srsltid) return 'Google';
   if (query.msclkid) return 'Bing Ads';
   if (query.ttclid) return 'TikTok';
   if (query.utm_source) {

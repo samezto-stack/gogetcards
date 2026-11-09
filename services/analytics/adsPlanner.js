@@ -42,7 +42,7 @@ const testOrder = require('../testOrder');
 /* The value detectSource writes for an ad click. An array so a second
    spelling (should Google ever change it) can be added without touching the
    pipelines. Organic 'Google' is deliberately NOT here. */
-const AD_SOURCES = ['Google Ads'];
+const AD_SOURCES = ['Google Ads', 'Google Ads Partners'];
 
 /** How many top products to name per country. */
 const TOP_N = 3;

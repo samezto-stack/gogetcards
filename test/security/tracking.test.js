@@ -37,3 +37,12 @@ test('detectSource still recognises a known channel', () => {
   const out = tracking.detectSource(reqWith({ utm_source: 'google' }, {}));
   assert.strictEqual(out, 'Google');
 });
+
+test('Google ad clicks: iOS ids are paid, partner referrers split out, srsltid is organic', () => {
+  assert.strictEqual(tracking.detectSource(reqWith({ gbraid: 'x' }, {})), 'Google Ads');
+  assert.strictEqual(tracking.detectSource(reqWith({ wbraid: 'x' }, {})), 'Google Ads');
+  assert.strictEqual(tracking.detectSource(reqWith({ gclid: 'x' }, { referer: 'https://www.google.com/' })), 'Google Ads');
+  assert.strictEqual(tracking.detectSource(reqWith({ gclid: 'x' }, { referer: 'https://www.youtube.com/' })), 'Google Ads Partners');
+  assert.strictEqual(tracking.detectSource(reqWith({ gclid: 'x' }, { referer: 'not a url' })), 'Google Ads');
+  assert.strictEqual(tracking.detectSource(reqWith({ srsltid: 'x' }, {})), 'Google');
+});
