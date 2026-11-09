@@ -3,15 +3,16 @@
   var d = shippingCfg.DISPATCH;
 %>
 
-<nav class="col-page__breadcrumb container" style="padding-top:1rem" aria-label="Breadcrumb">
-  <a href="<%= marketPath('/') %>">Home</a>
-  <span aria-hidden="true">/</span>
-  <span aria-current="page">Shipping &amp; Delivery</span>
-</nav>
+<div class="container ship-page" style="padding-top:1.25rem;padding-bottom:4.5rem">
+  <nav class="col-page__breadcrumb" style="margin-bottom:1.75rem" aria-label="Breadcrumb">
+    <a href="<%= marketPath('/') %>">Home</a>
+    <span aria-hidden="true">/</span>
+    <span aria-current="page">Shipping &amp; Delivery</span>
+  </nav>
 
-<div class="container legal-page" style="padding-top:2rem;padding-bottom:4rem;max-width:56rem">
-  <h1 class="heading-section">Shipping &amp; Delivery</h1>
-  <p class="legal-updated">
+  <p class="label-overline" style="margin-bottom:0.9rem">Customer information</p>
+  <h1 class="ship-page__title">Shipping &amp; Delivery</h1>
+  <p class="ship-page__lede">
     Everything on this page is what the checkout actually does and what we
     declare to Google. There is one shipping policy and this is it.
   </p>
@@ -132,14 +133,41 @@
 </div>
 
 <style>
-  .legal-table-wrap { overflow-x: auto; margin: 1.25rem 0 1rem; }
-  .legal-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; min-width: 34rem; }
-  .legal-table th, .legal-table td { text-align: left; padding: 0.7rem 0.9rem; border-bottom: 1px solid var(--color-border-light); }
-  .legal-table thead th { font-family: var(--font-heading); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-faint); }
-  .legal-table tbody th { font-weight: 600; color: var(--color-text); }
-  .legal-table td { color: var(--color-text-muted); }
-  .ship-free { color: var(--color-accent, #10B981) !important; font-weight: 700; }
-  .ship-banner { background: linear-gradient(135deg, rgba(124,58,237,0.12), rgba(6,182,212,0.08)); border: 1px solid rgba(124,58,237,0.3); border-radius: var(--radius-lg); padding: 1.4rem 1.6rem; margin: 1.5rem 0 2rem; }
-  .ship-banner__head { font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; color: var(--color-white); }
-  .ship-banner__sub { font-size: 0.88rem; color: var(--color-text-muted); line-height: 1.75; margin-top: 0.4rem; max-width: 60ch; }
+  /* A printed document: overline, serif title over an ink rule, numbered
+     sections at a ~65ch measure, the delivery table as a ruled ledger. */
+  .ship-page { max-width: 56rem; margin-left: auto; margin-right: auto; counter-reset: shipsec; }
+  .ship-page__title { font-family: var(--font-display); font-size: clamp(2.1rem, 4.6vw, 3.3rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.03; color: var(--color-ink); font-variation-settings: 'opsz' 144; padding-bottom: 1.1rem; border-bottom: 1.5px solid var(--color-ink); }
+  .ship-page__lede { font-family: var(--font-display); font-weight: 300; font-size: 1.2rem; line-height: 1.6; color: var(--color-text); margin-top: 1.25rem; max-width: 60ch; font-variation-settings: 'opsz' 36; }
+  .ship-page h2 { counter-increment: shipsec; display: flex; align-items: baseline; gap: 0.9rem; font-family: var(--font-display); font-size: 1.55rem; font-weight: 400; line-height: 1.2; color: var(--color-ink); margin: 2.75rem 0 1rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--color-border-light); }
+  .ship-page h2::before { content: '\00A7\00A0' counter(shipsec, decimal-leading-zero); flex-shrink: 0; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.08em; color: var(--color-text-faint); }
+  .ship-page > p { font-size: 0.96rem; line-height: 1.85; color: var(--color-text); margin-bottom: 1rem; max-width: 65ch; }
+  .ship-page ul { list-style: none; margin: 0 0 1.1rem; padding: 0; max-width: 65ch; }
+  .ship-page li { position: relative; padding-left: 1.4rem; font-size: 0.95rem; line-height: 1.8; color: var(--color-text); margin-bottom: 0.55rem; }
+  .ship-page li::before { content: '\2014'; position: absolute; left: 0; color: var(--color-text-faint); }
+  .ship-page strong { color: var(--color-ink); }
+  .ship-page a { color: var(--color-primary); text-decoration: underline; text-underline-offset: 2px; }
+
+  .legal-table-wrap { overflow-x: auto; margin: 0.25rem 0 1.1rem; }
+  .ship-page .legal-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; min-width: 34rem; margin: 0; }
+  .ship-page .legal-table th, .ship-page .legal-table td { text-align: left; padding: 0.72rem 0.9rem 0.72rem 0; border-bottom: 1px solid var(--color-border-light); }
+  .ship-page .legal-table thead th { font-family: var(--font-mono); font-weight: 500; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--color-text-muted); border-bottom: 1.5px solid var(--color-ink); background: transparent; }
+  .ship-page .legal-table tbody th { font-family: var(--font-body); font-size: inherit; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--color-ink); border-bottom: 1px solid var(--color-border-light); }
+  .ship-page .legal-table td { color: var(--color-text); }
+  .ship-page .legal-table td:nth-child(3) { font-family: var(--font-mono); font-size: 0.8rem; }
+  .ship-free { font-family: var(--font-mono); font-size: 0.7rem !important; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-accent) !important; }
+
+  /* The headline terms, set as a slip under an ink rule */
+  .ship-banner { background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-top: 1.5px solid var(--color-ink); border-radius: 0; padding: 1.3rem 1.5rem; margin: 2rem 0 0.5rem; display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); gap: 1.5rem; align-items: baseline; }
+  .ship-banner__head { font-family: var(--font-display); font-size: 1.45rem; font-weight: 400; line-height: 1.2; color: var(--color-ink); }
+  .ship-banner__sub { font-size: 0.9rem; color: var(--color-text-muted); line-height: 1.75; max-width: 60ch; }
+  @media (max-width: 640px) {
+    .ship-page__lede { font-size: 1.06rem; }
+    .ship-banner { grid-template-columns: 1fr; gap: 0.5rem; padding: 1.1rem 1.15rem; }
+    .ship-page h2 { font-size: 1.35rem; margin-top: 2.25rem; }
+    .ship-page .legal-table { min-width: 0; font-size: 0.8rem; }
+    .ship-page .legal-table th, .ship-page .legal-table td { padding: 0.6rem 0.5rem 0.6rem 0; }
+    .ship-page .legal-table thead th { font-size: 0.58rem; letter-spacing: 0.08em; }
+    .ship-page .legal-table td:nth-child(3) { font-size: 0.72rem; }
+    .ship-page .legal-table th:last-child, .ship-page .legal-table td:last-child { padding-right: 0; text-align: right; }
+  }
 </style>

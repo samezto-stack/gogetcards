@@ -8,8 +8,21 @@
 </aside>
 
 <style>
-  .cd__remove-btn { background:none;border:none;color:var(--color-text-faint);cursor:pointer;padding:4px;border-radius:4px;transition:color var(--transition-fast); }
-  .cd__remove-btn:hover { color:#FC8181; }
-  .cd__trust-row { display:flex;gap:1rem;justify-content:center;padding-top:0.625rem;border-top:1px solid var(--color-border-light); }
-  .cd__trust-row span { font-size:0.72rem;color:var(--color-text-faint); }
+  /* The drawer is a slip of the register: paper, an ink frame on the
+     leading edge, ruled rows. Base geometry lives in gogetcards.css (.cd*). */
+  .cd__title { display: flex; align-items: baseline; gap: 0.6rem; }
+  .cd__count { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em; color: var(--color-text-muted); border: 1px solid var(--color-ink); padding: 1px 6px; line-height: 1.4; }
+  .cd__empty-body { font-size: 0.875rem; color: var(--color-text-muted); text-align: center; max-width: 30ch; }
+  .cd__item-title:hover { color: var(--color-primary); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  .cd__item-line { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-top: 0.6rem; }
+  .cd__item-qty { font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-text-faint); margin-left: auto; }
+  .cd__remove-btn { background: none; border: 1px solid transparent; color: var(--color-text-faint); cursor: pointer; padding: 4px; border-radius: 0; display: inline-flex; transition: color var(--transition-fast), border-color var(--transition-fast); }
+  .cd__remove-btn:hover { color: var(--color-red); border-color: var(--color-red); }
+  .cd__terms { display: flex; flex-direction: column; gap: 2px; text-align: center; padding: 0.15rem 0; }
+  .cd__ship { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-accent); }
+  .cd__fine { font-size: 0.7rem; color: var(--color-text-faint); text-align: center; }
+  .cd__footer > .cd__fine { margin-top: -0.35rem; }
+  #cd-checkout-btn { gap: 0.55rem; }
+  .cd__trust-row { display: flex; gap: 1.1rem; justify-content: center; padding-top: 0.7rem; border-top: 1px solid var(--color-border-light); }
+  .cd__trust-row span { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-text-faint); }
 </style>

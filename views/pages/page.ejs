@@ -1,18 +1,20 @@
-<div class="page-header legal-header">
-  <div class="legal-header-glow"></div>
-  <div class="container" style="position:relative; z-index:1; text-align:center;">
-    <div class="legal-badge">
+<div class="container doc-page">
+  <header class="doc-head">
+    <nav class="col-page__breadcrumb" aria-label="Breadcrumb">
+      <a href="<%= marketPath('/') %>">Home</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page"><%= page.title %></span>
+    </nav>
+    <div class="legal-badge label-overline">
       <% if (page.category === 'legal') { %>
-        <%- include('../partials/icon', { name: 'shield', size: 14, color: 'currentColor' }) %> Documentation
+        <%- include('../partials/icon', { name: 'shield', size: 12, color: 'currentColor' }) %> Documentation
       <% } else { %>
-        <%- include('../partials/icon', { name: 'info', size: 14, color: 'currentColor' }) %> Information
+        <%- include('../partials/icon', { name: 'info', size: 12, color: 'currentColor' }) %> Information
       <% } %>
     </div>
     <h1 class="legal-title"><%= page.title %></h1>
-  </div>
-</div>
+  </header>
 
-<div class="container" style="padding:4rem var(--space-xl) 6rem;">
   <div class="legal-body-container">
     <!-- The DB content includes an h2 duplicating the title. We hide it via CSS. -->
     <%- page.content %>
@@ -20,206 +22,51 @@
 </div>
 
 <style>
-  /* ── Header ──────────────────────── */
-  .legal-header {
-    position: relative;
-    background: linear-gradient(to bottom, #0f172a, var(--color-bg));
-    border-bottom: 1px solid var(--color-border-light);
-    padding: 6rem 0 4rem;
-    overflow: hidden;
-  }
-  
-  .legal-header-glow {
-    position: absolute;
-    top: -50%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(6,182,212,0.08) 0%, transparent 70%);
-    pointer-events: none;
-  }
+  /* A printed document: mono overline, a serif title over an ink rule,
+     then the body at a ~65ch measure with numbered section heads. The
+     content comes from the database as HTML, so everything below styles
+     whatever elements it happens to use. */
+  .doc-page { max-width: 56rem; margin-left: auto; margin-right: auto; padding-top: 1.25rem; padding-bottom: 4.5rem; }
+  .doc-head .col-page__breadcrumb { margin-bottom: 1.75rem; }
+  .legal-badge { display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.9rem; }
+  .legal-title { font-family: var(--font-display); font-size: clamp(2.1rem, 4.6vw, 3.3rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.03; color: var(--color-ink); font-variation-settings: 'opsz' 144; padding-bottom: 1.1rem; border-bottom: 1.5px solid var(--color-ink); margin-bottom: 0; }
 
-  .legal-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba(255,255,255,0.05);
-    padding: 0.35rem 1rem;
-    border-radius: 100px;
-    border: 1px solid rgba(255,255,255,0.1);
-    font-size: 0.8rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--color-text-muted);
-    margin-bottom: 1.5rem;
-  }
-
-  .legal-title {
-    font-size: 3.5rem;
-    margin-bottom: 0;
-    letter-spacing: -0.02em;
-    background: linear-gradient(to right, #fff, #94a3b8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  /* ── Body Container ──────────────── */
-  .legal-body-container {
-    max-width: 860px;
-    margin: 0 auto;
-    background: rgba(15, 23, 42, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 1.5rem;
-    padding: 4rem;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-  }
-
-  /* ── Content Styling ─────────────── */
-  .legal-body-container .legal-page {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    color: #cbd5e1; /* slightly brighter than muted for readability */
-    font-size: 1.05rem;
-    line-height: 1.8;
-  }
+  .legal-body-container { padding-top: 1.5rem; counter-reset: docsec; color: var(--color-text); font-size: 0.96rem; line-height: 1.85; }
+  .legal-body-container .legal-page { max-width: none; display: block; }
+  .legal-body-container > *, .legal-body-container .legal-page > * { max-width: 65ch; }
 
   /* Hide duplicate H2 from raw DB content */
-  .legal-body-container .legal-page > h2:first-child {
-    display: none;
-  }
+  .legal-body-container .legal-page > h2:first-child { display: none; }
 
-  .legal-updated {
-    font-size: 0.85rem;
-    color: var(--color-cyan);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 2.5rem !important;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    padding-bottom: 1.5rem;
-  }
+  .legal-body-container .legal-updated { font-family: var(--font-mono); font-size: 0.68rem !important; font-weight: 400; color: var(--color-text-faint) !important; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 2rem !important; padding-bottom: 1.1rem; border-bottom: 1px solid var(--color-border-light); max-width: none; }
 
-  .legal-body-container h3 {
-    font-family: var(--font-heading);
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--color-white);
-    margin-top: 3rem;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-  
-  /* Numbered headers style tweak */
-  .legal-body-container h3::before {
-    content: '';
-    display: block;
-    width: 24px;
-    height: 3px;
-    background: var(--color-cyan);
-    border-radius: 2px;
-  }
+  .legal-body-container h2 { font-family: var(--font-display); font-size: 1.8rem; font-weight: 400; color: var(--color-ink); margin: 2.5rem 0 1rem; }
+  .legal-body-container h3 { counter-increment: docsec; display: flex; align-items: baseline; gap: 0.9rem; font-family: var(--font-display); font-size: 1.5rem; font-weight: 400; line-height: 1.2; color: var(--color-ink); margin: 2.75rem 0 1rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--color-border-light); max-width: none; }
+  .legal-body-container h3::before { content: '\00A7\00A0' counter(docsec, decimal-leading-zero); flex-shrink: 0; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.08em; color: var(--color-text-faint); }
+  .legal-body-container h4 { font-family: var(--font-heading); font-size: 0.98rem; font-weight: 600; color: var(--color-ink); margin: 1.75rem 0 0.5rem; }
 
-  .legal-body-container h4 {
-    font-family: var(--font-heading);
-    font-size: 1.15rem;
-    font-weight: 600;
-    color: #e2e8f0;
-    margin-top: 2rem;
-  }
+  .legal-body-container p { margin: 0 0 1rem; }
 
-  .legal-body-container p {
-    margin: 0;
-  }
-
-  /* Lists */
-  .legal-body-container ul, .legal-body-container ol {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    padding-left: 1.5rem;
-    margin: 0.5rem 0;
-    background: rgba(0,0,0,0.15);
-    padding: 1.5rem 1.5rem 1.5rem 3rem;
-    border-radius: 0.75rem;
-    border: 1px solid rgba(255,255,255,0.03);
-  }
-
-  .legal-body-container ul { list-style: disc; }
+  .legal-body-container ul, .legal-body-container ol { margin: 0.5rem 0 1.25rem; padding: 0 0 0 1.4rem; }
+  .legal-body-container ul { list-style: none; padding-left: 0; }
+  .legal-body-container ul > li { position: relative; padding-left: 1.4rem; }
+  .legal-body-container ul > li::before { content: '\2014'; position: absolute; left: 0; color: var(--color-text-faint); }
   .legal-body-container ol { list-style: decimal; }
-  
-  .legal-body-container li {
-    line-height: 1.6;
-  }
+  .legal-body-container ol > li::marker { font-family: var(--font-mono); font-size: 0.8em; color: var(--color-text-faint); }
+  .legal-body-container li { line-height: 1.8; margin-bottom: 0.5rem; }
 
-  .legal-body-container li::marker {
-    color: var(--color-cyan);
-  }
+  .legal-body-container a { color: var(--color-primary); text-decoration: underline; text-underline-offset: 2px; }
+  .legal-body-container a:hover { color: var(--color-ink); }
+  .legal-body-container strong { color: var(--color-ink); font-weight: 600; }
 
-  /* Links */
-  .legal-body-container a {
-    color: var(--color-cyan);
-    text-decoration: none;
-    font-weight: 500;
-    border-bottom: 1px solid transparent;
-    transition: all 0.2s;
-  }
+  /* Tables as ruled ledgers */
+  .legal-body-container table, .legal-body-container .legal-table { width: 100%; max-width: none; border-collapse: collapse; margin: 1rem 0 2rem; font-size: 0.88rem; background: transparent; border: 0; }
+  .legal-body-container th, .legal-body-container td { padding: 0.7rem 0.9rem 0.7rem 0; text-align: left; border-bottom: 1px solid var(--color-border-light); vertical-align: top; }
+  .legal-body-container thead th, .legal-body-container tr:first-child th { background: transparent; font-family: var(--font-mono); font-weight: 500; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--color-text-muted); border-bottom: 1.5px solid var(--color-ink); }
+  .legal-body-container tbody tr:hover td { background: var(--color-bg-card); }
 
-  .legal-body-container a:hover {
-    color: #fff;
-    border-bottom-color: var(--color-cyan);
-  }
-
-  .legal-body-container strong {
-    color: var(--color-white);
-    font-weight: 600;
-  }
-
-  /* Tables */
-  .legal-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 1.5rem 0 2.5rem;
-    background: rgba(0,0,0,0.25);
-    border-radius: 0.75rem;
-    overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.05);
-  }
-
-  .legal-table th, .legal-table td {
-    padding: 1.25rem 1.5rem;
-    text-align: left;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-  }
-
-  .legal-table th {
-    background: rgba(255,255,255,0.03);
-    color: var(--color-white);
-    font-weight: 600;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .legal-table tr:last-child td {
-    border-bottom: none;
-  }
-
-  .legal-table tr:hover td {
-    background: rgba(255,255,255,0.02);
-  }
-  
-  /* Responsive */
   @media (max-width: 768px) {
-    .legal-title { font-size: 2.25rem; }
-    .legal-body-container { padding: 2rem 1.5rem; border-radius: 1rem; }
-    .legal-table { display: block; overflow-x: auto; }
-    .legal-body-container ul, .legal-body-container ol { padding: 1.25rem 1.25rem 1.25rem 2rem; }
+    .legal-body-container table { display: block; overflow-x: auto; }
+    .legal-body-container h3 { font-size: 1.3rem; }
   }
 </style>

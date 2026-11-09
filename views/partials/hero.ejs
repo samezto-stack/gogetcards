@@ -1,39 +1,98 @@
-<section class="hero zy-texture" id="hero">
-  <div class="hero__veil" aria-hidden="true"></div>
-
+<%
+  /* THE TITLE PAGE of the register. Left: what this store is, in one
+     headline. Right: a ledger of what is open right now, read from the
+     same products the rest of the home page shows — the open preorder
+     allocations first, the featured lots when nothing is on preorder, and
+     the index of games when the catalogue is empty. Nothing in the ledger
+     is invented: no row exists without a product behind it, and a product
+     not sold in this market (marketPrice returns null) is left out rather
+     than shown without a price. */
+  var heroMoney = (typeof marketMoney === 'function') ? marketMoney : function (c) { return 'US$' + formatPrice(c); };
+  var heroPriced = function (p) { return (typeof marketPrice === 'function') ? marketPrice(p) : null; };
+  var heroRows = [];
+  var heroMode = 'games';
+  var poList = (typeof preorderProducts !== 'undefined' && preorderProducts) ? preorderProducts : [];
+  var ftList = (typeof featuredProducts !== 'undefined' && featuredProducts) ? featuredProducts : [];
+  var heroSeen = {};
+  poList.forEach(function (p) { var pr = heroPriced(p); if (pr && heroRows.length < 5 && !heroSeen[p.slug]) { heroSeen[p.slug] = 1; heroRows.push({ p: p, pr: pr, po: true }); } });
+  var heroHasPreorders = heroRows.length > 0;
+  /* Fewer than five open allocations: the featured lots fill the ledger
+     beneath them, so the column never reads as an empty page. */
+  ftList.forEach(function (p) { var pr = heroPriced(p); if (pr && heroRows.length < 5 && !heroSeen[p.slug]) { heroSeen[p.slug] = 1; heroRows.push({ p: p, pr: pr, po: !!p.preorder }); } });
+  if (heroRows.length) heroMode = (heroHasPreorders && heroRows.every(function (r) { return r.po; })) ? 'allocations' : 'featured';
+  /* The index of lines, from config/catalog.js: the same list the nav,
+     the footer and the home grid read. */
+  var heroGames = catalog.all().map(function (line) {
+    return { href: '/collection/' + line.handle, name: line.name, sub: line.kind === 'sport' ? (line.league + ' · ' + line.publisher) : line.publisher };
+  });%>
+<section class="hero" id="hero">
   <div class="container">
-    <div class="hero__content animate-fade-in-up">
-      <div class="hero__eyebrow">
-        <span class="zy-meta">Factory Sealed · Distributor Direct</span>
+    <div class="hero__grid">
+      <div class="hero__content animate-fade-in-up">
+        <div class="hero__eyebrow">
+          <span class="zy-meta">Factory sealed · Distributor direct</span>
+          <span class="hero__eyebrow-rule" aria-hidden="true"></span>
+        </div>
+
+        <h1 class="heading-hero hero__headline">
+          Factory sealed.<br>
+          Allocated early.<br>
+          <span class="hero__headline-accent">Held to release day.</span>
+        </h1>
+
+        <p class="hero__sub">
+          Booster boxes, elite trainer boxes and hobby boxes for Pokémon, Magic, One Piece, Lorcana, baseball, basketball and football, sourced through authorized distribution and never opened in between.
+        </p>
+
+        <div class="hero__ctas">
+          <a href="<%= marketPath('/collection/preorders') %>" class="btn btn-primary btn-lg" id="hero-preorder-btn">View Preorders</a>
+          <a href="<%= marketPath('/collection/all') %>" class="btn btn-outline btn-lg" id="hero-shop-btn">Shop All Products</a>
+        </div>
       </div>
 
-      <h1 class="heading-hero hero__headline">
-        Factory sealed.<br>
-        Allocated early.<br>
-        <span class="hero__headline-accent">Held to release day.</span>
-      </h1>
+      <aside class="hero__aside" aria-labelledby="hero-ledger-title">
+        <div class="hero__aside-head">
+          <h2 class="hero__aside-title" id="hero-ledger-title">
+            <%= heroMode === 'allocations' ? 'Open allocations' : (heroMode === 'featured' ? 'In the register' : 'Contents') %>
+          </h2>
+          <span class="zy-meta"><%= heroMode === 'games' ? 'By line' : (heroRows.length + (heroRows.length === 1 ? ' lot' : ' lots')) %></span>
+        </div>
 
-      <p class="hero__sub">
-        Booster boxes, elite trainer boxes and hobby boxes for Pokémon, Magic, One Piece, Lorcana, baseball, basketball and football, sourced through authorized distribution and never opened in between.
-      </p>
+        <div class="hero__ledger">
+          <% if (heroMode === 'games') { %>
+            <% heroGames.forEach(function (g, i) { %>
+              <a class="hero__ledger-row" href="<%= marketPath(g.href) %>">
+                <span class="hero__ledger-n"><%= String(i + 1).padStart(2, '0') %></span>
+                <span><span class="hero__ledger-name"><%= g.name %></span><span class="hero__ledger-sub"><%= g.sub %></span></span>
+                <span class="hero__ledger-price" aria-hidden="true">&rarr;</span>
+              </a>
+            <% }); %>
+          <% } else { %>
+            <% heroRows.forEach(function (r, i) { %>
+              <a class="hero__ledger-row" href="<%= marketPath('/products/' + r.p.slug) %>">
+                <span class="hero__ledger-n"><%= String(i + 1).padStart(2, '0') %></span>
+                <span>
+                  <span class="hero__ledger-name"><%= r.p.title %></span>
+                  <% if (r.po) { %>
+                    <span class="hero__ledger-sub hero__ledger-sub--stamp"><%= preorder.shortLine(r.p) %></span>
+                  <% } else { %>
+                    <span class="hero__ledger-sub"><%= r.p.productType || 'Sealed product' %><%= r.p.available === false ? ' · Sold out' : '' %></span>
+                  <% } %>
+                </span>
+                <span class="hero__ledger-price" data-usd-cents="<%= r.pr.amount %>" data-usd-label="<%= heroMoney(r.pr.amount, r.pr.currency) %>"><%= heroMoney(r.pr.amount, r.pr.currency) %></span>
+              </a>
+            <% }); %>
+          <% } %>
+        </div>
 
-      <div class="hero__ctas">
-        <a href="<%= marketPath('/collection/preorders') %>" class="btn btn-primary btn-lg" id="hero-preorder-btn">
-          View Preorders
-        </a>
-        <a href="<%= marketPath('/collection/all') %>" class="btn btn-outline btn-lg" id="hero-shop-btn">
-          Shop All Products
-        </a>
-      </div>
-
-      <!-- Category chips replace the floating card deco that used to sit
-           at the right edge — same navigation value, but tactile and
-           actually clickable instead of decorative. -->
-      <nav class="hero__chips" aria-label="Shop by game">
-        <% catalog.all().forEach(function (line) { %>
-        <a href="<%= marketPath('/collection/' + line.handle) %>" class="hero__chip"><img src="/images/<%= line.icon %>" alt="" aria-hidden="true" width="15" height="15" loading="lazy" decoding="async"><span><%= line.shortName %></span></a>
-        <% }); %>
-      </nav>
+        <p class="hero__aside-foot">
+          <% if (heroHasPreorders) { %>
+            Preorders are charged today and can be cancelled for a full refund until dispatch. <a href="<%= marketPath('/preorder-policy') %>">Preorder policy</a>
+          <% } else { %>
+            Every lot is bought through authorized distribution and ships sealed. <a href="<%= marketPath('/factory-sealed-guarantee') %>">Our guarantee</a>
+          <% } %>
+        </p>
+      </aside>
     </div>
   </div>
 </section>

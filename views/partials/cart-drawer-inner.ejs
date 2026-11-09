@@ -26,7 +26,7 @@
   <h2 class="cd__title">
     Your Cart
     <% if (cart && cart.totalItems > 0) { %>
-      <span class="badge badge--new" style="margin-left:0.625rem"><%= cart.totalItems %></span>
+      <span class="cd__count"><%= cart.totalItems %></span>
     <% } %>
   </h2>
   <button class="cd__close" id="cart-drawer-close" aria-label="Close cart">
@@ -39,7 +39,7 @@
     <div class="cd__empty">
       <div class="cd__empty-icon" aria-hidden="true"><%- include('icon', { name: 'shopping-cart', size: 48, color: 'var(--color-text-faint)' }) %></div>
       <p class="cd__empty-title">Your cart is empty</p>
-      <p style="font-size:0.875rem;color:var(--color-text-muted);text-align:center">
+      <p class="cd__empty-body">
         Add some premium sealed product and come back here.
       </p>
       <a href="<%= marketPath('/collection/all') %>" class="btn btn-primary" id="cd-browse-btn" style="margin-top:1rem">
@@ -60,11 +60,11 @@
           <div class="cd__item-info">
             <a href="<%= marketPath('/products/' + (item.slug)) %>" class="cd__item-title"><%= item.title %></a>
             <% if (item.preorder) { %>
-              <span class="badge badge--preorder" style="font-size:0.6rem;margin-top:4px">Preorder</span>
+              <span class="badge badge--preorder" style="margin-top:5px">Preorder</span>
             <% } %>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.625rem">
+            <div class="cd__item-line">
               <span class="cd__item-price"><%= ctMoney(ctLine(item) * item.quantity) %></span>
-              <span style="font-size:0.72rem;color:var(--color-text-faint)">×<%= item.quantity %></span>
+              <span class="cd__item-qty">×<%= item.quantity %></span>
               <button class="cd__remove-btn" data-cart-remove="<%= item.slug %>" aria-label="Remove <%= item.title %>">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
               </button>
@@ -86,22 +86,24 @@
          on a laptop screen. Same facts: free shipping, the one order limit
          (the whole cart is charged as one plan, and plans stop at
          $1,199.76), and who collects import duty. */%>
-    <p style="font-size:0.72rem;color:var(--color-accent);text-align:center;font-weight:600;margin:0">
+    <div class="cd__terms">
+    <p class="cd__ship">
       <%= shippingCopy.short %> &middot; mix any products, up to $1,199.76 per order
     </p>
-    <p style="font-size:0.66rem;color:var(--color-text-faint);text-align:center;margin:0">
+    <p class="cd__fine">
       Import duty, where it applies, is collected by the carrier
     </p>
+    </div>
     <a href="<%= marketPath('/cart') %>" class="btn btn-ghost btn-full" id="cd-view-cart">
       View Cart
     </a>
     <a href="<%= marketPath('/checkout-redirect') %>" class="btn btn-primary btn-full btn-lg" id="cd-checkout-btn">
-      <%- include('icon', { name: 'lock', size: 16, color: '#fff' }) %><span style="margin-left:0.5rem">Secure Checkout · <%= ctMoney(ctTotal) %></span>
+      <%- include('icon', { name: 'lock', size: 14, color: 'currentColor' }) %><span>Secure Checkout · <%= ctMoney(ctTotal) %></span>
     </a>
     <div class="cd__trust-row">
-      <span style="display:inline-flex;align-items:center;gap:4px"><%- include('icon', { name: 'lock', size: 12, color: 'var(--color-text-faint)' }) %> Secure</span>
-      <span style="display:inline-flex;align-items:center;gap:4px"><%- include('icon', { name: 'check-circle', size: 12, color: 'var(--color-text-faint)' }) %> Sealed</span>
-      <span style="display:inline-flex;align-items:center;gap:4px"><%- include('icon', { name: 'package', size: 12, color: 'var(--color-text-faint)' }) %> Tracked</span>
+      <span><%- include('icon', { name: 'lock', size: 11, color: 'currentColor' }) %> Secure</span>
+      <span><%- include('icon', { name: 'check-circle', size: 11, color: 'currentColor' }) %> Sealed</span>
+      <span><%- include('icon', { name: 'package', size: 11, color: 'currentColor' }) %> Tracked</span>
     </div>
   </div>
 <% } %>

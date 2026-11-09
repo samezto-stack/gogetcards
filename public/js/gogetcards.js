@@ -153,7 +153,7 @@
 
     const btn = form.querySelector('[data-atc-btn]');
     const originalText = btn ? btn.innerHTML : '';
-    if (btn) { btn.innerHTML = '⏳ Adding...'; btn.disabled = true; }
+    if (btn) { btn.innerHTML = 'Adding…'; btn.disabled = true; }
 
     const slug = form.querySelector('[name="slug"]')?.value;
     const qty  = parseInt(form.querySelector('[name="quantity"]')?.value || '1');
@@ -198,11 +198,11 @@
           openCartDrawer();
           refreshCartDrawerHTML().then(() => showCartNotice(data.message));
         } else {
-          if (btn) { btn.innerHTML = '❌ Error — retry'; btn.disabled = false; }
+          if (btn) { btn.innerHTML = 'Error, retry'; btn.disabled = false; }
         }
       })
       .catch(() => {
-        if (btn) { btn.innerHTML = '❌ Error — retry'; btn.disabled = false; }
+        if (btn) { btn.innerHTML = 'Error, retry'; btn.disabled = false; }
       });
   });
 
@@ -492,11 +492,11 @@
     if (remaining <= 5) {
       if (dot) dot.className = 'pp__stock-dot pp__stock-dot--low';
       if (text) {
-        text.innerHTML = '<span style="color:#FC8181;font-weight:600">Only ' + remaining + ' left — selling fast!</span>';
+        text.innerHTML = '<span style="color:var(--color-red);font-weight:600">Only ' + remaining + ' left — selling fast!</span>';
       }
       if (fill) {
         fill.style.width = (100 - pct) + '%';
-        fill.style.background = 'linear-gradient(90deg,#EF4444,#F59E0B)';
+        fill.style.background = 'var(--color-red)';
       }
     } else {
       if (dot) dot.className = 'pp__stock-dot pp__stock-dot--ok';
@@ -505,7 +505,7 @@
       }
       if (fill) {
         fill.style.width = (100 - pct) + '%';
-        fill.style.background = 'linear-gradient(90deg, var(--color-accent), var(--color-cyan))';
+        fill.style.background = 'var(--color-ink)';
       }
     }
   }

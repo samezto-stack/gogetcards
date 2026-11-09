@@ -90,6 +90,7 @@ app.use((req, res, next) => {
        rather than a missing local. */
     productImage: require(path.join(ROOT, 'helpers/productImage')),
     dispatch: require(path.join(ROOT, 'helpers/dispatch')),
+    jsonForScript: require(path.join(ROOT, 'helpers/jsonForScript')),
     testOrder: require(path.join(ROOT, 'services/testOrder')),
     /* jsonForScript is how every inline <script> in the layout serialises
        data (the sitewide JSON-LD graph included), so without it here the

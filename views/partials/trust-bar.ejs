@@ -1,15 +1,17 @@
-<section class="trust-bar">
+<%/* The terms of sale, set as four numbered clauses rather than four
+     icons: the register states its terms, it does not decorate them. */%>
+<section class="trust-bar" aria-label="Terms of sale">
   <div class="container">
     <div class="trust-bar__grid">
       <div class="trust-bar__item">
-        <span class="trust-bar__icon" aria-hidden="true" style="color:var(--color-primary)"><%- include('icon', { name: 'lock', size: 28, color: 'var(--color-primary)' }) %></span>
+        <span class="trust-bar__num" aria-hidden="true">i.</span>
         <div>
           <p class="trust-bar__label">Authentic Sealed</p>
           <p class="trust-bar__sub">Direct from distributor</p>
         </div>
       </div>
       <div class="trust-bar__item">
-        <span class="trust-bar__icon" aria-hidden="true" style="color:var(--color-primary)"><%- include('icon', { name: 'credit-card', size: 28, color: 'var(--color-primary)' }) %></span>
+        <span class="trust-bar__num" aria-hidden="true">ii.</span>
         <div>
           <%/* Was "PayPal protected payment". PayPal is not offered at
                this store's checkout, and a payment method advertised on
@@ -21,7 +23,7 @@
         </div>
       </div>
       <div class="trust-bar__item">
-        <span class="trust-bar__icon" aria-hidden="true" style="color:var(--color-primary)"><%- include('icon', { name: 'globe', size: 28, color: 'var(--color-primary)' }) %></span>
+        <span class="trust-bar__num" aria-hidden="true">iii.</span>
         <div>
           <%/* The store's strongest single trust signal now leads this
                cell. "Global Shipping / Tracked & fully insured" buried the
@@ -33,7 +35,7 @@
         </div>
       </div>
       <div class="trust-bar__item">
-        <span class="trust-bar__icon" aria-hidden="true" style="color:var(--color-primary)"><%- include('icon', { name: 'package', size: 28, color: 'var(--color-primary)' }) %></span>
+        <span class="trust-bar__num" aria-hidden="true">iv.</span>
         <div>
           <p class="trust-bar__label">Collector Packaging</p>
           <p class="trust-bar__sub">Rigid outer box, every order</p>

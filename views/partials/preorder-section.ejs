@@ -5,28 +5,28 @@
 
       <!-- Left: Copy -->
       <div class="po-section__left">
-        <span class="badge badge--preorder" style="font-size:0.78rem;padding:5px 14px">
-          Preorder Now Open
-        </span>
-        <h2 class="heading-section" style="margin-top:1rem">
+        <div class="reg-head" style="grid-template-columns:auto 1fr">
+          <span class="reg-head__num">&sect; 03</span>
+          <span class="zy-stamp" style="justify-self:start">Preorder now open</span>
+        </div>
+        <h2 class="heading-section" style="margin-top:1.5rem">
           Wave 1 allocation,<br>
-          <span style="color:var(--color-text-muted);font-weight:300">priced at release rate</span>
+          <em style="font-weight:300;color:var(--color-text-muted)">priced at release rate</em>
         </h2>
-        <p style="color:var(--color-text-muted);font-weight:300;line-height:1.8;max-width:420px;margin-top:0.875rem">
+        <p style="color:var(--color-text-muted);line-height:1.75;max-width:30rem;margin-top:1rem">
           Preorder allocation is finite and set by the distributor, not by us. Lock your price today and we dispatch on the publisher's release date, or within <%= preorder.AFTER_RELEASE %> business days of it. No markup.
         </p>
-
         <div class="po-section__urgency">
           <div class="po-section__urgency-item">
-            <span class="po-section__urgency-dot"></span>
+            <span class="po-section__urgency-dot">01</span>
             <span>Price guaranteed at preorder rate</span>
           </div>
           <div class="po-section__urgency-item">
-            <span class="po-section__urgency-dot"></span>
+            <span class="po-section__urgency-dot">02</span>
             <span><%= preorder.DISPATCH_SHORT %></span>
           </div>
           <div class="po-section__urgency-item">
-            <span class="po-section__urgency-dot"></span>
+            <span class="po-section__urgency-dot">03</span>
             <span>Cancel anytime before dispatch for a full refund</span>
           </div>
           <%/* The disclosure that was missing here. This block sold
@@ -36,18 +36,19 @@
                state, and the fact a buyer is most likely to be surprised
                by. Every product page says it, so the homepage does too. */%>
           <div class="po-section__urgency-item">
-            <span class="po-section__urgency-dot"></span>
+            <span class="po-section__urgency-dot">04</span>
             <span>Charged today, not on release day</span>
           </div>
         </div>
 
-        <a href="<%= marketPath('/collection/preorders') %>" class="btn btn-primary btn-lg" id="preorder-section-cta" style="margin-top:1.75rem;display:inline-flex">
-          View All Preorders →
+        <a href="<%= marketPath('/collection/preorders') %>" class="btn btn-primary btn-lg" id="preorder-section-cta" style="margin-top:1.75rem">
+          View all preorders &rarr;
         </a>
       </div>
 
       <!-- Right: Product Cards -->
       <div class="po-section__right">
+        <div class="po-section__right-head"><span class="hero__aside-title">The ledger</span><span class="zy-meta">Allocation remaining</span></div>
         <% if (typeof preorderProducts !== 'undefined' && preorderProducts.length > 0) { %>
           <% preorderProducts.slice(0, 2).forEach(function(product) { %>
             <%
@@ -69,7 +70,7 @@
                 ? Math.max(4, Math.min(100, Math.round((stock / allocationStart) * 100)))
                 : 0;
             %>
-            <a href="<%= marketPath('/products/' + (product.slug)) %>" class="po-card zy-slab" id="po-card-<%= product.slug %>">
+            <a href="<%= marketPath('/products/' + (product.slug)) %>" class="po-card" id="po-card-<%= product.slug %>">
               <div class="po-card__header">
                 <span class="badge badge--preorder">Preorder</span>
                 <% if (product.preorderShips) { %>
@@ -94,7 +95,7 @@
                 <% if (poP) { %>
                   <span class="po-card__price" data-usd-cents="<%= poP.amount %>" data-usd-label="<%= marketMoney(poP.amount, poP.currency) %>"><%= marketMoney(poP.amount, poP.currency) %></span>
                 <% } %>
-                <span class="btn btn-primary btn-sm">Secure Spot →</span>
+                <span class="btn btn-primary btn-sm">Secure spot &rarr;</span>
               </div>
             </a>
           <% }); %>
@@ -119,10 +120,11 @@
 </section>
 
 <style>
-  .po-section__right { display:flex; flex-direction:column; gap:1rem; }
-  .po-alloc { margin: 0.9rem 0 0.25rem; }
-  .po-alloc__head { display:flex; align-items:baseline; justify-content:space-between; gap:1rem; margin-bottom:0.45rem; }
-  .po-alloc__count { font-family:var(--font-mono); font-size:0.74rem; color:var(--color-text); font-variant-numeric:tabular-nums; }
-  .po-empty { background:var(--color-bg-card); border:1px dashed var(--color-border-light); border-radius:var(--radius-lg); padding:2rem 1.75rem; }
-  .po-empty__text { font-size:0.88rem; font-weight:300; color:var(--color-text-muted); line-height:1.8; margin-top:0.6rem; }
+  .po-section__right { display:flex; flex-direction:column; }
+  .po-section__right-head { display:flex; justify-content:space-between; align-items:baseline; padding-bottom:0.7rem; border-bottom:1.5px solid var(--color-ink); margin-bottom:0; }
+  .po-alloc { margin: 0.25rem 0 0.1rem; }
+  .po-alloc__head { display:flex; align-items:baseline; justify-content:space-between; gap:1rem; margin-bottom:0.4rem; }
+  .po-alloc__count { font-family:var(--font-mono); font-size:0.74rem; color:var(--color-ink); font-variant-numeric:tabular-nums; }
+  .po-empty { background:var(--color-bg-card); border:1px dashed var(--color-border-light); padding:2rem 1.75rem; }
+  .po-empty__text { font-size:0.9rem; color:var(--color-text-muted); line-height:1.75; margin-top:0.6rem; }
 </style>

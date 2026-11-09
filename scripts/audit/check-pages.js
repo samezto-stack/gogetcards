@@ -147,7 +147,7 @@ check('header: search input is labelled', /<label class="sr-only" for="site-sear
 
 /* ── Brand consistency ── */
 check('header + footer use the three-card mark',
-  (pages.home.match(/polygon points="284,192 408,192 228,320 104,320"/g) || []).length >= 2);
+  (pages.home.match(/rotate\(14 288 240\)/g) || []).length >= 2);
 check('old hexagon mark is gone', !/polygon points="14,2 26,8 26,20 14,26 2,20 2,8"/.test(pages.home));
 
 /* ── Organization schema ── */

@@ -19,10 +19,12 @@
      with no Referer at all — same as the two-step flow. Nothing is masked;
      the frame's src and the partner origin stay fully visible in the page. */%>
 <meta name="referrer" content="no-referrer">
-<meta name="theme-color" content="#0B0F14">
+<meta name="theme-color" content="#F4F1EA">
 <title><%= pageTitle %></title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%230B0F14'/><g fill='%23A78BFA'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%2316140F'/><g fill='%23F4F1EA'><rect x='104' y='104' width='304' height='74' rx='10'/><polygon points='284,192 408,192 228,320 104,320'/><rect x='104' y='334' width='304' height='74' rx='10'/></g></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Inter:wght@400..700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/checkout.css">
 <%/* googleAds:false — this one page carries the payment step, so it follows
      the rule the standalone step-2 page followed: NO Google tag here. Meta
@@ -60,13 +62,13 @@
     .ck-pay-reveal.is-revealing { animation: none; }
   }
 
-  .ck-pay-reveal-head { margin: 0 0 4px; }
+  .ck-pay-reveal-head { margin: 26px 0 0; padding-bottom: 8px; border-bottom: 1.5px solid var(--color-ink); display: flex; align-items: baseline; gap: 12px; }
   .ck-pay-reveal-head h2 {
-    font-family: var(--font-heading); font-size: 19px; font-weight: 700;
-    color: var(--color-white); margin: 0;
+    font-family: var(--font-display); font-size: 24px; font-weight: 400;
+    letter-spacing: -0.015em; color: var(--color-ink); margin: 0;
   }
   .ck-pay-reveal-sub {
-    margin: 6px 0 20px; font-size: 13px; color: var(--color-text-muted); line-height: 1.55;
+    margin: 12px 0 20px; font-size: 13.5px; color: var(--color-text-muted); line-height: 1.55;
   }
 
   /* ── The saved details, collapsed ─────────────────────────────────────
@@ -76,22 +78,24 @@
      confirmation, not a void. */
   .ck-review { margin: 0 0 4px; }
   .ck-review[hidden] { display: none; }
+  /* Ruled ledger rows, not boxes: the first carries the ink rule. */
+  .ck-review { border-top: 1.5px solid var(--color-ink); }
   .ck-review-row {
     display: flex; align-items: flex-start; gap: 14px;
-    padding: 14px 16px; border: 1px solid var(--color-border-light); border-radius: 12px;
-    background: rgba(255,255,255,0.015);
+    padding: 13px 0; border: 0; border-bottom: 1px solid var(--color-border-light); border-radius: 0;
+    background: none;
   }
-  .ck-review-row + .ck-review-row { margin-top: 10px; }
+  .ck-review-row + .ck-review-row { margin-top: 0; }
   .ck-review-label {
-    flex: 0 0 76px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
-    text-transform: uppercase; color: var(--color-text-muted); padding-top: 2px;
+    flex: 0 0 76px; font-size: 10.5px; color: var(--color-text-faint); padding-top: 3px;
   }
-  .ck-review-val { flex: 1 1 auto; font-size: 13.5px; color: var(--color-white); line-height: 1.5; overflow-wrap: anywhere; }
-  .ck-review-val .ck-review-2nd { display: block; color: var(--color-text-muted); font-size: 12.5px; margin-top: 3px; }
+  .ck-review-val { flex: 1 1 auto; font-size: 14px; color: var(--color-ink); line-height: 1.5; overflow-wrap: anywhere; }
+  .ck-review-val .ck-review-2nd { display: block; color: var(--color-text-muted); font-size: 13px; margin-top: 3px; }
   .ck-review-edit {
     flex: 0 0 auto; background: none; border: 0; padding: 2px 0; cursor: pointer;
-    font-size: 12.5px; font-weight: 600; color: var(--color-primary-text);
-    text-decoration: underline; text-underline-offset: 3px;
+    font-family: var(--font-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--color-primary);
+    text-decoration: underline; text-underline-offset: 4px;
   }
   .ck-review-check {
     display: inline-flex; align-items: center; gap: 7px; margin: 0 0 14px;
@@ -116,12 +120,14 @@
     max-width: 380px; margin: 0 auto; padding: 28px 24px; text-align: center;
     line-height: 1.6; font-size: 13.5px; color: var(--color-text-muted);
   }
-  .ck-embed-fallback h2 { font-family: var(--font-heading); font-size: 16px; color: var(--color-white); margin: 0 0 10px; }
+  .ck-embed-fallback h2 { font-family: var(--font-display); font-size: 21px; font-weight: 400; color: var(--color-ink); margin: 0 0 10px; }
   .ck-embed-fallback a {
-    display: inline-block; margin-top: 16px; padding: 12px 22px; border-radius: 8px;
-    background: var(--color-primary); color: #fff; font-weight: 700;
-    text-decoration: none; font-size: 14px;
+    display: inline-block; margin-top: 16px; padding: 13px 24px; border-radius: 0;
+    background: var(--color-ink); color: var(--color-on-ink); border: 1.5px solid var(--color-ink);
+    font-family: var(--font-heading); font-size: 12.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    text-decoration: none;
   }
+  .ck-embed-fallback a:hover { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
 
   /* ── The payment window (3-D Secure / wallets) ────────────────────────
      Deliberately quiet. The customer's attention belongs in the window that
@@ -133,26 +139,28 @@
     font-size: 12.5px; color: var(--color-text-muted); line-height: 1.55;
   }
   .ck-paywin-wait {
-    padding: 22px 20px; border-radius: 12px;
-    border: 1px solid var(--color-border-light); background: rgba(255,255,255,0.02);
+    padding: 20px 20px; border-radius: 0;
+    border: 1px solid var(--color-border-light); border-top: 1.5px solid var(--color-ink);
+    background: var(--color-bg-card);
   }
   .ck-paywin-wait[hidden], .ck-paywin-err[hidden] { display: none; }
   .ck-paywin-wait-h {
     display: flex; align-items: center; gap: 10px;
-    font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: var(--color-white);
+    font-family: var(--font-display); font-size: 19px; font-weight: 400; color: var(--color-ink);
   }
   .ck-paywin-wait p { margin: 10px 0 0; font-size: 13px; line-height: 1.6; color: var(--color-text-muted); }
   .ck-paywin-actions { display: flex; gap: 18px; margin-top: 16px; flex-wrap: wrap; }
   .ck-paywin-link {
     background: none; border: 0; padding: 0; cursor: pointer;
-    font-size: 12.5px; font-weight: 600; color: var(--color-primary-text);
-    text-decoration: underline; text-underline-offset: 3px;
+    font-family: var(--font-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--color-primary);
+    text-decoration: underline; text-underline-offset: 4px;
   }
   .ck-paywin-cancel { color: var(--color-text-muted); }
   .ck-paywin-err {
-    margin: 14px 0 0; padding: 12px 14px; border-radius: 10px;
-    border: 1px solid rgba(196,72,92,0.35); background: rgba(196,72,92,0.06);
-    font-size: 12.5px; line-height: 1.6; color: var(--color-text);
+    margin: 14px 0 0; padding: 12px 14px; border-radius: 0;
+    border: 1px solid var(--color-red); border-left-width: 3px; background: var(--color-red-soft);
+    font-size: 13px; line-height: 1.6; color: var(--color-text);
   }
 
   /* A form-level error, shown when prepare fails for a reason that is not a
@@ -160,12 +168,12 @@
      navigate). Rare, and never a dead end — the native submit still runs. */
   .ck-form-error {
     display: flex; align-items: flex-start; gap: 9px; margin: 0 0 18px;
-    padding: 12px 14px; border-radius: 10px;
-    border: 1px solid rgba(196,72,92,0.35); background: rgba(196,72,92,0.06);
-    font-size: 13px; line-height: 1.55; color: var(--color-text);
+    padding: 12px 14px; border-radius: 0;
+    border: 1px solid var(--color-red); border-left-width: 3px; background: var(--color-red-soft);
+    font-size: 13.5px; line-height: 1.55; color: var(--color-text);
   }
   .ck-form-error[hidden] { display: none; }
-  .ck-form-error svg { flex-shrink: 0; margin-top: 2px; color: #E0607A; }
+  .ck-form-error svg { flex-shrink: 0; margin-top: 2px; color: var(--color-red); }
 </style>
 </head>
 <body>
@@ -177,7 +185,7 @@
   const v = values || {};
   const e = errors || {};
   const err = (field) => e[field]
-    ? '<p class="ck-error-msg"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' + e[field] + '</p>'
+    ? '<p class="ck-error-msg"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' + esc(e[field]) + '</p>'   /* escaped: never trust a message to stay static */
     : '';
   const bad = (field) => e[field] ? ' has-error' : '';
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
@@ -206,9 +214,9 @@
             <img src="<%= productImage.at(p.imageUrl, 160) %>" alt="<%= esc(p.title) %>">
           <% } else { %>
             <svg viewBox="0 0 64 48" role="img" aria-label="Product image">
-              <rect x="20" y="10" width="24" height="28" rx="2" fill="none" stroke="#3A4867" stroke-width="1.2"/>
-              <path d="M20 31l6-6 4.5 4.5L36 23l8 8" fill="none" stroke="#3A4867" stroke-width="1.2" stroke-linejoin="round"/>
-              <circle cx="28" cy="18" r="2.4" fill="none" stroke="#3A4867" stroke-width="1.2"/>
+              <rect x="20" y="10" width="24" height="28" rx="2" fill="none" stroke="#B9B0A0" stroke-width="1.2"/>
+              <path d="M20 31l6-6 4.5 4.5L36 23l8 8" fill="none" stroke="#B9B0A0" stroke-width="1.2" stroke-linejoin="round"/>
+              <circle cx="28" cy="18" r="2.4" fill="none" stroke="#B9B0A0" stroke-width="1.2"/>
             </svg>
           <% } %>
           <% if (priced.quantity > 1) { %>
@@ -219,7 +227,7 @@
         <div class="ck-item-main">
           <p class="ck-item-name"><%= p.title %></p>
           <p class="ck-item-meta">
-            <span class="ck-item-badge"><%= priced.isPreorder ? 'Preorder' : 'In stock' %></span>
+            <span class="ck-item-badge <%= priced.isPreorder ? 'is-preorder' : 'is-instock' %>"><%= priced.isPreorder ? 'Preorder' : 'In stock' %></span>
             <span class="ck-item-badge ck-item-qty">Qty: <%= priced.quantity %></span>
           </p>
           <p class="ck-item-pricing">

@@ -91,12 +91,13 @@
       if (pcLine) metaBits.push(pcLine.shortName);
       if (product.vendor) metaBits.push(product.vendor);
     %>
-    <p class="pc__meta"><%= metaBits.join(' · ') %></p>
-    <%/* pcTitle is defined once at the top (variant-aware). No hard
-         character cut here: truncating at 72 chars dropped exactly the
-         distinguishing suffix ("… — Witherbloom Pestilence"), so the title
-         now wraps and the CSS clamps it to three lines instead. */%>
-    <a href="<%= pcHref %>" class="pc__title" style="text-decoration:none"><%= pcTitle %></a>
+    <%/* The lot line: game and publisher on the left, the set code on the
+         right where there is one, in mono like a catalogue reference.
+         pcTitle is defined once at the top (variant-aware). No hard
+         character cut: truncating dropped exactly the distinguishing
+         suffix, so the title wraps and the CSS clamps it instead. */%>
+    <p class="pc__lot pc__meta"><span><%= metaBits.join(' · ') %></span><% if (product.setCode) { %><span><%= product.setCode %></span><% } %></p>
+    <a href="<%= pcHref %>" class="pc__title"><%= pcTitle %></a>
     <p class="pc__type"><%= product.productType %></p>
 
     <%/* Every preorder card says so, even with no ship window set. The
@@ -150,11 +151,11 @@
             id="atc-quick-<%= product.slug %>"
             aria-label="Add <%= pcTitle %> to cart"
           >
-            <% if (isPreorder) { %><%- include('icon', { name: 'bell', size: 14, color: '#fff' }) %><% } else { %>+<% } %>
+            <%= isPreorder ? 'Reserve' : 'Add' %>
           </button>
         </form>
       <% } else { %>
-        <a href="<%= pcHref %>" class="btn btn-ghost btn-sm">View →</a>
+        <a href="<%= pcHref %>" class="btn btn-ghost btn-sm">Sold out</a>
       <% } %>
     </div>
   </div>

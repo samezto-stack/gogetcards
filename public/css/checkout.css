@@ -1,81 +1,90 @@
 /* ============================================================
-   GoGetCards — checkout (Step 1 and the payment handoff)
+   GoGetCards — checkout ("The Sealed Register", order-form edition)
 
-   The same stylesheet the partner checkout uses, ported here so the
-   customer's information step and their payment step are visibly one
-   journey. Ported rather than reimplemented: it has been through several
-   accessibility and contrast passes and re-typing it would lose them.
+   The checkout is the order slip at the back of the register: the same
+   paper, the same ink and the same ruled rows as the catalogue the buyer
+   just left, so the step that takes the money is visibly the same
+   business. See docs/storefront-design.md for the rules; the tokens below
+   are copied from public/css/gogetcards.css because these pages render with
+   `layout: false` and load only this stylesheet.
 
-   Tokens are gogetcards's own, from public/css/gogetcards.css, so the
-   checkout is visibly the same business as the store the buyer
-   just left. One theme across all nine partner sites.
+   The composition: one ruled sheet holding both columns. The form sits on
+   a light leaf; the order summary is a ledger on the darker sheet beside
+   it, with the product on a white plate and every figure set in mono.
+   Depth comes from rules. There are no shadows, glows, gradients or blur,
+   and every corner is square. Violet is a stamp (links, focus, the active
+   step), never a fill. The primary action is an ink rectangle.
 
-   The brief for this pass: the previous version read as a payment
-   form floating in a void. Someone about to move $1,700 needs the
-   page to look like it belongs to a company. That is fixed with
-   COMPOSITION and DENSITY — a defined surface under both columns,
-   a product image with real presence, a proper type scale — not
-   with more copy and not with more boxes.
-
-   Deliberately absent, because they are what makes a page read as
-   generated: repeated icon-in-a-circle rows, a card inside a card
-   inside a card, gradients as decoration, neon glow on the CTA,
-   invented trust seals, and any badge whose claim nobody checked.
-
-   EVERY class and id the page script touches is preserved. In
-   particular #ck-continue keeps the price in a BARE TEXT NODE:
-   the product-override walks that button's child text nodes, so
-   wrapping the amount in a span would silently break every
-   host-supplied price.
+   EVERY class and id the page scripts touch is preserved. In particular
+   #ck-continue keeps the price in a BARE TEXT NODE: the product-override
+   walks that button's child text nodes, so wrapping the amount in a span
+   would silently break every host-supplied price. The amount is therefore
+   styled through the button's own font (mono), and the label through
+   .ck-cta-main (Inter, uppercase).
    ============================================================ */
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  /* ── surfaces ── */
-  --color-bg:           #0B0F14;
-  --color-bg-elevated:  #111821;
-  --color-bg-card:      #141C26;
-  --color-bg-input:     #1A2332;
-  --color-border:       rgba(124, 58, 237, 0.18);
-  --color-border-light: rgba(255, 255, 255, 0.06);
+  /* ── paper and ink ── */
+  --color-bg:           #F4F1EA;   /* page paper */
+  --color-bg-elevated:  #ECE7DC;   /* darker sheet: the summary rail, bands */
+  --color-bg-card:      #FBFAF6;   /* leaf: the form, panels */
+  --color-bg-input:     #FFFFFF;
+  --color-plate:        #FFFFFF;   /* product images sit on this */
+  --color-ink:          #16140F;
+  --color-border:       #16140F;   /* a strong rule */
+  --color-border-light: #D8D1C2;   /* a hairline */
+  --color-border-input: #B9B0A0;
+  --color-rule-soft:    #E6E0D3;
 
-  /* ── brand ── */
-  --color-primary:      #7C3AED;
-  /* #7C3AED is 3.4:1 on the page background — fine as a button fill or a
-     border, below AA as text. Use this lighter tint wherever the brand
-     colour has to carry actual words. */
-  --color-primary-text: #A78BFA;
-  --color-primary-dark: #5B21B6;
+  /* ── the stamp ── */
+  --color-primary:      #4527A0;
+  --color-primary-text: #4527A0;
+  --color-primary-dark: #2F1A72;
+  --color-primary-glow: rgba(69, 39, 160, 0.16);   /* focus rings only */
+  --color-primary-soft: #ECE6F7;
 
-  --color-accent:       #22C55E;   /* free / included / secure */
-  --color-cyan:         #06B6D4;   /* the second brand note, used sparingly */
-  --color-gold:         #F59E0B;
-  --color-red:          #EF4444;
+  /* ── status inks ── */
+  --color-accent:       #1F6B3A;   /* free / included / secure / in stock */
+  --color-accent-soft:  #E3EFE5;
+  --color-cyan:         #A3361C;   /* preorder: vermilion (historical name) */
+  --color-cyan-soft:    #F6E5DE;
+  --color-gold:         #8A5A00;
+  --color-gold-soft:    #F4EAD3;
+  --color-red:          #B42318;
+  --color-red-soft:     #F8E3E0;
 
-  /* ── ink ── */
-  --color-text:         #E5E7EB;
-  --color-text-muted:   #9CA3AF;
-  --color-text-faint:   #808A98;
-  --color-white:        #FFFFFF;
+  /* ── text ── */
+  --color-text:         #2A2620;
+  --color-text-muted:   #5F5A50;
+  --color-text-faint:   #746D60;
+  --color-white:        #16140F;   /* historical name: the strongest text colour */
+  --color-on-ink:       #F4F1EA;
 
   /* Legacy alias: the payment-failure message is built as a string inside
      the page script and references this name. */
   --text-soft: var(--color-text-muted);
 
-  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono:    'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
 
-  --radius-sm:   6px;
-  --radius-md:   10px;
-  --radius-lg:   16px;
-  --radius-full: 9999px;
+  --radius-sm:   2px;
+  --radius-md:   2px;
+  --radius-lg:   2px;
+  --radius-full: 9999px;   /* status dots only */
 
-  --shadow-card: 0 4px 24px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.3);
-  --shadow-deep: 0 24px 64px -24px rgba(0,0,0,0.75), 0 2px 8px rgba(0,0,0,0.4);
+  --shadow-card: none;
+  --shadow-deep: none;
+  --shadow-pop:  0 18px 40px -18px rgba(22, 20, 15, 0.28);   /* menus and drawers only */
 
-  --transition-fast:   150ms ease;
-  --transition-normal: 250ms ease;
+  --rule:      1.5px solid var(--color-ink);
+  --hairline:  1px solid var(--color-border-light);
+
+  --transition-fast:   120ms ease;
+  --transition-normal: 200ms ease;
 
   --page: 1120px;
 }
@@ -94,70 +103,102 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--color-white); margin: 0; }
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+  margin: 0;
+  font-variation-settings: 'opsz' 72;
+}
 
-/* Money. Tabular figures stop a total shifting by a pixel when a digit
-   changes — the kind of wobble that reads as "not a real store". */
+a { color: inherit; }
+
+/* Money. Mono, tabular, always. */
 .ck-item-price, .ck-grand-amount, .ck-summary-total-compact,
-.ck-total-row span:last-child, .ck-modal-order-recap strong, #ck-continue {
+.ck-total-row span:last-child, .ck-modal-order-recap strong, #ck-continue,
+.ck-handoff-row > span:last-child, .ck-so-price, .ck-so-was {
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
 }
 
-::selection { background: var(--color-primary); color: #fff; }
-:focus-visible { outline: 2px solid var(--color-primary-text); outline-offset: 2px; border-radius: 4px; }
+::selection { background: var(--color-ink); color: var(--color-on-ink); }
+:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; border-radius: 0; }
 
 .ck-sr-only, .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 
-/* ---------- Header ---------- */
+/* Shared small type: the register's mono label. */
+.ck-section-title, .ck-summary-h, .ck-pay-h, .ck-facts-h, .ck-assurance-title,
+.ck-total-row-grand > span:first-child, .ck-step-dot, .ck-field > label,
+.ck-review-label, .ck-so-gone-tag {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* ---------- Header ----------
+   A rail: wordmark left, the secure-checkout stamp right, an ink rule
+   under both. */
 
 .ck-header { background: var(--color-bg); padding: 0; display: block; border: 0; }
 
 .ck-header-in {
   max-width: var(--page);
   margin: 0 auto;
-  padding: 20px;
+  padding: 18px 20px 14px;
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  border-bottom: var(--hairline);
 }
 
-@media (min-width: 1000px) { .ck-header-in { padding: 26px 24px 22px; } }
+@media (min-width: 1000px) { .ck-header-in { padding: 26px 0 16px; } }
+@media (min-width: 1000px) and (max-width: 1160px) { .ck-header-in { margin: 0 20px; } }
 
 .ck-logo {
   display: inline-flex; align-items: center; gap: 10px;
-  font-family: var(--font-heading);
-  font-size: 19px; font-weight: 700; letter-spacing: -0.015em;
-  color: var(--color-white); text-decoration: none;
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 500; letter-spacing: -0.015em;
+  font-variation-settings: 'opsz' 72;
+  color: var(--color-ink); text-decoration: none;
 }
 
-.ck-logo-mark { width: 26px; height: 26px; display: grid; place-items: center; color: var(--color-primary-text); flex-shrink: 0; }
+.ck-logo-mark { width: 24px; height: 24px; display: grid; place-items: center; color: var(--color-ink); flex-shrink: 0; }
 .ck-logo-mark svg { display: block; width: 100%; height: 100%; }
-.ck-logo-tcg { color: var(--color-primary-text); }
+.ck-logo-tcg {
+  margin-left: 6px;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0.14em;
+  color: var(--color-primary);
+  vertical-align: 3px;
+}
 
 .ck-secure-pill {
   display: inline-flex; align-items: center; gap: 7px;
-  font-size: 12.5px; font-weight: 500; color: var(--color-text-muted); white-space: nowrap;
+  padding: 5px 9px;
+  border: 1px solid var(--color-accent);
+  background: var(--color-plate);
+  font-family: var(--font-mono); font-size: 10.5px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--color-accent); white-space: nowrap;
 }
 
 .ck-secure-pill svg { flex-shrink: 0; color: var(--color-accent); }
 
 /* ---------- The composition ----------
-   One surface holding both columns, sitting on the page ground. This is
-   what stops the form reading as fields floating in black. It is NOT an
-   outlined rectangle around the whole page — the header sits above it and
-   it goes full-bleed on mobile, where a boxed-in checkout just wastes the
-   two edges of a phone screen. */
+   One ruled sheet holding both columns, sitting on the paper. Full-bleed
+   on a phone, where a boxed-in checkout wastes both edges. */
 
 .ck-main {
   max-width: var(--page);
-  margin: 0 auto 40px;
-  background: var(--color-bg-elevated);
-  border-top: 1px solid var(--color-border-light);
-  border-bottom: 1px solid var(--color-border-light);
+  margin: 24px auto 40px;
+  background: var(--color-bg-card);
+  border-top: var(--rule);
+  border-bottom: var(--hairline);
   position: relative;
-  overflow: hidden;
 }
 
 @media (min-width: 1000px) {
@@ -166,93 +207,87 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
     grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
     align-items: start;
     gap: 0;
-    border: 1px solid var(--color-border-light);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-deep);
+    border: var(--hairline);
+    border-top: var(--rule);
+    margin-top: 32px;
     margin-bottom: 32px;
   }
-  .ck-form-col    { order: 1; padding: 34px 36px 36px; }
+  .ck-form-col    { order: 1; padding: 36px 40px 40px; }
   .ck-summary-col { order: 2; align-self: stretch; }
 }
-
-/* The brand note. A 2px hairline along the top edge of the composition,
-   violet running into cyan. It is the only gradient on the page and it
-   carries the identity — which is the difference between branding and
-   decoration. */
-.ck-main::before {
-  content: "";
-  position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary) 42%, var(--color-cyan) 100%);
-  opacity: 0.85;
-  z-index: 2;
-}
+@media (min-width: 1000px) and (max-width: 1160px) { .ck-main { margin-left: 20px; margin-right: 20px; } }
 
 .ck-form-col { padding: 26px 20px 30px; }
 
 /* ---------- Page title ---------- */
 
-.ck-title { margin: 0 0 4px; font-size: 25px; font-weight: 700; letter-spacing: -0.025em; }
-@media (min-width: 1000px) { .ck-title { font-size: 27px; } }
+.ck-title {
+  margin: 0 0 8px;
+  font-size: 30px; font-weight: 400; letter-spacing: -0.02em;
+  font-variation-settings: 'opsz' 120;
+}
+@media (min-width: 1000px) { .ck-title { font-size: 36px; } }
 
-.ck-title-sub { margin: 0 0 26px; font-size: 13.5px; color: var(--color-text-muted); max-width: 44ch; }
+.ck-title-sub { margin: 0 0 26px; font-size: 14px; color: var(--color-text-muted); max-width: 48ch; }
 
 /* ---------- Steps ----------
-   Numeral over label, the current one lit, the next one plainly upcoming
-   rather than looking broken or disabled. */
+   Numeral over label, joined by a hairline. The current step carries the
+   stamp colour on its numeral and an ink rule beneath its label. */
 
 .ck-steps {
   display: flex; align-items: flex-start; gap: 16px;
-  margin: 0 0 26px; padding-bottom: 22px;
-  border-bottom: 1px solid var(--color-border-light);
+  margin: 0 0 28px; padding-bottom: 18px;
+  border-bottom: var(--hairline);
 }
 
-.ck-step { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ck-step { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 
 .ck-step-dot {
-  font-family: var(--font-heading);
-  font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+  font-size: 11px; letter-spacing: 0.14em;
   color: var(--color-text-faint);
   background: none; border: 0; width: auto; height: auto; border-radius: 0;
 }
 
-.ck-step-name { font-size: 13.5px; font-weight: 500; color: var(--color-text-faint); white-space: nowrap; }
+.ck-step-name { font-size: 14px; font-weight: 500; color: var(--color-text-faint); white-space: nowrap; padding-bottom: 3px; border-bottom: 1.5px solid transparent; }
 
-.ck-step.is-active .ck-step-dot { color: var(--color-primary-text); }
-.ck-step.is-active .ck-step-name { color: var(--color-white); font-weight: 600; }
+.ck-step.is-active .ck-step-dot { color: var(--color-primary); }
+.ck-step.is-active .ck-step-name { color: var(--color-ink); font-weight: 600; border-bottom-color: var(--color-ink); }
 
 .ck-step-sep {
-  flex: 1 1 auto; height: 1px; margin-top: 14px;
-  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-border-light) 100%);
-  opacity: 0.5; min-width: 24px;
+  flex: 1 1 auto; height: 0; margin-top: 15px;
+  border-top: 1px dashed var(--color-border-input);
+  min-width: 24px;
 }
 
 /* ---------- Sections ---------- */
 
-.ck-section + .ck-section { margin-top: 26px; padding-top: 24px; border-top: 1px solid var(--color-border-light); }
+.ck-section + .ck-section { margin-top: 30px; }
 
 .ck-section-title {
-  margin: 0 0 16px;
-  font-family: var(--font-heading);
-  font-size: 11.5px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase;
-  color: var(--color-text-faint);
+  margin: 0 0 18px; padding-bottom: 8px;
+  font-size: 11px;
+  color: var(--color-ink);
+  border-bottom: var(--rule);
   display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  font-variation-settings: normal;
+  line-height: 1.4;
 }
 
-.ck-section-hint { font-family: var(--font-body); font-size: 11.5px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--color-text-faint); }
+.ck-section-hint { font-family: var(--font-body); font-size: 12px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--color-text-faint); }
 
 /* ---------- Fields ---------- */
 
-.ck-field { position: relative; margin-bottom: 14px; }
+.ck-field { position: relative; margin-bottom: 16px; }
 
 .ck-field > label {
   display: block; margin: 0 0 6px;
-  font-size: 12.5px; font-weight: 500; color: var(--color-text-muted);
+  font-size: 10.5px; color: var(--color-text-muted);
   position: static; transform: none; pointer-events: auto;
 }
 
-.ck-field > label .opt { color: var(--color-text-faint); font-weight: 400; }
+.ck-field > label .opt { color: var(--color-text-faint); font-weight: 400; text-transform: none; letter-spacing: 0.02em; }
 
-.ck-row { display: grid; gap: 14px; grid-template-columns: 1fr; margin-bottom: 14px; }
+.ck-row { display: grid; gap: 16px; grid-template-columns: 1fr; margin-bottom: 16px; }
 .ck-row .ck-field { margin-bottom: 0; }
 
 @media (min-width: 560px) {
@@ -263,46 +298,44 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
 .ck-input, .ck-select {
   width: 100%; height: 48px; padding: 0 14px;
   background: var(--color-bg-input);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: var(--radius-sm);
-  color: var(--color-text);
+  border: 1px solid var(--color-border-light);
+  border-bottom-color: var(--color-border-input);
+  border-radius: 0;
+  color: var(--color-ink);
   font-family: inherit; font-size: 15px; outline: none;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 /* iOS zooms the viewport on focus for any control under 16px. */
 @media (pointer: coarse) { .ck-input, .ck-select { font-size: 16px; height: 52px; } }
 
-.ck-input::placeholder { color: var(--color-text-faint); }
-.ck-input:hover, .ck-select:hover { border-color: rgba(255, 255, 255, 0.16); }
+.ck-input::placeholder { color: #9A9384; }
+.ck-input:hover, .ck-select:hover { border-color: var(--color-border-input); }
 
 .ck-input:focus, .ck-select:focus {
-  border-color: var(--color-primary-text);
-  background: #1D2739;
-  /* A 3px ring, not a bloom. Enough that the active field is obvious at a
-     glance; short of the neon halo that reads as a template. */
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.28);
+  border-color: var(--color-ink);
+  box-shadow: 0 0 0 3px var(--color-primary-glow);
 }
 
 .ck-input:focus-visible, .ck-select:focus-visible { outline: none; }
-.ck-input:read-only { color: var(--color-text-muted); }
+.ck-input:read-only { color: var(--color-text-muted); background: var(--color-bg-card); }
 
-.ck-select { appearance: none; padding-right: 38px; cursor: pointer; text-overflow: ellipsis; }
+.ck-select { appearance: none; -webkit-appearance: none; padding-right: 38px; cursor: pointer; text-overflow: ellipsis; }
 
 .ck-select-caret {
-  position: absolute; right: 14px; top: 50%; margin-top: 9px;
-  transform: translateY(-50%); pointer-events: none; color: var(--color-text-muted);
+  position: absolute; right: 14px; top: 50%; margin-top: 11px;
+  transform: translateY(-50%); pointer-events: none; color: var(--color-ink);
 }
 
-@media (pointer: coarse) { .ck-select-caret { margin-top: 11px; } }
+@media (pointer: coarse) { .ck-select-caret { margin-top: 13px; } }
 
-.ck-field.has-error .ck-input, .ck-field.has-error .ck-select { border-color: var(--color-red); }
-.ck-field.has-error .ck-input:focus, .ck-field.has-error .ck-select:focus { box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18); }
+.ck-field.has-error .ck-input, .ck-field.has-error .ck-select { border-color: var(--color-red); background: #FFFCFB; }
+.ck-field.has-error .ck-input:focus, .ck-field.has-error .ck-select:focus { box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.14); }
 
 /* Built by the page script; its markup shape is fixed there. */
 .ck-error-msg {
   display: flex; align-items: flex-start; gap: 6px;
-  margin-top: 6px; font-size: 12.5px; color: var(--color-red);
+  margin: 6px 0 0; font-size: 12.5px; color: var(--color-red);
 }
 
 .ck-error-msg svg { flex-shrink: 0; margin-top: 2px; }
@@ -310,13 +343,13 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
 /* ---------- Country combobox ---------- */
 
 .ck-combo-list {
-  position: absolute; z-index: 30; left: 0; right: 0; top: calc(100% + 4px);
-  margin: 0; padding: 5px; list-style: none;
+  position: absolute; z-index: 30; left: 0; right: 0; top: calc(100% + 2px);
+  margin: 0; padding: 4px 0; list-style: none;
   max-height: 264px; overflow-y: auto;
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-card);
+  background: var(--color-plate);
+  border: 1px solid var(--color-ink);
+  border-radius: 0;
+  box-shadow: var(--shadow-pop);
   display: none;
 }
 
@@ -324,152 +357,167 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
 
 .ck-combo-opt {
   display: flex; align-items: center; gap: 10px;
-  padding: 9px 10px; border-radius: var(--radius-sm);
-  font-size: 14px; color: var(--color-text-muted); cursor: pointer;
+  padding: 9px 12px; border-radius: 0;
+  font-size: 14px; color: var(--color-text); cursor: pointer;
 }
 
-.ck-combo-opt:hover, .ck-combo-opt.is-active { background: rgba(124, 58, 237, 0.16); color: var(--color-text); }
-.ck-combo-opt.is-selected { color: var(--color-primary-text); font-weight: 500; }
-.ck-combo-empty { padding: 12px 10px; font-size: 13.5px; color: var(--color-text-faint); }
+.ck-combo-opt:hover, .ck-combo-opt.is-active { background: var(--color-bg-elevated); color: var(--color-ink); }
+.ck-combo-opt.is-selected { color: var(--color-primary); font-weight: 500; }
+.ck-combo-empty { padding: 12px; font-size: 13.5px; color: var(--color-text-faint); }
 .ck-flag { font-size: 15px; line-height: 1; flex-shrink: 0; }
 
 /* ---------- Primary action ----------
-   Two lines: what the click does, then the amount. The amount is a BARE
-   TEXT NODE child of the button — see the note at the top of this file.
+   An ink rectangle. Two lines: what the click does (Inter, uppercase,
+   tracked), then the amount (mono, from the button's own font — it is a
+   BARE TEXT NODE, see the note at the top).
 
    The label says "Continue to secure payment" because that is what the
-   click does: it opens the payment step. It does not charge the card, and
-   a button that says "Pay" when nothing is paid is the kind of small lie
-   that a careful buyer notices. */
+   click does: it opens the payment step. It does not charge the card. */
 
 .ck-cta {
-  width: 100%; min-height: 58px; padding: 13px 22px;
-  border: none; border-radius: var(--radius-sm);
-  background: var(--color-primary);
-  color: var(--color-white);
-  font-family: var(--font-heading);
+  width: 100%; min-height: 60px; padding: 13px 22px;
+  border: 1.5px solid var(--color-ink); border-radius: 0;
+  background: var(--color-ink);
+  color: var(--color-on-ink);
+  font-family: var(--font-mono);
+  font-size: 15px; font-weight: 500; letter-spacing: 0.02em;
   cursor: pointer;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
-  margin-top: 26px;
-  font-size: 15.5px; font-weight: 600; letter-spacing: 0.005em;
-  /* One hairline of shading, not a glow. A full-width neon slab reads as a
-     landing page; this reads as a control. */
-  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.3);
-  transition: background var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  margin-top: 28px;
+  line-height: 1.25;
+  box-shadow: none;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
 }
 
-.ck-cta-main { display: inline-flex; align-items: center; gap: 8px; }
-.ck-cta-main svg { flex-shrink: 0; opacity: 0.92; }
+.ck-cta-main {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-heading);
+  font-size: 12.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+}
+.ck-cta-main svg { flex-shrink: 0; }
 .ck-cta > svg { display: none; }
 
-/* The amount, styled via the button's own font-size cascade. */
-.ck-cta { line-height: 1.25; }
-.ck-cta + .ck-pay-icons { margin-top: 20px; }
+.ck-cta + .ck-pay-icons { margin-top: 22px; }
 
-.ck-cta:hover { background: #8B4CF0; box-shadow: inset 0 -1px 0 rgba(0,0,0,0.25), 0 4px 16px -4px rgba(124, 58, 237, 0.5); }
-.ck-cta:active { background: var(--color-primary-dark); transform: translateY(1px); box-shadow: inset 0 1px 3px rgba(0,0,0,0.35); }
-.ck-cta:disabled { cursor: default; opacity: 0.7; box-shadow: none; transform: none; }
+.ck-cta:hover { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+.ck-cta:active { background: var(--color-primary-dark); border-color: var(--color-primary-dark); transform: translateY(1px); }
+.ck-cta:disabled { cursor: default; opacity: 0.6; transform: none; background: var(--color-ink); border-color: var(--color-ink); }
 
-@media (max-width: 999px) { .ck-cta { position: sticky; bottom: 12px; z-index: 20; } }
+/* On a phone the action stays reachable. The paper behind it stops the
+   form text showing through the gap under a sticky button. */
+@media (max-width: 999px) {
+  .ck-cta { position: sticky; bottom: 12px; z-index: 20; box-shadow: 0 0 0 6px var(--color-bg-card); }
+}
 
 /* Line under the CTA: what is secured, in one sentence. */
 .ck-cta-sub {
   margin: 12px 0 0;
   display: flex; align-items: center; justify-content: center; gap: 7px;
-  font-size: 12px; color: var(--color-text-muted); text-align: center;
+  font-size: 12.5px; color: var(--color-text-muted); text-align: center;
 }
 
 .ck-cta-sub svg { color: var(--color-accent); flex-shrink: 0; }
 
 /* ---------- Payment section ----------
    The marks row is asset-driven and empty by default, so nothing is
-   claimed that has not been verified. The sentence below it stays true
-   either way, which is the point: Whop surfaces methods by the buyer's
-   own country, so a fixed row of logos is wrong for somebody the moment
-   it is right for somebody else. */
+   claimed that has not been verified. */
 
 .ck-pay-icons {
-  margin-top: 22px; padding-top: 18px;
-  border-top: 1px solid var(--color-border-light);
+  margin-top: 24px; padding-top: 16px;
+  border-top: var(--hairline);
   text-align: center;
 }
 
 .ck-pay-h {
-  margin: 0 0 12px;
-  font-family: var(--font-heading);
-  font-size: 11px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase;
+  margin: 0 0 10px;
+  font-size: 10.5px;
   color: var(--color-text-faint);
+  font-variation-settings: normal;
 }
 
 .ck-pay-marks { display: none; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin-bottom: 12px; }
 .ck-pay-marks.is-shown { display: flex; }
 
-/* Official acceptance marks come with their own brand colours and their
-   own clear space. A neutral plate keeps them legible on a dark ground
-   without recolouring or cropping them, which the brand guidelines forbid
-   — and it is deliberately NOT a purple rounded rectangle each. */
+/* Official marks keep their own colours on a white plate with a hairline,
+   never recoloured or cropped. */
 .ck-pay-marks img {
   height: 24px; width: auto; display: block;
   padding: 3px 6px;
-  background: #FFFFFF;
-  border-radius: 3px;
+  background: var(--color-plate);
+  border: var(--hairline);
+  border-radius: 0;
 }
 
-.ck-pay-note { margin: 0 auto; max-width: 380px; font-size: 12px; color: var(--color-text-muted); line-height: 1.5; }
-.ck-pay-note strong { color: var(--color-text); font-weight: 600; }
-.ck-pay-fallback { margin-top: 3px; font-size: 11.5px; color: var(--color-text-faint); }
+.ck-pay-note { margin: 0 auto; max-width: 380px; font-size: 12.5px; color: var(--color-text-muted); line-height: 1.5; }
+.ck-pay-note strong { color: var(--color-ink); font-weight: 600; }
+.ck-pay-fallback { margin-top: 3px; font-size: 12px; color: var(--color-text-faint); }
 
 /* ---------- Trust strip ----------
-   Two columns of plain ticks. Not four cards, not four icon circles: the
-   claims carry themselves, and every one of them is checkable against
-   gogetcards's own shipping and refund configuration. */
+   Three ruled cells sharing one border, like a row of the register. */
 
 .ck-trust-row {
-  display: grid; grid-template-columns: 1fr; gap: 8px 20px;
-  margin-top: 22px; padding-top: 20px;
-  border-top: 1px solid var(--color-border-light);
+  display: grid; grid-template-columns: 1fr; gap: 0;
+  margin-top: 26px;
+  border-top: var(--rule);
 }
 
 @media (min-width: 560px) { .ck-trust-row { grid-template-columns: repeat(3, 1fr); } }
 
-/* Claim on top, qualifier under it. The qualifier is what makes each one
-   checkable rather than a slogan. */
-.ck-trust-item { display: flex; align-items: flex-start; gap: 9px; font-size: 12px; color: var(--color-text-faint); line-height: 1.45; }
+.ck-trust-item {
+  display: flex; align-items: flex-start; gap: 9px;
+  padding: 12px 0;
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--color-text-faint); line-height: 1.5;
+  border-bottom: var(--hairline);
+}
+@media (min-width: 560px) {
+  .ck-trust-item { padding: 12px 14px; border-bottom: 0; }
+  .ck-trust-item:first-child { padding-left: 0; }
+  .ck-trust-item + .ck-trust-item { border-left: var(--hairline); }
+}
 .ck-trust-item svg { flex-shrink: 0; margin-top: 2px; color: var(--color-accent); }
-.ck-trust-item strong { display: block; font-size: 12.5px; font-weight: 600; color: var(--color-text); margin-bottom: 1px; }
+.ck-trust-item strong {
+  display: block; margin-bottom: 2px;
+  font-family: var(--font-body); font-size: 13px; font-weight: 600; letter-spacing: 0; text-transform: none;
+  color: var(--color-ink);
+}
 
 /* ---------- Legal ---------- */
 
-.ck-legal { margin: 18px 0 0; font-size: 11.5px; line-height: 1.6; color: var(--color-text-faint); text-align: center; }
+.ck-legal { margin: 20px 0 0; font-size: 12px; line-height: 1.65; color: var(--color-text-faint); text-align: center; }
 .ck-legal a { color: var(--color-text-muted); text-decoration: underline; text-underline-offset: 2px; }
-.ck-legal a:hover { color: var(--color-text); }
+.ck-legal a:hover { color: var(--color-primary); }
 
 /* ---------- Footer ---------- */
 
 .ck-foot { margin-top: 0; border: 0; }
 
 .ck-foot-in {
-  max-width: var(--page); margin: 0 auto; padding: 0 20px 36px;
-  display: flex; flex-wrap: wrap; gap: 6px 18px;
-  align-items: center; justify-content: center;
-  font-size: 11.5px; color: var(--color-text-faint);
+  max-width: var(--page); margin: 0 auto; padding: 16px 20px 40px;
+  display: flex; flex-wrap: wrap; gap: 8px 22px;
+  align-items: center; justify-content: space-between;
+  border-top: var(--hairline);
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--color-text-faint);
 }
+@media (min-width: 1000px) and (max-width: 1160px) { .ck-foot-in { margin: 0 20px; padding-left: 0; padding-right: 0; } }
+@media (min-width: 1161px) { .ck-foot-in { padding-left: 0; padding-right: 0; } }
+@media (max-width: 640px) { .ck-foot-in { justify-content: center; text-align: center; } }
 
-.ck-foot a { color: var(--color-text-faint); text-decoration: none; }
-.ck-foot a:hover { color: var(--color-text-muted); text-decoration: underline; }
+.ck-foot a { color: var(--color-text-muted); text-decoration: none; }
+.ck-foot a:hover { color: var(--color-primary); text-decoration: underline; text-underline-offset: 3px; }
+.ck-foot a[href^="mailto:"] { text-transform: none; letter-spacing: 0.02em; }
 
-.ck-foot-nav { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; }
-/* Before the script links them these are plain spans, and a row of
-   underlined-looking non-links would be a lie about what is clickable. */
+.ck-foot-nav { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; justify-content: center; }
 .ck-foot-nav span:not(:has(a)) { color: var(--color-text-faint); }
 
 /* ---------- Order summary ----------
-   The hero. On a $1,700 order the buyer's first question is "is this
-   definitely the right thing", so the product image and name get real
-   presence and the total is the largest figure on the page. */
+   A ledger on the darker sheet. The product sits on a white plate, the
+   rows are ruled, every amount is mono, and the total is the largest
+   figure on the page. */
 
 .ck-summary {
-  background: var(--color-bg-card);
+  background: var(--color-bg-elevated);
   border: 0;
   border-radius: 0;
   box-shadow: none;
@@ -478,196 +526,205 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
 }
 
 @media (min-width: 1000px) {
-  .ck-summary { border-left: 1px solid var(--color-border-light); }
+  .ck-summary { border-left: var(--hairline); }
 }
 
 .ck-summary-toggle {
   width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 15px 20px; background: none;
-  border: 0; border-bottom: 1px solid var(--color-border-light);
-  color: var(--color-text); font-family: inherit; font-size: 14px; font-weight: 500;
+  border: 0; border-bottom: var(--hairline);
+  color: var(--color-ink); font-family: inherit; font-size: 14px; font-weight: 500;
   cursor: pointer; text-align: left;
 }
 
-.ck-summary-toggle-label { display: inline-flex; align-items: center; gap: 7px; color: var(--color-primary-text); }
+.ck-summary-toggle-label {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--color-primary);
+}
 .ck-summary-toggle-caret { display: inline-flex; transition: transform var(--transition-normal); }
-.ck-summary.is-open .ck-summary-toggle-caret { transform: rotate(180deg); }
-.ck-summary-total-compact { font-family: var(--font-heading); font-size: 17px; font-weight: 700; color: var(--color-white); }
+.ck-summary.is-open .ck-summary-toggle-caret,
+[data-ck-summary="open"] .ck-summary-toggle-caret { transform: rotate(180deg); }
+.ck-summary-total-compact { font-size: 17px; font-weight: 500; color: var(--color-ink); }
 
-.ck-summary-body { padding: 20px; }
+.ck-summary-body { padding: 22px 20px 24px; }
 
 @media (max-width: 999px) {
   .ck-summary-body { display: none; }
-  .ck-summary.is-open .ck-summary-body { display: block; }
+  .ck-summary.is-open .ck-summary-body,
+  [data-ck-summary="open"] .ck-summary-body { display: block; }
 }
 
 @media (min-width: 1000px) {
   .ck-summary-toggle { display: none; }
-  .ck-summary-body { display: block; padding: 34px 28px 30px; }
+  .ck-summary-body { display: block; padding: 36px 30px 32px; }
 }
 
 .ck-summary-h {
-  margin: 0 0 18px;
-  font-family: var(--font-heading);
-  font-size: 11.5px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase;
-  color: var(--color-text-faint);
+  margin: 0 0 18px; padding-bottom: 8px;
+  font-size: 11px;
+  color: var(--color-ink);
+  border-bottom: var(--rule);
   display: none;
+  font-variation-settings: normal;
+  line-height: 1.4;
 }
 
 @media (min-width: 1000px) { .ck-summary-h { display: block; } }
 
-/* Line item: image on its own row above the name, so a long product title
-   gets the full column width instead of a 12-character gutter. */
+/* Line item: the plate on its own row above the name, so a long product
+   title gets the full column width. Step 2 uses .ck-item; the information
+   pages use .ck-line-item — the same look. */
 
-.ck-line-item {
+.ck-line-item, .ck-item {
   display: block;
-  padding-bottom: 20px; margin-bottom: 0;
-  border-bottom: 1px solid var(--color-border-light);
+  padding-bottom: 18px; margin-bottom: 0;
+  border-bottom: var(--hairline);
 }
 
 .ck-thumb {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 10;
-  margin: 0 0 14px;
-  border-radius: var(--radius-md);
-  /* A faint lift behind the product so a dark box shot does not dissolve
-     into the panel. */
-  background:
-    radial-gradient(120% 80% at 50% 25%, rgba(124, 58, 237, 0.10) 0%, rgba(124, 58, 237, 0) 60%),
-    var(--color-bg-input);
-  border: 1px solid var(--color-border-light);
+  margin: 0 0 16px;
+  border-radius: 0;
+  background: var(--color-plate);
+  border: var(--hairline);
   overflow: hidden;
 }
 
-/* `contain`, never `cover`: a booster box is box-shaped, and cropping it
-   is how real product photography ends up looking like a texture. */
+/* `contain`, never `cover`: a booster box is box-shaped. */
 .ck-thumb img {
   position: absolute; inset: 0; z-index: 1;
-  width: 100%; height: 100%; object-fit: contain; padding: 14px; display: block;
+  width: 100%; height: 100%; object-fit: contain; padding: 16px; display: block;
 }
 
-.ck-thumb > svg { width: 100%; height: 100%; display: block; opacity: 0.55; }
+.ck-thumb > svg { width: 100%; height: 100%; display: block; }
 
-/* Shown only when the host sends a quantity above 1. */
+/* Shown only when the host sends a quantity above 1: a square ink stamp. */
 .ck-thumb-qty {
   display: none; position: absolute; top: 10px; right: 10px; z-index: 2;
-  min-width: 24px; height: 24px; padding: 0 8px;
-  border-radius: var(--radius-full);
-  background: var(--color-primary); color: #fff;
-  font-family: var(--font-heading); font-size: 12px; font-weight: 700;
+  min-width: 26px; height: 26px; padding: 0 7px;
+  border-radius: 0;
+  background: var(--color-ink); color: var(--color-on-ink);
+  font-family: var(--font-mono); font-size: 12px; font-weight: 500;
   place-items: center;
-  border: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  border: 0; box-shadow: none;
 }
 
-.ck-item-main { display: block; }
+.ck-item-main, .ck-item-body { display: block; }
 
 .ck-item-name {
-  margin: 0 0 9px;
-  font-size: 15px; font-weight: 500; line-height: 1.4;
-  color: var(--color-white); overflow-wrap: anywhere;
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  font-size: 19px; font-weight: 400; line-height: 1.25; letter-spacing: -0.01em;
+  font-variation-settings: 'opsz' 36;
+  color: var(--color-ink); overflow-wrap: anywhere;
 }
 
-.ck-item-meta { margin: 0; font-size: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.ck-item-meta, .ck-item-badges { margin: 0; font-size: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 
+/* Badges are stamps: square, mono, a frame in the ink of what they say. */
 .ck-item-badge {
-  display: inline-block; padding: 3px 9px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--color-border);
-  background: rgba(124, 58, 237, 0.14);
-  font-family: var(--font-heading);
-  font-size: 10px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase;
-  color: var(--color-primary-text); margin: 0;
+  display: inline-block; padding: 3px 7px;
+  border-radius: 0;
+  border: 1px solid currentColor;
+  background: var(--color-plate);
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--color-ink); margin: 0;
 }
 
-.ck-item-badge.ck-item-qty { color: var(--color-text-muted); background: rgba(255,255,255,0.05); border-color: var(--color-border-light); }
+.ck-item-badge.is-instock { color: var(--color-accent); }
+.ck-item-badge.is-preorder { color: var(--color-cyan); }
+.ck-item-badge.ck-item-qty { color: var(--color-text-muted); border-color: var(--color-border-light); }
 .ck-item-fulfilment { color: var(--color-text-faint); font-size: 12px; }
 
-.ck-item-pricing { display: flex; align-items: baseline; flex-wrap: wrap; gap: 3px 8px; margin: 12px 0 0; }
+.ck-item-pricing, .ck-item-prices { display: flex; align-items: baseline; flex-wrap: wrap; gap: 3px 10px; margin: 14px 0 0; }
 
 .ck-item-price {
   display: block;
-  font-family: var(--font-heading);
-  font-size: 16px; font-weight: 600; color: var(--color-text); white-space: nowrap;
+  font-size: 16px; font-weight: 500; color: var(--color-ink); white-space: nowrap;
 }
 
-/* Written by the script. It says either "$149.99 each" or "price for 2
-   units" — never a per-unit figure invented by dividing a bundle price
-   that does not divide evenly. */
-.ck-item-unit { font-size: 12px; color: var(--color-text-faint); }
+/* Written by the script. "$149.99 each" or "price for 2 units". */
+.ck-item-unit { font-family: var(--font-mono); font-size: 11.5px; color: var(--color-text-faint); }
 .ck-item-unit:empty { display: none; }
 
 /* ---------- Order details ----------
-   A definition list, not a card. Four rows the buyer would otherwise have
-   to leave the checkout to find, in the space the right column had spare.
-   Any row without real data behind it removes itself. */
+   A definition list as ruled rows. Any row without real data behind it
+   removes itself. */
 
 .ck-facts {
-  margin: 20px 0 0; padding-top: 18px;
-  border-top: 1px solid var(--color-border-light);
-  font-size: 12.5px;
+  margin: 24px 0 0; padding: 0;
+  font-size: 13px;
 }
 
 .ck-facts-h {
-  display: block; margin-bottom: 12px;
-  font-family: var(--font-heading);
-  font-size: 11px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase;
-  color: var(--color-text-faint);
+  display: block; margin-bottom: 0; padding-bottom: 8px;
+  font-size: 10.5px;
+  color: var(--color-ink);
+  border-bottom: var(--rule);
 }
 
 .ck-fact {
-  display: grid; grid-template-columns: 96px 1fr; gap: 4px 14px;
-  padding: 4px 0;
+  display: grid; grid-template-columns: 104px 1fr; gap: 4px 14px;
+  padding: 8px 0;
+  border-bottom: var(--hairline);
 }
 
-.ck-fact dt { color: var(--color-text-faint); }
+.ck-fact dt {
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--color-text-faint); padding-top: 2px;
+}
 .ck-fact dd { margin: 0; color: var(--color-text); }
-.ck-fact dd .ck-fact-em { color: var(--color-white); font-weight: 600; }
+.ck-fact dd .ck-fact-em { font-family: var(--font-mono); color: var(--color-cyan); font-weight: 500; }
 
-/* Totals */
+/* Totals: ledger rows with mono amounts. */
 
-.ck-totals { padding-top: 18px; font-size: 13.5px; }
+.ck-totals { padding-top: 6px; font-size: 13.5px; }
 
-.ck-total-row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 6px 0; color: var(--color-text-muted); }
-.ck-total-row .ck-free { color: var(--color-accent); font-weight: 600; letter-spacing: 0.02em; }
-.ck-total-row .ck-muted { color: var(--color-text-faint); }
+.ck-total-row {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
+  padding: 9px 0; color: var(--color-text-muted);
+  border-bottom: var(--hairline);
+}
+.ck-total-row span:last-child { color: var(--color-ink); font-size: 13.5px; }
+.ck-total-row span.ck-free { color: var(--color-accent); font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; font-size: 12px; }
+.ck-total-row span.ck-muted { color: var(--color-text-muted); letter-spacing: 0.1em; text-transform: uppercase; font-size: 12px; }
 
 .ck-total-row-grand {
-  margin-top: 14px; padding-top: 16px;
-  border-top: 1px solid var(--color-border-light);
-  color: var(--color-text); align-items: baseline;
+  margin-top: 0; padding: 16px 0 4px;
+  border-bottom: 0;
+  border-top: var(--rule);
+  color: var(--color-ink); align-items: baseline;
 }
+/* The row above it already draws a hairline; the ink rule replaces it. */
+.ck-total-row:has(+ .ck-total-row-grand) { border-bottom: 0; }
 
 .ck-total-row-grand > span:first-child {
-  font-family: var(--font-heading);
-  font-size: 11.5px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: var(--color-text-faint);
+  font-size: 11px; color: var(--color-ink);
 }
 
-.ck-grand-currency { font-size: 12px; color: var(--color-text-faint); font-weight: 500; margin-right: 8px; }
-.ck-grand-amount { font-family: var(--font-heading); font-size: 30px; font-weight: 700; letter-spacing: -0.025em; color: var(--color-white); }
+.ck-grand-currency { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; color: var(--color-text-faint); font-weight: 500; margin-right: 8px; }
+.ck-total-row .ck-grand-value span.ck-grand-currency { color: var(--color-text-faint); font-size: 11px; }
+.ck-grand-amount { font-size: 28px; font-weight: 500; letter-spacing: -0.02em; color: var(--color-ink); }
+.ck-total-row .ck-grand-value .ck-grand-amount { font-size: 28px; color: var(--color-ink); }
 
 /* Approximate local amount under the grand total, appended by
-   views/partials/fx-approx.ejs.
-
-   RESTATED HERE RATHER THAN SHARED. This page renders with layout:false and
-   loads only this stylesheet, so the .fx-approx rules in gogetcards.css never
-   reach it. Without these the chip still renders — it just renders as
-   unstyled body text directly beneath a 30px serif total, which reads as a
-   second price rather than as a note about the first one.
-
-   The column keeps the estimate under the amount and right-aligned with it,
-   instead of beside it on the baseline where a space-between row would
-   otherwise put it. */
+   views/partials/fx-approx.ejs. Restated here because these pages load
+   only this stylesheet. */
 .ck-grand-value { display: inline-flex; flex-direction: column; align-items: flex-end; }
 .ck-grand-value .fx-approx { display: block; margin-top: 4px; }
 .ck-grand-value .fx-approx__chip { display: inline-flex; align-items: baseline; white-space: nowrap; }
 .ck-grand-value .fx-approx__label {
-  font-family: var(--font-heading);
-  font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  font-family: var(--font-mono);
+  font-size: 9.5px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase;
   color: var(--color-text-faint); margin-right: 5px;
 }
 .ck-grand-value .fx-approx__amount {
-  font-size: 11.5px; font-weight: 500;
+  font-family: var(--font-mono);
+  font-size: 12px; font-weight: 400;
   font-variant-numeric: tabular-nums;
   color: var(--color-text-muted);
 }
@@ -675,37 +732,34 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
 .ck-charged { display: none; }
 
 /* ---------- What happens next ----------
-   The three-step timeline replaces both a paragraph of preorder rationale
-   and a separate "why shop with us" block. On a preorder this is the
-   single most anxious question — when do I actually get it — so it lives
-   next to the total rather than under the button. */
+   A numbered sequence, the numerals in the stamp colour. */
 
 .ck-summary-assurance {
   display: block;
-  margin-top: 20px; padding-top: 18px;
-  border: 0; border-top: 1px solid var(--color-border-light);
+  margin-top: 24px; padding-top: 0;
+  border: 0;
   border-radius: 0; background: none;
-  font-size: 12.5px; line-height: 1.5; color: var(--color-text-muted);
+  font-size: 13px; line-height: 1.5; color: var(--color-text-muted);
+  counter-reset: ck-step;
 }
 
 .ck-assurance-title {
-  display: block; margin-bottom: 12px;
-  font-family: var(--font-heading);
-  font-size: 11px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase;
-  color: var(--color-text-faint);
+  display: block; margin-bottom: 12px; padding-bottom: 8px;
+  font-size: 10.5px;
+  color: var(--color-ink);
+  border-bottom: var(--rule);
 }
 
 .ck-assurance-item {
   display: grid;
-  grid-template-columns: 22px 1fr;
+  grid-template-columns: 26px 1fr;
   gap: 1px 10px;
   margin: 0 0 12px; padding: 0; border: 0; border-radius: 0; background: none;
   color: var(--color-text-muted);
 }
 
 /* The numeral spans both rows and BOTH text children are pinned to column
-   two. Without the explicit column the body span flowed into the numeral
-   track and wrapped one word per line. */
+   two, or the body span flows into the numeral track. */
 .ck-assurance-item > strong,
 .ck-assurance-item > span { grid-column: 2; }
 
@@ -716,36 +770,34 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
   counter-increment: ck-step;
   grid-column: 1;
   grid-row: 1 / span 2;
-  font-family: var(--font-heading);
-  font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em;
-  color: var(--color-primary-text);
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 500; letter-spacing: 0.06em;
+  color: var(--color-primary);
   padding-top: 2px;
 }
 
-.ck-summary-assurance { counter-reset: ck-step; }
-.ck-assurance-item strong { display: block; color: var(--color-text); font-weight: 600; font-size: 12.5px; }
+.ck-assurance-item strong { display: block; color: var(--color-ink); font-weight: 600; font-size: 13px; }
 .ck-assurance-item svg { display: none; }
 
-/* A chip appended by the script for orders over $500 — it is a different
-   kind of statement from the timeline, so it does not get a numeral. */
+/* Appended for orders over $500 — a different kind of statement from the
+   timeline, so it is a ruled note, not a numbered step. */
 .ck-assurance-note {
-  display: flex; align-items: flex-start; gap: 7px;
-  margin-top: 14px; padding-top: 14px;
-  border-top: 1px solid var(--color-border-light);
-  font-size: 12px; color: var(--color-text-faint);
+  display: flex; align-items: flex-start; gap: 8px;
+  margin-top: 16px; padding: 10px 12px;
+  border: var(--hairline); border-left: 2px solid var(--color-ink);
+  background: var(--color-bg-card);
+  font-size: 12.5px; color: var(--color-text-muted);
 }
 
-.ck-assurance-note svg { flex-shrink: 0; margin-top: 2px; color: var(--color-text-faint); }
+.ck-assurance-note svg { flex-shrink: 0; margin-top: 2px; color: var(--color-ink); }
 
 /* ---------- Payment dialog ----------
    The body scrolls; the iframe is NOT height-constrained. Whop measures
-   its own content and sets the iframe height itself, so forcing a height
-   here clipped taller layouts and put the pay button out of reach behind
-   what looked like a black band. Width only. */
+   its own content and sets the iframe height itself. Width only. */
 
 .ck-modal-overlay {
   position: fixed; inset: 0; z-index: 60;
-  background: rgba(5, 8, 12, 0.84);
+  background: rgba(22, 20, 15, 0.42);
   display: flex; align-items: flex-end; justify-content: center;
   opacity: 0; pointer-events: none;
   transition: opacity var(--transition-normal);
@@ -758,17 +810,18 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
 .ck-modal {
   width: 100%; max-width: 460px;
   height: auto; max-height: 94vh;
-  background: var(--color-bg-elevated);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  box-shadow: var(--shadow-deep);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-ink);
+  border-top: 3px solid var(--color-ink);
+  border-radius: 0;
+  box-shadow: var(--shadow-pop);
   display: flex; flex-direction: column;
   transform: translateY(20px);
   transition: transform var(--transition-normal);
 }
 
 @media (min-width: 640px) {
-  .ck-modal { border-radius: var(--radius-lg); max-height: min(860px, 94vh); transform: translateY(10px); }
+  .ck-modal { max-height: min(860px, 94vh); transform: translateY(10px); }
 }
 
 .ck-modal-overlay.is-open .ck-modal { transform: none; }
@@ -776,38 +829,36 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
 .ck-modal-head {
   display: flex; align-items: center; gap: 12px;
   padding: 14px 16px;
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: var(--hairline);
   flex-shrink: 0;
 }
 
-.ck-modal-title { min-width: 0; flex: 1 1 auto; display: flex; flex-direction: column; gap: 1px; font-family: var(--font-heading); font-size: 14.5px; font-weight: 600; color: var(--color-white); }
+.ck-modal-title { min-width: 0; flex: 1 1 auto; display: flex; flex-direction: column; gap: 1px; font-family: var(--font-display); font-size: 17px; font-weight: 400; color: var(--color-ink); }
 .ck-modal-title-row { display: flex; align-items: center; gap: 7px; }
 .ck-modal-title svg { color: var(--color-accent); flex-shrink: 0; }
-.ck-modal-title-email { font-family: var(--font-body); font-size: 11.5px; font-weight: 400; color: var(--color-text-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 210px; }
+.ck-modal-title-email { font-family: var(--font-mono); font-size: 11px; font-weight: 400; color: var(--color-text-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 210px; }
 
-.ck-modal-order-recap { flex-shrink: 0; margin-left: auto; text-align: right; font-size: 11px; color: var(--color-text-faint); line-height: 1.3; }
-.ck-modal-order-recap strong { display: block; font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: var(--color-white); }
+.ck-modal-order-recap { flex-shrink: 0; margin-left: auto; text-align: right; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text-faint); line-height: 1.3; }
+.ck-modal-order-recap strong { display: block; font-size: 15px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--color-ink); }
 
 .ck-modal-close {
   flex-shrink: 0; width: 32px; height: 32px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border-light);
-  background: transparent; color: var(--color-text-muted); cursor: pointer;
+  border-radius: 0;
+  border: var(--hairline);
+  background: transparent; color: var(--color-ink); cursor: pointer;
   display: grid; place-items: center;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition: border-color var(--transition-fast);
 }
 
-.ck-modal-close:hover { background: var(--color-bg-card); color: var(--color-text); }
+.ck-modal-close:hover { border-color: var(--color-ink); }
 
 .ck-modal-body {
   flex: 1 1 auto; min-height: 0;
   overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
-  background: var(--color-bg-elevated);
+  background: var(--color-bg-card);
 }
 
-/* The min-height is scaffolding for the loading spinner only. The moment
-   Whop's iframe lands it is dropped, otherwise a SHORT payment form leaves
-   a slab of empty panel beneath it. */
+/* Scaffolding for the loading spinner only; dropped once the iframe lands. */
 .ck-whop-mount { position: relative; min-height: 440px; }
 .ck-whop-mount.has-frame { min-height: 0; }
 .ck-whop-mount:has(iframe) { min-height: 0; }
@@ -821,11 +872,13 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
   color: var(--color-text-muted); font-size: 13.5px;
 }
 
+/* The one round thing besides status dots: a spinner is a dial. */
 .ck-spinner {
-  width: 22px; height: 22px; border-radius: 50%;
-  border: 2px solid var(--color-border-light);
-  border-top-color: var(--color-primary-text);
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 1.5px solid var(--color-border-light);
+  border-top-color: var(--color-ink);
   animation: ck-spin 0.75s linear infinite;
+  flex-shrink: 0;
 }
 
 @keyframes ck-spin { to { transform: rotate(360deg); } }
@@ -833,9 +886,9 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.2; color: var(--co
 
 .ck-modal-foot {
   flex-shrink: 0; padding: 10px 16px;
-  border-top: 1px solid var(--color-border-light);
+  border-top: var(--hairline);
   display: flex; align-items: center; justify-content: center; gap: 6px;
-  text-align: center; font-size: 11px; color: var(--color-text-faint);
+  text-align: center; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-faint);
   background: var(--color-bg-elevated);
 }
 
@@ -849,209 +902,226 @@ body.ck-modal-open { overflow: hidden; }
 
 .ck-success-icon {
   width: 48px; height: 48px; margin: 0 auto 18px;
-  border-radius: 50%; background: rgba(34, 197, 94, 0.12);
-  border: 1px solid rgba(34, 197, 94, 0.4);
+  border-radius: 0; background: var(--color-accent-soft);
+  border: 1px solid var(--color-accent);
   color: var(--color-accent); display: grid; place-items: center;
 }
 
-.ck-success h2 { margin: 0 0 8px; font-size: 21px; font-weight: 700; letter-spacing: -0.02em; }
+.ck-success h2 { margin: 0 0 8px; font-size: 26px; font-weight: 400; }
 .ck-success p { margin: 0; color: var(--color-text-muted); font-size: 14px; line-height: 1.6; }
 
 
-/* ---------- Server-rendered additions ----------
-   Step 1 here posts to the server and re-renders, so it needs states the
-   client-side partner page expressed in JavaScript. */
+/* ---------- Server-rendered notices ---------- */
 
 .ck-notice {
   display: flex; align-items: flex-start; gap: 9px;
-  margin: 0 0 20px; padding: 12px 14px;
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  background: rgba(245, 158, 11, 0.08);
-  border-radius: var(--radius-sm);
-  font-size: 13px; line-height: 1.5; color: var(--color-text);
+  margin: 0 0 22px; padding: 12px 14px;
+  border: 1px solid var(--color-gold);
+  border-left-width: 3px;
+  background: var(--color-gold-soft);
+  border-radius: 0;
+  font-size: 13.5px; line-height: 1.5; color: var(--color-text);
 }
 
 .ck-notice svg { flex-shrink: 0; margin-top: 2px; color: var(--color-gold); }
 
-/* The test-checkout banner. Deliberately a different colour from the amber
-   warning above: this is not something going wrong, it is a rehearsal
-   running as intended, and it is only ever visible to an admin. */
+/* The test-checkout banner. A different ink from the warning above: this
+   is a rehearsal running as intended, only ever visible to an admin. */
 .ck-notice-test {
-  border-color: rgba(124, 58, 237, 0.45);
-  background: rgba(124, 58, 237, 0.10);
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
 }
-.ck-notice-test svg { color: var(--color-primary-text); }
+.ck-notice-test svg { color: var(--color-primary); }
+.ck-notice strong { color: var(--color-ink); font-weight: 600; }
 
-/* Matches the shape the client-side setError() produces, so one rule
-   serves both and they cannot drift apart visually. */
+/* Matches the shape the client-side setError() produces. */
 .ck-field .ck-error-msg { display: flex; }
 
-/* ---------- The payment handoff ----------
-   A short, deliberate page. It exists so the customer is told they are
-   moving to the payment step before it happens, instead of a redirect
-   they cannot see. */
+/* ---------- The payment handoff ---------- */
 
 .ck-handoff { max-width: 520px; margin: 0 auto; padding: 40px 20px 60px; text-align: center; }
 
 .ck-handoff-icon {
-  width: 52px; height: 52px; margin: 0 auto 20px;
-  border-radius: 50%;
-  background: rgba(34, 197, 94, 0.12);
-  border: 1px solid rgba(34, 197, 94, 0.4);
+  width: 48px; height: 48px; margin: 0 auto 20px;
+  border-radius: 0;
+  background: var(--color-plate);
+  border: 1px solid var(--color-accent);
   color: var(--color-accent);
   display: grid; place-items: center;
 }
 
-.ck-handoff h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 10px; }
+.ck-handoff h1 { font-size: 30px; font-weight: 400; margin: 0 0 10px; }
 .ck-handoff-lede { margin: 0 0 26px; font-size: 14.5px; color: var(--color-text-muted); line-height: 1.6; }
 
 .ck-handoff-summary {
   text-align: left;
-  background: var(--color-bg-elevated);
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-md);
-  padding: 18px 20px;
+  background: var(--color-bg-card);
+  border: var(--hairline);
+  border-top: var(--rule);
+  border-radius: 0;
+  padding: 6px 20px 14px;
   margin-bottom: 26px;
 }
 
 .ck-handoff-row {
   display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
-  padding: 5px 0; font-size: 13.5px; color: var(--color-text-muted);
+  padding: 9px 0; font-size: 13.5px; color: var(--color-text-muted);
+  border-bottom: var(--hairline);
 }
 
+.ck-handoff-row.is-total { border-bottom: 0; }
 .ck-handoff-row + .ck-handoff-row.is-total {
-  margin-top: 10px; padding-top: 12px;
-  border-top: 1px solid var(--color-border-light);
+  margin-top: 0; padding-top: 14px;
+  border-top: var(--rule);
 }
+.ck-handoff-row:has(+ .is-total) { border-bottom: 0; }
 
-.ck-handoff-row.is-total > span:last-child {
-  font-family: var(--font-heading); font-size: 20px; font-weight: 700; color: var(--color-white);
-}
+.ck-handoff-row > span:last-child { color: var(--color-ink); }
+.ck-handoff-row.is-total > span:last-child { font-size: 22px; font-weight: 500; color: var(--color-ink); }
 
-.ck-handoff-where {
-  margin: 22px 0 0; font-size: 12px; color: var(--color-text-faint); line-height: 1.6;
-}
-
+.ck-handoff-where { margin: 22px 0 0; font-size: 12.5px; color: var(--color-text-faint); line-height: 1.6; }
 .ck-handoff-where strong { color: var(--color-text-muted); font-weight: 600; }
 
-/* ---------- Message pages (expired, already paid, unavailable) ---------- */
+/* ---------- Message pages (expired, already paid, unavailable) ----------
+   One leaf with an ink rule on top, a serif heading and one ink action. */
 
-.ck-msg { max-width: 460px; margin: 0 auto; padding: 72px 20px; text-align: center; }
-.ck-msg h1 { font-size: 23px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 12px; }
-.ck-msg p { margin: 0 0 26px; color: var(--color-text-muted); font-size: 14.5px; line-height: 1.6; }
+.ck-msg {
+  max-width: 520px; margin: 48px auto 56px; padding: 40px 32px 36px;
+  text-align: center;
+  background: var(--color-bg-card);
+  border: var(--hairline);
+  border-top: var(--rule);
+}
+@media (max-width: 560px) { .ck-msg { margin: 24px 16px 40px; padding: 32px 20px 28px; } }
+
+.ck-msg-kicker {
+  display: block; margin: 0 0 14px;
+  font-family: var(--font-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--color-text-faint);
+}
+.ck-msg h1 { font-size: 30px; font-weight: 400; letter-spacing: -0.02em; margin: 0 0 14px; font-variation-settings: 'opsz' 96; text-wrap: balance; }
+.ck-msg p { margin: 0 auto 28px; max-width: 40ch; color: var(--color-text-muted); font-size: 14.5px; line-height: 1.65; }
+.ck-msg .ck-cta { display: inline-flex; width: auto; min-width: 240px; max-width: 100%; margin: 0 auto; padding: 0 28px; min-height: 52px; }
 
 /* ---------- Sold out, with a replacement ----------
-   Reached only from the payment step, by a buyer who has already filled
-   in Step 1. The page has one job — turn a failed order into the next
-   one — so it is laid out as a single centred column that ends in a
-   button, not as an error page with a link buried in a paragraph. */
+   One centred column that ends in a button: reassurance, the spent item,
+   then the replacement as a lot on a white plate. */
 
 .ck-so {
-  max-width: 460px;
+  max-width: 480px;
   margin: 0 auto;
   padding: 40px 20px 64px;
   text-align: center;
 }
 
-/* Reassurance first, and quiet: green would celebrate, red would alarm. */
+/* Reassurance first, and quiet: a green stamp, not a celebration. */
 .ck-so-flag {
   display: inline-flex; align-items: center; gap: 7px;
-  margin: 0 0 18px; padding: 6px 12px;
-  border: 1px solid var(--color-border-light); border-radius: 999px;
-  font-size: 11.5px; font-weight: 500; color: var(--color-text-muted);
+  margin: 0 0 20px; padding: 5px 10px;
+  border: 1px solid var(--color-accent); border-radius: 0;
+  background: var(--color-plate);
+  font-family: var(--font-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--color-accent);
 }
 .ck-so-flag svg { color: var(--color-accent); }
 
 .ck-so-h {
-  margin: 0 0 22px;
-  font-family: var(--font-heading);
-  font-size: 26px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.2;
-  color: var(--color-white);
+  margin: 0 0 24px;
+  font-family: var(--font-display);
+  font-size: 32px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.1;
+  font-variation-settings: 'opsz' 120;
+  color: var(--color-ink);
+  text-wrap: balance;
 }
 
 /* The spent item. Deliberately the smallest thing on the page. */
 .ck-so-gone {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 12px;
-  border: 1px solid var(--color-border-light); border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.015);
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0;
+  border: 0; border-top: var(--rule); border-bottom: var(--hairline);
+  border-radius: 0;
+  background: none;
   text-align: left;
 }
 .ck-so-gone-img {
   width: 40px; height: 40px; flex-shrink: 0;
-  object-fit: cover; border-radius: 4px;
-  filter: grayscale(1); opacity: 0.45;
+  object-fit: contain; border-radius: 0;
+  background: var(--color-plate); border: var(--hairline); padding: 2px;
+  filter: grayscale(1); opacity: 0.55;
 }
 .ck-so-gone-title {
   flex: 1; min-width: 0;
-  font-size: 12.5px; line-height: 1.45; color: var(--color-text-faint);
+  font-size: 13px; line-height: 1.45; color: var(--color-text-faint);
   text-decoration: line-through; text-decoration-thickness: 1px;
 }
 .ck-so-gone-tag {
   flex-shrink: 0;
-  font-family: var(--font-heading);
-  font-size: 9.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--color-text-faint);
+  padding: 2px 6px;
+  border: 1px solid var(--color-red);
+  font-size: 9.5px;
+  color: var(--color-red);
+  transform: rotate(-2deg);
 }
 
-.ck-so-arrow { margin: 12px 0 10px; color: var(--color-text-faint); }
+.ck-so-arrow { margin: 14px 0 10px; color: var(--color-text-faint); }
 .ck-so-arrow svg { display: block; margin: 0 auto; }
 
 .ck-so-lead {
   margin: 0 0 14px;
-  font-size: 13.5px; color: var(--color-text-muted);
+  font-size: 14px; color: var(--color-text-muted);
 }
-.ck-so-lead--solo { margin: 22px 0 0; line-height: 1.7; }
+.ck-so-lead--solo { margin: 24px 0 0; line-height: 1.7; }
 
-/* The replacement, as a real product card rather than a link. */
+/* The replacement, as a lot: plate above, ruled body below. */
 .ck-so-card {
   display: block; text-decoration: none; text-align: left;
-  border: 1px solid var(--color-border-light); border-radius: var(--radius-md);
+  border: var(--hairline); border-top: var(--rule); border-radius: 0;
   background: var(--color-bg-card);
   overflow: hidden;
-  transition: border-color var(--transition-fast), transform var(--transition-fast);
+  transition: border-color var(--transition-fast);
 }
-.ck-so-card:hover { border-color: rgba(167, 139, 250, 0.45); transform: translateY(-1px); }
+.ck-so-card:hover { border-color: var(--color-ink); }
+.ck-so-card:hover .ck-so-card-title { color: var(--color-primary); }
 
-.ck-so-card-media { background: #11161f; line-height: 0; }
+.ck-so-card-media { background: var(--color-plate); line-height: 0; border-bottom: var(--hairline); }
 .ck-so-card-media img,
 .ck-so-card-media svg { width: 100%; height: auto; display: block; aspect-ratio: 4 / 3; object-fit: contain; }
+.ck-so-card-media img { padding: 18px; }
 
 .ck-so-card-body { padding: 14px 16px 16px; }
 
 .ck-so-card-title {
-  margin: 0 0 10px;
-  font-family: var(--font-heading);
-  font-size: 15px; font-weight: 600; line-height: 1.35; letter-spacing: -0.01em;
-  color: var(--color-white);
+  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-size: 19px; font-weight: 400; line-height: 1.25; letter-spacing: -0.01em;
+  font-variation-settings: 'opsz' 36;
+  color: var(--color-ink);
+  transition: color var(--transition-fast);
 }
 
-.ck-so-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.ck-so-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
 .ck-so-badge {
-  padding: 3px 8px; border-radius: 4px;
-  border: 1px solid var(--color-border-light);
-  font-size: 10.5px; font-weight: 600; letter-spacing: 0.01em;
+  padding: 3px 7px; border-radius: 0;
+  border: 1px solid currentColor;
+  background: var(--color-plate);
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--color-text-muted);
 }
-.ck-so-badge--in { border-color: rgba(52, 211, 153, 0.32); color: #34D399; }
-.ck-so-badge--pre { border-color: rgba(167, 139, 250, 0.4); color: #A78BFA; }
-.ck-so-badge--low { border-color: rgba(251, 191, 36, 0.35); color: #FBBF24; }
+.ck-so-badge--in  { color: var(--color-accent); }
+.ck-so-badge--pre { color: var(--color-cyan); }
+.ck-so-badge--low { color: var(--color-gold); }
 
-.ck-so-pricing { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
-.ck-so-price {
-  font-family: var(--font-heading);
-  font-size: 20px; font-weight: 700; letter-spacing: -0.02em;
-  color: var(--color-white);
-}
-.ck-so-was { font-size: 12.5px; color: var(--color-text-faint); text-decoration: line-through; }
+.ck-so-pricing { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px; padding-top: 12px; border-top: var(--hairline); }
+.ck-so-price { font-size: 20px; font-weight: 500; letter-spacing: -0.01em; color: var(--color-ink); }
+.ck-so-was { font-size: 13px; color: var(--color-text-faint); text-decoration: line-through; }
 .ck-so-save {
-  font-size: 10.5px; font-weight: 700; letter-spacing: 0.02em;
-  color: #34D399;
+  font-family: var(--font-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--color-accent);
 }
 
-.ck-so-alt { margin: 16px 0 0; font-size: 12px; }
+.ck-so-alt { margin: 18px 0 0; font-size: 12.5px; }
 .ck-so-alt a { color: var(--color-text-muted); text-decoration: underline; text-underline-offset: 3px; }
-.ck-so-alt a:hover { color: var(--color-text); }
+.ck-so-alt a:hover { color: var(--color-primary); }
 
 /* The CTA is a link here, not a button, so it needs the anchor reset the
    form's <button> gets for free. */

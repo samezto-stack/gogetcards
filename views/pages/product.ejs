@@ -91,6 +91,11 @@
           <%- include('../partials/badge', { product: product }) %>
         <% } %>
       </div>
+      <%/* The plate caption, as a catalogue prints one under a photograph. */%>
+      <p class="pp__plate-caption" aria-hidden="true">
+        <span>Plate i<%= product.setCode ? ' · ' + product.setCode : '' %></span>
+        <span><%= isPreorder ? 'Preorder allocation' : 'Factory sealed' %></span>
+      </p>
       <% var _gallery = _packImg ? [_packImg].concat((product.images && product.images.length) ? product.images : [_single]).filter(Boolean) : (product.images || []); %>
       <% if (_gallery.length > 1) { %>
         <div class="pp__thumbs">
@@ -383,10 +388,10 @@
               onclick="document.getElementById('partner-checkout-form').submit()"
             >
               <% if (isPreorder) { %>
-                <%- include('../partials/icon', { name: 'bell', size: 18, color: '#fff' }) %>
+                <%- include('../partials/icon', { name: 'bell', size: 16, color: 'currentColor' }) %>
                 <span style="margin-left:0.5rem">Secure Preorder</span>
               <% } else { %>
-                <%- include('../partials/icon', { name: 'zap', size: 18, color: '#fff' }) %>
+                <%- include('../partials/icon', { name: 'zap', size: 16, color: 'currentColor' }) %>
                 <span style="margin-left:0.5rem">Express Checkout</span>
               <% } %>
             </button>
@@ -440,15 +445,15 @@
       <!-- Trust signals -->
       <div class="pp__trust-grid">
         <div class="pp__trust-item">
-          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'factory', size: 15, color: 'var(--color-text-muted)' }) %></span>
+          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'factory', size: 15, color: 'var(--color-ink)' }) %></span>
           <span>Factory Sealed Guarantee</span>
         </div>
         <div class="pp__trust-item">
-          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'lock', size: 15, color: 'var(--color-text-muted)' }) %></span>
+          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'lock', size: 15, color: 'var(--color-ink)' }) %></span>
           <span>Original Distributor Allocation</span>
         </div>
         <div class="pp__trust-item">
-          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'package', size: 15, color: 'var(--color-text-muted)' }) %></span>
+          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'package', size: 15, color: 'var(--color-ink)' }) %></span>
           <span>Ships in Original Distributor Packaging</span>
         </div>
         <%/* Was "Secure PayPal Checkout" on every product page. PayPal is
@@ -456,11 +461,11 @@
              payment method the buyer would never be offered. Reads from
              config/payments.js now. */%>
         <div class="pp__trust-item">
-          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'credit-card', size: 15, color: 'var(--color-text-muted)' }) %></span>
+          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'credit-card', size: 15, color: 'var(--color-ink)' }) %></span>
           <span><%= payments.copy.secureCheckout %></span>
         </div>
         <div class="pp__trust-item">
-          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'globe', size: 15, color: 'var(--color-text-muted)' }) %></span>
+          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'globe', size: 15, color: 'var(--color-ink)' }) %></span>
           <span><%= shippingCopy.short %>, worldwide</span>
         </div>
         <%/* Was hardcoded "14-Day Return Window". The same figure appears
@@ -469,7 +474,7 @@
              those drift, and a return window that differs between the page
              and the markup is a rich-result violation. */%>
         <div class="pp__trust-item">
-          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'undo', size: 15, color: 'var(--color-text-muted)' }) %></span>
+          <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'undo', size: 15, color: 'var(--color-ink)' }) %></span>
           <span><%= returnWindowDays %>-Day Return Window</span>
         </div>
       </div>
@@ -628,13 +633,13 @@
 
   <!-- Related Products -->
   <% if (typeof relatedProducts !== 'undefined' && relatedProducts.length > 0) { %>
-    <div style="margin-top:0;padding-bottom:4rem">
-      <div class="section-header" style="margin-bottom:var(--space-xl)">
-        <div class="label-overline" style="margin-bottom:0.5rem">You May Also Like</div>
-        <h2 class="heading-section">Related Products</h2>
-        <div class="divider-accent"></div>
+    <div style="padding-bottom:2rem">
+      <div class="reg-head" style="margin-bottom:1.25rem">
+        <span class="reg-head__num">See also</span>
+        <h2 class="heading-section reg-head__title">Related products</h2>
+        <a href="<%= marketPath('/collection/all') %>" class="reg-head__aside">View all &rarr;</a>
       </div>
-      <div class="grid-4">
+      <div class="lot-grid">
         <% relatedProducts.forEach(function(rp) { %>
           <%- include('../partials/product-card', { product: rp }) %>
         <% }); %>
@@ -685,34 +690,37 @@
 <% } %>
 
 <style>
-  .pp__each { font-size:0.85rem; font-weight:600; color:var(--color-text-muted); margin-left:0.35rem; }
+  /* Pack, tier and case offers: GoGetCards additions, drawn in the
+     register's vocabulary (hairline rules, square corners, mono figures). */
+  .pp__each { font-family:var(--font-mono); font-size:0.8rem; color:var(--color-text-muted); margin-left:0.35rem; }
   .pp__pack-line { font-size:0.85rem; color:var(--color-text-muted); margin:-0.35rem 0 0.9rem; }
   .pp__pack-line strong { color:var(--color-text); }
-  .pp__tiers { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:0.5rem; margin:0 0 1rem; }
-  .pp__tier { display:flex; flex-direction:column; align-items:center; gap:2px; padding:0.6rem 0.4rem; background:var(--color-bg-card); border:1.5px solid var(--color-border-light); border-radius:var(--radius-md); font:inherit; color:var(--color-text); cursor:pointer; transition:border-color .15s, background .15s; }
-  .pp__tier:hover { border-color:var(--color-text-muted); }
-  .pp__tier.is-on { border-color:var(--color-cyan); background:color-mix(in srgb, var(--color-cyan) 8%, var(--color-bg-card)); }
-  .pp__tier-n { font-size:0.78rem; color:var(--color-text-muted); }
-  .pp__tier-price { font-family:var(--font-heading); font-weight:700; font-size:0.95rem; }
-  .pp__case { display:flex; align-items:center; gap:0.9rem; margin:0 0 1.25rem; padding:0.85rem 1rem; background:var(--color-bg-card); border:1px solid var(--color-border-light); border-left:3px solid var(--color-cyan); border-radius:var(--radius-md); color:inherit; text-decoration:none; transition:border-color .15s; }
-  .pp__case:hover { border-color:var(--color-cyan); }
-  .pp__case-img { flex:0 0 56px; width:56px; height:56px; border-radius:8px; overflow:hidden; background:#fff; display:flex; align-items:center; justify-content:center; }
+  .pp__tiers { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:0; margin:0 0 1rem; border:1px solid var(--color-border-light); }
+  .pp__tier { display:flex; flex-direction:column; align-items:center; gap:2px; padding:0.65rem 0.4rem; background:var(--color-bg-card); border:0; border-right:1px solid var(--color-border-light); border-radius:0; font:inherit; color:var(--color-text); cursor:pointer; transition:background .15s, box-shadow .15s; }
+  .pp__tier:last-child { border-right:0; }
+  .pp__tier:hover { background:var(--color-bg); }
+  .pp__tier.is-on { background:var(--color-bg); box-shadow:inset 0 -2px 0 var(--color-ink); }
+  .pp__tier-n { font-family:var(--font-mono); font-size:0.7rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--color-text-muted); }
+  .pp__tier-price { font-family:var(--font-mono); font-weight:500; font-size:0.95rem; }
+  .pp__case { display:flex; align-items:center; gap:0.9rem; margin:0 0 1.25rem; padding:0.85rem 1rem; background:var(--color-bg-card); border:1px solid var(--color-border-light); border-top:2px solid var(--color-ink); border-radius:0; color:inherit; text-decoration:none; transition:background .15s; }
+  .pp__case:hover { background:var(--color-bg); }
+  .pp__case-img { flex:0 0 56px; width:56px; height:56px; overflow:hidden; background:var(--color-plate); display:flex; align-items:center; justify-content:center; border:1px solid var(--color-border-light); }
   .pp__case-img img { width:100%; height:100%; object-fit:contain; }
   .pp__case-body { flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:2px; }
-  .pp__case-head { font-family:var(--font-heading); font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--color-cyan); }
+  .pp__case-head { font-family:var(--font-mono); font-size:0.7rem; font-weight:500; text-transform:uppercase; letter-spacing:.12em; color:var(--color-cyan); }
   .pp__case-line { font-size:0.95rem; color:var(--color-text); }
-  .pp__case-line strong { font-family:var(--font-heading); font-weight:700; }
-  .pp__case-per { color:var(--color-text-muted); font-size:0.85rem; }
-  .pp__case-save { margin-left:0.5rem; font-size:0.72rem; font-weight:700; color:#15803d; background:#dcfce7; padding:2px 7px; border-radius:999px; }
+  .pp__case-line strong { font-family:var(--font-mono); font-weight:500; }
+  .pp__case-per { font-family:var(--font-mono); color:var(--color-text-muted); font-size:0.8rem; }
+  .pp__case-save { margin-left:0.5rem; font-family:var(--font-mono); font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--color-accent); background:var(--color-accent-soft); padding:2px 6px; }
   .pp__case-sub { font-size:0.78rem; color:var(--color-text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .pp__case-arrow { flex:0 0 auto; font-size:1.2rem; color:var(--color-text-muted); }
-  .pp__preorder-head { font-family:var(--font-heading); font-size:0.9rem; font-weight:700; color:var(--color-cyan); }
+  .pp__preorder-head { font-family:var(--font-mono); font-size:0.72rem; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--color-cyan); }
   .pp__preorder-sub { font-size:0.8rem; color:var(--color-text-muted); margin-top:4px; line-height:1.65; }
   .pp__preorder-sub strong { color:var(--color-text); }
-  .pp__preorder-toggle { margin-top:0.6rem; background:none; border:none; padding:0; font:inherit; font-size:0.78rem; font-weight:600; color:var(--color-cyan); cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+  .pp__preorder-toggle { margin-top:0.6rem; background:none; border:none; padding:0; font:inherit; font-size:0.8rem; font-weight:600; color:var(--color-ink); cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
   .pp__preorder-terms { margin-top:0.75rem; background:var(--color-bg-card); border:1px solid var(--color-border-light); border-radius:var(--radius-md); padding:1.1rem 1.25rem; }
   .pp__preorder-terms dl { margin:0; display:flex; flex-direction:column; gap:0.85rem; }
-  .pp__preorder-terms dt { font-family:var(--font-heading); font-size:0.82rem; font-weight:700; color:var(--color-white); }
+  .pp__preorder-terms dt { font-family:var(--font-display); font-size:1rem; font-weight:500; color:var(--color-ink); }
   .pp__preorder-terms dd { margin:0.2rem 0 0; font-size:0.8rem; color:var(--color-text-muted); line-height:1.7; }
   .pp__preorder-terms-foot { margin-top:1rem; padding-top:0.8rem; border-top:1px solid var(--color-border-light); font-size:0.75rem; color:var(--color-text-faint); }
   .pp__preorder-terms-foot a { color:var(--color-primary); }

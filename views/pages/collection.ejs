@@ -1,27 +1,26 @@
 <!-- Collection Header -->
 <div class="col-page__header">
-  <div class="col-page__header-orb" aria-hidden="true" style="position:absolute;width:500px;height:300px;top:50%;right:-100px;transform:translateY(-50%);background:radial-gradient(ellipse,rgba(124,58,237,0.1) 0%,transparent 70%);pointer-events:none"></div>
-  <div class="container" style="position:relative;z-index:2">
+  <div class="container">
     <nav class="col-page__breadcrumb" aria-label="Breadcrumb">
       <a href="<%= marketPath('/') %>">Home</a>
       <span aria-hidden="true">/</span>
       <span aria-current="page"><%= collectionTitle %></span>
     </nav>
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+    <div class="col-head">
       <div>
         <% if (collectionHandle === 'preorders') { %>
-          <div class="label-overline" style="margin-bottom:0.5rem">🔔 Lock In Now</div>
+          <span class="zy-stamp" style="margin-bottom:0.9rem">Lock in now</span>
         <% } %>
-        <h1 class="heading-section"><%= collectionTitle %></h1>
+        <h1 class="heading-hero col-head__title"><%= collectionTitle %></h1>
         <% if (typeof collectionDescription !== 'undefined' && collectionDescription) { %>
-          <p style="color:var(--color-text-muted);margin-top:0.625rem;max-width:540px;font-size:0.9rem;line-height:1.7">
+          <p class="col-head__desc">
             <%= collectionDescription %>
           </p>
         <% } %>
       </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
-        <span style="font-family:var(--font-heading);font-size:2rem;font-weight:900;color:var(--color-white);line-height:1"><%= typeof totalProducts !== 'undefined' ? totalProducts : products.length %></span>
-        <span style="font-size:0.72rem;color:var(--color-text-faint);text-transform:uppercase;letter-spacing:0.06em;font-weight:600">products</span>
+      <div class="col-head__count">
+        <span class="col-head__count-n"><%= typeof totalProducts !== 'undefined' ? totalProducts : products.length %></span>
+        <span class="zy-meta">lots in this section</span>
       </div>
     </div>
   </div>
@@ -104,8 +103,8 @@
       <% } else { %>
         <div class="col-page__filter-group">
           <h2 class="col-page__filter-title">Quick Links</h2>
-          <a href="<%= marketPath('/collection/preorders') %>" class="col-filters__quick" id="filter-preorders-link">Preorders only</a>
-          <a href="<%= marketPath('/collection/all') %>" class="col-filters__quick" id="filter-all-link">All products</a>
+          <a href="<%= marketPath('/collection/preorders') %>" class="col-quick<%= collectionHandle === 'preorders' ? ' is-on' : '' %>" id="filter-preorders-link">Preorders only <span aria-hidden="true">&rarr;</span></a>
+          <a href="<%= marketPath('/collection/all') %>" class="col-quick<%= collectionHandle === 'all' ? ' is-on' : '' %>" id="filter-all-link">All products <span aria-hidden="true">&rarr;</span></a>
         </div>
       <% } %>
     </aside>
@@ -128,7 +127,7 @@
       <!-- Preorders notice -->
       <% if (collectionHandle === 'preorders') { %>
         <div class="col-page__notice" role="note">
-          <span aria-hidden="true">🔔</span>
+          <span class="zy-meta" style="color:var(--color-cyan)" aria-hidden="true">Terms</span>
           <div>
             <strong style="color:var(--color-cyan)">Preorder Guarantee:</strong>
             Charged today. Price is locked at today's rate. <%= preorder.DISPATCH_SHORT %>. Cancel anytime before dispatch for a full refund.
@@ -168,13 +167,13 @@
 
       <!-- Products -->
       <% if (products.length === 0) { %>
-        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5rem 2rem;text-align:center;gap:1rem">
-          <div style="font-size:3rem" aria-hidden="true">🔍</div>
-          <h3 style="font-family:var(--font-heading);font-size:1.25rem;color:var(--color-white)">No products found</h3>
-          <a href="<%= marketPath('/collection/all') %>" class="btn btn-outline">Browse All →</a>
+        <div class="col-empty">
+          <span class="zy-meta">Nothing listed</span>
+          <h3 class="col-empty__title">No products found</h3>
+          <a href="<%= marketPath('/collection/all') %>" class="btn btn-outline">Browse all &rarr;</a>
         </div>
       <% } else { %>
-        <div class="grid-4">
+        <div class="lot-grid lot-grid--3">
           <% products.forEach(function(product) { %>
             <%- include('../partials/product-card', { product: product }) %>
           <% }); %>
@@ -263,3 +262,19 @@
     </div>
   </div>
 </div>
+
+<style>
+  .col-head { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:1.5rem; }
+  .col-head__title { font-size:clamp(2.3rem, 5vw, 4rem); }
+  .col-head__desc { color:var(--color-text-muted); margin-top:0.9rem; max-width:36rem; font-size:0.98rem; line-height:1.7; }
+  .col-head__count { display:flex; flex-direction:column; align-items:flex-end; gap:4px; padding-bottom:0.35rem; }
+  .col-head__count-n { font-family:var(--font-display); font-size:3rem; font-weight:300; color:var(--color-ink); line-height:0.9; font-variant-numeric:lining-nums; }
+  .col-quick { display:flex; justify-content:space-between; padding:0.6rem 0; border-bottom:1px solid var(--color-border-light); font-size:0.88rem; color:var(--color-ink); }
+  .col-quick:first-of-type { border-top:1px solid var(--color-border-light); }
+  .col-quick:hover, .col-quick.is-on { color:var(--color-primary); }
+  .col-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:5rem 2rem; text-align:center; gap:0.9rem; border:1px dashed var(--color-border-light); }
+  .col-empty__title { font-family:var(--font-display); font-size:1.8rem; font-weight:400; color:var(--color-ink); }
+  .lot-grid--3 { grid-template-columns:repeat(3, minmax(0, 1fr)); }
+  @media (max-width: 1024px) { .lot-grid--3 { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .col-head__count { align-items:flex-start; } .col-head__count-n { font-size:2.2rem; } }
+</style>

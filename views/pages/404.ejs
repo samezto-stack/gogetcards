@@ -1,11 +1,20 @@
-<div class="container" style="min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;padding:4rem var(--space-xl);text-align:center">
-  <div style="font-size:5rem" aria-hidden="true">🔍</div>
-  <h1 class="heading-section">Page Not Found</h1>
-  <p style="color:var(--color-text-muted);max-width:400px">
+<div class="container nf">
+  <p class="nf__code" aria-hidden="true">404</p>
+  <h1 class="nf__title">Page Not Found</h1>
+  <p class="nf__body">
     The page you're looking for doesn't exist or may have been moved.
   </p>
-  <div style="display:flex;gap:1rem;flex-wrap:wrap">
+  <div class="nf__ctas">
     <a href="<%= marketPath('/') %>" class="btn btn-primary btn-lg" id="404-home-btn">← Back to Home</a>
     <a href="<%= marketPath('/collection/all') %>" class="btn btn-outline btn-lg" id="404-shop-btn">Browse Products</a>
   </div>
 </div>
+
+<style>
+  .nf { min-height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding-top: 4rem; padding-bottom: 4rem; text-align: center; }
+  .nf__code { font-family: var(--font-display); font-weight: 300; font-style: italic; font-size: clamp(5rem, 14vw, 9rem); line-height: 0.9; letter-spacing: -0.04em; color: var(--color-primary); font-variation-settings: 'opsz' 144; }
+  .nf__title { font-family: var(--font-display); font-size: clamp(1.9rem, 4vw, 2.8rem); font-weight: 400; color: var(--color-ink); padding-bottom: 1rem; border-bottom: 1.5px solid var(--color-ink); min-width: min(26rem, 100%); }
+  .nf__body { color: var(--color-text-muted); max-width: 42ch; line-height: 1.7; }
+  .nf__ctas { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; margin-top: 0.75rem; }
+  @media (max-width: 480px) { .nf__ctas .btn { flex: 1 1 100%; } }
+</style>

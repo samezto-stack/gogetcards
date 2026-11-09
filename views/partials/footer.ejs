@@ -1,16 +1,18 @@
 <footer class="site-footer" role="contentinfo">
-  <div class="footer__accent-line" aria-hidden="true"></div>
   <div class="container">
+    <%/* The colophon: the wordmark set large across the top, the way a
+         register closes, then the link columns in ruled cells. */%>
+    <div class="footer__wordmark">
+      <span class="footer__wordmark-text" aria-hidden="true"><span class="footer__wordmark-mark"><%- include('logomark', { size: 64 }) %></span>GoGetCards</span>
+      <p class="footer__wordmark-note">Sealed TCG &amp; sports cards<br>Distributor direct</p>
+    </div>
     <div class="footer__grid">
 
       <!-- Brand Column -->
       <div class="footer__brand">
         <%/* Same mark as the header and every generated icon. See
              views/partials/logomark.ejs. */%>
-        <a href="<%= marketPath('/') %>" class="footer__logo">
-          <span style="display:inline-flex;color:var(--color-primary)"><%- include('logomark', { size: 26 }) %></span>
-          GoGet<strong>Cards</strong>
-        </a>
+        <a href="<%= marketPath('/') %>" class="footer__logo">GoGetCards</a>
         <p class="footer__tagline">Sealed TCG and sports cards for collectors who check the wrap. Factory sealed, photographed before shipping, shipped with care.</p>
 
         <div class="footer__socials">
@@ -83,15 +85,15 @@
              that the pages in the columns above set out in full. */%>
         <ul class="footer__trust-badges">
           <li class="footer__trust-badge">
-            <%- include('icon', { name: 'package', size: 12, color: 'var(--color-accent)' }) %>
+            <%- include('icon', { name: 'package', size: 12, color: 'var(--color-ink)' }) %>
             <%= shippingCopy.short %>
           </li>
           <li class="footer__trust-badge">
-            <%- include('icon', { name: 'check-circle', size: 12, color: 'var(--color-primary)' }) %>
+            <%- include('icon', { name: 'check-circle', size: 12, color: 'var(--color-ink)' }) %>
             Factory-sealed guarantee
           </li>
           <li class="footer__trust-badge">
-            <%- include('icon', { name: 'undo', size: 12, color: 'var(--color-cyan)' }) %>
+            <%- include('icon', { name: 'undo', size: 12, color: 'var(--color-ink)' }) %>
             <%= returnWindowDays %>-day returns
           </li>
         </ul>
