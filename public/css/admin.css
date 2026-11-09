@@ -127,6 +127,23 @@ h1, h2, h3, h4 { font-weight: 600; line-height: 1.25; letter-spacing: -0.01em; }
   padding: 2px 7px; border-radius: 999px; background: rgba(255,255,255,0.14); color: rgba(255,255,255,0.9);
 }
 .admin-topbar__spacer { flex: 1; }
+/* Store switcher: a two-segment toggle on the top bar. The current store is
+   the white segment; the other is a link to that store's admin. Each
+   carries its own brand colour in the dot, so the two admins stay easy to
+   tell apart at a glance. */
+.store-switch { display: inline-flex; align-items: center; gap: 2px; padding: 3px; margin-left: 6px; border-radius: 999px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18); }
+.store-switch__item { display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 12px; border-radius: 999px; font-size: 12.5px; font-weight: 600; line-height: 1; color: rgba(255,255,255,0.86); text-decoration: none; white-space: nowrap; transition: background 120ms ease, color 120ms ease; }
+.store-switch__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--store); box-shadow: 0 0 0 2px rgba(255,255,255,0.85); }
+.store-switch__item.is-on { background: #fff; color: var(--store); cursor: default; }
+.store-switch__item.is-on .store-switch__dot { box-shadow: none; }
+a.store-switch__item:hover { background: rgba(255,255,255,0.18); color: #fff; text-decoration: none; }
+a.store-switch__item:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.store-switch__short { display: none; }
+@media (max-width: 760px) {
+  .store-switch__full { display: none; }
+  .store-switch__short { display: inline; }
+  .store-switch__item { padding: 0 10px; }
+}
 .admin-topbar__env { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: rgba(255,255,255,0.75); }
 .admin-topbar__env::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #4ADE80; }
 .admin-topbar__link {

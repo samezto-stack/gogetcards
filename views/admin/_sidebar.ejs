@@ -19,6 +19,20 @@
     <span class="admin-brand__name">GoGetCards</span>
     <span class="admin-brand__tag">Admin</span>
   </a>
+  <%/* Store switcher: one segment per store, the current one marked.
+       The other opens that store's admin on the same section. Each admin
+       has its own sign-in, so the first switch asks for that store's login. */%>
+  <% if (typeof adminStores !== 'undefined' && adminStores.STORES.length > 1) { %>
+  <nav class="store-switch" aria-label="Switch store admin">
+    <% adminStores.STORES.forEach(function (st) { var cur = st.id === adminStores.CURRENT; %>
+      <% if (cur) { %>
+      <span class="store-switch__item is-on" aria-current="page" style="--store:<%= st.color %>"><span class="store-switch__dot" aria-hidden="true"></span><span class="store-switch__full"><%= st.name %></span><span class="store-switch__short"><%= st.short %></span></span>
+      <% } else { %>
+      <a class="store-switch__item" href="<%= adminStores.adminUrl(st, _path) %>" style="--store:<%= st.color %>" title="Switch to the <%= st.name %> admin" id="switch-to-<%= st.id %>"><span class="store-switch__dot" aria-hidden="true"></span><span class="store-switch__full"><%= st.name %></span><span class="store-switch__short"><%= st.short %></span></a>
+      <% } %>
+    <% }); %>
+  </nav>
+  <% } %>
   <span class="admin-topbar__spacer"></span>
   <span class="admin-topbar__env">Live</span>
   <a href="/" class="admin-topbar__link" target="_blank" rel="noopener">

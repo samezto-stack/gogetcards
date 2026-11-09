@@ -215,6 +215,8 @@ app.set('layout extractScripts', true);
 
 /* ── Global app.locals (available in ALL templates + includes) */
 app.locals.formatPrice = formatPrice;
+/* The store switcher in the admin top bar (config/adminStores.js). */
+app.locals.adminStores = require('./config/adminStores');
 
 /* Safe serialiser for data embedded in inline <script> via <%- %>.
    Use this instead of JSON.stringify for any value that could contain
