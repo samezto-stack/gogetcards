@@ -8,6 +8,15 @@
     { id: 'sport', label: 'Sports cards', items: deps.filter(function (d) { return d.line.kind === 'sport'; }) },
     { id: 'tcg', label: 'Trading card games', items: deps.filter(function (d) { return d.line.kind === 'tcg'; }) },
   ].filter(function (g) { return g.items.length; });
+  /* The big four keep the full tiles (the band was laid out for four);
+     newer games are a compact "Also" line underneath rather than squeezing
+     every tile to half width. */
+  var DEPT_CORE = ['pokemon', 'mtg', 'one-piece', 'lorcana'];
+  depGroups.forEach(function (g) {
+    if (g.id !== 'tcg') { g.extra = []; return; }
+    g.extra = g.items.filter(function (d) { return DEPT_CORE.indexOf(d.line.handle) === -1; });
+    g.items = g.items.filter(function (d) { return DEPT_CORE.indexOf(d.line.handle) !== -1; });
+  });
 %>
 <nav class="gg-dept" aria-label="Shop by department">
   <div class="container gg-dept__inner">
@@ -24,6 +33,11 @@
         </li>
         <% }); %>
       </ul>
+      <% if (g.extra && g.extra.length) { %>
+      <p class="gg-dept__also">Also:
+        <% g.extra.forEach(function (d, i) { %><a href="<%= marketPath('/collection/' + d.line.handle) %>" style="--c:<%= d.line.accent %>" id="cat-<%= d.line.handle %>"><%= d.line.shortName %><% if (d.n) { %> <span>(<%= d.n %>)</span><% } %></a><% if (i < g.extra.length - 1) { %><span class="gg-dept__dot" aria-hidden="true">·</span><% } %><% }); %>
+      </p>
+      <% } %>
     </div>
     <% }); %>
   </div>
