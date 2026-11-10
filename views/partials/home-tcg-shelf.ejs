@@ -17,8 +17,23 @@
       <p class="gg-head__aside">Booster boxes, elite trainer boxes, bundles and collector sets, game by game.</p>
     </div>
 
-    <div class="gg-shelf" style="--n:<%= shelf.length %>">
-      <% shelf.forEach(function (g) { %>
+    <%/* The big four always show; the newer games sit behind "More games"
+         so the shelf leads with what most shoppers came for. <details> needs
+         no script and is keyboard- and screen-reader-friendly. */%>
+    <% var CORE = ['pokemon', 'mtg', 'one-piece', 'lorcana'];
+       var core = shelf.filter(function (g) { return CORE.indexOf(g.line.handle) !== -1; });
+       var more = shelf.filter(function (g) { return CORE.indexOf(g.line.handle) === -1; }); %>
+    <% [core, more].forEach(function (group, gi) { if (!group.length) return; %>
+    <% if (gi === 1) { %>
+    <details class="gg-shelf-more">
+      <summary class="gg-shelf-more__btn">
+        <span class="gg-shelf-more__open">More games: <%= more.map(function (g) { return g.line.shortName; }).join(', ') %></span>
+        <span class="gg-shelf-more__close">Show fewer games</span>
+        <span class="gg-shelf-more__icon" aria-hidden="true">+</span>
+      </summary>
+    <% } %>
+    <div class="gg-shelf">
+      <% group.forEach(function (g) { %>
       <section class="gg-shelf__col" style="--c:<%= g.line.accent %>" aria-labelledby="shelf-<%= g.line.handle %>">
         <header class="gg-shelf__head">
           <h3 id="shelf-<%= g.line.handle %>"><%= g.line.name %></h3>
@@ -42,6 +57,8 @@
       </section>
       <% }); %>
     </div>
+    <% if (gi === 1) { %></details><% } %>
+    <% }); %>
   </div>
 </section>
 <% } %>

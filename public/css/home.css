@@ -176,6 +176,17 @@
 .gg-shelf__item:hover .gg-shelf__name { color: var(--gg-accent-dark); }
 .gg-shelf__item:hover .gg-shelf__img img { transform: scale(1.05); }
 .gg-shelf__all { align-self: flex-start; margin-top: 0.85rem; }
+/* "More games" — the newer lines, folded under the big four. */
+.gg-shelf-more { margin-top: 1rem; }
+.gg-shelf-more__btn { list-style: none; display: flex; align-items: center; justify-content: center; gap: 0.6rem; width: 100%; padding: 0.85rem 1rem; background: #fff; border: 1px dashed var(--gg-paper-line); border-radius: 8px; cursor: pointer; font-family: var(--font-heading); font-weight: 700; font-size: 0.92rem; color: var(--gg-navy); }
+.gg-shelf-more__btn::-webkit-details-marker { display: none; }
+.gg-shelf-more__btn:hover, .gg-shelf-more__btn:focus-visible { border-color: var(--gg-navy); }
+.gg-shelf-more__icon { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--gg-navy); color: #fff; font-size: 0.95rem; line-height: 1; transition: transform 200ms ease; }
+.gg-shelf-more__close { display: none; }
+.gg-shelf-more[open] .gg-shelf-more__open { display: none; }
+.gg-shelf-more[open] .gg-shelf-more__close { display: inline; }
+.gg-shelf-more[open] .gg-shelf-more__icon { transform: rotate(45deg); }
+.gg-shelf-more[open] > .gg-shelf { margin-top: 1rem; }
 
 /* ── On the calendar ──────────────────────────────────────────────────── */
 .gg-cal { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
