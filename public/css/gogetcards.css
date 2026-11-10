@@ -175,6 +175,9 @@ ul, ol { list-style: none; }
 .brand-badge--mtg { background: #FBE9E4; color: #8F3119; border-color: #F1C9BE; }
 .brand-badge--onepiece { background: #FCE6E6; color: #951B1B; border-color: #F3C2C2; }
 .brand-badge--lorcana { background: #EFEBFA; color: #49337F; border-color: #D6CCF0; }
+.brand-badge--yugioh { background: #FBF1DE; color: #7A4F0C; border-color: #EFD9AE; }
+.brand-badge--riftbound { background: #E7F1FA; color: #1D5A8C; border-color: #C3DBF0; }
+.brand-badge--gundam { background: #EDEFF3; color: #343C4A; border-color: #D2D6DE; }
 .brand-badge--baseball { background: #E8EEFA; color: #173A7D; border-color: #C4D2F0; }
 .brand-badge--basketball { background: #EEF0F4; color: #3F4450; border-color: #D3D7DF; }
 .brand-badge--football { background: #E9EAEE; color: #1F2026; border-color: #CFD1D8; }

@@ -55,7 +55,9 @@ const LINES = [
     accent: '#D12B2B',
     badgeClass: 'brand-badge--onepiece',
     icon: 'onepiece.svg',
-    match: ['one piece', 'one-piece', 'onepiece', 'bandai'],
+    /* Not 'bandai': Bandai also publishes the Gundam Card Game, and the
+       vendor alone would file it under One Piece. */
+    match: ['one piece', 'one-piece', 'onepiece'],
   },
   {
     handle: 'lorcana',
@@ -68,6 +70,44 @@ const LINES = [
     badgeClass: 'brand-badge--lorcana',
     icon: 'lorcana.svg',
     match: ['lorcana', 'ravensburger'],
+  },
+  /* Shared with Zyphera TCG's catalogue (November 2026) so the two stores
+     can carry the same products: GoGetCards advertises them in the US. */
+  {
+    handle: 'yugioh',
+    name: 'Yu-Gi-Oh!',
+    shortName: 'Yu-Gi-Oh!',
+    kind: 'tcg',
+    publisher: 'Konami',
+    description: 'Booster boxes, box sets and premium collections',
+    accent: '#A36B12',
+    badgeClass: 'brand-badge--yugioh',
+    icon: 'yugioh.svg',
+    match: ['yu-gi-oh', 'yugioh', 'konami'],
+  },
+  {
+    handle: 'riftbound',
+    name: 'Riftbound',
+    shortName: 'Riftbound',
+    kind: 'tcg',
+    publisher: 'Riot Games',
+    description: 'League of Legends booster displays and preorders',
+    accent: '#2F7FC1',
+    badgeClass: 'brand-badge--riftbound',
+    icon: 'riftbound.svg',
+    match: ['riftbound', 'riot games'],
+  },
+  {
+    handle: 'gundam',
+    name: 'Gundam Card Game',
+    shortName: 'Gundam',
+    kind: 'tcg',
+    publisher: 'Bandai',
+    description: 'English booster boxes from each new set',
+    accent: '#4A5568',
+    badgeClass: 'brand-badge--gundam',
+    icon: 'gundam.svg',
+    match: ['gundam'],
   },
   {
     handle: 'baseball',
