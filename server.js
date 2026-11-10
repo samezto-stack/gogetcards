@@ -415,14 +415,17 @@ async function boot() {
        and inheriting it would report every GoGetCards purchase into the
        other store's Google Ads account. Unset means the tag is not
        rendered at all. */
-    res.locals.googleAdsId = process.env.GOOGLE_ADS_ID || '';
+    /* From config/googleAds.js, NOT the environment: an old GOOGLE_ADS_ID
+       still set on the host (the shared account) must not be able to
+       receive GoGetCards purchases. */
+    res.locals.googleAdsId = require('./config/googleAds').conversionId;
     /* GA4 property. Unset means no GA4 tag; the Ads tag is independent. */
     res.locals.ga4Id = process.env.GA4_MEASUREMENT_ID || '';
     /* Numeric stock/allocation counts on the storefront ("Only 4 left",
        "61 units remaining"). Shown by default, from Product.stock, which the
        owner maintains by hand; SHOW_STOCK_COUNTS=false hides every number. */
     res.locals.showStockCounts = process.env.SHOW_STOCK_COUNTS !== 'false';
-    res.locals.googleAdsPurchaseLabel = process.env.GOOGLE_ADS_PURCHASE_LABEL || '';
+    res.locals.googleAdsPurchaseLabel = require('./config/googleAds').purchaseLabel;
     /* Merchant Center account id (digits only). Set, it turns the purchase
        conversion into a "conversion with cart data": Google can then report
        which advertised product was bought, in what quantity, against the
