@@ -2291,12 +2291,42 @@ router.get('/thank-you', async (req, res) => {
       }
     }
 
+    /* Enhanced conversions: hashed buyer details for the Ads conversion.
+       Read from the CheckoutSession the order closed (what the buyer typed),
+       falling back to the order. Never allowed to fail the page. */
+    let adsUserData = null;
+    if (result.ok && result.order) {
+      try {
+        const ord = result.order;
+        const CheckoutSession = require('../models/CheckoutSession');
+        const sess = ord.orderId
+          ? await CheckoutSession.findOne({ orderId: String(ord.orderId) })
+            .select('email phone firstName lastName address1 city state postalCode country').lean()
+          : null;
+        const b = sess || {};
+        adsUserData = require('../helpers/adsUserData').adsUserData({
+          email: b.email || ord.customerEmail,
+          phone: b.phone || ord.customerPhone,
+          firstName: b.firstName || ord.firstName,
+          lastName: b.lastName || ord.lastName,
+          street: b.address1 || ord.address1,
+          city: b.city || ord.city,
+          region: b.state || ord.state,
+          postalCode: b.postalCode || ord.zip,
+          country: b.country || ord.country,
+        });
+      } catch (e) {
+        console.error('[thank-you] enhanced conversion data failed:', e.message);
+      }
+    }
+
     return renderPage(res, 'thank-you', {
       pageTitle: 'Order Confirmed | GoGetCards',
       metaDescription: 'Thank you for your purchase from GoGetCards.',
       ...extras,
       adsItemId,
       adsItems,
+      adsUserData,
       account,
       order_id: result.ok ? result.order.orderId : (req.query.order_id || null),
       value: result.ok ? (result.order.totalPrice / 100).toFixed(2) : (req.query.value || null),

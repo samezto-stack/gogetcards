@@ -703,6 +703,12 @@
     var key = 'ggc_ads_conv_' + <%- jsonForScript(String(gaOrder.orderId)) %>;
     try { if (sessionStorage.getItem(key)) return; sessionStorage.setItem(key, '1'); } catch (e) {}
     if (typeof gtag !== 'function') return;
+    <% if (typeof adsUserData !== 'undefined' && adsUserData) { %>
+    /* Enhanced conversions. Hashed on the server (helpers/adsUserData.js):
+       no plaintext contact detail is in this page. Set before the event so
+       the conversion carries it. */
+    gtag('set', 'user_data', <%- jsonForScript(adsUserData) %>);
+    <% } %>
     gtag('event', 'purchase', <%- jsonForScript(gaConv) %>);
   })();
 </script>
