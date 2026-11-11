@@ -244,7 +244,8 @@ router.post('/product/:slug', requireAuth, async (req, res) => {
         'merchant.imageLink': (b.mImageLink || '').trim(),
         'merchant.googleCategory': (b.googleCategory || '').trim(),
         'merchant.googleProductType': (b.googleProductType || '').trim(),
-        'merchant.identifierExists': b.identifierExists !== 'off',
+        /* An unticked checkbox sends nothing, so absent means "no identifier". */
+        'merchant.identifierExists': b.identifierExists === 'on',
         'merchant.isBundle': b.isBundle === 'on',
         'merchant.multipack': parseInt(b.multipack, 10) || 0,
         'merchant.adult': b.adult === 'on',
