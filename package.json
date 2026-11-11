@@ -4,7 +4,7 @@
   "description": "GoGetCards — sealed TCG and sports card store",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "MALLOC_ARENA_MAX=2 node server.js",
     "dev": "node --watch server.js",
     "seed": "node seed.js",
     "backup": "node scripts/backup.js",

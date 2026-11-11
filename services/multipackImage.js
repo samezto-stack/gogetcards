@@ -38,10 +38,11 @@ const BADGE_GAP = 110;
 const WIDTHS = [160, 320, 480, 720, 960, 1440, 1600];
 const FORMATS = new Set(['png', 'webp', 'jpeg']);
 const TTL_MS = 7 * 24 * 60 * 60 * 1000;
-const MAX_MASTERS = 400;
 
-const masters = new Map();   // slug -> { buf, at, v }
-const variants = new Map();  // slug|width|fmt -> { buf, at, v }
+const { ByteLru, gate } = require('./imageMemory');
+/* Byte budgets, not counts: a 1600px master PNG is ~2-4 MB (services/imageMemory). */
+const masters = new ByteLru(64 * 1024 * 1024);   // slug -> { buf, at, v }
+const variants = new ByteLru(32 * 1024 * 1024);  // slug|width|fmt -> { buf, at, v }
 const inflight = new Map();  // slug -> Promise<master>
 
 function sourceOf(product) {
@@ -97,7 +98,7 @@ async function master(product, opts = {}) {
   if (hit && hit.v === v && Date.now() - hit.at < TTL_MS && !opts.source) return hit.buf;
   if (inflight.has(slug) && !opts.source) return inflight.get(slug);
 
-  const job = (async () => {
+  const job = gate(async () => {
     const n = packOf(product);
     const src = opts.source || await fetchSource(sourceOf(product));
     const copy = await sharp(src).resize({ width: COPY, height: COPY, fit: 'inside', withoutEnlargement: true })
@@ -118,11 +119,10 @@ async function master(product, opts = {}) {
     }
     const buf = await sharp({ create: { width: CANVAS, height: CANVAS, channels: 3, background: '#ffffff' } })
       .composite(layers).png({ compressionLevel: 6 }).toBuffer();
-    if (masters.size >= MAX_MASTERS) masters.delete(masters.keys().next().value);
     masters.set(slug, { buf, at: Date.now(), v });
-    for (const k of [...variants.keys()]) if (k.startsWith(`${slug}|`)) variants.delete(k);
+    for (const k of [...variants.map.keys()]) if (k.startsWith(`${slug}|`)) variants.delete(k);
     return buf;
-  })();
+  });
   if (!opts.source) inflight.set(slug, job);
   try { return await job; } finally { inflight.delete(slug); }
 }
@@ -138,12 +138,14 @@ async function render(product, { width, fmt } = {}) {
   const base = await master(product);
   let buf = base;
   if (w !== CANVAS || f !== 'png') {
-    let s = sharp(base);
-    if (w !== CANVAS) s = s.resize({ width: w });
-    if (f === 'webp') s = s.webp({ quality: 82 });
-    else if (f === 'jpeg') s = s.jpeg({ quality: 85, mozjpeg: true });
-    else s = s.png({ compressionLevel: 8 });
-    buf = await s.toBuffer();
+    buf = await gate(() => {
+      let s = sharp(base);
+      if (w !== CANVAS) s = s.resize({ width: w });
+      if (f === 'webp') s = s.webp({ quality: 82 });
+      else if (f === 'jpeg') s = s.jpeg({ quality: 85, mozjpeg: true });
+      else s = s.png({ compressionLevel: 8 });
+      return s.toBuffer();
+    });
   }
   variants.set(key, { buf, at: Date.now(), v });
   return { buf, type: `image/${f}` };

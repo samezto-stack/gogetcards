@@ -17,7 +17,11 @@ try { sharp = require('sharp'); } catch (err) { console.error('[product asset] s
 const DIR = path.join(__dirname, '..', 'assets', 'products');
 const WIDTHS = [160, 320, 480, 720, 960, 1440, 1600];
 const FORMATS = new Set(['webp', 'png', 'jpeg']);
-const cache = new Map();
+const { ByteLru, gate } = require('./imageMemory');
+
+/* Rendered sizes, kept within a byte budget (see services/imageMemory). */
+const cache = new ByteLru(48 * 1024 * 1024);
+const inflight = new Map();
 const versions = new Map();
 
 function masterPath(slug) {
@@ -50,14 +54,21 @@ async function render(slug, { width, fmt } = {}) {
   const w = WIDTHS.includes(Number(width)) ? Number(width) : 1600;
   const f = FORMATS.has(fmt) ? fmt : 'webp';
   const key = `${slug}|${w}|${f}`;
-  if (cache.has(key)) return cache.get(key);
-  let s = sharp(p).resize({ width: w, withoutEnlargement: true });
-  if (f === 'webp') s = s.webp({ quality: 80, alphaQuality: 85 });
-  else if (f === 'jpeg') s = s.flatten({ background: '#ffffff' }).jpeg({ quality: 88, mozjpeg: true });
-  else s = s.png({ compressionLevel: 8 });
-  const out = { buf: await s.toBuffer(), type: `image/${f}` };
-  cache.set(key, out);
-  return out;
+  const hit = cache.get(key);
+  if (hit) return hit;
+  /* Concurrent requests for the same size share one render. */
+  if (inflight.has(key)) return inflight.get(key);
+  const job = gate(async () => {
+    let s = sharp(p).resize({ width: w, withoutEnlargement: true });
+    if (f === 'webp') s = s.webp({ quality: 80, alphaQuality: 85 });
+    else if (f === 'jpeg') s = s.flatten({ background: '#ffffff' }).jpeg({ quality: 88, mozjpeg: true });
+    else s = s.png({ compressionLevel: 8 });
+    const out = { buf: await s.toBuffer(), type: `image/${f}` };
+    cache.set(key, out);
+    return out;
+  }).finally(() => inflight.delete(key));
+  inflight.set(key, job);
+  return job;
 }
 
 module.exports = { masterPath, urlFor, render, WIDTHS, DIR };
