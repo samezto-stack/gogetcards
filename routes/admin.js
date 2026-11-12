@@ -45,6 +45,8 @@ const { runThankYouPipeline } = require('../services/orderPipeline');
 const { verifySignature } = require('../services/orderPipeline/signatureVerifier');
 const { provisionFromOrder } = require('../services/customerProvisioning');
 const { buildTrafficSourcePipeline, buildDirectLandingPipeline, siteHostFromEnv } = require('../services/analytics/trafficSources');
+/* Page views from crawlers/scripts are left out of every visitor count. */
+const { HUMAN_EVENT } = require('../middleware/tracking');
 const Event = require('../models/Event');
 const Visitor = require('../models/Visitor');
 const Order = require('../models/Order');
@@ -349,7 +351,7 @@ router.get('/', requireAuth, async (req, res) => {
     const [
       uniqueVisitors, checkouts, orders, revenueAgg, pageViews,
     ] = await Promise.all([
-      Event.distinct('ip', { type: 'page_view', ...query }).then(arr => arr.length),
+      Event.distinct('ip', { type: 'page_view', ...HUMAN_EVENT, ...query }).then(arr => arr.length),
       Event.countDocuments({ type: 'checkout_click', ...query }),
       Order.countDocuments(orderQuery),
       /* Revenue for the selected range. totalPrice is stored in cents, so
@@ -362,7 +364,7 @@ router.get('/', requireAuth, async (req, res) => {
       ]),
       /* Every page view in the range, as opposed to the unique count
          above; the Visitors panel shows either. */
-      Event.countDocuments({ type: 'page_view', ...query }),
+      Event.countDocuments({ type: 'page_view', ...HUMAN_EVENT, ...query }),
       /* The Checkout Funnel and Checkout Destinations panels were built to
          prove the partner-experience redirect chain worked end to end.
          It does, and they were never day-to-day numbers, so both panels
@@ -410,7 +412,7 @@ router.get('/', requireAuth, async (req, res) => {
     let previous = null;
     if (prevQuery) {
       const [pVisitors, pCheckouts, pOrders, pRevenueAgg] = await Promise.all([
-        Event.distinct('ip', { type: 'page_view', ...prevQuery }).then(a => a.length),
+        Event.distinct('ip', { type: 'page_view', ...HUMAN_EVENT, ...prevQuery }).then(a => a.length),
         Event.countDocuments({ type: 'checkout_click', ...prevQuery }),
         Order.countDocuments(prevOrderQuery),
         Order.aggregate([{ $match: prevOrderQuery }, { $group: { _id: null, total: { $sum: '$totalPrice' } } }]),
@@ -511,7 +513,7 @@ router.get('/', requireAuth, async (req, res) => {
 
     // Top countries by unique visitors (by IP)
     const topCountries = await Event.aggregate([
-      { $match: { type: 'page_view', country: { $nin: ['', null] }, ...query } },
+      { $match: { type: 'page_view', country: { $nin: ['', null] }, ...HUMAN_EVENT, ...query } },
       { $group: { _id: '$country', ips: { $addToSet: '$ip' } } },
       { $project: { _id: 1, views: { $size: '$ips' } } },
       { $sort: { views: -1 } },
@@ -526,7 +528,7 @@ router.get('/', requireAuth, async (req, res) => {
     const bucket = { $dateToString: { format: series.format, date: '$createdAt', timezone: series.timezone } };
     const [visitorBuckets, orderBuckets] = await Promise.all([
       Event.aggregate([
-        { $match: { type: 'page_view', createdAt: { $gte: series.start, $lt: series.end } } },
+        { $match: { type: 'page_view', ...HUMAN_EVENT, createdAt: { $gte: series.start, $lt: series.end } } },
         /* Unique visitors and raw page views per bucket in one pass: the
            Visitors panel switches between the two without another request. */
         { $group: { _id: bucket, ips: { $addToSet: '$ip' }, views: { $sum: 1 } } },

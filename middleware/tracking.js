@@ -65,6 +65,26 @@ const SITE_HOST = require('../config/site').host();
    Kept as source-of-truth here and reused by the dashboard aggregation
    (services/analytics/trafficSources.js) so the live path and the
    historical reclassification can never disagree. */
+/* Automated clients: crawlers, link previews, monitors, scripts, headless
+   browsers and AI agents. They rarely keep cookies, so each request opens a
+   fresh session and the dashboard counted every one as a new "Direct"
+   visitor. Matched case-insensitively against the User-Agent, both when a
+   page view is recorded and (via HUMAN_EVENT) when the dashboard counts, so
+   rows recorded before this list existed are excluded too. */
+const BOT_UA_PATTERN = [
+  'bot', 'spider', 'crawl', 'slurp', 'github', 'slack', 'twitter', 'facebook', 'preview', 'lighthouse',
+  'headless', 'phantomjs', 'puppeteer', 'playwright', 'selenium', 'webdriver',
+  'python', 'curl/', 'wget', 'httpclient', 'okhttp', 'axios', 'node-fetch', 'undici', 'go-http', 'java/',
+  'libwww', 'scrapy', 'feedfetcher', 'google-inspectiontool', 'googleother', 'google-read-aloud',
+  'mediapartners', 'apis-google', 'google-site-verification', 'google-shopping', 'chatgpt-user',
+  'perplexity-user', 'claude-user', 'monitor', 'uptime', 'pingdom', 'statuscake', 'checkly',
+  'bytespider', 'petalbot', 'ahrefs', 'semrush', 'mj12', 'dataforseo', 'censys', 'zgrab', 'masscan',
+].map((s) => s.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')).join('|');
+const BOT_UA = new RegExp(BOT_UA_PATTERN, 'i');
+/** Mongo condition: the event was NOT recorded from a known automated client
+    (an event with no userAgent at all still counts). */
+const HUMAN_EVENT = { userAgent: { $not: BOT_UA } };
+
 const APP_CHANNELS = [
   // Instagram and Facebook are both reported as 'Facebook', matching how
   // an instagram.com referrer is already treated above. Split them here if
@@ -196,7 +216,8 @@ function trackPageView(req, res, next) {
   // Ignore non-HTML requests, bots, and API/assets
   const isHtml = req.accepts('html');
   const userAgent = (req.get('User-Agent') || '').toLowerCase();
-  const isBot = /bot|spider|crawl|github|slack|twitter|facebook|preview|lighthouse/i.test(userAgent);
+  /* No User-Agent at all is a script, never a browser. */
+  const isBot = !userAgent || BOT_UA.test(userAgent);
   
   if (
     req.method === 'GET' &&
@@ -246,4 +267,6 @@ module.exports.isAcquisitionSource = isAcquisitionSource;
 module.exports.detectAppChannel = detectAppChannel;
 module.exports.APP_CHANNELS = APP_CHANNELS;
 module.exports.SITE_HOST = SITE_HOST;
+module.exports.BOT_UA = BOT_UA;
+module.exports.HUMAN_EVENT = HUMAN_EVENT;
 module.exports.utmFrom = utmFrom;

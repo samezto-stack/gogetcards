@@ -33,7 +33,7 @@
 /** Sources that name no acquisition channel. Order matters below. */
 const NON_ACQUISITION = ['Internal', 'Direct', 'Other', '', null];
 
-const { APP_CHANNELS } = require('../../middleware/tracking');
+const { APP_CHANNELS, HUMAN_EVENT } = require('../../middleware/tracking');
 
 /* Recovers the channel for referrer-less visits from the stored
    User-Agent, the same way middleware/tracking.js does live. Applying it
@@ -77,7 +77,7 @@ function buildTrafficSourcePipeline(match = {}, siteHost = '') {
     : { $eq: ['$source', 'Internal'] };
 
   return [
-    { $match: { type: 'page_view', ...match } },
+    { $match: { type: 'page_view', ...HUMAN_EVENT, ...match } },
 
     // Oldest first, so $push below preserves real browsing order and
     // "first touch" genuinely means the first one.
@@ -184,7 +184,7 @@ function buildDirectLandingPipeline(match = {}, siteHost = '', limit = 12) {
     : { $eq: ['$source', 'Internal'] };
 
   return [
-    { $match: { type: 'page_view', ...match } },
+    { $match: { type: 'page_view', ...HUMAN_EVENT, ...match } },
     { $sort: { createdAt: 1 } },
     {
       $addFields: {
