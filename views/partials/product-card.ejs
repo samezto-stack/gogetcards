@@ -91,8 +91,9 @@
       if (pcLine) metaBits.push(pcLine.shortName);
       /* Not "LEGO · LEGO": the vendor is skipped when it repeats the line. */
       if (product.vendor && !(pcLine && product.vendor.toLowerCase() === pcLine.shortName.toLowerCase())) metaBits.push(product.vendor);
-      /* LEGO sets are known by number ("75192"), so the card says it. */
-      if (pcLine && pcLine.kind === 'lego' && product.mpn) metaBits.push('Set ' + product.mpn);
+      /* Build lines say what identifies the box: a LEGO set number
+         ("Set 75192"), a Gunpla grade and scale ("PG 1/60"). */
+      if (pcLine && pcLine.kind === 'build' && (product.setCode || product.mpn)) metaBits.push((pcLine.setPrefix || '') + (product.setCode || product.mpn));
       /* Sports sets are known by season ("2026 Topps Chrome"), so a sports
          card says the season in its label line as well as its title. */
       if (pcLine && pcLine.kind === 'sport') {
@@ -128,7 +129,7 @@
         <% if (isPreorder) { %>
           <span>Charged today</span><span class="pc__promise-sep">&middot;</span><span>Cancel before dispatch</span>
         <% } else { %>
-          <span class="pc__promise-strong"><%= pcDispatch ? pcDispatch.label : 'Ships within 1 business day' %></span><span class="pc__promise-sep">&middot;</span><span>Factory sealed</span><span class="pc__promise-sep">&middot;</span><span>Free shipping</span>
+          <span class="pc__promise-strong"><%= pcDispatch ? pcDispatch.label : 'Ships within 1 business day' %></span><span class="pc__promise-sep">&middot;</span><span><%= (pcLine && pcLine.sealedLabel) || 'Factory sealed' %></span><span class="pc__promise-sep">&middot;</span><span>Free shipping</span>
         <% } %>
       </p>
     <% } %>

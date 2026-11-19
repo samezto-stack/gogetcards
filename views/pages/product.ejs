@@ -75,7 +75,7 @@
           <img
             id="product-main-img"
             <%- productImage.attrs(_packImg || _single, 490, '(max-width: 900px) calc(92vw - 5rem), 490px') %>
-            alt="<%= product.title %> — <%= _packImg ? 'pack of ' + _packN + ', ' : '' %>factory sealed, shown in original packaging"
+            alt="<%= product.title %><% if (((catalog.detect(product) || {}).kind) !== 'build') { %> — <%= _packImg ? 'pack of ' + _packN + ', ' : '' %>factory sealed, shown in original packaging<% } %>"
             width="900" height="900"
             fetchpriority="high"
             decoding="async"
@@ -437,11 +437,14 @@
         </a>
       <% } %>
 
+      <%/* The product's line, for wording that differs by line (a Gunpla kit
+           is new and unbuilt, not shrink-wrapped). */%>
+      <% var _ppLine = catalog.detect(product); %>
       <!-- Trust signals -->
       <div class="pp__trust-grid">
         <div class="pp__trust-item">
           <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'factory', size: 15, color: 'var(--color-text-muted)' }) %></span>
-          <span>Factory Sealed Guarantee</span>
+          <span><%= (_ppLine && _ppLine.sealedLabel) ? _ppLine.sealedLabel.replace(/^\w/, function (c) { return c.toUpperCase(); }) + ' kit' : 'Factory Sealed Guarantee' %></span>
         </div>
         <div class="pp__trust-item">
           <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'lock', size: 15, color: 'var(--color-text-muted)' }) %></span>
@@ -605,7 +608,9 @@
                description always said and what the business can stand
                behind. */
             { title: 'Distributor Sourced', desc: 'Bought through authorized distribution, not the secondary market.' },
-            { title: 'Factory Sealed', desc: 'Never opened, never resealed, never searched.' },
+            (function () { var l = catalog.detect(product); return (l && l.sealedLabel)
+              ? { title: 'New & Unbuilt', desc: 'In the original box, runners in their factory bags, never built.' }
+              : { title: 'Factory Sealed', desc: 'Never opened, never resealed, never searched.' }; })(),
             { title: 'Collector Packaging', desc: 'Shipped in a rigid outer box that protects corners and seal integrity.' },
             { title: 'Free Worldwide Shipping', desc: 'Tracked delivery on every order, at our cost, with no minimum spend.' },
             { title: 'Secure Checkout', desc: 'Payments handled entirely by established third-party processors.' }

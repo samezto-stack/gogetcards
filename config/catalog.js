@@ -14,11 +14,12 @@
  * product as belonging to it. Nothing here is copy: collection page copy
  * lives in config/collectionContent.js, keyed by the same handle.
  *
- * `kind` is 'tcg', 'sport' or 'lego'. The first two are sold the same way
+ * `kind` is 'tcg', 'sport' or 'build'. The first two are sold the same way
  * (sealed boxes, hobby boxes, cases) but described differently: a TCG line
  * has a publisher and a set; a sport line has a manufacturer, a league and
- * a season. 'lego' is sealed LEGO sets: a set number, a theme, a piece
- * count and a retirement date, and no cards at all.
+ * a season. 'build' is things you build and display, no cards at all:
+ * LEGO sets (set number, theme, retirement date) and Gunpla model kits
+ * (grade and scale).
  *
  * `googleCategory` (optional) is the Google product taxonomy id the
  * Merchant feed sends for the line's products when a product sets none of
@@ -127,8 +128,11 @@ const LINES = [
     handle: 'lego',
     name: 'LEGO Sets',
     shortName: 'LEGO',
-    kind: 'lego',
+    kind: 'build',
     publisher: 'The LEGO Group',
+    deptSub: 'Sealed sets',
+    /* Card label prefix for set_code: "Set 75192". */
+    setPrefix: 'Set ',
     description: 'Sealed adult and collector sets, including sets retiring this year',
     accent: '#D6A419',
     badgeClass: 'brand-badge--lego',
@@ -138,6 +142,29 @@ const LINES = [
     /* 'lego' only. Theme names (Star Wars, Batman, Jurassic World) also
        appear in card products' titles and would claim them. */
     match: ['lego'],
+  },
+  /* Bandai Gunpla model kits (November 2026). The Gundam Card Game line
+     was dropped the same week, so 'gundam' in a title now means a kit. */
+  {
+    handle: 'gunpla',
+    name: 'Gunpla Model Kits',
+    shortName: 'Gunpla',
+    kind: 'build',
+    publisher: 'Bandai Spirits',
+    deptSub: 'Bandai kits',
+    /* set_code carries grade and scale ("PG 1/60"), shown as is. */
+    setPrefix: '',
+    /* Kit boxes are not shrink-wrapped (the runners are bagged), so the
+       store-wide "factory sealed" wording is replaced for this line. */
+    sealedLabel: 'New & unbuilt',
+    description: 'Perfect Grade, Master Grade and Real Grade Gundam kits',
+    accent: '#3B5BA9',
+    badgeClass: 'brand-badge--gunpla',
+    icon: 'gunpla.svg',
+    /* Arts & Entertainment > Hobbies & Creative Arts > Model Making >
+       Scale Model Kits. */
+    googleCategory: '4175',
+    match: ['gunpla', 'gundam', 'model kit'],
   },
 ];
 
@@ -154,7 +181,7 @@ function all() {
   return LINES;
 }
 
-/** The lines of one kind: 'tcg', 'sport' or 'lego'. */
+/** The lines of one kind: 'tcg', 'sport' or 'build'. */
 function ofKind(kind) {
   return LINES.filter((l) => l.kind === kind);
 }

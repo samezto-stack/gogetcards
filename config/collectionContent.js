@@ -258,6 +258,27 @@ const collections = {
       { q: 'Is GoGetCards part of LEGO?', a: 'No. GoGetCards is an independent retailer. LEGO® is a trademark of the LEGO Group, which does not sponsor, authorize or endorse this store.' },
     ],
   },
+
+  /* Gunpla (November 2026). Grade and scale facts are Bandai's own
+     published definitions; no dealer claim and no "sealed" claim (kit
+     boxes are not shrink-wrapped, the runners are bagged). */
+  gunpla: {
+    intro:
+      'Bandai Gunpla model kits from the Gundam series: Perfect Grade, Master Grade and Real Grade. Every kit is new and unbuilt, in its original Bandai box with the runners in their factory bags, and every listing gives the grade, the scale and the JAN barcode printed on the box.',
+    guide: {
+      title: 'How Gunpla grades compare',
+      body: [
+        'Bandai sorts Gunpla by grade. Real Grade (RG) kits are 1/144 scale, about 13 cm tall, with an inner frame and fine detail in a small model. Master Grade (MG) kits are 1/100, about 18 cm, with a full inner frame and moving parts; Master Grade EX (MGEX) is the premium tier of the line. Perfect Grade (PG) kits are 1/60, about 30 cm, and the largest and most detailed Bandai makes.',
+        'Every grade is snap-fit: no glue is needed, and the kit builds from numbered runners following the manual. Side cutters and a hobby knife make the build cleaner; paint and panel lining are optional.',
+        'Bandai\'s own grade and scale are printed on the front of every box, and the JAN barcode on the side, so the kit you receive can be checked against the listing before it is opened.',
+      ],
+    },
+    faqs: [
+      { q: 'Do I need glue or paint?', a: 'No. Gunpla kits snap together and the plastic is molded in colour. Cutters help, and paint is optional.' },
+      { q: 'Which grade should I start with?', a: 'Real Grade or Master Grade. Perfect Grade kits are the largest and take the longest to build.' },
+      { q: 'Is the kit built?', a: 'No. Every kit ships new and unbuilt, in the original Bandai box with the runners in their factory bags.' },
+    ],
+  },
 };
 
 module.exports = {

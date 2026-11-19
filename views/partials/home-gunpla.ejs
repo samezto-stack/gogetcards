@@ -1,0 +1,54 @@
+<%
+  /* The Gunpla shelf: Bandai model kits on a navy band, after LEGO.
+     Renders nothing until Gunpla products are in the catalogue.
+
+     Gunpla is bought by grade first (how big, how detailed, how hard), so
+     the section leads with the three grades as a key, each linking to the
+     collection filtered by that tag. Copy rules: no claim the store is a
+     Bandai dealer, and no "sealed" claim (kit boxes are not shrink-wrapped;
+     the runners are bagged). */
+  var gs = (typeof gunplaShelf !== 'undefined' && gunplaShelf) ? gunplaShelf : [];
+  var gt = (typeof gunplaTotal !== 'undefined' && gunplaTotal) ? gunplaTotal : gs.length;
+  var GRADES = [
+    { tag: 'pg', code: 'PG', name: 'Perfect Grade', note: '1/60 · about 30 cm · the most parts' },
+    { tag: 'mg', code: 'MG', name: 'Master Grade', note: '1/100 · about 18 cm · full inner frame' },
+    { tag: 'rg', code: 'RG', name: 'Real Grade', note: '1/144 · about 13 cm · fine detail, small' },
+  ];
+%>
+<% if (gs.length) { %>
+<section class="gg-gunpla" id="gunpla-shelf" aria-labelledby="gunpla-h">
+  <div class="container">
+    <div class="gg-head">
+      <div>
+        <p class="gg-kicker gg-kicker--light">Model kits</p>
+        <h2 class="gg-h2 gg-gunpla__h" id="gunpla-h">Gunpla</h2>
+      </div>
+      <p class="gg-head__aside gg-gunpla__aside">Bandai Gundam kits, new and unbuilt, with the grade, scale and barcode on every listing.</p>
+    </div>
+
+    <ul class="gg-gunpla__grades" aria-label="Gunpla grades">
+      <% GRADES.forEach(function (g) { %>
+      <li>
+        <a href="<%= marketPath('/collection/gunpla') %>?q=<%= g.code %>" class="gg-gunpla__grade">
+          <span class="gg-gunpla__code"><%= g.code %></span>
+          <span class="gg-gunpla__gtxt"><strong><%= g.name %></strong><span><%= g.note %></span></span>
+        </a>
+      </li>
+      <% }); %>
+    </ul>
+
+    <div class="gg-grid">
+      <% gs.forEach(function (product) { %>
+        <div class="gg-grid__cell">
+          <%- include('product-card', { product: product, atcLabel: true }) %>
+        </div>
+      <% }); %>
+    </div>
+
+    <div class="gg-gunpla__foot">
+      <a href="<%= marketPath('/collection/gunpla') %>" class="gg-link gg-link--light" id="gunpla-view-all">Shop all <%= gt %> Gunpla <%= gt === 1 ? 'kit' : 'kits' %> <span aria-hidden="true">→</span></a>
+      <p class="gg-gunpla__tm">Gundam and Gunpla are trademarks of Sotsu and Sunrise and of Bandai. GoGetCards is an independent retailer.</p>
+    </div>
+  </div>
+</section>
+<% } %>

@@ -260,7 +260,7 @@ router.get('/', async (req, res) => {
        One pool of sellable products in the store's own ranking (Featured,
        then newest release, then newest added). Each section takes from it
        in turn and records what it showed, so a product appears once on the
-       page. `_family` is the catalogue line's kind: 'sport', 'tcg' or 'lego'. */
+       page. `_family` is the catalogue line's kind: 'sport', 'tcg' or 'build'. */
     const pool = await Product.find({ available: true, price: { $gt: 0 } })
       .sort({ featured: -1, releaseDate: -1, createdAt: -1 })
       .limit(200)
@@ -319,9 +319,14 @@ router.get('/', async (req, res) => {
 
     /* The LEGO shelf: sealed sets, those retiring soonest first, then the
        priciest. Rendered only once LEGO products exist. */
-    const legoAll = pool.filter((p) => p._family === 'lego' && !isPre(p));
+    const legoAll = pool.filter((p) => p._line === 'lego' && !isPre(p));
     const legoShelf = pick([...legoAll].sort((a, b) => (b.featured === true) - (a.featured === true) || b.price - a.price), 8);
     const legoTotal = legoAll.length;
+
+    /* The Gunpla shelf: kits, Perfect Grade and Featured first. */
+    const gunplaAll = pool.filter((p) => p._line === 'gunpla' && !isPre(p));
+    const gunplaShelf = pick([...gunplaAll].sort((a, b) => (b.featured === true) - (a.featured === true) || b.price - a.price), 8);
+    const gunplaTotal = gunplaAll.length;
 
     /* On the calendar: genuine upcoming releases, soonest first. */
     const calendar = pool.filter(isPre).sort((a, b) => new Date(a.releaseDate || 0) - new Date(b.releaseDate || 0)).slice(0, 6);
@@ -340,7 +345,7 @@ router.get('/', async (req, res) => {
     renderPage(res, 'home', {
       pageTitle: 'GoGetCards — Sealed Sports Cards & Trading Card Games',
       metaDescription: `Factory-sealed sports card hobby boxes and trading card game booster boxes: ${catalog.listNames(catalog.all(), 'shortName')}. Free tracked shipping on every order.`,
-      heroSport, heroTcg, justLanded, hobbyLead, hobbyRows, sportTotal, tcgShelf, legoShelf, legoTotal, calendar, departments, formats, priceBands,
+      heroSport, heroTcg, justLanded, hobbyLead, hobbyRows, sportTotal, tcgShelf, legoShelf, legoTotal, gunplaShelf, gunplaTotal, calendar, departments, formats, priceBands,
       shipDispatch: shipping.DISPATCH,
       pageCss: 'home',
       bodyClass: 'page-home',

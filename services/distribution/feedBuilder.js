@@ -522,7 +522,7 @@ function campaignOf(product) {
   const line = require('../../config/catalog').detect(product);
   if (!line) return 'other';
   if (line.kind === 'sport') return 'sports';
-  if (line.kind === 'lego') return 'lego';
+  if (line.kind === 'build') return line.handle;
   return CAMPAIGN_OF_LINE[line.handle] || 'other';
 }
 
