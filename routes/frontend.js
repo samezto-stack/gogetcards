@@ -1265,6 +1265,9 @@ router.get('/products/:slug', async (req, res) => {
 router.get('/collection/:handle', async (req, res) => {
   try {
     const handle = req.params.handle;
+    /* A line the store no longer carries: send the visitor (and any
+       crawler) to the full catalogue rather than an empty page. */
+    if (catalog.RETIRED_HANDLES.includes(handle)) return res.redirect(301, withQuery(req, '/collection/all'));
     let query = {};
     let collectionTitle = 'All Products';
     let collectionDescription = '';

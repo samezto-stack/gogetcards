@@ -114,6 +114,8 @@
               <dt><%= c.header %><% if (c.required) { %> <span class="admin-tag admin-tag--navy">required</span><% } %></dt>
               <dd><%= c.hint %></dd>
             <% }); %>
+              <dt>delete</dt>
+              <dd>true permanently deletes the product matched by handle (or sku); the rest of the row is ignored. Not in the template or exports: type the column in on purpose. The preview lists every deletion before anything happens.</dd>
           </dl>
           <p class="small muted" style="margin-top:10px">Lists inside a cell (images, specs, collections, tags) are separated by a vertical bar <code class="admin-code">|</code>. true/false cells also accept yes/no and 1/0. Prices are written the way you would say them: 149.97, not 14997.</p>
         </div>
@@ -148,7 +150,7 @@
       function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 
       function tagFor(action) {
-        var map = { create: 'admin-tag admin-tag--ok', update: 'admin-tag admin-tag--info', error: 'admin-tag admin-tag--crit' };
+        var map = { create: 'admin-tag admin-tag--ok', update: 'admin-tag admin-tag--info', 'delete': 'admin-tag admin-tag--crit', error: 'admin-tag admin-tag--crit' };
         return el('span', map[action] || 'admin-tag', action);
       }
 
@@ -162,7 +164,8 @@
           result.classList.add('is-shown');
           return;
         }
-        [['create', 'to create'], ['update', 'to update'], ['error', 'with errors']].forEach(function (pair) {
+        [['create', 'to create'], ['update', 'to update'], ['delete', 'to DELETE'], ['error', 'with errors']].forEach(function (pair) {
+          if (pair[0] === 'delete' && !p.summary['delete']) return;
           var s = el('span'); s.appendChild(el('b', null, String(p.summary[pair[0]]))); s.appendChild(document.createTextNode(' ' + pair[1])); counts.appendChild(s);
         });
         if (p.unknownColumns && p.unknownColumns.length) {
@@ -181,9 +184,10 @@
           tr.appendChild(notes);
           rowsEl.appendChild(tr);
         });
-        var importable = p.summary.create + p.summary.update;
+        var dels = p.summary['delete'] || 0;
+        var importable = p.summary.create + p.summary.update + dels;
         applyBtn.disabled = importable === 0;
-        applyNote.textContent = importable === 0 ? 'Nothing to import yet.' : 'Imports ' + importable + ' row' + (importable === 1 ? '' : 's') + '; ' + p.summary.error + ' with errors will be skipped.';
+        applyNote.textContent = importable === 0 ? 'Nothing to import yet.' : 'Imports ' + importable + ' row' + (importable === 1 ? '' : 's') + (dels ? ', including ' + dels + ' permanent deletion' + (dels === 1 ? '' : 's') : '') + '; ' + p.summary.error + ' with errors will be skipped.';
         result.classList.add('is-shown');
       }
 
@@ -206,12 +210,14 @@
 
       applyBtn.addEventListener('click', async function () {
         if (!plan) return;
-        var n = plan.summary.create + plan.summary.update;
-        if (!window.confirm('Import ' + n + ' row' + (n === 1 ? '' : 's') + ' now? Existing products matched by handle or SKU will be overwritten by the columns in the file.')) return;
+        var d = plan.summary['delete'] || 0;
+        var n = plan.summary.create + plan.summary.update + d;
+        if (!window.confirm('Import ' + n + ' row' + (n === 1 ? '' : 's') + ' now? Existing products matched by handle or SKU will be overwritten by the columns in the file.' + (d ? '\n\n' + d + ' product' + (d === 1 ? '' : 's') + ' will be PERMANENTLY DELETED. This cannot be undone.' : ''))) return;
         applyBtn.disabled = true; applyNote.textContent = 'Importing…';
         var data = await post('/admin/products/import', csvBox.value);
         if (data.error && data.created == null) { applyNote.textContent = data.error; applyBtn.disabled = false; return; }
         var parts = [data.created + ' created', data.updated + ' updated'];
+        if (data.deleted) parts.push(data.deleted + ' deleted');
         if (data.skipped) parts.push(data.skipped + ' skipped');
         if (data.failed && data.failed.length) parts.push(data.failed.length + ' failed');
         done.textContent = 'Done: ' + parts.join(', ') + '.';

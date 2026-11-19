@@ -313,10 +313,16 @@ function offGrid(priceText) {
  */
 function plan(text, { lookup, knownCollections = null } = {}) {
   const table = parseCsv(text);
-  if (!table.length) return { columns: [], unknownColumns: [], rows: [], summary: { create: 0, update: 0, error: 0, total: 0 }, headerError: 'The file is empty.' };
-  const { columns, unknown } = resolveHeaders(table[0]);
+  if (!table.length) return { columns: [], unknownColumns: [], rows: [], summary: { create: 0, update: 0, delete: 0, error: 0, total: 0 }, headerError: 'The file is empty.' };
+  const resolved = resolveHeaders(table[0]);
+  const columns = resolved.columns;
+  /* `delete` is a control column, not a product field: it is never
+     exported or templated, so a file can only delete when someone typed
+     the column in on purpose. */
+  const deleteIndex = table[0].findIndex((h) => normaliseHeader(h) === 'delete');
+  const unknown = resolved.unknown.filter((h) => normaliseHeader(h) !== 'delete');
   if (!columns.some((c) => c.column.key === 'title') && !columns.some((c) => c.column.key === 'handle')) {
-    return { columns, unknownColumns: unknown, rows: [], summary: { create: 0, update: 0, error: 0, total: 0 },
+    return { columns, unknownColumns: unknown, rows: [], summary: { create: 0, update: 0, delete: 0, error: 0, total: 0 },
       headerError: 'The first row must be a header with at least a "title" column. Download the template to see the expected headers.' };
   }
 
@@ -337,6 +343,20 @@ function plan(text, { lookup, knownCollections = null } = {}) {
 
     const existing = lookup ? (lookup({ slug: handle || null, sku: sku || null }) || null) : null;
     if (!handle) handle = existing ? existing.slug : slugify(title);
+
+    /* A delete row: delete=true removes the matched product outright, and
+       nothing else in the row is read. Only an exact handle or SKU match
+       is deleted; a row that matches nothing is an error, never a guess. */
+    const delCell = deleteIndex === -1 ? '' : String(cells[deleteIndex] == null ? '' : cells[deleteIndex]).trim().toLowerCase();
+    if (delCell && delCell !== 'false' && delCell !== 'no') {
+      if (!['true', 'yes'].includes(delCell)) errors.push(`delete "${delCell}" must be true or blank`);
+      if (!existing) errors.push(`delete: no product with handle "${handle}"${sku ? ` or SKU "${sku}"` : ''}`);
+      if (seen.has(handle)) errors.push(`handle "${handle}" is already used on row ${seen.get(handle)}`);
+      else if (handle) seen.set(handle, line);
+      rows.push({ line, handle, title: (existing && existing.title) || title || '', action: errors.length ? 'error' : 'delete',
+        existingId: existing ? String(existing._id) : null, body: null, errors, warnings });
+      continue;
+    }
 
     if (!existing && !title) errors.push('title is required for a new product');
     if (!handle) errors.push('no handle and no title to make one from');
@@ -382,7 +402,7 @@ function plan(text, { lookup, knownCollections = null } = {}) {
       existingId: existing ? String(existing._id) : null, body, errors, warnings });
   }
 
-  const summary = { create: 0, update: 0, error: 0, total: rows.length };
+  const summary = { create: 0, update: 0, delete: 0, error: 0, total: rows.length };
   for (const r of rows) summary[r.action]++;
   return { columns: columns.map((c) => c.column.header), unknownColumns: unknown, rows, summary, headerError: null };
 }

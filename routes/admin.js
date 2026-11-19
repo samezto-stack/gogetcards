@@ -1347,9 +1347,18 @@ router.post('/products/import', requireAuth, csvBody, async (req, res) => {
     const out = productCsv.plan(text, { lookup, knownCollections });
     if (out.headerError) return res.status(400).json({ error: out.headerError });
 
-    const result = { created: 0, updated: 0, skipped: 0, failed: [] };
+    const result = { created: 0, updated: 0, deleted: 0, skipped: 0, failed: [] };
     for (const row of out.rows) {
       if (row.action === 'error') { result.skipped++; continue; }
+      if (row.action === 'delete') {
+        try {
+          await Product.findByIdAndDelete(row.existingId);
+          result.deleted++;
+        } catch (err) {
+          result.failed.push({ line: row.line, handle: row.handle, title: row.title, error: (err.message || 'could not be deleted').slice(0, 300) });
+        }
+        continue;
+      }
       try {
         const data = parseProductBody(row.body);
         if (row.action === 'update') {
@@ -1364,7 +1373,7 @@ router.post('/products/import', requireAuth, csvBody, async (req, res) => {
         result.failed.push({ line: row.line, handle: row.handle, title: row.title, error: msg });
       }
     }
-    console.log(`[admin] product csv import: ${result.created} created, ${result.updated} updated, ${result.skipped} skipped, ${result.failed.length} failed`);
+    console.log(`[admin] product csv import: ${result.created} created, ${result.updated} updated, ${result.deleted} deleted, ${result.skipped} skipped, ${result.failed.length} failed`);
     res.json(result);
   } catch (err) {
     console.error('[admin] product csv import failed:', err.message);

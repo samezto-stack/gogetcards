@@ -5,8 +5,8 @@
  * the header nav, the mobile nav, the hero chips, the home-page collection
  * grid, the footer Shop column, the brand badge, the product-card meta line,
  * the sitemap and the seed script. Nine copies of the same four names, and
- * adding a line meant finding all nine. GoGetCards sells seven lines across
- * two kinds of product (trading card games and sports cards), and will add
+ * adding a line meant finding all nine. GoGetCards sells several lines across
+ * a few kinds of product (trading card games and sports cards), and will add
  * more, so every surface now reads this list.
  *
  * Each entry is one collection handle (`/collection/<handle>`) plus what the
@@ -78,44 +78,6 @@ const LINES = [
     icon: 'lorcana.svg',
     match: ['lorcana', 'ravensburger'],
   },
-  /* Shared with Zyphera TCG's catalogue (November 2026) so the two stores
-     can carry the same products: GoGetCards advertises them in the US. */
-  {
-    handle: 'yugioh',
-    name: 'Yu-Gi-Oh!',
-    shortName: 'Yu-Gi-Oh!',
-    kind: 'tcg',
-    publisher: 'Konami',
-    description: 'Booster boxes, box sets and premium collections',
-    accent: '#A36B12',
-    badgeClass: 'brand-badge--yugioh',
-    icon: 'yugioh.svg',
-    match: ['yu-gi-oh', 'yugioh', 'konami'],
-  },
-  {
-    handle: 'riftbound',
-    name: 'Riftbound',
-    shortName: 'Riftbound',
-    kind: 'tcg',
-    publisher: 'Riot Games',
-    description: 'League of Legends booster displays and preorders',
-    accent: '#2F7FC1',
-    badgeClass: 'brand-badge--riftbound',
-    icon: 'riftbound.svg',
-    match: ['riftbound', 'riot games'],
-  },
-  {
-    handle: 'gundam',
-    name: 'Gundam Card Game',
-    shortName: 'Gundam',
-    kind: 'tcg',
-    publisher: 'Bandai',
-    description: 'English booster boxes from each new set',
-    accent: '#4A5568',
-    badgeClass: 'brand-badge--gundam',
-    icon: 'gundam.svg',
-    match: ['gundam'],
-  },
   {
     handle: 'baseball',
     name: 'Baseball',
@@ -181,6 +143,12 @@ const LINES = [
 
 const BY_HANDLE = Object.fromEntries(LINES.map((l) => [l.handle, l]));
 
+/* Lines the store has stopped carrying (November 2026: Yu-Gi-Oh!,
+   Riftbound and the Gundam Card Game, five products between them). Their
+   collection URLs redirect to the full catalogue rather than 404, so
+   links and search results that still point at them land somewhere. */
+const RETIRED_HANDLES = ['yugioh', 'riftbound', 'gundam'];
+
 /** Every line, in display order. */
 function all() {
   return LINES;
@@ -228,4 +196,4 @@ function listNames(lines = LINES, key = 'name') {
   return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 }
 
-module.exports = { LINES, all, ofKind, byHandle, handles, detect, listNames };
+module.exports = { LINES, RETIRED_HANDLES, all, ofKind, byHandle, handles, detect, listNames };

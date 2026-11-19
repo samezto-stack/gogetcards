@@ -47,7 +47,7 @@ test('plan: a new row needs a title and a price, and matches an existing product
   ].join('\n');
   const out = csv.plan(text, { lookup, knownCollections: new Set(['pokemon', 'mtg']) });
   assert.equal(out.headerError, null);
-  assert.deepEqual(out.summary, { create: 1, update: 1, error: 2, total: 4 });
+  assert.deepEqual(out.summary, { create: 1, update: 1, delete: 0, error: 2, total: 4 });
   const [upd, cre, bad, dup] = out.rows;
   assert.equal(upd.action, 'update');
   assert.equal(upd.existingId, 'abc');
