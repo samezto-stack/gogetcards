@@ -108,7 +108,10 @@ module.exports = {
   // Facts that are true regardless of scale, so they render by default.
   constants: {
     factorySealedPct: '100%',
-    linesStocked: 7,        // four TCGs and three sports, see config/catalog.js
+    /* Counted from config/catalog.js, so adding or dropping a line can
+       never leave the About page with a stale number (it said 7 after
+       LEGO and Gunpla made it 9). */
+    get linesStocked() { return require('./catalog').all().length; },
   },
 
   // Real people only. Each entry: { name, role, bio }.

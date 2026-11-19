@@ -41,17 +41,22 @@
             GoGetCards is an independent retailer of sealed trading card product:
             Pokémon, Magic: The Gathering, One Piece and Disney Lorcana booster boxes,
             cases and elite trainer boxes, and Topps and Panini baseball, basketball and
-            football hobby boxes, plus preorders on sets before they release.
+            football hobby boxes, plus preorders on sets before they release. We also
+            stock LEGO sets for adult collectors, including retired sets, and Bandai
+            Gunpla model kits.
           </p>
           <p style="margin-top:1rem">
-            We buy through authorized distribution and nowhere else. Not the secondary
-            market, not liquidation lots, not private sellers, not marketplaces where
-            a product's history cannot be established. Where a set is allocated and we
-            cannot get enough of it, we list what we were allocated and stop, rather
-            than filling the gap from somewhere we would not want to name.
+            Card product is bought through authorized distribution and nowhere else. Not
+            the secondary market, not liquidation lots, not private sellers, not
+            marketplaces where a product's history cannot be established. Where a set is
+            allocated and we cannot get enough of it, we list what we were allocated and
+            stop, rather than filling the gap from somewhere we would not want to name.
+            Retired LEGO sets are no longer sold by LEGO, so they come from existing stock;
+            every LEGO and Gunpla listing gives the set number or grade and the barcode on
+            the box, so you can check what arrives.
           </p>
           <p style="margin-top:1rem">
-            Nothing we ship has been opened, weighed, searched or resealed. Weighing
+            No card product we ship has been opened, weighed, searched or resealed. Weighing
             is worth naming specifically: it is the technique that identifies searched
             product, and it is also the technique that creates it. We do not do it and
             we do not buy from anyone we believe does.
@@ -72,10 +77,10 @@
           var st = company.stats, ct = company.constants;
           var statCards = [];
           if (st.ordersDelivered)     statCards.push({ icon:'package',  num: st.ordersDelivered,      label:'Orders Delivered' });
-          if (ct.factorySealedPct)    statCards.push({ icon:'lock',     num: ct.factorySealedPct,     label:'Factory Sealed' });
+          if (ct.factorySealedPct)    statCards.push({ icon:'lock',     num: ct.factorySealedPct,     label:'Card Product Factory Sealed' });
           if (st.averageRating)       statCards.push({ icon:'sparkles', num: st.averageRating,        label:'Average Rating' });
           if (st.yearsOperating)      statCards.push({ icon:'trophy',   num: st.yearsOperating + '+', label:'Years Operating' });
-          if (ct.linesStocked)        statCards.push({ icon:'diamond',  num: ct.linesStocked,         label:'Games & Sports Stocked' });
+          if (ct.linesStocked)        statCards.push({ icon:'diamond',  num: ct.linesStocked,         label:'Product Lines Stocked' });
           if (st.productShippedValue) statCards.push({ icon:'globe',    num: st.productShippedValue,  label:'Product Shipped' });
         %>
         <% if (statCards.length) { %>
