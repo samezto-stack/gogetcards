@@ -448,11 +448,11 @@
         </div>
         <div class="pp__trust-item">
           <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'lock', size: 15, color: 'var(--color-text-muted)' }) %></span>
-          <span>Original Distributor Allocation</span>
+          <span><%= (_ppLine && _ppLine.trust) ? _ppLine.trust.idLabel : 'Original Distributor Allocation' %></span>
         </div>
         <div class="pp__trust-item">
           <span class="pp__trust-icon"><%- include('../partials/icon', { name: 'package', size: 15, color: 'var(--color-text-muted)' }) %></span>
-          <span>Ships in Original Distributor Packaging</span>
+          <span><%= (_ppLine && _ppLine.trust) ? _ppLine.trust.boxLabel : 'Ships in Original Distributor Packaging' %></span>
         </div>
         <%/* Was "Secure PayPal Checkout" on every product page. PayPal is
              not an option at this store's checkout, so that line named a
@@ -607,7 +607,8 @@
                The heading now describes the sourcing, which is what the
                description always said and what the business can stand
                behind. */
-            { title: 'Distributor Sourced', desc: 'Bought through authorized distribution, not the secondary market.' },
+            (function () { var l = catalog.detect(product); return (l && l.trust) ? l.trust.point
+              : { title: 'Distributor Sourced', desc: 'Bought through authorized distribution, not the secondary market.' }; })(),
             (function () { var l = catalog.detect(product); return (l && l.sealedLabel)
               ? { title: 'New & Unbuilt', desc: 'In the original box, runners in their factory bags, never built.' }
               : { title: 'Factory Sealed', desc: 'Never opened, never resealed, never searched.' }; })(),

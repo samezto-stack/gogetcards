@@ -133,6 +133,16 @@ const LINES = [
     deptSub: 'Sealed sets',
     /* Card label prefix for set_code: "Set 75192". */
     setPrefix: 'Set ',
+    /* Product-page trust wording for this line. The store-wide lines
+       ("Original Distributor Allocation", "Bought through authorized
+       distribution, not the secondary market") describe card product and
+       cannot be true of a retired LEGO set, which LEGO no longer sells.
+       These say only what every listing shows. */
+    trust: {
+      idLabel: 'Set number & barcode listed',
+      boxLabel: 'Ships in its original box',
+      point: { title: 'Independent Retailer', desc: 'Not affiliated with the LEGO Group. Every listing gives the set number and the barcode on the box, so you can check what arrives.' },
+    },
     description: 'Sealed adult and collector sets, including sets retiring this year',
     accent: '#D6A419',
     badgeClass: 'brand-badge--lego',
@@ -157,6 +167,11 @@ const LINES = [
     /* Kit boxes are not shrink-wrapped (the runners are bagged), so the
        store-wide "factory sealed" wording is replaced for this line. */
     sealedLabel: 'New & unbuilt',
+    trust: {
+      idLabel: 'Grade, scale & barcode listed',
+      boxLabel: 'Ships in its original Bandai box',
+      point: { title: 'Independent Retailer', desc: 'Not affiliated with Bandai. Every listing gives the grade, the scale and the JAN barcode on the box, so you can check what arrives.' },
+    },
     description: 'Perfect Grade, Master Grade and Real Grade Gundam kits',
     accent: '#3B5BA9',
     badgeClass: 'brand-badge--gunpla',

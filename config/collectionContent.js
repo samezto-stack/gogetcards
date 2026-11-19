@@ -26,7 +26,7 @@ const shipping = require('./shipping');
 const collections = {
   all: {
     intro:
-      'Every sealed product currently allocated to GoGetCards: Pokémon, Magic: The Gathering, One Piece and Disney Lorcana on the trading card game side, and Topps and Panini baseball, basketball and football hobby boxes on the sports side. Nothing here is opened, weighed, searched or resold from a secondary marketplace. Stock comes through authorized distribution and ships in the state it arrived in.',
+      'Everything GoGetCards stocks: Pokémon, Magic: The Gathering, One Piece and Disney Lorcana on the trading card game side; Topps and Panini baseball, basketball and football hobby boxes on the sports side; and LEGO sets and Bandai Gunpla kits. Card product is never opened, weighed or searched, comes through authorized distribution and ships in the state it arrived in. LEGO and Gunpla listings give the set number or grade and the barcode on the box.',
     guide: {
       title: 'How sealed product is sold',
       body: [

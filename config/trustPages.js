@@ -62,13 +62,17 @@ const PAGES = {
     nav: 'Authenticity Guarantee',
     group: 'guarantees',
     description:
-      'How GoGetCards sources sealed trading card product, what our authenticity guarantee covers, and what happens if a product is ever not what we said it was.',
+      'How GoGetCards sources sealed trading card product, LEGO sets and Gunpla kits, what our authenticity guarantee covers, and what happens if a product is ever not what we said it was.',
     intro:
       'Counterfeit and resealed sealed product is the single biggest risk in this category, and the honest answer to "how do I know this is real" is not a badge on a website. It is where the product came from.',
     sections: [
       s('Where our stock comes from',
-        p('Every product we list is bought through authorized distribution: the distributors that publishers and manufacturers supply directly. We do not buy sealed product on the secondary market, from liquidation lots, from unverified private sellers, or from marketplaces where provenance cannot be established.'),
+        p('Every trading card and sports card product we list is bought through authorized distribution: the distributors that publishers and manufacturers supply directly. We do not buy sealed card product on the secondary market, from liquidation lots, from unverified private sellers, or from marketplaces where provenance cannot be established.'),
         p('That is a commercial constraint as much as an ethical one. It means we sometimes cannot get a set that is trading well, and we would rather list nothing than list something whose history we cannot account for.')),
+      s('LEGO sets and Gunpla kits',
+        p('The paragraphs above describe card product. LEGO sets and Bandai Gunpla kits are a separate part of the store, and we describe them separately rather than stretch the same words over them.'),
+        p('Retired LEGO sets are no longer made or sold by LEGO, so they come from existing stock, not from LEGO\'s current distribution. That is true of every retired set from every seller, and it is why each LEGO listing gives the set number and the barcode printed on the box, and each Gunpla listing gives the grade, the scale and the JAN barcode: you can check the box you receive against the listing before you open it.'),
+        p('The promise in "If we ever get it wrong" below applies to LEGO sets and Gunpla kits exactly as it does to cards.')),
       s('What the guarantee covers',
         ul(
           'Every product is genuine, manufacturer-produced stock, sold in the condition described on its listing.',
@@ -81,7 +85,7 @@ const PAGES = {
         p(`Email ${b.supportEmail} with your order number and photographs. We will tell you what we think and what we intend to do about it within ${b.responseTimeHours} hours.`)),
       s('What we will not claim',
         p('We do not grade, authenticate or certify individual cards, and we do not guarantee what is inside a sealed product. Pull rates are set by the manufacturer and are a matter of chance. Nobody can promise you a hit, and any seller who does is telling you something they cannot know.'),
-        p('We also do not describe ourselves as an official, authorized or licensed retailer of any publisher. We are an independent retailer that buys through authorized distribution, which is a different and smaller claim, and it is the true one.')),
+        p('We also do not describe ourselves as an official, authorized or licensed retailer of any publisher. We are an independent retailer that buys card product through authorized distribution, which is a different and smaller claim, and it is the true one. GoGetCards is not affiliated with the LEGO Group or with Bandai either.')),
     ],
   },
 
