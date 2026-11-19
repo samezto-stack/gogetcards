@@ -320,7 +320,15 @@ function plan(text, { lookup, knownCollections = null } = {}) {
      exported or templated, so a file can only delete when someone typed
      the column in on purpose. */
   const deleteIndex = table[0].findIndex((h) => normaliseHeader(h) === 'delete');
-  const unknown = resolved.unknown.filter((h) => normaliseHeader(h) !== 'delete');
+  /* add_tags / remove_tags change single tags and keep the rest, where a
+     `tags` column replaces the whole list. That is what an ad-set file
+     needs: put `ads-launch` on twenty products without knowing, or
+     overwriting, whatever else each one is tagged with. Control columns
+     like `delete`: never exported, never in the template. */
+  const addTagsIndex = table[0].findIndex((h) => normaliseHeader(h) === 'add_tags');
+  const removeTagsIndex = table[0].findIndex((h) => normaliseHeader(h) === 'remove_tags');
+  const CONTROL = ['delete', 'add_tags', 'remove_tags'];
+  const unknown = resolved.unknown.filter((h) => !CONTROL.includes(normaliseHeader(h)));
   if (!columns.some((c) => c.column.key === 'title') && !columns.some((c) => c.column.key === 'handle')) {
     return { columns, unknownColumns: unknown, rows: [], summary: { create: 0, update: 0, delete: 0, error: 0, total: 0 },
       headerError: 'The first row must be a header with at least a "title" column. Download the template to see the expected headers.' };
@@ -364,6 +372,16 @@ function plan(text, { lookup, knownCollections = null } = {}) {
     else if (handle) seen.set(handle, line);
 
     const body = rowToBody(cells, columns, existing);
+    const cellAt = (i) => (i === -1 ? '' : String(cells[i] == null ? '' : cells[i]));
+    const adds = list(cellAt(addTagsIndex));
+    const removes = list(cellAt(removeTagsIndex)).map((t) => t.toLowerCase());
+    if (adds.length || removes.length) {
+      if (columns.some((c) => c.column.key === 'tags')) warnings.push('add_tags / remove_tags are applied after the tags column');
+      const current = list(String(body.tags == null ? '' : body.tags).replace(/,\s*/g, '|'));
+      const next = current.filter((t) => !removes.includes(t.toLowerCase()));
+      for (const t of adds) if (!next.some((x) => x.toLowerCase() === t.toLowerCase())) next.push(t);
+      body.tags = next.join(', ');
+    }
     body.slug = handle;
 
     const price = body.price;

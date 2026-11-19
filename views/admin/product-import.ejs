@@ -114,6 +114,10 @@
               <dt><%= c.header %><% if (c.required) { %> <span class="admin-tag admin-tag--navy">required</span><% } %></dt>
               <dd><%= c.hint %></dd>
             <% }); %>
+              <dt>add_tags</dt>
+              <dd>Tags to add, separated by |, keeping every tag the product already has. A <code class="admin-code">tags</code> column replaces the whole list; this does not. Use it to put <code class="admin-code">ads-launch</code> on an ad set.</dd>
+              <dt>remove_tags</dt>
+              <dd>Tags to take off, separated by |, leaving the others.</dd>
               <dt>delete</dt>
               <dd>true permanently deletes the product matched by handle (or sku); the rest of the row is ignored. Not in the template or exports: type the column in on purpose. The preview lists every deletion before anything happens.</dd>
           </dl>
