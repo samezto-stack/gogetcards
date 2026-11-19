@@ -23,8 +23,8 @@
  *
  * `googleCategory` (optional) is the Google product taxonomy id the
  * Merchant feed sends for the line's products when a product sets none of
- * its own. Lines without it use config/distribution.js's default, 3793
- * (Collectible Card Games), which is wrong for a box of bricks.
+ * its own. Lines without it use config/distribution.js's default, 6997
+ * (Collectible Trading Cards), which is wrong for a box of bricks.
  */
 
 const LINES = [

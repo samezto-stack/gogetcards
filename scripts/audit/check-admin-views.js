@@ -133,7 +133,7 @@ function product(over) {
 
 const op17Box = product({
   merchant: {
-    googleCategory: '3793', lastSyncedAt: ago(2 * DAY), lastSyncStatus: 'sent',
+    googleCategory: '6997', lastSyncedAt: ago(2 * DAY), lastSyncStatus: 'sent',
     lastSyncHash: '9f1c2a7b3d4e5f60', included: { google: true }, excluded: { google: false },
   },
   marketPrices: [{ market: 'UK', amount: 12999, compareAmount: 0, available: true }],

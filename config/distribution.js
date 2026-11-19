@@ -94,13 +94,24 @@ module.exports = {
   /* Feed-wide defaults. Read by the payload builder; a product-level
      override in Product.merchant always wins. */
   defaults: {
-    /* Google Product Category
-       "Toys & Games > Games > Card Games > Collectible Card Games" is the
-       correct node for sealed TCG product. Sending the numeric id rather
-       than the path is more robust: the path text changes between taxonomy
-       revisions and the id does not. */
-    googleCategoryId: '3793',
-    googleCategoryPath: 'Toys & Games > Games > Card Games > Collectible Card Games',
+    /* Google Product Category for card product (lines with their own,
+       like LEGO and Gunpla, set it in config/catalog.js).
+
+       Was 3793, labelled here as "Collectible Card Games". Google's own
+       taxonomy file (taxonomy-with-ids.en-US.txt, checked November 2026)
+       defines 3793 as plain "Toys & Games > Games", so every card product
+       was filed as a generic game. 6997 is the node that says what they
+       are. Sending the numeric id rather than the path is more robust:
+       the path text changes between taxonomy revisions and the id does
+       not. */
+    googleCategoryId: '6997',
+    googleCategoryPath: 'Arts & Entertainment > Hobbies & Creative Arts > Collectibles > Collectible Trading Cards',
+    /* Ids that were once this default and may still be saved on products
+       (the feed auto-fixer wrote the default onto each product it fixed).
+       The feed treats them as unset, so the current default reaches every
+       product without a database edit. A category someone typed in on
+       purpose is any other id, and is sent as is. */
+    legacyCategoryIds: ['3793'],
 
     /* Content language and target country. These decide which Merchant
        Center feed the products land in, so they are not cosmetic. */

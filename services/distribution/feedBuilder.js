@@ -414,7 +414,7 @@ function build(product, { channel = 'google', market = null, country = null } = 
 
     /* The product's own category, else its line's (LEGO sets are building
        toys, not card games), else the store default. */
-    googleProductCategory: m.googleCategory || lineCategory(product) || D.googleCategoryId,
+    googleProductCategory: ownCategory(m) || lineCategory(product) || D.googleCategoryId,
     productTypes: [m.googleProductType || [product.vendor, product.productType].filter(Boolean).join(' > ')]
       .filter(Boolean),
 
@@ -507,6 +507,12 @@ function hash(payload) {
    it live would leave two definitions of "the ad set" at once. */
 const AD_TAG = 'ads-launch';
 const CAMPAIGN_OF_LINE = { pokemon: 'pokemon', mtg: 'mtg', 'one-piece': 'one_piece', lorcana: 'lorcana' };
+
+/** The product's own saved category, unless it is a retired store default. */
+function ownCategory(m) {
+  const id = String(m.googleCategory || '').trim();
+  return id && !(D.legacyCategoryIds || []).includes(id) ? id : '';
+}
 
 /** The catalogue line's Google category, when the line declares one. */
 function lineCategory(product) {
