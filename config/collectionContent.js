@@ -243,12 +243,13 @@ const collections = {
      investment claims, and no sourcing claim beyond what the store does. */
   lego: {
     intro:
-      'Sealed LEGO sets for adult builders and collectors: Star Wars Ultimate Collector Series ships, Icons, Ideas, Technic and licensed display sets, many of them expected to retire at the end of 2026. Every set ships in its original sealed box, and every listing gives the LEGO set number and the barcode printed on the box.',
+      'Sealed LEGO sets for adult builders and collectors: Star Wars Ultimate Collector Series ships, Icons, Ideas, Technic, Modular Buildings and licensed display sets. Some are expected to retire at the end of 2026; others are retired sets LEGO stopped selling years ago. Every set ships in its original sealed box, and every listing gives the LEGO set number and, where the box carries one, its barcode.',
     guide: {
       title: 'How to check a sealed LEGO set',
       body: [
         'Every LEGO set has a four- or five-digit set number printed on the front and side of the box, and a barcode on the bottom or back. Each listing here gives both, so the box you receive can be checked against the listing before it is opened.',
         'LEGO retires most sets after two to three years, and the date is not announced by LEGO itself. The dates on this page are the exit dates listed by Brickset, the fan database that tracks them, and are given as expected dates for that reason.',
+        'Retired sets are older stock, some more than ten years old. The set inside is sealed and unbuilt, but the outer box can show shelf wear from storage, so ask for photos of the actual box before ordering if its condition matters to you.',
       ],
     },
     faqs: [
