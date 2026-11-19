@@ -7,6 +7,7 @@
   var depGroups = [
     { id: 'sport', label: 'Sports cards', items: deps.filter(function (d) { return d.line.kind === 'sport'; }) },
     { id: 'tcg', label: 'Trading card games', items: deps.filter(function (d) { return d.line.kind === 'tcg'; }) },
+    { id: 'lego', label: 'Building sets', items: deps.filter(function (d) { return d.line.kind === 'lego'; }) },
   ].filter(function (g) { return g.items.length; });
   /* The big four keep the full tiles (the band was laid out for four);
      newer games are a compact "Also" line underneath rather than squeezing
@@ -19,7 +20,7 @@
   });
 %>
 <nav class="gg-dept" aria-label="Shop by department">
-  <div class="container gg-dept__inner">
+  <div class="container gg-dept__inner<%= depGroups.length > 2 ? ' gg-dept__inner--3' : '' %>">
     <% depGroups.forEach(function (g) { %>
     <div class="gg-dept__group gg-dept__group--<%= g.id %>">
       <p class="gg-dept__label"><%= g.label %></p>
@@ -28,7 +29,7 @@
         <li>
           <a href="<%= marketPath('/collection/' + d.line.handle) %>" class="gg-dept__item" style="--c:<%= d.line.accent %>" id="cat-<%= d.line.handle %>">
             <span class="gg-dept__name"><%= d.line.shortName %></span>
-            <span class="gg-dept__sub"><%= d.line.kind === 'sport' ? d.line.league : d.line.publisher %><% if (d.n) { %> · <%= d.n %><% } %></span>
+            <span class="gg-dept__sub"><%= d.line.kind === 'sport' ? d.line.league : (d.line.kind === 'lego' ? 'Sealed sets' : d.line.publisher) %><% if (d.n) { %> · <%= d.n %><% } %></span>
           </a>
         </li>
         <% }); %>

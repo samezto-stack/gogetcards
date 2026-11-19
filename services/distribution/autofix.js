@@ -101,9 +101,18 @@ function plan(product) {
   /* ── Google category ── */
   if (!product.merchant || !product.merchant.googleCategory) {
     const distribution = require('../../config/distribution');
-    changes.push(change('merchant.googleCategory', '(unset)', distribution.defaults.googleCategoryId,
-      `Set to ${distribution.defaults.googleCategoryPath}, the correct node for sealed trading card product. Leaving it unset makes Google guess, and it guesses "Toys" often enough to matter.`));
-    patch['merchant.googleCategory'] = distribution.defaults.googleCategoryId;
+    /* A line with its own category (LEGO: building toys) gets that one;
+       stamping the card-game default on a LEGO set would misfile it. */
+    const line = require('../../config/catalog').detect(product);
+    if (line && line.googleCategory) {
+      changes.push(change('merchant.googleCategory', '(unset)', line.googleCategory,
+        `Set to ${line.googleCategory}, the Google category for ${line.name}.`));
+      patch['merchant.googleCategory'] = line.googleCategory;
+    } else {
+      changes.push(change('merchant.googleCategory', '(unset)', distribution.defaults.googleCategoryId,
+        `Set to ${distribution.defaults.googleCategoryPath}, the correct node for sealed trading card product. Leaving it unset makes Google guess, and it guesses "Toys" often enough to matter.`));
+      patch['merchant.googleCategory'] = distribution.defaults.googleCategoryId;
+    }
   }
 
   return { changes, patch };

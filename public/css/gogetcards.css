@@ -181,6 +181,7 @@ ul, ol { list-style: none; }
 .brand-badge--baseball { background: #E8EEFA; color: #173A7D; border-color: #C4D2F0; }
 .brand-badge--basketball { background: #EEF0F4; color: #3F4450; border-color: #D3D7DF; }
 .brand-badge--football { background: #E9EAEE; color: #1F2026; border-color: #CFD1D8; }
+.brand-badge--lego { background: #FBF3D8; color: #7A5A08; border-color: #EBD48A; }
 
 /* --- CARDS --- */
 .card { background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: var(--radius-lg); overflow: hidden; transition: box-shadow var(--transition-normal), border-color var(--transition-normal); }

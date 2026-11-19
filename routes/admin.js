@@ -1316,7 +1316,7 @@ async function csvLookup() {
   const bySlug = new Map(all.map((p) => [p.slug, p]));
   const bySku = new Map(all.filter((p) => p.sku).map((p) => [p.sku, p]));
   const lookup = ({ slug, sku }) => (slug && bySlug.get(slug)) || (sku && bySku.get(sku)) || null;
-  const knownCollections = new Set((await Collection.find().select('handle').lean()).map((c) => c.handle));
+  const knownCollections = new Set([...(await Collection.find().select('handle').lean()).map((c) => c.handle), ...require('../config/catalog').handles()]);
   return { lookup, knownCollections };
 }
 

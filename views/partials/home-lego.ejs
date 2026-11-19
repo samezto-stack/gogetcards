@@ -1,0 +1,45 @@
+<%
+  /* The LEGO shelf: sealed sets, as their own section after the card
+     shelves. Renders nothing until LEGO products are in the catalogue, so
+     shipping this partial before the import changes nothing on the page.
+
+     Copy rules: the retirement date is Brickset's listed exit date for
+     these sets (LEGO does not publish one), so it is said as "expected";
+     nothing claims a resale value or a return; and the trademark line
+     makes plain that GoGetCards is a retailer, not LEGO. */
+  var ls = (typeof legoShelf !== 'undefined' && legoShelf) ? legoShelf : [];
+  var lt = (typeof legoTotal !== 'undefined' && legoTotal) ? legoTotal : ls.length;
+%>
+<% if (ls.length) { %>
+<section class="gg-sec gg-lego" id="lego-shelf" aria-labelledby="lego-h">
+  <div class="gg-lego__studs" aria-hidden="true"></div>
+  <div class="container">
+    <div class="gg-head">
+      <div>
+        <p class="gg-kicker">Building sets</p>
+        <h2 class="gg-h2" id="lego-h">Sealed LEGO sets</h2>
+      </div>
+      <p class="gg-head__aside">Collector and adult sets in the original sealed box, including sets expected to retire on 31 December 2026.</p>
+    </div>
+
+    <ul class="gg-lego__facts" aria-label="About these sets">
+      <li><strong>Sealed box</strong><span>Shipped as packed, never opened or rebagged</span></li>
+      <li><strong>Set number on every listing</strong><span>Check it against the box and the barcode</span></li>
+      <li><strong>Retiring 2026</strong><span>Most of this shelf leaves LEGO's own shelves at year end</span></li>
+    </ul>
+
+    <div class="gg-grid">
+      <% ls.forEach(function (product) { %>
+        <div class="gg-grid__cell">
+          <%- include('product-card', { product: product, atcLabel: true }) %>
+        </div>
+      <% }); %>
+    </div>
+
+    <div class="gg-lego__foot">
+      <a href="<%= marketPath('/collection/lego') %>" class="gg-link" id="lego-view-all">Shop all <%= lt %> LEGO <%= lt === 1 ? 'set' : 'sets' %> <span aria-hidden="true">→</span></a>
+      <p class="gg-lego__tm">LEGO® is a trademark of the LEGO Group, which does not sponsor, authorize or endorse this store.</p>
+    </div>
+  </div>
+</section>
+<% } %>

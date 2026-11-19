@@ -89,7 +89,10 @@
          nav can never disagree about what a product is. */
       var pcLine = catalog.detect(product);
       if (pcLine) metaBits.push(pcLine.shortName);
-      if (product.vendor) metaBits.push(product.vendor);
+      /* Not "LEGO · LEGO": the vendor is skipped when it repeats the line. */
+      if (product.vendor && !(pcLine && product.vendor.toLowerCase() === pcLine.shortName.toLowerCase())) metaBits.push(product.vendor);
+      /* LEGO sets are known by number ("75192"), so the card says it. */
+      if (pcLine && pcLine.kind === 'lego' && product.mpn) metaBits.push('Set ' + product.mpn);
       /* Sports sets are known by season ("2026 Topps Chrome"), so a sports
          card says the season in its label line as well as its title. */
       if (pcLine && pcLine.kind === 'sport') {

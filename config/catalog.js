@@ -14,9 +14,16 @@
  * product as belonging to it. Nothing here is copy: collection page copy
  * lives in config/collectionContent.js, keyed by the same handle.
  *
- * `kind` is 'tcg' or 'sport'. The two are sold the same way (sealed boxes,
- * hobby boxes, cases) but described differently: a TCG line has a publisher
- * and a set; a sport line has a manufacturer, a league and a season.
+ * `kind` is 'tcg', 'sport' or 'lego'. The first two are sold the same way
+ * (sealed boxes, hobby boxes, cases) but described differently: a TCG line
+ * has a publisher and a set; a sport line has a manufacturer, a league and
+ * a season. 'lego' is sealed LEGO sets: a set number, a theme, a piece
+ * count and a retirement date, and no cards at all.
+ *
+ * `googleCategory` (optional) is the Google product taxonomy id the
+ * Merchant feed sends for the line's products when a product sets none of
+ * its own. Lines without it use config/distribution.js's default, 3793
+ * (Collectible Card Games), which is wrong for a box of bricks.
  */
 
 const LINES = [
@@ -148,6 +155,28 @@ const LINES = [
     icon: 'football.svg',
     match: ['football', 'nfl'],
   },
+  /* Sealed LEGO sets (November 2026). Not a card line: its own kind, so
+     the homepage keeps it out of the sports / TCG groupings and gives it
+     a section of its own, and the feed files it under building toys.
+     "LEGO" is The LEGO Group's trademark; the store names the brand of
+     what it sells and never presents itself as LEGO (see the collection
+     copy and the homepage section, which both say so). */
+  {
+    handle: 'lego',
+    name: 'LEGO Sets',
+    shortName: 'LEGO',
+    kind: 'lego',
+    publisher: 'The LEGO Group',
+    description: 'Sealed adult and collector sets, including sets retiring this year',
+    accent: '#D6A419',
+    badgeClass: 'brand-badge--lego',
+    icon: 'lego.svg',
+    /* Toys & Games > Toys > Building Toys > Interlocking Blocks. */
+    googleCategory: '3287',
+    /* 'lego' only. Theme names (Star Wars, Batman, Jurassic World) also
+       appear in card products' titles and would claim them. */
+    match: ['lego'],
+  },
 ];
 
 const BY_HANDLE = Object.fromEntries(LINES.map((l) => [l.handle, l]));
@@ -157,7 +186,7 @@ function all() {
   return LINES;
 }
 
-/** The lines of one kind: 'tcg' or 'sport'. */
+/** The lines of one kind: 'tcg', 'sport' or 'lego'. */
 function ofKind(kind) {
   return LINES.filter((l) => l.kind === kind);
 }
